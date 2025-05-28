@@ -6,6 +6,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import EvaluationForm from './pages/EvaluationForm';
 import SelfEvaluation from './pages/SelfEvaluation';
+import LeaderEvaluation from './pages/LeaderEvaluation';
 import Reports from './pages/Reports';
 import History from './pages/History';
 import NotFound from './pages/NotFound';
@@ -31,6 +32,7 @@ function App() {
               <Route path="evaluation" element={<EvaluationForm />} />
               <Route path="evaluation/:id" element={<EvaluationForm />} />
               <Route path="self-evaluation" element={<SelfEvaluation />} />
+              <Route path="leader-evaluation" element={<LeaderEvaluation />} />
               <Route path="reports" element={<Reports />} />
               <Route path="history" element={<History />} />
               <Route path="*" element={<NotFound />} />

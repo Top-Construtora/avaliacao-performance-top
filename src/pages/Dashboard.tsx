@@ -54,7 +54,7 @@ const Dashboard = () => {
       borderColor: 'border-blue-200',
       onClick: () => navigate('/self-evaluation'),
     },
-    {
+     {
       id: 'avaliacao-lider',
       title: 'Avaliação do Líder',
       description: 'Avalie o desempenho dos colaboradores',
@@ -63,18 +63,7 @@ const Dashboard = () => {
       color: 'bg-green-500',
       bgColor: 'bg-green-50',
       borderColor: 'border-green-200',
-      onClick: () => navigate('/evaluation'),
-    },
-    {
-      id: 'avaliacao-potencial',
-      title: 'Avaliação de Potencial',
-      description: 'Avalie o potencial de crescimento dos colaboradores',
-      action: 'Avaliar potencial',
-      icon: TrendingUp,
-      color: 'bg-purple-500',
-      bgColor: 'bg-purple-50',
-      borderColor: 'border-purple-200',
-      onClick: () => navigate('/evaluation'),
+      onClick: () => navigate('/leader-evaluation'),
     },
     {
       id: 'consenso',

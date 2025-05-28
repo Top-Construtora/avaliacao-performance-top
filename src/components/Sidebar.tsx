@@ -5,6 +5,7 @@ const Sidebar = () => {
   const navigation = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { name: 'Autoavaliação', icon: User, path: '/self-evaluation' },
+    { name: 'Avaliação do Líder', icon: User, path: '/leader-evaluation' },
     { name: 'Avaliações', icon: ClipboardList, path: '/evaluation' },
     { name: 'Relatórios', icon: PieChart, path: '/reports' },
     { name: 'Histórico', icon: History, path: '/history' },
@@ -13,8 +14,8 @@ const Sidebar = () => {
   return (
     <aside className="w-16 md:w-64 h-screen bg-blue-700 dark:bg-dark-800 flex flex-col transition-colors duration-200">
       <div className="h-16 flex items-center justify-center border-b border-blue-600 dark:border-dark-700">
-        <div className="text-white text-xl font-bold hidden md:block">GG Avaliações</div>
-        <div className="text-white text-xl font-bold md:hidden">GG</div>
+        <div className="text-white text-xl font-bold hidden md:block">GIO</div>
+        <div className="text-white text-xl font-bold md:hidden"></div>
       </div>
       
       <nav className="flex-1 mt-6">
