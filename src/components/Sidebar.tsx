@@ -3,7 +3,7 @@ import { LayoutDashboard, ClipboardList, PieChart, History, User, Settings } fro
 
 const Sidebar = () => {
   const navigation = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { name: 'Página Inicial', icon: LayoutDashboard, path: '/' },
     { name: 'Autoavaliação', icon: User, path: '/self-evaluation' },
     { name: 'Avaliação do Líder', icon: User, path: '/leader-evaluation' },
     { name: 'Avaliações', icon: ClipboardList, path: '/evaluation' },
