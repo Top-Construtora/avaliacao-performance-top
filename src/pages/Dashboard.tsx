@@ -49,8 +49,8 @@ const Dashboard = () => {
       action: 'Iniciar avaliação',
       icon: User,
       color: 'bg-blue-500',
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-200',
+      bgColor: 'bg-white-50',
+      borderColor: 'border-white-200',
       onClick: () => navigate('/self-evaluation'),
     },
      {
@@ -60,8 +60,8 @@ const Dashboard = () => {
       action: 'Avaliar equipe',
       icon: Users,
       color: 'bg-green-500',
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-200',
+      bgColor: 'bg-white-50',
+      borderColor: 'border-white-200',
       onClick: () => navigate('/leader-evaluation'),
     },
     {
@@ -71,8 +71,8 @@ const Dashboard = () => {
       action: 'Definir consenso',
       icon: Target,
       color: 'bg-yellow-500',
-      bgColor: 'bg-yellow-50',
-      borderColor: 'border-yellow-200',
+      bgColor: 'bg-white-50',
+      borderColor: 'border-white-200',
       onClick: () => navigate('/evaluation'),
     },
     {
@@ -82,8 +82,8 @@ const Dashboard = () => {
       action: 'Ver matriz',
       icon: BarChart3,
       color: 'bg-indigo-500',
-      bgColor: 'bg-indigo-50',
-      borderColor: 'border-indigo-200',
+      bgColor: 'bg-white-50',
+      borderColor: 'border-white-200',
       onClick: () => navigate('/reports'),
     },
     {
@@ -94,7 +94,7 @@ const Dashboard = () => {
       icon: FileText,
       color: 'bg-orange-500',
       bgColor: 'bg-white-50',
-      borderColor: 'border-orange-200',
+      borderColor: 'border-white-200',
       onClick: () => navigate('/reports'),
     },
     {
@@ -104,8 +104,8 @@ const Dashboard = () => {
       action: 'Ver relatórios',
       icon: Award,
       color: 'bg-red-500',
-      bgColor: 'bg-red-50',
-      borderColor: 'border-red-200',
+      bgColor: 'bg-white-50',
+      borderColor: 'border-white-200',
       onClick: () => navigate('/reports'),
     },
   ];

@@ -12,8 +12,8 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-16 md:w-64 h-screen bg-blue-700 dark:bg-dark-800 flex flex-col transition-colors duration-200">
-      <div className="h-16 flex items-center justify-center border-b border-blue-600 dark:border-dark-700">
+    <aside className="w-16 md:w-64 h-screen bg-[#1f2937] flex flex-col transition-colors duration-200">
+      <div className="h-16 flex items-center justify-center border-b border-gray-700">
         <div className="text-white text-xl font-bold hidden md:block">GIO</div>
         <div className="text-white text-xl font-bold md:hidden"></div>
       </div>
@@ -27,8 +27,8 @@ const Sidebar = () => {
                 className={({ isActive }) => 
                   `flex items-center px-4 py-3 mx-2 rounded-md transition-colors duration-200 ${
                     isActive 
-                      ? 'bg-blue-800 dark:bg-dark-700 text-white' 
-                      : 'text-blue-100 dark:text-gray-300 hover:bg-blue-600 dark:hover:bg-dark-600'
+                      ? 'bg-gray-700 text-white' 
+                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                   }`
                 }
               >
@@ -41,10 +41,10 @@ const Sidebar = () => {
       </nav>
       
       <div className="p-4 mt-auto">
-        <div className="border-t border-blue-600 dark:border-dark-700 pt-4">
+        <div className="border-t border-gray-700 pt-4">
           <NavLink 
             to="/settings" 
-            className="flex items-center text-blue-100 dark:text-gray-300 px-4 py-2 hover:bg-blue-600 dark:hover:bg-dark-600 rounded-md transition-colors duration-200"
+            className="flex items-center text-gray-300 px-4 py-2 hover:bg-gray-700 hover:text-white rounded-md transition-colors duration-200"
           >
             <Settings className="w-5 h-5" />
             <span className="ml-3 hidden md:block">Configurações</span>
