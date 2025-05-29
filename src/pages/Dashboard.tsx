@@ -73,7 +73,7 @@ const Dashboard = () => {
       color: 'bg-yellow-500',
       bgColor: 'bg-white-50',
       borderColor: 'border-white-200',
-      onClick: () => navigate('/evaluation'),
+      onClick: () => navigate('/consensus'),
     },
     {
       id: 'matriz-9box',

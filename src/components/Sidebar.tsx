@@ -1,12 +1,14 @@
+// src/components/Sidebar.tsx - Atualização com Consenso
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, PieChart, History, User, Settings } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, PieChart, History, User, Settings, Target } from 'lucide-react';
 
 const Sidebar = () => {
   const navigation = [
     { name: 'Página Inicial', icon: LayoutDashboard, path: '/' },
     { name: 'Autoavaliação', icon: User, path: '/self-evaluation' },
     { name: 'Avaliação do Líder', icon: User, path: '/leader-evaluation' },
-    { name: 'Avaliações', icon: ClipboardList, path: '/evaluation' },
+    { name: 'Avaliação de Potencial', icon: User, path: '/potential-evaluation' },
+    { name: 'Consenso', icon: Target, path: '/consensus' }, // NOVA OPÇÃO
     { name: 'Relatórios', icon: PieChart, path: '/reports' },
     { name: 'Histórico', icon: History, path: '/history' },
   ];

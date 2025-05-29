@@ -4,9 +4,10 @@ import { ThemeProvider } from './context/ThemeContext';
 import { EvaluationProvider } from './context/EvaluationContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
-import EvaluationForm from './pages/EvaluationForm';
 import SelfEvaluation from './pages/SelfEvaluation';
 import LeaderEvaluation from './pages/LeaderEvaluation';
+import PotentialEvaluation from './pages/PotentialEvaluation';
+import Consensus from './pages/Consensus'; 
 import Reports from './pages/Reports';
 import History from './pages/History';
 import NotFound from './pages/NotFound';
@@ -29,10 +30,10 @@ function App() {
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
-              <Route path="evaluation" element={<EvaluationForm />} />
-              <Route path="evaluation/:id" element={<EvaluationForm />} />
               <Route path="self-evaluation" element={<SelfEvaluation />} />
               <Route path="leader-evaluation" element={<LeaderEvaluation />} />
+              <Route path="potential-evaluation" element={<PotentialEvaluation />} />
+              <Route path="consensus" element={<Consensus />} /> {/* NOVA ROTA */}
               <Route path="reports" element={<Reports />} />
               <Route path="history" element={<History />} />
               <Route path="*" element={<NotFound />} />
