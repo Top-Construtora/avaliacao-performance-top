@@ -31,14 +31,23 @@ const Sidebar = () => {
 
   return (
     <aside className={`${isCollapsed ? 'w-20' : 'w-64'} h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex flex-col transition-all duration-300 ease-in-out`}>
-      <div className="h-16 flex items-center justify-between px-4 border-b border-gray-700/50">
-        <div className={`flex items-center space-x-3 ${isCollapsed ? 'justify-center' : ''}`}>
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 flex items-center justify-center font-bold text-white shadow-lg">
-            G
-          </div>
-          {!isCollapsed && (
-            <span className="text-white text-xl font-bold">GIO</span>
-          )}
+      <div className="h-16 flex items-center justify-between pl-2 pr-4 border-b border-gray-700/50">
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : ''}`}>
+          <img 
+            src="/assets/images/logo.png" 
+            alt="Logo da empresa" 
+            className="h-14 w-auto object-contain"
+            onError={(e) => {
+              // Fallback para o texto caso a imagem não carregue
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.nextElementSibling.style.display = 'block';
+            }}
+          />
+          <span 
+            className="hidden text-white text-xl font-bold"
+          >
+            Logo
+          </span>
         </div>
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
