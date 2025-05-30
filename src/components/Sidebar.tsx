@@ -37,19 +37,7 @@ const Sidebar = () => {
             src="/assets/images/logo.png" 
             alt="Logo da empresa" 
             className="h-14 w-auto object-contain"
-            onError={(e) => {
-              // Fallback para o texto caso a imagem não carregue
-              e.currentTarget.style.display = 'none';
-              if (e.currentTarget.nextElementSibling) {
-                (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block';
-              }
-            }}
           />
-          <span 
-            className="hidden text-white text-xl font-bold"
-          >
-            Logo
-          </span>
         </div>
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
