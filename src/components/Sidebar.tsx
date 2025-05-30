@@ -8,7 +8,8 @@ const Sidebar = () => {
     { name: 'Autoavaliação', icon: User, path: '/self-evaluation' },
     { name: 'Avaliação do Líder', icon: User, path: '/leader-evaluation' },
     { name: 'Avaliação de Potencial', icon: User, path: '/potential-evaluation' },
-    { name: 'Consenso', icon: Target, path: '/consensus' }, // NOVA OPÇÃO
+    { name: 'Consenso', icon: Target, path: '/consensus' }, 
+    { name: 'Matriz 9 Box', icon: ClipboardList, path: '/nine-box' },
     { name: 'Relatórios', icon: PieChart, path: '/reports' },
     { name: 'Histórico', icon: History, path: '/history' },
   ];

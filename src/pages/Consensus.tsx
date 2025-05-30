@@ -241,7 +241,7 @@ const Consensus = () => {
   // Função para resetar todos os consensos
   const resetAllConsensus = (): void => {
     setConsensusScores({});
-    toast.info('Todos os consensos foram resetados');
+    toast('Todos os consensos foram resetados');
   };
 
   return (

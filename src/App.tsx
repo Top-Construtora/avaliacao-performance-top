@@ -11,6 +11,7 @@ import Consensus from './pages/Consensus';
 import Reports from './pages/Reports';
 import History from './pages/History';
 import NotFound from './pages/NotFound';
+import NineBoxMatrix from './pages/NineBox';
 
 function App() {
   return (
@@ -33,7 +34,8 @@ function App() {
               <Route path="self-evaluation" element={<SelfEvaluation />} />
               <Route path="leader-evaluation" element={<LeaderEvaluation />} />
               <Route path="potential-evaluation" element={<PotentialEvaluation />} />
-              <Route path="consensus" element={<Consensus />} /> {/* NOVA ROTA */}
+              <Route path="consensus" element={<Consensus />} /> 
+              <Route path="nine-box" element={<NineBoxMatrix />} />
               <Route path="reports" element={<Reports />} />
               <Route path="history" element={<History />} />
               <Route path="*" element={<NotFound />} />
