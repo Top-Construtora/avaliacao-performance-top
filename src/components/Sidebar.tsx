@@ -40,7 +40,9 @@ const Sidebar = () => {
             onError={(e) => {
               // Fallback para o texto caso a imagem não carregue
               e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling.style.display = 'block';
+              if (e.currentTarget.nextElementSibling) {
+                (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block';
+              }
             }}
           />
           <span 
