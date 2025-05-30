@@ -27,7 +27,11 @@ import {
   ChevronDown,
   ChevronUp,
   ListChecks,
-  MessageSquare
+  MessageSquare,
+  Download,
+  FileSpreadsheet,
+  StickyNote,
+  FileDown
 } from 'lucide-react';
 
 interface ActionItem {
@@ -143,6 +147,258 @@ const ActionPlan = () => {
 
     toast.success('Plano de Desenvolvimento salvo com sucesso!');
     navigate('/reports');
+  };
+
+  const exportToPDF = () => {
+    if (!selectedEmployeeId || (planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length) === 0) {
+      toast.error('Adicione itens ao PDI antes de exportar');
+      return;
+    }
+
+    // Criar conteúdo HTML para o PDF
+    const pdfContent = `
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: #1e6076; }
+            h2 { color: #12b0a0; margin-top: 30px; }
+            h3 { color: #333; margin-top: 20px; }
+            .header { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+            .item { background: #f9f9f9; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #12b0a0; }
+            .field { margin: 10px 0; }
+            .label { font-weight: bold; color: #555; }
+            .status { display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 12px; }
+            .status-1 { background: #f3f4f6; color: #374151; }
+            .status-2 { background: #dbeafe; color: #1e40af; }
+            .status-3 { background: #fef3c7; color: #92400e; }
+            .status-4 { background: #fed7aa; color: #c2410c; }
+            .status-5 { background: #d1fae5; color: #065f46; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Plano de Desenvolvimento Individual - ${planData.colaborador}</h1>
+            <p><strong>Cargo:</strong> ${planData.cargo}</p>
+            <p><strong>Departamento:</strong> ${planData.departamento}</p>
+            <p><strong>Período:</strong> ${planData.periodo}</p>
+          </div>
+          
+          ${planData.curtosPrazos.length > 0 ? `
+            <h2>📚 Curto Prazo (0-6 meses)</h2>
+            ${planData.curtosPrazos.map((item, index) => `
+              <div class="item">
+                <h3>${index + 1}. ${item.competencia || 'Competência não definida'}</h3>
+                <div class="field"><span class="label">Calendarização:</span> ${item.calendarizacao || 'A definir'}</div>
+                <div class="field"><span class="label">Como desenvolver:</span> ${item.comoDesenvolver || 'A definir'}</div>
+                <div class="field"><span class="label">Resultados Esperados:</span> ${item.resultadosEsperados || 'A definir'}</div>
+                <div class="field">
+                  <span class="label">Status:</span> 
+                  <span class="status status-${item.status}">${statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado'}</span>
+                </div>
+                ${item.observacao ? `<div class="field"><span class="label">Observações:</span> ${item.observacao}</div>` : ''}
+              </div>
+            `).join('')}
+          ` : ''}
+          
+          ${planData.mediosPrazos.length > 0 ? `
+            <h2>🎯 Médio Prazo (6-12 meses)</h2>
+            ${planData.mediosPrazos.map((item, index) => `
+              <div class="item">
+                <h3>${index + 1}. ${item.competencia || 'Competência não definida'}</h3>
+                <div class="field"><span class="label">Calendarização:</span> ${item.calendarizacao || 'A definir'}</div>
+                <div class="field"><span class="label">Como desenvolver:</span> ${item.comoDesenvolver || 'A definir'}</div>
+                <div class="field"><span class="label">Resultados Esperados:</span> ${item.resultadosEsperados || 'A definir'}</div>
+                <div class="field">
+                  <span class="label">Status:</span> 
+                  <span class="status status-${item.status}">${statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado'}</span>
+                </div>
+                ${item.observacao ? `<div class="field"><span class="label">Observações:</span> ${item.observacao}</div>` : ''}
+              </div>
+            `).join('')}
+          ` : ''}
+          
+          ${planData.longosPrazos.length > 0 ? `
+            <h2>🚀 Longo Prazo (12-24 meses)</h2>
+            ${planData.longosPrazos.map((item, index) => `
+              <div class="item">
+                <h3>${index + 1}. ${item.competencia || 'Competência não definida'}</h3>
+                <div class="field"><span class="label">Calendarização:</span> ${item.calendarizacao || 'A definir'}</div>
+                <div class="field"><span class="label">Como desenvolver:</span> ${item.comoDesenvolver || 'A definir'}</div>
+                <div class="field"><span class="label">Resultados Esperados:</span> ${item.resultadosEsperados || 'A definir'}</div>
+                <div class="field">
+                  <span class="label">Status:</span> 
+                  <span class="status status-${item.status}">${statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado'}</span>
+                </div>
+                ${item.observacao ? `<div class="field"><span class="label">Observações:</span> ${item.observacao}</div>` : ''}
+              </div>
+            `).join('')}
+          ` : ''}
+        </body>
+      </html>
+    `;
+
+    // Criar blob e download
+    const blob = new Blob([pdfContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const printWindow = window.open(url, '_blank');
+    
+    if (printWindow) {
+      printWindow.onload = () => {
+        printWindow.print();
+        window.URL.revokeObjectURL(url);
+      };
+    }
+    
+    toast.success('PDI preparado para impressão/PDF!');
+  };
+
+  const exportToExcel = () => {
+    if (!selectedEmployeeId || (planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length) === 0) {
+      toast.error('Adicione itens ao PDI antes de exportar');
+      return;
+    }
+
+    // Preparar dados para CSV
+    const csvHeaders = ['Prazo', 'Competência', 'Calendarização', 'Como Desenvolver', 'Resultados Esperados', 'Status', 'Observações'];
+    const csvRows = [];
+
+    // Adicionar informações do colaborador
+    csvRows.push(['PDI - ' + planData.colaborador]);
+    csvRows.push(['Cargo: ' + planData.cargo]);
+    csvRows.push(['Departamento: ' + planData.departamento]);
+    csvRows.push(['Período: ' + planData.periodo]);
+    csvRows.push([]); // linha vazia
+    csvRows.push(csvHeaders);
+
+    // Adicionar dados de curto prazo
+    planData.curtosPrazos.forEach(item => {
+      csvRows.push([
+        'Curto Prazo (0-6 meses)',
+        item.competencia || 'A definir',
+        item.calendarizacao || 'A definir',
+        item.comoDesenvolver || 'A definir',
+        item.resultadosEsperados || 'A definir',
+        statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado',
+        item.observacao || ''
+      ]);
+    });
+
+    // Adicionar dados de médio prazo
+    planData.mediosPrazos.forEach(item => {
+      csvRows.push([
+        'Médio Prazo (6-12 meses)',
+        item.competencia || 'A definir',
+        item.calendarizacao || 'A definir',
+        item.comoDesenvolver || 'A definir',
+        item.resultadosEsperados || 'A definir',
+        statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado',
+        item.observacao || ''
+      ]);
+    });
+
+    // Adicionar dados de longo prazo
+    planData.longosPrazos.forEach(item => {
+      csvRows.push([
+        'Longo Prazo (12-24 meses)',
+        item.competencia || 'A definir',
+        item.calendarizacao || 'A definir',
+        item.comoDesenvolver || 'A definir',
+        item.resultadosEsperados || 'A definir',
+        statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado',
+        item.observacao || ''
+      ]);
+    });
+
+    // Converter para CSV
+    const csvContent = csvRows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    // Criar link de download
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `PDI_${planData.colaborador.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('PDI exportado para Excel com sucesso!');
+  };
+
+  const exportToNotion = () => {
+    if (!selectedEmployeeId || (planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length) === 0) {
+      toast.error('Adicione itens ao PDI antes de exportar');
+      return;
+    }
+
+    const notionFormat = generateNotionFormat();
+    
+    // Copia o formato Notion para a área de transferência
+    navigator.clipboard.writeText(notionFormat).then(() => {
+      toast.success('PDI copiado! Cole no Notion usando Ctrl+V (ou Cmd+V)');
+      
+      // Mostrar instruções adicionais
+      toast((t) => (
+        <div>
+          <p className="font-medium mb-2">Instruções para colar no Notion:</p>
+          <ol className="text-sm space-y-1">
+            <li>1. Abra o Notion</li>
+            <li>2. Crie uma nova página ou abra uma existente</li>
+            <li>3. Cole o conteúdo (Ctrl+V ou Cmd+V)</li>
+            <li>4. O Notion formatará automaticamente!</li>
+          </ol>
+          <button 
+            onClick={() => toast.dismiss(t.id)}
+            className="mt-3 text-xs text-gray-500 hover:text-gray-700"
+          >
+            Fechar
+          </button>
+        </div>
+      ), {
+        duration: 10000,
+        position: 'top-center',
+      });
+    }).catch(() => {
+      toast.error('Erro ao copiar para a área de transferência');
+    });
+  };
+
+  const generateNotionFormat = () => {
+    let notionText = `# PDI - ${planData.colaborador}\n\n`;
+    notionText += `**Cargo:** ${planData.cargo}\n`;
+    notionText += `**Departamento:** ${planData.departamento}\n`;
+    notionText += `**Período:** ${planData.periodo}\n\n`;
+
+    const formatCategory = (title: string, items: ActionItem[]) => {
+      let text = `## ${title}\n\n`;
+      items.forEach((item, index) => {
+        text += `### ${index + 1}. ${item.competencia}\n`;
+        text += `**Calendarização:** ${item.calendarizacao || 'A definir'}\n`;
+        text += `**Como desenvolver:** ${item.comoDesenvolver || 'A definir'}\n`;
+        text += `**Resultados Esperados:** ${item.resultadosEsperados || 'A definir'}\n`;
+        text += `**Status:** ${statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado'}\n`;
+        if (item.observacao) {
+          text += `**Observações:** ${item.observacao}\n`;
+        }
+        text += '\n';
+      });
+      return text;
+    };
+
+    if (planData.curtosPrazos.length > 0) {
+      notionText += formatCategory('📚 Curto Prazo (0-6 meses)', planData.curtosPrazos);
+    }
+    if (planData.mediosPrazos.length > 0) {
+      notionText += formatCategory('🎯 Médio Prazo (6-12 meses)', planData.mediosPrazos);
+    }
+    if (planData.longosPrazos.length > 0) {
+      notionText += formatCategory('🚀 Longo Prazo (12-24 meses)', planData.longosPrazos);
+    }
+
+    return notionText;
   };
 
   const categories = [
@@ -268,7 +524,7 @@ const ActionPlan = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: itemIndex * 0.1 }}
-                        className="bg-gray-50 rounded-xl p-6 border border-gray-200"
+                        className="bg-gray-50 rounded-xl p-8 border border-gray-200"
                       >
                         {/* Header do Item */}
                         <div className="flex items-start justify-between mb-6">
@@ -293,10 +549,10 @@ const ActionPlan = () => {
                           </button>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                           {/* Competência a desenvolver */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
                               <Award className="h-4 w-4 mr-2 text-primary-600" />
                               Competência a desenvolver
                             </label>
@@ -353,7 +609,7 @@ const ActionPlan = () => {
                             />
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-200">
                             {/* Status */}
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
@@ -471,7 +727,7 @@ const ActionPlan = () => {
         </div>
 
         {/* Seleção do colaborador */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Colaborador
@@ -577,6 +833,40 @@ const ActionPlan = () => {
               >
                 Cancelar
               </Button>
+              
+              {/* Botões de Exportação */}
+              {planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length > 0 && (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={exportToPDF}
+                    icon={<FileDown size={18} />}
+                    size="lg"
+                    className="border-red-200 text-red-700 hover:bg-red-50"
+                  >
+                    PDF
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={exportToExcel}
+                    icon={<FileSpreadsheet size={18} />}
+                    size="lg"
+                    className="border-green-200 text-green-700 hover:bg-green-50"
+                  >
+                    Excel
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={exportToNotion}
+                    icon={<StickyNote size={18} />}
+                    size="lg"
+                    className="border-gray-300 text-gray-700 hover:bg-gray-100"
+                  >
+                    Notion
+                  </Button>
+                </>
+              )}
+              
               <Button
                 variant="primary"
                 onClick={handleSave}

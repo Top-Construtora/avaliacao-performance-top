@@ -115,7 +115,7 @@ const Dashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-gradient-to-br from-primary-500 to-secondary-600 rounded-2xl p-8 text-white shadow-xl"
       >
-        <h1 className="text-3xl font-bold mb-2">Bem-vindo, Luiz!</h1>
+        <h1 className="text-3xl font-bold mb-2">Bem-vinda, Yasmin!</h1>
         <p className="text-primary-100 text-lg">
           Gerencie e acompanhe todas as avaliações de desempenho em um só lugar
         </p>

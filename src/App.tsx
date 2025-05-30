@@ -10,7 +10,7 @@ import PotentialEvaluation from './pages/PotentialEvaluation';
 import Consensus from './pages/Consensus'; 
 import ActionPlan from './pages/ActionPlan';
 import Reports from './pages/Reports';
-import History from './pages/History';
+import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import NineBoxMatrix from './pages/NineBox';
 
@@ -39,6 +39,7 @@ function App() {
               <Route path="nine-box" element={<NineBoxMatrix />} />
               <Route path="action-plan" element={<ActionPlan />} />
               <Route path="reports" element={<Reports />} />
+              <Route path="settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

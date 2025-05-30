@@ -74,10 +74,20 @@ const Sidebar = () => {
       </nav>
       
       <div className="px-3 py-4 border-t border-gray-700/50">
-        <button className={`flex items-center ${isCollapsed ? 'justify-center' : ''} w-full px-3 py-2.5 text-gray-300 hover:bg-gray-700/30 hover:text-white rounded-xl transition-all duration-200`}>
+        <NavLink
+          to="/settings"
+          className={({ isActive }) => 
+            `flex items-center ${isCollapsed ? 'justify-center' : ''} w-full px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+              isActive 
+                ? 'bg-gradient-to-r from-primary-500/20 to-secondary-500/20 text-white border border-primary-500/30 shadow-lg shadow-primary-500/10' 
+                : 'text-gray-300 hover:bg-gray-700/30 hover:text-white'
+            }`
+          }
+          title={isCollapsed ? 'Configurações' : undefined}
+        >
           <Settings className={`${isCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} flex-shrink-0`} />
           {!isCollapsed && <span className="font-medium">Configurações</span>}
-        </button>
+        </NavLink>
         <button className={`flex items-center ${isCollapsed ? 'justify-center' : ''} w-full px-3 py-2.5 text-gray-300 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all duration-200 mt-1`}>
           <LogOut className={`${isCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} flex-shrink-0`} />
           {!isCollapsed && <span className="font-medium">Sair</span>}
