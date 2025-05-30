@@ -84,7 +84,7 @@ const Dashboard = () => {
       color: 'bg-indigo-500',
       bgColor: 'bg-white-50',
       borderColor: 'border-white-200',
-      onClick: () => navigate('/reports'),
+      onClick: () => navigate('/nine-box'),
     },
     {
       id: 'plano-acao',
@@ -95,7 +95,7 @@ const Dashboard = () => {
       color: 'bg-orange-500',
       bgColor: 'bg-white-50',
       borderColor: 'border-white-200',
-      onClick: () => navigate('/reports'),
+      onClick: () => navigate('/action-plan'),
     },
     {
       id: 'relatorios',

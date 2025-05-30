@@ -1,6 +1,15 @@
-// src/components/Sidebar.tsx - Atualização com Consenso
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, PieChart, History, User, Settings, Target } from 'lucide-react';
+import { 
+  LayoutDashboard, 
+  ClipboardList, 
+  PieChart, 
+  History, 
+  User, 
+  Settings, 
+  Target,
+  FileText,
+  BarChart3
+} from 'lucide-react';
 
 const Sidebar = () => {
   const navigation = [
@@ -9,10 +18,10 @@ const Sidebar = () => {
     { name: 'Avaliação do Líder', icon: User, path: '/leader-evaluation' },
     { name: 'Avaliação de Potencial', icon: User, path: '/potential-evaluation' },
     { name: 'Consenso', icon: Target, path: '/consensus' }, 
-    { name: 'Matriz 9 Box', icon: ClipboardList, path: '/nine-box' },
+    { name: 'Matriz 9 Box', icon: BarChart3, path: '/nine-box' },
+    { name: 'Plano de Ação (PDI)', icon: FileText, path: '/action-plan' },
     { name: 'Relatórios', icon: PieChart, path: '/reports' },
-    { name: 'Histórico', icon: History, path: '/history' },
-  ];
+    ];
 
   return (
     <aside className="w-16 md:w-64 h-screen bg-[#1f2937] flex flex-col transition-colors duration-200">

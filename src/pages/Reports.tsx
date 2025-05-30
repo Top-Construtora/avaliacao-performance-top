@@ -1,104 +1,65 @@
 import { useState } from 'react';
 import { useEvaluation } from '../context/EvaluationContext';
-import { Evaluation } from '../types';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-} from 'chart.js';
-import { Bar, Pie } from 'react-chartjs-2';
 import { motion } from 'framer-motion';
 import Button from '../components/Button';
-import { FileDown, Filter } from 'lucide-react';
-
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
+import { FileDown, User, Users, Target, AlertTriangle } from 'lucide-react';
 
 const Reports = () => {
-  const { evaluations, employees, getEmployeeById } = useEvaluation();
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('all');
   
-  // Filter completed evaluations
-  const completedEvaluations = evaluations.filter(evaluation => evaluation.status === 'completed');
-  
-  // Filter by employee if selected
-  const filteredEvaluations = selectedEmployeeId === 'all'
-    ? completedEvaluations
-    : completedEvaluations.filter(evaluation => evaluation.employeeId === selectedEmployeeId);
-  
-  // Calculate average scores for each criterion category
-  const calculateAverages = (evals: Evaluation[]) => {
-    if (evals.length === 0) return { technical: 0, behavioral: 0, deliveries: 0, overall: 0 };
-    
-    const sumTechnical = evals.reduce((sum, evaluation) => sum + evaluation.technicalScore, 0);
-    const sumBehavioral = evals.reduce((sum, evaluation) => sum + evaluation.behavioralScore, 0);
-    const sumDeliveries = evals.reduce((sum, evaluation) => sum + evaluation.deliveriesScore, 0);
-    const sumOverall = evals.reduce((sum, evaluation) => sum + evaluation.finalScore, 0);
-    
-    return {
-      technical: sumTechnical / evals.length,
-      behavioral: sumBehavioral / evals.length,
-      deliveries: sumDeliveries / evals.length,
-      overall: sumOverall / evals.length,
-    };
+  // Mock data to simulate the report shown in the image
+  const mockReportData = [
+    { id: '1', name: 'João Silva', selfEvaluation: 'Completo', leaderEvaluation: 'Completo', consensus: 'Completo', actionPlan: 'Definido', status: 100 },
+    { id: '2', name: 'Maria Santos', selfEvaluation: 'Completo', leaderEvaluation: 'Completo', consensus: 'Em Andamento', actionPlan: 'Aguardando', status: 75 },
+    { id: '3', name: 'Pedro Oliveira', selfEvaluation: 'Completo', leaderEvaluation: 'Pendente', consensus: 'Em Andamento', actionPlan: 'Aguardando', status: 25 },
+    { id: '4', name: 'Ana Costa', selfEvaluation: 'Pendente', leaderEvaluation: 'Pendente', consensus: 'Em Andamento', actionPlan: 'Aguardando', status: 25 },
+  ];
+
+  const reportSummary = {
+    totalCollaborators: 25,
+    completedSelfEvaluations: 18,
+    completedLeaderEvaluations: 15,
+    completedConsensus: 12,
+    pendingActions: 7
   };
-  
-  const averages = calculateAverages(filteredEvaluations);
-  
-  // Prepare data for bar chart
-  const barChartData = {
-    labels: ['Técnicas', 'Comportamentais', 'Entregas', 'Geral'],
-    datasets: [
-      {
-        label: 'Média de Notas',
-        data: [averages.technical, averages.behavioral, averages.deliveries, averages.overall],
-        backgroundColor: ['rgba(59, 130, 246, 0.6)', 'rgba(16, 185, 129, 0.6)', 'rgba(139, 92, 246, 0.6)', 'rgba(251, 146, 60, 0.6)'],
-        borderColor: ['rgb(59, 130, 246)', 'rgb(16, 185, 129)', 'rgb(139, 92, 246)', 'rgb(251, 146, 60)'],
-        borderWidth: 1,
-      },
-    ],
-  };
-  
-  // Prepare data for pie chart
-  const pieChartData = {
-    labels: ['Técnicas (40%)', 'Comportamentais (30%)', 'Entregas (30%)'],
-    datasets: [
-      {
-        data: [40, 30, 30],
-        backgroundColor: ['rgba(59, 130, 246, 0.6)', 'rgba(16, 185, 129, 0.6)', 'rgba(139, 92, 246, 0.6)'],
-        borderColor: ['rgb(59, 130, 246)', 'rgb(16, 185, 129)', 'rgb(139, 92, 246)'],
-        borderWidth: 1,
-      },
-    ],
-  };
-  
-  // Export PDF (mock function)
+
+  // Export functions
   const exportPDF = () => {
     alert('PDF exportado com sucesso! (Funcionalidade simulada)');
   };
   
-  // Export Excel (mock function)
   const exportExcel = () => {
     alert('Excel exportado com sucesso! (Funcionalidade simulada)');
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Completo':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Completo</span>;
+      case 'Em Andamento':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Em Andamento</span>;
+      case 'Pendente':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Pendente</span>;
+      case 'Definido':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">Definido</span>;
+      case 'Aguardando':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800">Aguardando</span>;
+      default:
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{status}</span>;
+    }
+  };
+
+  const getProgressColor = (percentage: number) => {
+    if (percentage === 100) return 'bg-green-500';
+    if (percentage >= 75) return 'bg-yellow-500';
+    if (percentage >= 25) return 'bg-orange-500';
+    return 'bg-red-500';
   };
   
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Relatórios</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Relatórios Gerais</h1>
         
         <div className="flex space-x-2">
           <Button
@@ -117,195 +78,185 @@ const Reports = () => {
           </Button>
         </div>
       </div>
-      
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex flex-wrap items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-800">Visão Geral das Avaliações</h2>
-          
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <motion.div
+          className="bg-white rounded-lg shadow p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
           <div className="flex items-center">
-            <Filter size={16} className="text-gray-500 mr-2" />
-            <select
-              className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              value={selectedEmployeeId}
-              onChange={(e) => setSelectedEmployeeId(e.target.value)}
-            >
-              <option value="all">Todos os Colaboradores</option>
-              {employees.map((employee) => (
-                <option key={employee.id} value={employee.id}>
-                  {employee.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <motion.div
-            className="p-4 bg-blue-50 rounded-lg border border-blue-100"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <h3 className="text-sm font-medium text-blue-800">Técnicas</h3>
-            <p className="text-2xl font-bold text-blue-600">{averages.technical.toFixed(1)}</p>
-            <p className="text-xs text-blue-600">Média (Peso 40%)</p>
-          </motion.div>
-          
-          <motion.div
-            className="p-4 bg-green-50 rounded-lg border border-green-100"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <h3 className="text-sm font-medium text-green-800">Comportamentais</h3>
-            <p className="text-2xl font-bold text-green-600">{averages.behavioral.toFixed(1)}</p>
-            <p className="text-xs text-green-600">Média (Peso 30%)</p>
-          </motion.div>
-          
-          <motion.div
-            className="p-4 bg-purple-50 rounded-lg border border-purple-100"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <h3 className="text-sm font-medium text-purple-800">Entregas</h3>
-            <p className="text-2xl font-bold text-purple-600">{averages.deliveries.toFixed(1)}</p>
-            <p className="text-xs text-purple-600">Média (Peso 30%)</p>
-          </motion.div>
-          
-          <motion.div
-            className="p-4 bg-gray-50 rounded-lg border border-gray-200"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <h3 className="text-sm font-medium text-gray-800">Nota Geral</h3>
-            <p className="text-2xl font-bold text-gray-700">{averages.overall.toFixed(1)}</p>
-            <p className="text-xs text-gray-500">Média Ponderada</p>
-          </motion.div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <div>
-            <h3 className="text-md font-medium text-gray-800 mb-4">Média por Categoria</h3>
-            <div className="h-64">
-              <Bar 
-                data={barChartData} 
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      max: 5,
-                    },
-                  },
-                }}
-              />
+            <div className="p-3 rounded-full bg-primary-500 text-white">
+              <User size={24} />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total de Colaboradores</p>
+              <p className="text-3xl font-bold text-primary-600">{reportSummary.totalCollaborators}</p>
             </div>
           </div>
-          
-          <div>
-            <h3 className="text-md font-medium text-gray-800 mb-4">Distribuição de Pesos</h3>
-            <div className="h-64">
-              <Pie 
-                data={pieChartData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                }}
-              />
+        </motion.div>
+
+        <motion.div
+          className="bg-white rounded-lg shadow p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-green-500 text-white">
+              <User size={24} />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Autoavaliações</p>
+              <p className="text-3xl font-bold text-green-600">{reportSummary.completedSelfEvaluations}</p>
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(reportSummary.completedSelfEvaluations / reportSummary.totalCollaborators) * 100}%` }}
+                ></div>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div>
-          <h3 className="text-md font-medium text-gray-800 mb-4">Detalhes das Avaliações</h3>
-          
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Colaborador
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cargo
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Técnicas
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Comportamentais
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Entregas
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nota Final
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredEvaluations.map((evaluation) => {
-                  const employee = getEmployeeById(evaluation.employeeId);
-                  
-                  return (
-                    <tr key={evaluation.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {employee?.name || 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {employee?.position || 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {evaluation.date}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-blue-600">
-                          {evaluation.technicalScore.toFixed(1)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-green-600">
-                          {evaluation.behavioralScore.toFixed(1)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-purple-600">
-                          {evaluation.deliveriesScore.toFixed(1)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {evaluation.finalScore.toFixed(1)}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-                
-                {filteredEvaluations.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
-                      Nenhuma avaliação concluída encontrada.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+        </motion.div>
+
+        <motion.div
+          className="bg-white rounded-lg shadow p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-purple-500 text-white">
+              <Users size={24} />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Avaliações Líder</p>
+              <p className="text-3xl font-bold text-purple-600">{reportSummary.completedLeaderEvaluations}</p>
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-purple-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(reportSummary.completedLeaderEvaluations / reportSummary.totalCollaborators) * 100}%` }}
+                ></div>
+              </div>
+            </div>
           </div>
-        </div>
+        </motion.div>
+
+        <motion.div
+          className="bg-white rounded-lg shadow p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-accent-500 text-white">
+              <Target size={24} />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Consensos</p>
+              <p className="text-3xl font-bold text-accent-600">{reportSummary.completedConsensus}</p>
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-accent-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(reportSummary.completedConsensus / reportSummary.totalCollaborators) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="bg-white rounded-lg shadow p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-red-500 text-white">
+              <AlertTriangle size={24} />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Ações Pendentes</p>
+              <p className="text-3xl font-bold text-red-600">{reportSummary.pendingActions}</p>
+            </div>
+          </div>
+        </motion.div>
       </div>
+
+      {/* Detailed Report Table */}
+      <motion.div
+        className="bg-white rounded-lg shadow overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
+        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800">Status Detalhado por Colaborador</h2>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Colaborador
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Autoavaliação
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Avaliação Líder
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Consenso
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Plano de Ação
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {mockReportData.map((employee) => (
+                <tr key={employee.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {employee.name}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {getStatusBadge(employee.selfEvaluation)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {getStatusBadge(employee.leaderEvaluation)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {getStatusBadge(employee.consensus)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {getStatusBadge(employee.actionPlan)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="w-full bg-gray-200 rounded-full h-2 flex-1 mr-3">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(employee.status)}`}
+                          style={{ width: `${employee.status}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">{employee.status}%</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
     </div>
   );
 };

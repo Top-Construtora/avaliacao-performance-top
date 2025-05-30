@@ -8,6 +8,7 @@ import SelfEvaluation from './pages/SelfEvaluation';
 import LeaderEvaluation from './pages/LeaderEvaluation';
 import PotentialEvaluation from './pages/PotentialEvaluation';
 import Consensus from './pages/Consensus'; 
+import ActionPlan from './pages/ActionPlan';
 import Reports from './pages/Reports';
 import History from './pages/History';
 import NotFound from './pages/NotFound';
@@ -36,8 +37,8 @@ function App() {
               <Route path="potential-evaluation" element={<PotentialEvaluation />} />
               <Route path="consensus" element={<Consensus />} /> 
               <Route path="nine-box" element={<NineBoxMatrix />} />
+              <Route path="action-plan" element={<ActionPlan />} />
               <Route path="reports" element={<Reports />} />
-              <Route path="history" element={<History />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
