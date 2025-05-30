@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, BarChart3, Download, Filter } from 'lucide-react';
+import { ArrowLeft, User, BarChart3, Download, Filter, TrendingUp, Users, Award, Sparkles, Target, Info } from 'lucide-react';
 
 // Simulando dados de contexto
 const mockEmployees = [
@@ -24,43 +24,197 @@ const NineBoxMatrix = () => {
   const [employees] = useState(mockEmployees);
   const [evaluations] = useState(mockEvaluations);
 
-  // Função para obter a categoria do 9-Box baseada nos quadrantes
-  const getNineBoxCategory = (performance, potential) => {
-    const perfQuadrant = performance
-    const potQuadrant = potential;
-    
-    // Matriz 3x3 - Potencial (Y) x Performance (X)
-    const matrix = {
-      '3,1': { name: 'Enigma', color: 'bg-yellow-200', description: 'Verificar a Causa: Local ou Chefe errado? Investir no desenvolvimento' },
-      '3,2': { name: 'Promessa', color: 'bg-green-200', description: 'Concentrar-se no desempenho de curto prazo. Avaliar oportunidades a longo prazo' },
-      '3,3': { name: 'Estrela', color: 'bg-green-300', description: 'Dar mais atribuições. Preparar para função maior. Líder do futuro!' },
-      '2,1': { name: 'Dilema', color: 'bg-orange-200', description: 'Avaliar se está na área certa. Rever atribuições' },
-      '2,2': { name: 'Núcleo', color: 'bg-purple-200', description: 'Investir no potencial e desempenho para manter na atual função' },
-      '2,3': { name: 'Especialista', color: 'bg-green-200', description: 'Avaliar a possibilidade de promoção na própria área' },
-      '1,1': { name: 'Inadequado', color: 'bg-red-200', description: 'Avaliar possibilidade de movimentação para função menor ou demissão' },
-      '1,2': { name: 'Questionável', color: 'bg-yellow-200', description: 'Avaliar possibilidade de movimentação horizontal' },
-      '1,3': { name: 'Performer', color: 'bg-yellow-200', description: 'Está no lugar certo. Manter na posição e rever remuneração.' }
-    };
-    
-    return matrix[`${potQuadrant},${perfQuadrant}`] || { name: 'N/A', color: 'bg-gray-200', description: 'Posição não definida' };
+  // Configuração da matriz com cores da paleta
+  type MatrixKey = '3,1' | '3,2' | '3,3' | '2,1' | '2,2' | '2,3' | '1,1' | '1,2' | '1,3';
+  type MatrixConfigType = {
+    [key in MatrixKey]: {
+      name: string;
+      bgColor: string;
+      borderColor: string;
+      textColor: string;
+      description: string;
+    }
+  };
+  const matrixConfig: MatrixConfigType = {
+    '3,1': { 
+      name: 'Enigma', 
+      bgColor: 'bg-accent-100',
+      borderColor: 'border-accent-300',
+      textColor: 'text-gray-700',
+      description: 'Alto potencial, baixo desempenho'
+    },
+    '3,2': { 
+      name: 'Alto Potencial', 
+      bgColor: 'bg-primary-100',
+      borderColor: 'border-primary-300',
+      textColor: 'text-gray-700',
+      description: 'Alto potencial, desempenho médio'
+    },
+    '3,3': { 
+      name: 'Top Performer', 
+      bgColor: 'bg-gradient-to-br from-primary-500 to-primary-600',
+      borderColor: 'border-primary-500',
+      textColor: 'text-white',
+      description: 'Alto potencial e alto desempenho'
+    },
+    '2,1': { 
+      name: 'Questionável', 
+      bgColor: 'bg-gray-100',
+      borderColor: 'border-gray-300',
+      textColor: 'text-gray-700',
+      description: 'Potencial médio, baixo desempenho'
+    },
+    '2,2': { 
+      name: 'Mantenedor', 
+      bgColor: 'bg-secondary-100',
+      borderColor: 'border-secondary-300',
+      textColor: 'text-gray-700',
+      description: 'Potencial e desempenho médios'
+    },
+    '2,3': { 
+      name: 'Alto Desempenho', 
+      bgColor: 'bg-primary-200',
+      borderColor: 'border-primary-400',
+      textColor: 'text-gray-700',
+      description: 'Potencial médio, alto desempenho'
+    },
+    '1,1': { 
+      name: 'Insatisfatório', 
+      bgColor: 'bg-red-100',
+      borderColor: 'border-red-300',
+      textColor: 'text-gray-700',
+      description: 'Baixo potencial e desempenho'
+    },
+    '1,2': { 
+      name: 'Eficaz', 
+      bgColor: 'bg-yellow-100',
+      borderColor: 'border-yellow-300',
+      textColor: 'text-gray-700',
+      description: 'Baixo potencial, desempenho médio'
+    },
+    '1,3': { 
+      name: 'Forte Desempenho', 
+      bgColor: 'bg-secondary-200',
+      borderColor: 'border-secondary-400',
+      textColor: 'text-gray-700',
+      description: 'Baixo potencial, alto desempenho'
+    }
   };
 
-  // Função para determinar o estilo da borda do quadrante ativo
-  const getQuadrantStyle = (performance, potential, quadrantRow, quadrantCol) => {
-    const perfQuadrant = (performance);
-    const potQuadrant = (potential);
-    
-    const isActiveQuadrant = (potQuadrant === (4 - quadrantRow)) && (perfQuadrant === quadrantCol);
-    
-    if (isActiveQuadrant) {
-      return "border-4 border-red-600 shadow-xl";
+  const recommendations = {
+    '3,1': {
+      icon: Sparkles,
+      actions: [
+        'Investir em desenvolvimento focado',
+        'Identificar barreiras de desempenho',
+        'Mentoria intensiva',
+        'Reavaliação de função atual'
+      ]
+    },
+    '3,2': {
+      icon: TrendingUp,
+      actions: [
+        'Acelerar desenvolvimento',
+        'Preparar para próximo nível',
+        'Exposição a projetos estratégicos',
+        'Programa de liderança'
+      ]
+    },
+    '3,3': {
+      icon: Award,
+      actions: [
+        'Plano de sucessão',
+        'Desafios estratégicos',
+        'Embaixador da cultura',
+        'Preparação para C-Level'
+      ]
+    },
+    '2,1': {
+      icon: Target,
+      actions: [
+        'Avaliar fit cultural',
+        'Plano de melhoria específico',
+        'Acompanhamento próximo',
+        'Considerar realocação'
+      ]
+    },
+    '2,2': {
+      icon: Users,
+      actions: [
+        'Manter engajamento',
+        'Desenvolvimento gradual',
+        'Reconhecimento consistente',
+        'Oportunidades laterais'
+      ]
+    },
+    '2,3': {
+      icon: TrendingUp,
+      actions: [
+        'Especialização técnica',
+        'Liderança técnica',
+        'Projetos de alta complexidade',
+        'Mentoria para outros'
+      ]
+    },
+    '1,1': {
+      icon: Info,
+      actions: [
+        'Plano de melhoria urgente',
+        'Avaliação de continuidade',
+        'Suporte intensivo',
+        'Prazo para evolução'
+      ]
+    },
+    '1,2': {
+      icon: Target,
+      actions: [
+        'Foco em eficiência',
+        'Treinamento específico',
+        'Metas claras',
+        'Acompanhamento regular'
+      ]
+    },
+    '1,3': {
+      icon: Award,
+      actions: [
+        'Reconhecimento técnico',
+        'Carreira em Y',
+        'Especialização profunda',
+        'Contribuição individual'
+      ]
     }
-    return "border-2 border-black";
+  };
+
+  interface GetQuadrantStyleParams {
+    performance: number;
+    potential: number;
+    quadrantRow: number;
+    quadrantCol: number;
+  }
+
+  const getQuadrantStyle = (
+    performance: number,
+    potential: number,
+    quadrantRow: number,
+    quadrantCol: number
+  ): string => {
+    const perfQuadrant = Math.ceil(performance);
+    const potQuadrant = Math.ceil(potential);
+
+    const isActiveQuadrant = (potQuadrant === (4 - quadrantRow)) && (perfQuadrant === quadrantCol);
+
+    if (isActiveQuadrant) {
+      return "ring-4 ring-primary-500 ring-offset-2 transform scale-105 shadow-xl";
+    }
+    return "";
   };
 
   const selectedEvaluation = evaluations.find(e => e.employeeId === selectedEmployee);
   const selectedEmp = employees.find(e => e.id === selectedEmployee);
-  const nineBoxData = selectedEvaluation ? getNineBoxCategory(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore) : null;
+  const nineBoxKey = selectedEvaluation ? 
+    `${Math.ceil(selectedEvaluation.potentialScore)},${Math.ceil(selectedEvaluation.consensusScore)}` : null;
+  const nineBoxData = nineBoxKey ? matrixConfig[nineBoxKey as MatrixKey] : null;
+  const recommendationData = nineBoxKey ? recommendations[nineBoxKey as MatrixKey] : null;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -70,22 +224,29 @@ const NineBoxMatrix = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-lg shadow p-6"
+          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
         >
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
-              <button className="flex items-center text-gray-600 hover:text-gray-800">
-                <ArrowLeft size={20} className="mr-2" />
-                Voltar
+              <button 
+                onClick={() => window.history.back()}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
+                <ArrowLeft size={20} className="text-gray-600" />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Matriz 9-Box</h1>
-                <p className="text-gray-600">Análise de Performance vs Potencial</p>
+                <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 mr-3">
+                    <BarChart3 className="h-6 w-6 text-white" />
+                  </div>
+                  Matriz 9-Box
+                </h1>
+                <p className="text-gray-600 mt-1">Análise de Performance vs Potencial</p>
               </div>
             </div>
             
             <div className="flex space-x-2">
-              <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              <button className="flex items-center px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-md hover:shadow-lg">
                 <Download size={16} className="mr-2" />
                 Gerar Plano de Ação
               </button>
@@ -95,11 +256,11 @@ const NineBoxMatrix = () => {
           {/* Seleção de Colaborador */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Colaborador
               </label>
               <select
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200"
                 value={selectedEmployee}
                 onChange={(e) => setSelectedEmployee(e.target.value)}
               >
@@ -115,27 +276,21 @@ const NineBoxMatrix = () => {
             {selectedEmp && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Cargo
                   </label>
-                  <input
-                    type="text"
-                    className="w-full rounded-md border-gray-300 bg-gray-50 shadow-sm"
-                    value={selectedEmp.position}
-                    readOnly
-                  />
+                  <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-700">
+                    {selectedEmp.position}
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Departamento
                   </label>
-                  <input
-                    type="text"
-                    className="w-full rounded-md border-gray-300 bg-gray-50 shadow-sm"
-                    value={selectedEmp.department}
-                    readOnly
-                  />
+                  <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-700">
+                    {selectedEmp.department}
+                  </div>
                 </div>
               </>
             )}
@@ -148,17 +303,18 @@ const NineBoxMatrix = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white rounded-lg shadow p-6"
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
           >
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                Matriz 9-Box - {selectedEmp?.name}
+                Posicionamento na Matriz
               </h2>
               {nineBoxData && (
-                <div className="flex items-center space-x-4 mb-4">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${nineBoxData.color.replace('bg-', 'bg-').replace('-200', '-800')} ${nineBoxData.color}`}>
+                <div className="flex items-center space-x-4">
+                  <span className={`px-4 py-2 rounded-full text-sm font-medium ${nineBoxData.bgColor} ${nineBoxData.borderColor} border-2 ${nineBoxData.textColor}`}>
                     {nineBoxData.name}
                   </span>
+                  <span className="text-sm text-gray-600">{nineBoxData.description}</span>
                 </div>
               )}
             </div>
@@ -169,102 +325,124 @@ const NineBoxMatrix = () => {
                 
                 {/* Título do eixo Y (Potencial) */}
                 <div className="absolute -left-20 top-1/2 transform -translate-y-1/2 -rotate-90">
-                  <span className="text-sm font-semibold text-gray-700">POTENCIAL</span>
+                  <span className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Potencial</span>
                 </div>
                 
-                {/* Labels do eixo Y na direita */}
-                <div className="absolute -right-12 flex flex-col justify-between h-96 py-16">
-                  <span className="text-xs text-gray-600">Alto</span>
-                  <span className="text-xs text-gray-600">Médio</span>
-                  <span className="text-xs text-gray-600">Baixo</span>
+                {/* Labels do eixo Y */}
+                <div className="absolute -right-16 flex flex-col justify-between h-96 py-8">
+                  <span className="text-sm font-medium text-gray-600">Alto</span>
+                        const config = matrixConfig[key as MatrixKey];
+                  <span className="text-sm font-medium text-gray-600">Baixo</span>
                 </div>
 
-                {/* Labels do eixo X acima da matriz */}
-                <div className="flex justify-between w-96 mb-4">
-                  <span className="text-xs text-gray-600">Abaixo do Esperado</span>
-                  <span className="text-xs text-gray-600">Esperado</span>
-                  <span className="text-xs text-gray-600">Acima do Esperado</span>
-                </div>
-
-                {/* Grid 3x3 exatamente como na imagem */}
+                {/* Grid 3x3 */}
                 <div className="w-96 h-96">
-                  <div className="grid grid-cols-3 grid-rows-3 gap-1 h-full">
-                    {/* Linha 1 (Potencial Alto - Y: 3-4) */}
-                    <div className={`bg-blue-400 flex items-center justify-center p-3 ${selectedEvaluation ? getQuadrantStyle(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore, 1, 1) : 'border-2 border-black'}`}>
-                      <div className="text-xs text-center leading-tight text-black font-medium">
-                        Verificar a Causa: Local ou Chefe errado? Investir no desenvolvimento
-                      </div>
-                    </div>
-                    <div className={`bg-green-400 flex items-center justify-center p-3 ${selectedEvaluation ? getQuadrantStyle(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore, 1, 2) : 'border-2 border-black'}`}>
-                      <div className="text-xs text-center leading-tight text-black font-medium">
-                        Concentrar-se no desempenho de curto prazo. Avaliar oportunidades a longo prazo
-                      </div>
-                    </div>
-                    <div className={`bg-green-500 flex items-center justify-center p-3 ${selectedEvaluation ? getQuadrantStyle(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore, 1, 3) : 'border-2 border-black'}`}>
-                      <div className="text-xs text-center leading-tight text-black font-medium">
-                        Dar mais atribuições. Preparar para função maior. Líder do futuro!
-                      </div>
-                    </div>
-
-                    {/* Linha 2 (Potencial Médio - Y: 2-3) */}
-                    <div className={`bg-yellow-300 flex items-center justify-center p-3 ${selectedEvaluation ? getQuadrantStyle(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore, 2, 1) : 'border-2 border-black'}`}>
-                      <div className="text-xs text-center leading-tight text-black font-medium">
-                        Avaliar se está na área certa. Rever atribuições
-                      </div>
-                    </div>
-                    <div className={`bg-blue-300 flex items-center justify-center p-3 ${selectedEvaluation ? getQuadrantStyle(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore, 2, 2) : 'border-2 border-black'}`}>
-                      <div className="text-xs text-center leading-tight text-black font-medium">
-                        Investir no potencial e desempenho para manter na atual função
-                      </div>
-                    </div>
-                    <div className={`bg-green-300 flex items-center justify-center p-3 ${selectedEvaluation ? getQuadrantStyle(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore, 2, 3) : 'border-2 border-black'}`}>
-                      <div className="text-xs text-center leading-tight text-black font-medium">
-                        Avaliar a possibilidade de promoção na própria área
-                      </div>
-                    </div>
-
-                    {/* Linha 3 (Potencial Baixo - Y: 1-2) */}
-                    <div className={`bg-red-400 flex items-center justify-center p-3 ${selectedEvaluation ? getQuadrantStyle(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore, 3, 1) : 'border-2 border-black'}`}>
-                      <div className="text-xs text-center leaving-tight text-black font-medium">
-                        Avaliar possibilidade de movimentação para função menor ou demissão
-                      </div>
-                    </div>
-                    <div className={`bg-yellow-300 flex items-center justify-center p-3 ${selectedEvaluation ? getQuadrantStyle(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore, 3, 2) : 'border-2 border-black'}`}>
-                      <div className="text-xs text-center leading-tight text-black font-medium">
-                        Avaliar possibilidade de movimentação horizontal
-                      </div>
-                    </div>
-                    <div className={`bg-blue-300 flex items-center justify-center p-3 ${selectedEvaluation ? getQuadrantStyle(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore, 3, 3) : 'border-2 border-black'}`}>
-                      <div className="text-xs text-center leading-tight text-black font-medium">
-                        Está no lugar certo. Manter na posição e rever remuneração.
-                      </div>
-                    </div>
+                  <div className="grid grid-cols-3 grid-rows-3 gap-2 h-full">
+                    {[1, 2, 3].map((row) => (
+                      [1, 2, 3].map((col) => {
+                        const key = `${4-row},${col}`;
+                        const config = matrixConfig[key as MatrixKey];
+                        const isActive = selectedEvaluation && 
+                          Math.ceil(selectedEvaluation.potentialScore) === (4-row) &&
+                          Math.ceil(selectedEvaluation.consensusScore) === col;
+                        
+                        return (
+                          <div
+                            key={key}
+                            className={`
+                              relative flex items-center justify-center p-4 rounded-xl transition-all duration-300
+                              ${config.bgColor} ${config.borderColor} border-2 ${config.textColor}
+                              ${isActive ? getQuadrantStyle(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore, row, col) : ''}
+                              hover:shadow-lg cursor-pointer
+                            `}
+                          >
+                            <div className="text-center">
+                              <div className="text-sm font-bold mb-1">{config.name}</div>
+                              {isActive && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                  className="absolute inset-0 flex items-center justify-center"
+                                >
+                                  <div className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center">
+                                    <User className="h-8 w-8 text-primary-600" />
+                                  </div>
+                                </motion.div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ))}
                   </div>
-
-                  {/* Ponto pequeno no centro do quadrante ativo */}
-                  {selectedEvaluation && (() => {
-                    const perfQuadrant = (selectedEvaluation.consensusScore);
-                    const potQuadrant = (selectedEvaluation.potentialScore);
-                    
-                    // Calcular posição do centro do quadrante
-                    const xPercent = (perfQuadrant - 1) * 33.33 + 16.67; // Centro do quadrante
-                    const yPercent = (3 - potQuadrant) * 33.33 + 16.67; // Centro do quadrante
-                    
-                    return (
-                      <div 
-                        className="absolute bg-white rounded-full w-4 h-4 border-2 border-black transform -translate-x-1/2 -translate-y-1/2 z-20 shadow-md"
-                        style={{
-                          left: `${xPercent}%`,
-                          top: `${yPercent}%`
-                        }}
-                      ></div>
-                    );
-                  })()}
                 </div>
 
-                {/* Título do eixo X abaixo da matriz */}
-                <div className="flex justify-center w-96 mt-4">
-                  <span className="text-sm font-semibold text-gray-700">DESEMPENHO</span>
+                {/* Labels do eixo X */}
+                <div className="flex justify-between w-96 mt-6">
+                  <span className="text-sm font-medium text-gray-600">Baixo</span>
+                  <span className="text-sm font-medium text-gray-600">Médio</span>
+                  <span className="text-sm font-medium text-gray-600">Alto</span>
+                </div>
+
+                {/* Título do eixo X */}
+                <div className="flex justify-center w-96 mt-2">
+                  <span className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Desempenho</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Legenda */}
+            <div className="mt-8 grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Alto Potencial</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-4 h-4 rounded ${matrixConfig['3,1'].bgColor} ${matrixConfig['3,1'].borderColor} border`}></div>
+                    <span className="text-xs text-gray-600">Enigma</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-4 h-4 rounded ${matrixConfig['3,2'].bgColor} ${matrixConfig['3,2'].borderColor} border`}></div>
+                    <span className="text-xs text-gray-600">Alto Potencial</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-4 h-4 rounded ${matrixConfig['3,3'].bgColor} ${matrixConfig['3,3'].borderColor} border`}></div>
+                    <span className="text-xs text-gray-600">Top Performer</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center">
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Potencial Médio</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-4 h-4 rounded ${matrixConfig['2,1'].bgColor} ${matrixConfig['2,1'].borderColor} border`}></div>
+                    <span className="text-xs text-gray-600">Questionável</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-4 h-4 rounded ${matrixConfig['2,2'].bgColor} ${matrixConfig['2,2'].borderColor} border`}></div>
+                    <span className="text-xs text-gray-600">Mantenedor</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-4 h-4 rounded ${matrixConfig['2,3'].bgColor} ${matrixConfig['2,3'].borderColor} border`}></div>
+                    <span className="text-xs text-gray-600">Alto Desempenho</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center">
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Baixo Potencial</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-4 h-4 rounded ${matrixConfig['1,1'].bgColor} ${matrixConfig['1,1'].borderColor} border`}></div>
+                    <span className="text-xs text-gray-600">Insatisfatório</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-4 h-4 rounded ${matrixConfig['1,2'].bgColor} ${matrixConfig['1,2'].borderColor} border`}></div>
+                    <span className="text-xs text-gray-600">Eficaz</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-4 h-4 rounded ${matrixConfig['1,3'].bgColor} ${matrixConfig['1,3'].borderColor} border`}></div>
+                    <span className="text-xs text-gray-600">Forte Desempenho</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -280,72 +458,121 @@ const NineBoxMatrix = () => {
             className="grid grid-cols-1 md:grid-cols-2 gap-6"
           >
             {/* Análise de Performance */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Análise de Performance</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Performance Média:</span>
-                  <span className="text-lg font-bold text-blue-600">{selectedEvaluation.consensusScore.toFixed(2)}</span>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <div className="p-2 rounded-lg bg-primary-50 mr-3">
+                  <TrendingUp className="h-5 w-5 text-primary-600" />
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(selectedEvaluation.consensusScore / 4) * 100}%` }}
-                  ></div>
+                Análise de Performance
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-600">Performance Atual</span>
+                    <span className="text-2xl font-bold text-primary-600">{selectedEvaluation.consensusScore.toFixed(1)}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${(selectedEvaluation.consensusScore / 4) * 100}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500">Baseado em 7 competências avaliadas</p>
+                <div className="pt-2 border-t border-gray-100">
+                  <p className="text-sm text-gray-600">
+                    O colaborador está {selectedEvaluation.consensusScore >= 3 ? 'acima da média' : selectedEvaluation.consensusScore >= 2 ? 'na média' : 'abaixo da média'} em termos de desempenho.
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Análise de Potencial */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Análise de Potencial</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Potencial Médio:</span>
-                  <span className="text-lg font-bold text-green-600">{selectedEvaluation.potentialScore.toFixed(2)}</span>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <div className="p-2 rounded-lg bg-secondary-50 mr-3">
+                  <Sparkles className="h-5 w-5 text-secondary-600" />
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(selectedEvaluation.potentialScore / 4) * 100}%` }}
-                  ></div>
+                Análise de Potencial
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-600">Potencial Identificado</span>
+                    <span className="text-2xl font-bold text-secondary-600">{selectedEvaluation.potentialScore.toFixed(1)}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-secondary-500 to-secondary-600 h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${(selectedEvaluation.potentialScore / 4) * 100}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500">Usando média de performance como referência</p>
+                <div className="pt-2 border-t border-gray-100">
+                  <p className="text-sm text-gray-600">
+                    Demonstra {selectedEvaluation.potentialScore >= 3 ? 'alto potencial' : selectedEvaluation.potentialScore >= 2 ? 'potencial moderado' : 'potencial em desenvolvimento'} para crescimento.
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>
         )}
 
         {/* Recomendações */}
-        {selectedEmployee && nineBoxData && (
+        {selectedEmployee && nineBoxData && recommendationData && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-white rounded-lg shadow p-6"
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
           >
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Recomendações de Ação</h3>
-            <div className={`p-4 rounded-lg ${nineBoxData.color} border-l-4 border-l-blue-600`}>
-              <h4 className="font-medium text-gray-800 mb-2">Categoria: {nineBoxData.name}</h4>
-              <p className="text-sm text-gray-700">{nineBoxData.description}</p>
+            <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+              <div className="p-2 rounded-lg bg-accent-50 mr-3">
+                <recommendationData.icon className="h-5 w-5 text-accent-600" />
+              </div>
+              Plano de Ação Recomendado
+            </h3>
+            <div className={`p-6 rounded-xl ${nineBoxData.bgColor} ${nineBoxData.borderColor} border-2`}>
+              <h4 className="font-semibold text-gray-800 mb-4 flex items-center">
+                <Award className="h-5 w-5 mr-2 text-primary-600" />
+                Categoria: {nineBoxData.name}
+              </h4>
+              <div className="space-y-3">
+                {recommendationData.actions.map((action, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + index * 0.1 }}
+                    className="flex items-center space-x-3"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-semibold text-primary-600">{index + 1}</span>
+                    </div>
+                    <p className="text-sm text-gray-700">{action}</p>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
 
         {/* Empty State */}
         {!selectedEmployee && (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center"
+          >
             <div className="max-w-sm mx-auto">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
-                <BarChart3 className="h-6 w-6 text-gray-400" />
+              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 mb-6">
+                <BarChart3 className="h-10 w-10 text-primary-600" />
               </div>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum colaborador selecionado</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum colaborador selecionado</h3>
+              <p className="text-gray-500">
                 Selecione um colaborador acima para visualizar sua posição na Matriz 9-Box
               </p>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
