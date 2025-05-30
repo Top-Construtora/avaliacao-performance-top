@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useEvaluation } from '../context/EvaluationContext';
 import Button from '../components/Button';
 import { 
@@ -10,7 +10,17 @@ import {
   Save,
   Send,
   ArrowLeft,
-  Star
+  Star,
+  Users,
+  Target,
+  TrendingUp,
+  Award,
+  CheckCircle,
+  AlertCircle,
+  BarChart3,
+  Briefcase,
+  Calendar,
+  User
 } from 'lucide-react';
 
 interface Section {
@@ -19,7 +29,8 @@ interface Section {
   weight: number;
   items: CompetencyItem[];
   expanded: boolean;
-  color: string;
+  icon: React.ElementType;
+  gradient: string;
   bgColor: string;
   borderColor: string;
 }
@@ -57,9 +68,10 @@ const LeaderEvaluation = () => {
       title: 'Competências Técnicas',
       weight: 50,
       expanded: true,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-200',
+      icon: Target,
+      gradient: 'from-primary-500 to-primary-600',
+      bgColor: 'bg-primary-50',
+      borderColor: 'border-primary-200',
       items: [
         { 
           id: 'tech1', 
@@ -92,9 +104,10 @@ const LeaderEvaluation = () => {
       title: 'Competências Comportamentais',
       weight: 30,
       expanded: false,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-200',
+      icon: Users,
+      gradient: 'from-secondary-500 to-secondary-600',
+      bgColor: 'bg-secondary-50',
+      borderColor: 'border-secondary-200',
       items: [
         { 
           id: 'beh1', 
@@ -127,9 +140,10 @@ const LeaderEvaluation = () => {
       title: 'Competências Organizacionais',
       weight: 20,
       expanded: false,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      borderColor: 'border-purple-200',
+      icon: Briefcase,
+      gradient: 'from-accent-500 to-accent-600',
+      bgColor: 'bg-accent-50',
+      borderColor: 'border-accent-200',
       items: [
         { 
           id: 'org1', 
@@ -160,10 +174,10 @@ const LeaderEvaluation = () => {
   ]);
 
   const ratingLabels = {
-    1: 'Insatisfatório',
-    2: 'Em Desenvolvimento',
-    3: 'Satisfatório',
-    4: 'Excepcional'
+    1: { label: 'Insatisfatório', color: 'bg-red-500' },
+    2: { label: 'Em Desenvolvimento', color: 'bg-yellow-500' },
+    3: { label: 'Satisfatório', color: 'bg-primary-500' },
+    4: { label: 'Excepcional', color: 'bg-green-500' }
   };
 
   // Calculate scores whenever ratings change
@@ -214,13 +228,21 @@ const LeaderEvaluation = () => {
     ));
   };
 
+  const getProgress = () => {
+    const totalItems = sections.reduce((acc, section) => acc + section.items.length, 0);
+    const scoredItems = sections.reduce(
+      (acc, section) => acc + section.items.filter(item => item.score !== undefined).length, 
+      0
+    );
+    return totalItems > 0 ? (scoredItems / totalItems) * 100 : 0;
+  };
+
   const handleSave = () => {
     if (!selectedEmployeeId) {
       toast.error('Selecione um colaborador para continuar');
       return;
     }
 
-    // Prepare evaluation data
     const allCriteria = sections.flatMap(section => 
       section.items
         .filter(item => item.score !== undefined)
@@ -264,7 +286,6 @@ const LeaderEvaluation = () => {
       return;
     }
     
-    // Check if all items have scores
     const allScored = sections.every(section =>
       section.items.every(item => item.score !== undefined)
     );
@@ -274,7 +295,6 @@ const LeaderEvaluation = () => {
       return;
     }
 
-    // Prepare evaluation data
     const allCriteria = sections.flatMap(section => 
       section.items.map(item => ({
         id: item.id,
@@ -307,11 +327,14 @@ const LeaderEvaluation = () => {
     };
 
     saveEvaluation(evaluation);
-    toast.success('Avaliação enviada com sucesso');
-    navigate('/');
+    setShowSuccess(true);
+    setTimeout(() => {
+      navigate('/');
+    }, 2000);
   };
 
   const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
+  const progress = getProgress();
 
   return (
     <div className="space-y-6">
@@ -319,31 +342,74 @@ const LeaderEvaluation = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-lg shadow p-6"
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
       >
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Avaliação do Líder</h1>
-          <Button
-            variant="outline"
-            onClick={() => navigate('/')}
-            icon={<ArrowLeft size={16} />}
-          >
-            Voltar
-          </Button>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+                <Users className="h-8 w-8 text-secondary-500 mr-3" />
+                Avaliação do Líder
+              </h1>
+              <p className="text-gray-600 mt-1">Avalie o desempenho dos seus colaboradores</p>
+            </div>
+          </div>
+
+          {/* Progress Indicator */}
+          <div className="flex items-center space-x-3">
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Progresso</p>
+              <p className="text-lg font-bold text-gray-800">{Math.round(progress)}%</p>
+            </div>
+            <div className="relative">
+              <svg className="w-16 h-16 transform -rotate-90">
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="28"
+                  stroke="#e5e7eb"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="28"
+                  stroke="url(#progressGradient)"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeDasharray={`${progress * 1.76} 176`}
+                  strokeLinecap="round"
+                />
+                <defs>
+                  <linearGradient id="progressGradient">
+                    <stop offset="0%" stopColor="#1e6076" />
+                    <stop offset="100%" stopColor="#12b0a0" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+          </div>
         </div>
 
         {/* Employee Selection */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Colaborador
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Selecione o Colaborador
             </label>
             <select
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full rounded-xl border-gray-200 shadow-sm focus:border-secondary-500 focus:ring-secondary-500 text-gray-700"
               value={selectedEmployeeId}
               onChange={(e) => setSelectedEmployeeId(e.target.value)}
             >
-              <option value="">Selecione um colaborador</option>
+              <option value="">Escolha um colaborador...</option>
               {employees.map((employee) => (
                 <option key={employee.id} value={employee.id}>
                   {employee.name}
@@ -355,39 +421,23 @@ const LeaderEvaluation = () => {
           {selectedEmployee && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Briefcase className="inline h-4 w-4 mr-1" />
                   Cargo
                 </label>
-                <input
-                  type="text"
-                  className="w-full rounded-md border-gray-300 bg-gray-50 shadow-sm"
-                  value={selectedEmployee.position}
-                  readOnly
-                />
+                <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700">
+                  {selectedEmployee.position}
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Departamento
-                </label>
-                <input
-                  type="text"
-                  className="w-full rounded-md border-gray-300 bg-gray-50 shadow-sm"
-                  value={selectedEmployee.department}
-                  readOnly
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="inline h-4 w-4 mr-1" />
                   Data
                 </label>
-                <input
-                  type="text"
-                  className="w-full rounded-md border-gray-300 bg-gray-50 shadow-sm"
-                  value={new Date().toLocaleDateString('pt-BR')}
-                  readOnly
-                />
+                <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700">
+                  {new Date().toLocaleDateString('pt-BR')}
+                </div>
               </div>
             </>
           )}
@@ -395,143 +445,285 @@ const LeaderEvaluation = () => {
       </motion.div>
 
       {/* Evaluation Sections */}
-      {selectedEmployeeId && (
-        <>
-          {sections.map((section, sectionIndex) => (
-            <motion.div
-              key={section.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: sectionIndex * 0.1 }}
-              className="bg-white rounded-lg shadow overflow-hidden"
-            >
-              <button
-                onClick={() => toggleSection(section.id)}
-                className="w-full px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between hover:bg-gray-100 transition-colors"
-              >
-                <h2 className="text-lg font-semibold text-gray-800 flex items-center">
-                  {section.expanded ? (
-                    <ChevronDown className="w-5 h-5 mr-2" />
-                  ) : (
-                    <ChevronRight className="w-5 h-5 mr-2" />
-                  )}
-                  {section.title}
-                  <span className={`ml-2 text-xs font-medium ${section.bgColor} ${section.color} px-2 py-1 rounded-full`}>
-                    Peso {section.weight}%
-                  </span>
-                </h2>
-                <span className="text-sm text-gray-500">
-                  {section.items.filter(item => item.score !== undefined).length}/{section.items.length} avaliados
-                </span>
-              </button>
-
-              {section.expanded && (
-                <div className="p-6 space-y-6">
-                  {section.items.map((item) => (
-                    <div key={item.id} className="space-y-3">
-                      <div>
-                        <h4 className="text-md font-medium text-gray-800">{item.name}</h4>
-                        <p className="text-sm text-gray-600">{item.description}</p>
+      <AnimatePresence>
+        {selectedEmployeeId && (
+          <>
+            {sections.map((section, sectionIndex) => {
+              const IconComponent = section.icon;
+              const sectionProgress = section.items.filter(item => item.score !== undefined).length / section.items.length * 100;
+              
+              return (
+                <motion.div
+                  key={section.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: sectionIndex * 0.1 }}
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                >
+                  <button
+                    onClick={() => toggleSection(section.id)}
+                    className={`w-full px-8 py-6 ${section.bgColor} border-b ${section.borderColor} flex items-center justify-between hover:opacity-90 transition-all duration-200`}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className={`p-3 rounded-xl bg-gradient-to-br ${section.gradient} shadow-md`}>
+                        <IconComponent className="h-6 w-6 text-white" />
                       </div>
-                      <div className="flex gap-2">
-                        {[1, 2, 3, 4].map((rating) => (
-                          <button
-                            key={rating}
-                            onClick={() => handleScoreChange(section.id, item.id, rating)}
-                            className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
-                              item.score === rating
-                                ? 'border-blue-600 bg-blue-600 text-white'
-                                : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                            }`}
-                          >
-                            <div className="text-lg font-bold">{rating}</div>
-                            <div className="text-xs mt-1">
-                              {ratingLabels[rating as keyof typeof ratingLabels]}
-                            </div>
-                          </button>
-                        ))}
+                      <div className="text-left">
+                        <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                          {section.title}
+                          <span className={`ml-3 text-xs font-medium px-2 py-1 rounded-full ${section.bgColor} text-gray-700`}>
+                            Peso {section.weight}%
+                          </span>
+                        </h2>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {section.items.filter(item => item.score !== undefined).length} de {section.items.length} competências avaliadas
+                        </p>
                       </div>
                     </div>
-                  ))}
+                    
+                    <div className="flex items-center space-x-4">
+                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full bg-gradient-to-r ${section.gradient} transition-all duration-300`}
+                          style={{ width: `${sectionProgress}%` }}
+                        />
+                      </div>
+                      {section.expanded ? (
+                        <ChevronDown className="w-5 h-5 text-gray-600" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-gray-600" />
+                      )}
+                    </div>
+                  </button>
+
+                  <AnimatePresence>
+                    {section.expanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="p-8 space-y-6"
+                      >
+                        {section.items.map((item, itemIndex) => (
+                          <motion.div
+                            key={item.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: itemIndex * 0.05 }}
+                            className="space-y-4"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 mr-4">
+                                <h4 className="text-lg font-semibold text-gray-800 mb-1">{item.name}</h4>
+                                <p className="text-sm text-gray-600">{item.description}</p>
+                              </div>
+                              {item.score && (
+                                <div className="text-center">
+                                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${ratingLabels[item.score as keyof typeof ratingLabels].color} text-white`}>
+                                    {ratingLabels[item.score as keyof typeof ratingLabels].label}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="flex gap-3">
+                              {[1, 2, 3, 4].map((rating) => {
+                                const ratingInfo = ratingLabels[rating as keyof typeof ratingLabels];
+                                return (
+                                  <button
+                                    key={rating}
+                                    onClick={() => handleScoreChange(section.id, item.id, rating)}
+                                    className={`flex-1 py-4 px-4 rounded-xl border-2 transition-all duration-200 ${
+                                      item.score === rating
+                                        ? `${ratingInfo.color} text-white border-transparent shadow-lg transform scale-105`
+                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 bg-white'
+                                    }`}
+                                  >
+                                    <div className="text-center">
+                                      <div className="text-2xl font-bold mb-1">{rating}</div>
+                                      <div className="text-xs">
+                                        {ratingInfo.label}
+                                      </div>
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              );
+            })}
+
+            {/* Score Summary */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 rounded-2xl shadow-sm border border-primary-100 p-8"
+            >
+              <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <BarChart3 className="h-6 w-6 mr-2 text-primary-600" />
+                Resumo das Notas
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-white p-6 rounded-xl border border-primary-200">
+                  <h4 className="text-sm font-medium text-gray-600 mb-1">Técnicas</h4>
+                  <p className="text-3xl font-bold text-primary-600">{scores.technical.toFixed(1)}</p>
+                  <p className="text-xs text-gray-500 mt-1">Peso 50%</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+                    <div 
+                      className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(scores.technical / 4) * 100}%` }}
+                    />
+                  </div>
                 </div>
-              )}
+                
+                <div className="bg-white p-6 rounded-xl border border-secondary-200">
+                  <h4 className="text-sm font-medium text-gray-600 mb-1">Comportamentais</h4>
+                  <p className="text-3xl font-bold text-secondary-600">{scores.behavioral.toFixed(1)}</p>
+                  <p className="text-xs text-gray-500 mt-1">Peso 30%</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+                    <div 
+                      className="bg-gradient-to-r from-secondary-500 to-secondary-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(scores.behavioral / 4) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="bg-white p-6 rounded-xl border border-accent-200">
+                  <h4 className="text-sm font-medium text-gray-600 mb-1">Organizacionais</h4>
+                  <p className="text-3xl font-bold text-accent-600">{scores.organizational.toFixed(1)}</p>
+                  <p className="text-xs text-gray-500 mt-1">Peso 20%</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+                    <div 
+                      className="bg-gradient-to-r from-accent-500 to-accent-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(scores.organizational / 4) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-primary-500 to-secondary-600 p-6 rounded-xl text-white">
+                  <h4 className="text-sm font-medium text-primary-100 mb-1">Nota Final</h4>
+                  <p className="text-3xl font-bold">{scores.final.toFixed(1)}</p>
+                  <p className="text-xs text-primary-100 mt-1">Média Ponderada</p>
+                  <div className="flex items-center mt-3">
+                    <Award className="h-5 w-5 mr-2" />
+                    <span className="text-sm font-medium">
+                      {scores.final >= 3.5 ? 'Excelente' : scores.final >= 2.5 ? 'Bom' : scores.final >= 1.5 ? 'Regular' : 'Necessita Melhoria'}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </motion.div>
-          ))}
 
-          {/* Score Summary */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-white rounded-lg shadow p-6"
-          >
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Resumo das Notas</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="text-sm font-medium text-blue-800">Técnicas</h4>
-                <p className="text-2xl font-bold text-blue-600">{scores.technical.toFixed(1)}</p>
-                <p className="text-xs text-blue-600">Peso 50%</p>
+            {/* Action Buttons */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex justify-between items-center"
+            >
+              <div className="flex items-center space-x-2 text-sm">
+                {progress < 100 ? (
+                  <>
+                    <AlertCircle className="h-5 w-5 text-amber-500" />
+                    <span className="text-gray-600">
+                      Complete todas as avaliações para enviar
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span className="text-green-600 font-medium">
+                      Todas as competências foram avaliadas!
+                    </span>
+                  </>
+                )}
               </div>
-              
-              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <h4 className="text-sm font-medium text-green-800">Comportamentais</h4>
-                <p className="text-2xl font-bold text-green-600">{scores.behavioral.toFixed(1)}</p>
-                <p className="text-xs text-green-600">Peso 30%</p>
-              </div>
-              
-              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <h4 className="text-sm font-medium text-purple-800">Organizacionais</h4>
-                <p className="text-2xl font-bold text-purple-600">{scores.organizational.toFixed(1)}</p>
-                <p className="text-xs text-purple-600">Peso 20%</p>
-              </div>
-              
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-800">Nota Final</h4>
-                <p className="text-2xl font-bold text-gray-700">{scores.final.toFixed(1)}</p>
-                <p className="text-xs text-gray-500">Média Ponderada</p>
-              </div>
-            </div>
-          </motion.div>
 
-          {/* Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="flex justify-end space-x-4"
-          >
-            <Button
-              variant="secondary"
-              onClick={handleSave}
-              icon={<Save size={16} />}
-            >
-              Salvar Rascunho
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleSubmit}
-              icon={<Send size={16} />}
-            >
-              Enviar Avaliação
-            </Button>
-          </motion.div>
-        </>
-      )}
+              <div className="flex space-x-4">
+                <Button
+                  variant="outline"
+                  onClick={handleSave}
+                  icon={<Save size={18} />}
+                  size="lg"
+                  disabled={progress === 0}
+                >
+                  Salvar Rascunho
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleSubmit}
+                  icon={<Send size={18} />}
+                  size="lg"
+                  disabled={progress < 100}
+                >
+                  Enviar Avaliação
+                </Button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Empty State */}
       {!selectedEmployeeId && (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <div className="max-w-sm mx-auto">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
-              <Star className="h-6 w-6 text-gray-400" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center"
+        >
+          <div className="max-w-md mx-auto">
+            <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-secondary-100 to-primary-100 mb-6">
+              <User className="h-10 w-10 text-secondary-600" />
             </div>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum colaborador selecionado</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Selecione um colaborador acima para iniciar a avaliação
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Nenhum colaborador selecionado
+            </h3>
+            <p className="text-gray-500">
+              Selecione um colaborador acima para iniciar a avaliação de desempenho
             </p>
           </div>
-        </div>
+        </motion.div>
       )}
+
+      {/* Success Modal */}
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center"
+            >
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+                <CheckCircle className="h-10 w-10 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Avaliação Enviada!
+              </h2>
+              <p className="text-gray-600 mb-6">
+                A avaliação foi registrada com sucesso no sistema.
+              </p>
+              <div className="text-sm text-gray-500">
+                Redirecionando...
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
