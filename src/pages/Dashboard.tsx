@@ -10,12 +10,15 @@ import {
   CheckCircle,
   AlertCircle,
   Target,
-  Award
+  Award,
+  ArrowRight,
+  Activity
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { stats } = useEvaluation();
   
   // Animation variants
   const containerVariants = {
@@ -45,73 +48,78 @@ const Dashboard = () => {
     {
       id: 'autoavaliacao',
       title: 'Autoavaliação',
-      description: 'Avalie suas competências e desempenho',
+      description: 'Avalie suas competências e desempenho de forma reflexiva',
       action: 'Iniciar avaliação',
       icon: User,
-      color: 'bg-blue-500',
-      bgColor: 'bg-white-50',
-      borderColor: 'border-white-200',
+      gradient: 'from-primary-500 to-primary-600',
+      shadowColor: 'shadow-primary-500/20',
       onClick: () => navigate('/self-evaluation'),
     },
-     {
+    {
       id: 'avaliacao-lider',
       title: 'Avaliação do Líder',
-      description: 'Avalie o desempenho dos colaboradores',
+      description: 'Avalie o desempenho dos seus colaboradores',
       action: 'Avaliar equipe',
       icon: Users,
-      color: 'bg-green-500',
-      bgColor: 'bg-white-50',
-      borderColor: 'border-white-200',
+      gradient: 'from-secondary-500 to-secondary-600',
+      shadowColor: 'shadow-secondary-500/20',
       onClick: () => navigate('/leader-evaluation'),
     },
     {
       id: 'consenso',
       title: 'Consenso',
-      description: 'Definição das notas finais em consenso',
+      description: 'Defina as notas finais em reunião de consenso',
       action: 'Definir consenso',
       icon: Target,
-      color: 'bg-yellow-500',
-      bgColor: 'bg-white-50',
-      borderColor: 'border-white-200',
+      gradient: 'from-accent-500 to-accent-600',
+      shadowColor: 'shadow-accent-500/20',
       onClick: () => navigate('/consensus'),
     },
     {
       id: 'matriz-9box',
       title: 'Matriz 9-Box',
-      description: 'Visualização do posicionamento na matriz',
+      description: 'Visualize o posicionamento na matriz de potencial',
       action: 'Ver matriz',
       icon: BarChart3,
-      color: 'bg-indigo-500',
-      bgColor: 'bg-white-50',
-      borderColor: 'border-white-200',
+      gradient: 'from-primary-600 to-secondary-600',
+      shadowColor: 'shadow-primary-500/20',
       onClick: () => navigate('/nine-box'),
     },
     {
       id: 'plano-acao',
       title: 'PDI',
-      description: 'Plano de Desenvolvimento Individual',
+      description: 'Crie planos de desenvolvimento individual',
       action: 'Criar plano',
       icon: FileText,
-      color: 'bg-orange-500',
-      bgColor: 'bg-white-50',
-      borderColor: 'border-white-200',
+      gradient: 'from-secondary-600 to-accent-600',
+      shadowColor: 'shadow-secondary-500/20',
       onClick: () => navigate('/action-plan'),
     },
     {
       id: 'relatorios',
       title: 'Relatórios',
-      description: 'Acompanhamento geral do sistema',
+      description: 'Acompanhe o progresso e resultados gerais',
       action: 'Ver relatórios',
       icon: Award,
-      color: 'bg-red-500',
-      bgColor: 'bg-white-50',
-      borderColor: 'border-white-200',
+      gradient: 'from-accent-600 to-primary-600',
+      shadowColor: 'shadow-accent-500/20',
       onClick: () => navigate('/reports'),
     },
   ];
 
   return (
     <div className="space-y-8">
+      {/* Welcome Section */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-br from-primary-500 to-secondary-600 rounded-2xl p-8 text-white shadow-xl"
+      >
+        <h1 className="text-3xl font-bold mb-2">Bem-vindo, Luiz!</h1>
+        <p className="text-primary-100 text-lg">
+          Gerencie e acompanhe todas as avaliações de desempenho em um só lugar
+        </p>
+      </motion.div>
 
       {/* Functionality Cards */}
       <motion.div 
@@ -126,28 +134,34 @@ const Dashboard = () => {
             <motion.div
               key={card.id}
               variants={itemVariants}
-              className={`${card.bgColor} rounded-lg border ${card.borderColor} p-6 hover:shadow-md transition-all duration-200 cursor-pointer group`}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              className={`relative bg-white rounded-xl p-6 shadow-lg hover:shadow-xl ${card.shadowColor} transition-all duration-300 cursor-pointer group overflow-hidden`}
               onClick={card.onClick}
             >
-              <div className="flex items-start space-x-4">
-                <div className={`${card.color} rounded-lg p-3 group-hover:scale-110 transition-transform duration-200`}>
+              {/* Background Gradient Decoration */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+              
+              <div className="relative z-10">
+                <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${card.gradient} shadow-md mb-4`}>
                   <IconComponent className="h-6 w-6 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {card.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    {card.description}
-                  </p>
-                  <div className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
-                    <span>{card.action}</span>
-                    <svg className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
+                
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                  {card.title}
+                </h3>
+                
+                <p className="text-gray-600 mb-4 min-h-[48px]">
+                  {card.description}
+                </p>
+                
+                <div className={`inline-flex items-center text-sm font-semibold bg-gradient-to-r ${card.gradient} bg-clip-text text-transparent group-hover:gap-3 transition-all duration-300`}>
+                  <span>{card.action}</span>
+                  <ArrowRight className="h-4 w-4 text-primary-500 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
+              
+              {/* Hover Effect Border */}
+              <div className={`absolute inset-0 rounded-xl border-2 border-transparent bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} style={{ padding: '2px', background: `linear-gradient(to bottom right, var(--tw-gradient-from), var(--tw-gradient-to))`, WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', WebkitMaskComposite: 'exclude', maskComposite: 'exclude' }} />
             </motion.div>
           );
         })}

@@ -12,7 +12,12 @@ import {
   Save, 
   User,
   ArrowLeft,
-  LucideIcon
+  Sparkles,
+  Target,
+  TrendingUp,
+  CheckCircle,
+  Info,
+  Shield
 } from 'lucide-react';
 import Button from '../components/Button';
 
@@ -27,10 +32,11 @@ interface Section {
   id: keyof SelfEvaluationData;
   title: string;
   subtitle: string;
-  icon: LucideIcon;
-  color: string;
+  icon: React.ElementType;
+  gradient: string;
   bgColor: string;
   borderColor: string;
+  iconBg: string;
   items: string[];
 }
 
@@ -42,6 +48,8 @@ const SelfEvaluation = () => {
     forcasInternas: [''],
     qualidades: ['']
   });
+
+  const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
 
   const addField = (section: keyof SelfEvaluationData) => {
     setFormData(prev => ({
@@ -62,10 +70,23 @@ const SelfEvaluation = () => {
       ...prev,
       [section]: prev[section].map((item, i) => i === index ? value : item)
     }));
+
+    // Check if section is completed
+    const sectionData = formData[section].map((item, i) => i === index ? value : item);
+    const hasValidItems = sectionData.some(item => item.trim() !== '');
+    
+    if (hasValidItems) {
+      setCompletedSections(prev => new Set(prev).add(section));
+    } else {
+      setCompletedSections(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(section);
+        return newSet;
+      });
+    }
   };
 
   const handleSave = (): void => {
-    // Validar se pelo menos um campo de cada seção está preenchido
     const hasEmptySections = Object.entries(formData).some(([key, values]) => 
       values.every((value: string) => value.trim() === '')
     );
@@ -75,13 +96,11 @@ const SelfEvaluation = () => {
       return;
     }
 
-    // Filtrar campos vazios
     const cleanedData = Object.entries(formData).reduce((acc, [key, values]) => {
       acc[key as keyof SelfEvaluationData] = values.filter((value: string) => value.trim() !== '');
       return acc;
     }, {} as SelfEvaluationData);
 
-    // Salvar dados (aqui você integraria com sua API)
     console.log('Autoavaliação salva:', cleanedData);
     toast.success('Autoavaliação salva com sucesso!');
     navigate('/');
@@ -89,46 +108,52 @@ const SelfEvaluation = () => {
 
   const sections: Section[] = [
     {
-      id: 'conhecimentos' as keyof SelfEvaluationData,
+      id: 'conhecimentos',
       title: 'Conhecimentos',
-      subtitle: 'Sei fazer sobre:',
+      subtitle: 'Sei falar sobre:',
       icon: Brain,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-200',
+      gradient: 'from-primary-500 to-primary-600',
+      bgColor: 'bg-primary-50',
+      borderColor: 'border-primary-200',
+      iconBg: 'bg-gradient-to-br from-primary-500 to-primary-600',
       items: formData.conhecimentos
     },
     {
-      id: 'ferramentas' as keyof SelfEvaluationData,
+      id: 'ferramentas',
       title: 'Ferramentas',
       subtitle: 'Sei usar:',
       icon: Wrench,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-200',
+      gradient: 'from-secondary-500 to-secondary-600',
+      bgColor: 'bg-secondary-50',
+      borderColor: 'border-secondary-200',
+      iconBg: 'bg-gradient-to-br from-secondary-500 to-secondary-600',
       items: formData.ferramentas
     },
     {
-      id: 'forcasInternas' as keyof SelfEvaluationData,
+      id: 'forcasInternas',
       title: 'Forças Internas',
-      subtitle: 'Sou resiliente:',
-      icon: Heart,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      borderColor: 'border-purple-200',
+      subtitle: 'Me sustentam:',
+      icon: Shield,
+      gradient: 'from-accent-500 to-accent-600',
+      bgColor: 'bg-accent-50',
+      borderColor: 'border-accent-200',
+      iconBg: 'bg-gradient-to-br from-accent-500 to-accent-600',
       items: formData.forcasInternas
     },
     {
-      id: 'qualidades' as keyof SelfEvaluationData,
+      id: 'qualidades',
       title: 'Qualidades',
       subtitle: 'Tenho para oferecer:',
       icon: Award,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      borderColor: 'border-orange-200',
+      gradient: 'from-primary-600 to-secondary-600',
+      bgColor: 'bg-gradient-to-br from-primary-50 to-secondary-50',
+      borderColor: 'border-primary-200',
+      iconBg: 'bg-gradient-to-br from-primary-600 to-secondary-600',
       items: formData.qualidades
     }
   ];
+
+  const progressPercentage = (completedSections.size / sections.length) * 100;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -155,83 +180,160 @@ const SelfEvaluation = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex items-center justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+      >
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
-            <div className="flex-shrink-0">
-              <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <User className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Meu Toolkit</h1>
-              <p className="text-gray-600">Preencha suas competências e habilidades</p>
+              <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+                <Sparkles className="h-8 w-8 text-primary-500 mr-3" />
+                Meu Toolkit Profissional
+              </h1>
+              <p className="text-gray-600 mt-1">Construa seu perfil de competências e habilidades</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => navigate('/')}
-            icon={<ArrowLeft size={16} />}
-          >
-            Voltar
-          </Button>
+          
+          <div className="flex items-center space-x-3">
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Progresso</p>
+              <p className="text-lg font-bold text-gray-800">{Math.round(progressPercentage)}%</p>
+            </div>
+            <div className="relative">
+              <svg className="w-16 h-16 transform -rotate-90">
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="28"
+                  stroke="#e5e7eb"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="28"
+                  stroke="url(#progressGradient)"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeDasharray={`${progressPercentage * 1.76} 176`}
+                  strokeLinecap="round"
+                />
+                <defs>
+                  <linearGradient id="progressGradient">
+                    <stop offset="0%" stopColor="#12b0a0" />
+                    <stop offset="100%" stopColor="#1e6076" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+          </div>
         </div>
-      </div>
 
+        {/* Quick Stats */}
+        <div className="grid grid-cols-4 gap-4">
+          {sections.map((section) => {
+            const filledItems = section.items.filter(item => item.trim() !== '').length;
+            const isCompleted = completedSections.has(section.id);
+            
+            return (
+              <div 
+                key={section.id} 
+                className={`p-4 rounded-xl border ${isCompleted ? section.borderColor : 'border-gray-200'} ${isCompleted ? section.bgColor : 'bg-gray-50'} transition-all duration-300`}
+              >
+                <div className="flex items-center justify-between">
+                  <section.icon className={`h-5 w-5 ${isCompleted ? 'text-gray-700' : 'text-gray-400'}`} />
+                  {isCompleted && <CheckCircle className="h-4 w-4 text-green-500" />}
+                </div>
+                <p className="text-sm font-medium text-gray-700 mt-2">{section.title}</p>
+                <p className="text-xs text-gray-500">{filledItems} itens</p>
+              </div>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Sections */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="space-y-8"
+        className="space-y-6"
       >
-        {sections.map((section: Section) => {
+        {sections.map((section: Section, sectionIndex) => {
           const IconComponent = section.icon;
+          const isCompleted = completedSections.has(section.id);
+          
           return (
             <motion.div
               key={section.id}
               variants={itemVariants}
-              className={`${section.bgColor} rounded-lg border ${section.borderColor} overflow-hidden`}
+              className={`bg-white rounded-2xl shadow-sm border ${isCompleted ? section.borderColor : 'border-gray-100'} overflow-hidden transition-all duration-300`}
             >
               {/* Section Header */}
-              <div className="px-6 py-4 bg-white border-b border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${section.bgColor}`}>
-                    <IconComponent className={`h-5 w-5 ${section.color}`} />
+              <div className={`px-8 py-6 ${isCompleted ? section.bgColor : 'bg-gray-50'} border-b border-gray-100`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className={`p-3 rounded-xl ${section.iconBg} shadow-md`}>
+                      <IconComponent className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-800">{section.title}</h2>
+                      <p className="text-sm text-gray-600">{section.subtitle}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">{section.title}</h2>
-                    <p className="text-sm text-gray-600">{section.subtitle}</p>
-                  </div>
+                  {isCompleted && (
+                    <div className="flex items-center space-x-2 text-green-600 bg-green-50 px-3 py-1.5 rounded-full">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="text-sm font-medium">Completo</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Section Content */}
-              <div className="p-6">
+              <div className="p-8">
                 <div className="space-y-3">
                   {section.items.map((item: string, index: number) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-center space-x-3"
+                      transition={{ delay: index * 0.05 }}
+                      className="flex items-center space-x-3 group"
                     >
-                      <div className="flex-1">
+                      <div className="flex-1 relative">
                         <input
                           type="text"
                           value={item}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField(section.id, index, e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder={`${section.title} ${index + 1}`}
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                          placeholder={`Digite ${section.title.toLowerCase()} ${index + 1}...`}
                         />
+                        {item.trim() && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute right-3 top-3.5"
+                          >
+                            <CheckCircle className="h-5 w-5 text-green-500" />
+                          </motion.div>
+                        )}
                       </div>
                       {section.items.length > 1 && (
                         <button
                           onClick={() => removeField(section.id, index)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          aria-label="Remover item"
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-5 w-5" />
                         </button>
                       )}
                     </motion.div>
@@ -239,74 +341,81 @@ const SelfEvaluation = () => {
                 </div>
 
                 {/* Add More Button */}
-                <div className="mt-4">
-                  <button
-                    onClick={() => addField(section.id)}
-                    className={`flex items-center space-x-2 px-4 py-2 ${section.color} hover:bg-white rounded-lg transition-colors text-sm font-medium`}
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Adicionar mais</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => addField(section.id)}
+                  className={`mt-4 flex items-center space-x-2 px-4 py-2 rounded-xl border-2 border-dashed ${isCompleted ? section.borderColor : 'border-gray-300'} text-gray-600 hover:text-gray-800 hover:border-gray-400 transition-all duration-200 group`}
+                >
+                  <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform duration-200" />
+                  <span className="text-sm font-medium">Adicionar mais</span>
+                </button>
               </div>
             </motion.div>
           );
         })}
 
-        {/* Progress Indicator */}
+        {/* Tips Section */}
         <motion.div
           variants={itemVariants}
-          className="bg-white rounded-lg p-6 border border-gray-200"
+          className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-2xl p-6 border border-primary-100"
         >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Progresso da Autoavaliação</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {sections.map((section: Section) => {
-              const filledItems = section.items.filter((item: string) => item.trim() !== '').length;
-              const totalItems = section.items.length;
-              const percentage = totalItems > 0 ? (filledItems / totalItems) * 100 : 0;
-              
-              return (
-                <div key={section.id} className="text-center">
-                  <div className={`w-16 h-16 mx-auto rounded-full ${section.bgColor} flex items-center justify-center mb-2`}>
-                    <section.icon className={`h-6 w-6 ${section.color}`} />
-                  </div>
-                  <p className="text-sm font-medium text-gray-900">{section.title}</p>
-                  <p className="text-xs text-gray-500">{filledItems}/{totalItems} preenchidos</p>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                    <div 
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        section.id === 'conhecimentos' ? 'bg-blue-600' :
-                        section.id === 'ferramentas' ? 'bg-green-600' :
-                        section.id === 'forcasInternas' ? 'bg-purple-600' :
-                        'bg-orange-600'
-                      }`}
-                      style={{ width: `${percentage}%` }}
-                    ></div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex items-start space-x-3">
+            <div className="p-2 bg-white rounded-lg shadow-sm">
+              <Info className="h-5 w-5 text-primary-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-2">Dicas para uma boa autoavaliação</h3>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li className="flex items-start">
+                  <span className="text-primary-500 mr-2">•</span>
+                  Seja específico e honesto sobre suas competências
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary-500 mr-2">•</span>
+                  Inclua tanto habilidades técnicas quanto comportamentais
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary-500 mr-2">•</span>
+                  Pense em situações reais onde aplicou essas habilidades
+                </li>
+              </ul>
+            </div>
           </div>
         </motion.div>
 
         {/* Action Buttons */}
         <motion.div
           variants={itemVariants}
-          className="flex justify-end space-x-4 pt-6"
+          className="flex justify-between items-center pt-6"
         >
           <Button
             variant="outline"
             onClick={() => navigate('/')}
+            size="lg"
           >
             Cancelar
           </Button>
-          <Button
-            variant="primary"
-            onClick={handleSave}
-            icon={<Save size={16} />}
-          >
-            Salvar Toolkit
-          </Button>
+          
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-500">
+              {completedSections.size === sections.length ? (
+                <span className="flex items-center text-green-600">
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Todas as seções completas!
+                </span>
+              ) : (
+                `${sections.length - completedSections.size} seções pendentes`
+              )}
+            </span>
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              icon={<Save size={18} />}
+              size="lg"
+              disabled={completedSections.size !== sections.length}
+            >
+              Salvar Autoavaliação
+            </Button>
+          </div>
         </motion.div>
       </motion.div>
     </div>
