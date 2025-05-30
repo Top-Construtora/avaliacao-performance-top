@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { 
   Brain, 
@@ -12,12 +12,19 @@ import {
   Save, 
   User,
   ArrowLeft,
+  ArrowRight,
   Sparkles,
   Target,
   TrendingUp,
   CheckCircle,
   Info,
-  Shield
+  Shield,
+  Users,
+  Building,
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Zap
 } from 'lucide-react';
 import Button from '../components/Button';
 
@@ -26,6 +33,10 @@ interface SelfEvaluationData {
   ferramentas: string[];
   forcasInternas: string[];
   qualidades: string[];
+}
+
+interface CompetencyScore {
+  [key: string]: number;
 }
 
 interface Section {
@@ -42,14 +53,62 @@ interface Section {
 
 const SelfEvaluation = () => {
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState<'toolkit' | 'competencies'>('toolkit');
   const [formData, setFormData] = useState<SelfEvaluationData>({
     conhecimentos: [''],
     ferramentas: [''],
     forcasInternas: [''],
     qualidades: ['']
   });
-
+  const [competencyScores, setCompetencyScores] = useState<CompetencyScore>({});
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['competencias-tecnicas']));
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
+
+  // Competency evaluation data structure
+  const competencyCategories = [
+    {
+      id: 'competencias-tecnicas',
+      title: 'Competências Técnicas',
+      icon: Target,
+      gradient: 'from-primary-500 to-primary-600',
+      bgColor: 'bg-primary-50',
+      borderColor: 'border-primary-200',
+      items: [
+        { id: 'gestao-conhecimento', name: 'GESTÃO DO CONHECIMENTO', description: 'Capacidade de adquirir, compartilhar e aplicar conhecimentos técnicos relevantes' },
+        { id: 'orientacao-resultados', name: 'ORIENTAÇÃO A RESULTADOS COM SEGURANÇA', description: 'Foco em resultados com segurança e qualidade' },
+        { id: 'pensamento-critico', name: 'PENSAMENTO CRÍTICO', description: 'Capacidade de analisar criticamente situações e propor soluções' },
+        { id: 'assertiva-provedora', name: 'ASSERTIVA E PROVEDORA', description: 'Comunicação assertiva e capacidade de prover soluções' }
+      ]
+    },
+    {
+      id: 'competencias-comportamentais',
+      title: 'Competências Comportamentais',
+      icon: Users,
+      gradient: 'from-secondary-500 to-secondary-600',
+      bgColor: 'bg-secondary-50',
+      borderColor: 'border-secondary-200',
+      items: [
+        { id: 'comunicacao', name: 'COMUNICAÇÃO', description: 'Capacidade de se comunicar de forma clara e eficaz' },
+        { id: 'inteligencia-emocional', name: 'INTELIGÊNCIA EMOCIONAL', description: 'Capacidade de reconhecer e gerenciar emoções próprias e dos outros' },
+        { id: 'delegacao', name: 'DELEGAÇÃO', description: 'Habilidade de delegar tarefas de forma eficaz' },
+        { id: 'patrimonialista', name: 'PATRIMONIALISTA', description: 'Cuidado e responsabilidade com os recursos da empresa' }
+      ]
+    },
+    {
+      id: 'competencias-organizacionais',
+      title: 'Competências Organizacionais',
+      icon: Building,
+      gradient: 'from-accent-500 to-accent-600',
+      bgColor: 'bg-accent-50',
+      borderColor: 'border-accent-200',
+      items: [
+        { id: 'meritocracia-missao', name: 'MERITOCRACIA E MISSÃO COMPARTILHADA', description: 'Comprometimento com meritocracia e missão da empresa' },
+        { id: 'espiral-passos', name: 'ESPIRAL DE PASSOS', description: 'Desenvolvimento contínuo e progressão estruturada' },
+        { id: 'planilhas-prazos', name: 'PLANILHAS E PRAZOS', description: 'Organização e cumprimento de prazos' },
+        { id: 'relacoes-construtivas', name: 'RELAÇÕES CONSTRUTIVAS', description: 'Construção de relacionamentos positivos e produtivos' }
+      ]
+    }
+  ];
 
   const addField = (section: keyof SelfEvaluationData) => {
     setFormData(prev => ({
@@ -86,7 +145,26 @@ const SelfEvaluation = () => {
     }
   };
 
-  const handleSave = (): void => {
+  const handleCompetencyScore = (competencyId: string, score: number) => {
+    setCompetencyScores(prev => ({
+      ...prev,
+      [competencyId]: score
+    }));
+  };
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleNextStep = () => {
     const hasEmptySections = Object.entries(formData).some(([key, values]) => 
       values.every((value: string) => value.trim() === '')
     );
@@ -96,13 +174,31 @@ const SelfEvaluation = () => {
       return;
     }
 
+    setCurrentStep('competencies');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSave = (): void => {
+    // Check if all competencies are evaluated
+    const totalCompetencies = competencyCategories.reduce((sum, category) => sum + category.items.length, 0);
+    const evaluatedCompetencies = Object.keys(competencyScores).length;
+
+    if (evaluatedCompetencies < totalCompetencies) {
+      toast.error('Avalie todas as competências antes de salvar');
+      return;
+    }
+
     const cleanedData = Object.entries(formData).reduce((acc, [key, values]) => {
       acc[key as keyof SelfEvaluationData] = values.filter((value: string) => value.trim() !== '');
       return acc;
     }, {} as SelfEvaluationData);
 
-    console.log('Autoavaliação salva:', cleanedData);
-    toast.success('Autoavaliação salva com sucesso!');
+    console.log('Autoavaliação completa:', {
+      toolkit: cleanedData,
+      competencies: competencyScores
+    });
+    
+    toast.success('Autoavaliação completa salva com sucesso!');
     navigate('/');
   };
 
@@ -153,7 +249,8 @@ const SelfEvaluation = () => {
     }
   ];
 
-  const progressPercentage = (completedSections.size / sections.length) * 100;
+  const toolkitProgress = (completedSections.size / sections.length) * 100;
+  const competencyProgress = (Object.keys(competencyScores).length / competencyCategories.reduce((sum, cat) => sum + cat.items.length, 0)) * 100;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -177,90 +274,8 @@ const SelfEvaluation = () => {
     }
   };
 
-  return (
-    <div className="space-y-8">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
-      >
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => navigate('/')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
-            </button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 flex items-center">
-                <Sparkles className="h-8 w-8 text-primary-500 mr-3" />
-                Meu Toolkit Profissional
-              </h1>
-              <p className="text-gray-600 mt-1">Construa seu perfil de competências e habilidades</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <div className="text-right">
-              <p className="text-sm text-gray-500">Progresso</p>
-              <p className="text-lg font-bold text-gray-800">{Math.round(progressPercentage)}%</p>
-            </div>
-            <div className="relative">
-              <svg className="w-16 h-16 transform -rotate-90">
-                <circle
-                  cx="32"
-                  cy="32"
-                  r="28"
-                  stroke="#e5e7eb"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <circle
-                  cx="32"
-                  cy="32"
-                  r="28"
-                  stroke="url(#progressGradient)"
-                  strokeWidth="4"
-                  fill="none"
-                  strokeDasharray={`${progressPercentage * 1.76} 176`}
-                  strokeLinecap="round"
-                />
-                <defs>
-                  <linearGradient id="progressGradient">
-                    <stop offset="0%" stopColor="#12b0a0" />
-                    <stop offset="100%" stopColor="#1e6076" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-4 gap-4">
-          {sections.map((section) => {
-            const filledItems = section.items.filter(item => item.trim() !== '').length;
-            const isCompleted = completedSections.has(section.id);
-            
-            return (
-              <div 
-                key={section.id} 
-                className={`p-4 rounded-xl border ${isCompleted ? section.borderColor : 'border-gray-200'} ${isCompleted ? section.bgColor : 'bg-gray-50'} transition-all duration-300`}
-              >
-                <div className="flex items-center justify-between">
-                  <section.icon className={`h-5 w-5 ${isCompleted ? 'text-gray-700' : 'text-gray-400'}`} />
-                  {isCompleted && <CheckCircle className="h-4 w-4 text-green-500" />}
-                </div>
-                <p className="text-sm font-medium text-gray-700 mt-2">{section.title}</p>
-                <p className="text-xs text-gray-500">{filledItems} itens</p>
-              </div>
-            );
-          })}
-        </div>
-      </motion.div>
-
+  const renderToolkitStep = () => (
+    <>
       {/* Sections */}
       <motion.div
         variants={containerVariants}
@@ -408,16 +423,305 @@ const SelfEvaluation = () => {
             </span>
             <Button
               variant="primary"
-              onClick={handleSave}
-              icon={<Save size={18} />}
+              onClick={handleNextStep}
+              icon={<ArrowRight size={18} />}
               size="lg"
               disabled={completedSections.size !== sections.length}
+              className="bg-gradient-to-r from-primary-500 to-primary-600"
             >
-              Salvar Autoavaliação
+              Próxima Etapa
             </Button>
           </div>
         </motion.div>
       </motion.div>
+    </>
+  );
+
+  const renderCompetenciesStep = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      className="space-y-6"
+    >
+      {competencyCategories.map((category, categoryIndex) => {
+        const IconComponent = category.icon;
+        const isExpanded = expandedSections.has(category.id);
+        const categoryProgress = category.items.filter(item => competencyScores[item.id] !== undefined).length / category.items.length * 100;
+
+        return (
+          <motion.div
+            key={category.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: categoryIndex * 0.1 }}
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+          >
+            <button
+              onClick={() => toggleSection(category.id)}
+              className={`w-full px-8 py-6 ${category.bgColor} border-b ${category.borderColor} flex items-center justify-between hover:opacity-90 transition-all duration-200`}
+            >
+              <div className="flex items-center space-x-4">
+                <div className={`p-3 rounded-xl bg-gradient-to-br ${category.gradient} shadow-md`}>
+                  <IconComponent className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-xl font-bold text-gray-800">{category.title}</h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {category.items.filter(item => competencyScores[item.id] !== undefined).length} de {category.items.length} competências avaliadas
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-4">
+                <div className="w-32 bg-gray-200 rounded-full h-2">
+                  <div 
+                    className={`h-2 rounded-full bg-gradient-to-r ${category.gradient} transition-all duration-300`}
+                    style={{ width: `${categoryProgress}%` }}
+                  />
+                </div>
+                {isExpanded ? (
+                  <ChevronDown className="w-5 h-5 text-gray-600" />
+                ) : (
+                  <ChevronRight className="w-5 h-5 text-gray-600" />
+                )}
+              </div>
+            </button>
+
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="p-8 space-y-6"
+                >
+                  {category.items.map((item, itemIndex) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: itemIndex * 0.05 }}
+                      className="space-y-4"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 mr-4">
+                          <h4 className="text-lg font-semibold text-gray-800 mb-1">{item.name}</h4>
+                          <p className="text-sm text-gray-600">{item.description}</p>
+                        </div>
+                        {competencyScores[item.id] && (
+                          <div className="text-center">
+                            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              competencyScores[item.id] >= 4 ? 'bg-green-100 text-green-800' :
+                              competencyScores[item.id] >= 3 ? 'bg-primary-100 text-primary-800' :
+                              competencyScores[item.id] >= 2 ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              Nota: {competencyScores[item.id]}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        {[1, 2, 3, 4].map((rating) => (
+                          <button
+                            key={rating}
+                            onClick={() => handleCompetencyScore(item.id, rating)}
+                            className={`flex-1 py-4 px-4 rounded-xl border-2 transition-all duration-200 ${
+                              competencyScores[item.id] === rating
+                                ? `${rating === 4 ? 'bg-green-500' : rating === 3 ? 'bg-primary-500' : rating === 2 ? 'bg-yellow-500' : 'bg-red-500'} text-white border-transparent shadow-lg transform scale-105`
+                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 bg-white'
+                            }`}
+                          >
+                            <div className="text-center">
+                              <div className="text-2xl font-bold mb-1">{rating}</div>
+                              <div className="text-xs">
+                                {rating === 4 ? 'Excepcional' : rating === 3 ? 'Satisfatório' : rating === 2 ? 'Em Desenvolvimento' : 'Insatisfatório'}
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        );
+      })}
+
+      {/* Action Buttons */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="flex justify-between items-center pt-6"
+      >
+        <Button
+          variant="outline"
+          onClick={() => setCurrentStep('toolkit')}
+          icon={<ArrowLeft size={18} />}
+          size="lg"
+        >
+          Voltar
+        </Button>
+        
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-500">
+            {competencyProgress === 100 ? (
+              <span className="flex items-center text-green-600">
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Todas as competências avaliadas!
+              </span>
+            ) : (
+              `${Math.round(competencyProgress)}% completo`
+            )}
+          </span>
+          <Button
+            variant="primary"
+            onClick={handleSave}
+            icon={<Save size={18} />}
+            size="lg"
+            disabled={competencyProgress < 100}
+            className="bg-gradient-to-r from-primary-500 to-primary-600"
+          >
+            Salvar Autoavaliação
+          </Button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+                {currentStep === 'toolkit' ? (
+                  <>
+                    <Sparkles className="h-8 w-8 text-primary-500 mr-3" />
+                    Meu Toolkit Profissional
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-8 w-8 text-secondary-500 mr-3" />
+                    Autoavaliação de Competências
+                  </>
+                )}
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {currentStep === 'toolkit' 
+                  ? 'Construa seu perfil de competências e habilidades'
+                  : 'Avalie suas competências técnicas, comportamentais e organizacionais'
+                }
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Progresso</p>
+              <p className="text-lg font-bold text-gray-800">
+                {Math.round(currentStep === 'toolkit' ? toolkitProgress : competencyProgress)}%
+              </p>
+            </div>
+            <div className="relative">
+              <svg className="w-16 h-16 transform -rotate-90">
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="28"
+                  stroke="#e5e7eb"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="28"
+                  stroke="url(#progressGradient)"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeDasharray={`${(currentStep === 'toolkit' ? toolkitProgress : competencyProgress) * 1.76} 176`}
+                  strokeLinecap="round"
+                />
+                <defs>
+                  <linearGradient id="progressGradient">
+                    <stop offset="0%" stopColor="#12b0a0" />
+                    <stop offset="100%" stopColor="#1e6076" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Step Indicator */}
+        <div className="flex items-center justify-center space-x-4">
+          <div className={`flex items-center space-x-2 px-4 py-2 rounded-full ${currentStep === 'toolkit' ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-500'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'toolkit' ? 'bg-primary-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+              1
+            </div>
+            <span className="font-medium">Toolkit Profissional</span>
+          </div>
+          
+          <div className="w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
+            <div className={`h-full transition-all duration-500 ${currentStep === 'competencies' ? 'w-full bg-primary-500' : 'w-0'}`} />
+          </div>
+          
+          <div className={`flex items-center space-x-2 px-4 py-2 rounded-full ${currentStep === 'competencies' ? 'bg-secondary-100 text-secondary-700' : 'bg-gray-100 text-gray-500'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'competencies' ? 'bg-secondary-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+              2
+            </div>
+            <span className="font-medium">Competências</span>
+          </div>
+        </div>
+
+        {/* Quick Stats for Toolkit Step */}
+        {currentStep === 'toolkit' && (
+          <div className="grid grid-cols-4 gap-4 mt-6">
+            {sections.map((section) => {
+              const filledItems = section.items.filter(item => item.trim() !== '').length;
+              const isCompleted = completedSections.has(section.id);
+              
+              return (
+                <div 
+                  key={section.id} 
+                  className={`p-4 rounded-xl border ${isCompleted ? section.borderColor : 'border-gray-200'} ${isCompleted ? section.bgColor : 'bg-gray-50'} transition-all duration-300`}
+                >
+                  <div className="flex items-center justify-between">
+                    <section.icon className={`h-5 w-5 ${isCompleted ? 'text-gray-700' : 'text-gray-400'}`} />
+                    {isCompleted && <CheckCircle className="h-4 w-4 text-green-500" />}
+                  </div>
+                  <p className="text-sm font-medium text-gray-700 mt-2">{section.title}</p>
+                  <p className="text-xs text-gray-500">{filledItems} itens</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </motion.div>
+
+      {/* Content based on current step */}
+      <AnimatePresence mode="wait">
+        {currentStep === 'toolkit' ? renderToolkitStep() : renderCompetenciesStep()}
+      </AnimatePresence>
     </div>
   );
 };

@@ -33,71 +33,73 @@ const NineBoxMatrix = () => {
       borderColor: string;
       textColor: string;
       description: string;
+      gradient?: string;
     }
   };
   const matrixConfig: MatrixConfigType = {
     '3,1': { 
-      name: 'Enigma', 
-      bgColor: 'bg-accent-100',
-      borderColor: 'border-accent-300',
-      textColor: 'text-gray-700',
-      description: 'Alto potencial, baixo desempenho'
-    },
-    '3,2': { 
-      name: 'Alto Potencial', 
-      bgColor: 'bg-primary-100',
-      borderColor: 'border-primary-300',
-      textColor: 'text-gray-700',
-      description: 'Alto potencial, desempenho médio'
-    },
-    '3,3': { 
-      name: 'Top Performer', 
-      bgColor: 'bg-gradient-to-br from-primary-500 to-primary-600',
-      borderColor: 'border-primary-500',
-      textColor: 'text-white',
-      description: 'Alto potencial e alto desempenho'
-    },
-    '2,1': { 
-      name: 'Questionável', 
-      bgColor: 'bg-gray-100',
+      name: '', 
+      bgColor: 'bg-gray-50',
       borderColor: 'border-gray-300',
       textColor: 'text-gray-700',
-      description: 'Potencial médio, baixo desempenho'
+      description: 'Verificar a causa: Local ou Chefe errado? Investir no desenvolvimento'
+    },
+    '3,2': { 
+      name: '', 
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-300',
+      textColor: 'text-gray-700',
+      description: 'Concentrar-se no desempenho de curto prazo. Avaliar oportunidades a longo prazo'
+    },
+    '3,3': { 
+      name: '', 
+      bgColor: '',
+      gradient: 'bg-gradient-to-br from-primary-500 to-secondary-600',
+      borderColor: 'border-primary-500',
+      textColor: 'text-white',
+      description: 'Dar mais atribuições. Preparar para função maior. Líder do futuro!'
+    },
+    '2,1': { 
+      name: '', 
+      bgColor: 'bg-pink-50',
+      borderColor: 'border-pink-300',
+      textColor: 'text-gray-700',
+      description: 'Avaliar se está na área certa. Rever atribuições'
     },
     '2,2': { 
-      name: 'Mantenedor', 
-      bgColor: 'bg-secondary-100',
-      borderColor: 'border-secondary-300',
+      name: '', 
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-300',
       textColor: 'text-gray-700',
-      description: 'Potencial e desempenho médios'
+      description: 'Investir no potencial e desempenho para manter na atual função'
     },
     '2,3': { 
-      name: 'Alto Desempenho', 
-      bgColor: 'bg-primary-200',
-      borderColor: 'border-primary-400',
+      name: '', 
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-300',
       textColor: 'text-gray-700',
-      description: 'Potencial médio, alto desempenho'
+      description: 'Avaliar a possibilidade de promoção na própria área'
     },
     '1,1': { 
-      name: 'Insatisfatório', 
-      bgColor: 'bg-red-100',
+      name: '', 
+      bgColor: 'bg-red-50',
       borderColor: 'border-red-300',
       textColor: 'text-gray-700',
-      description: 'Baixo potencial e desempenho'
+      description: 'Avaliar possibilidade de movimentação para função menor ou demissão'
     },
     '1,2': { 
-      name: 'Eficaz', 
-      bgColor: 'bg-yellow-100',
+      name: '', 
+      bgColor: 'bg-yellow-50',
       borderColor: 'border-yellow-300',
       textColor: 'text-gray-700',
-      description: 'Baixo potencial, desempenho médio'
+      description: 'Avaliar possibilidade de movimentação horizontal'
     },
     '1,3': { 
-      name: 'Forte Desempenho', 
-      bgColor: 'bg-secondary-200',
-      borderColor: 'border-secondary-400',
+      name: '', 
+      bgColor: 'bg-green-100',
+      borderColor: 'border-green-400',
       textColor: 'text-gray-700',
-      description: 'Baixo potencial, alto desempenho'
+      description: 'Está no lugar certo. Manter na posição e rever remuneração'
     }
   };
 
@@ -309,9 +311,9 @@ const NineBoxMatrix = () => {
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
                 Posicionamento na Matriz
               </h2>
-              {nineBoxData && (
+              {nineBoxData && nineBoxData.name && (
                 <div className="flex items-center space-x-4">
-                  <span className={`px-4 py-2 rounded-full text-sm font-medium ${nineBoxData.bgColor} ${nineBoxData.borderColor} border-2 ${nineBoxData.textColor}`}>
+                  <span className={`px-4 py-2 rounded-full text-sm font-medium ${nineBoxData.gradient || nineBoxData.bgColor} ${nineBoxData.borderColor} border-2 ${nineBoxData.textColor}`}>
                     {nineBoxData.name}
                   </span>
                   <span className="text-sm text-gray-600">{nineBoxData.description}</span>
@@ -329,9 +331,9 @@ const NineBoxMatrix = () => {
                 </div>
                 
                 {/* Labels do eixo Y */}
-                <div className="absolute -right-16 flex flex-col justify-between h-96 py-8">
+                <div className="absolute -left-16 flex flex-col justify-between h-96 py-8">
                   <span className="text-sm font-medium text-gray-600">Alto</span>
-                        const config = matrixConfig[key as MatrixKey];
+                  <span className="text-sm font-medium text-gray-600">Médio</span>
                   <span className="text-sm font-medium text-gray-600">Baixo</span>
                 </div>
 
@@ -351,13 +353,18 @@ const NineBoxMatrix = () => {
                             key={key}
                             className={`
                               relative flex items-center justify-center p-4 rounded-xl transition-all duration-300
-                              ${config.bgColor} ${config.borderColor} border-2 ${config.textColor}
+                              ${config.gradient || config.bgColor} ${config.borderColor} border-2 ${config.textColor}
                               ${isActive ? getQuadrantStyle(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore, row, col) : ''}
                               hover:shadow-lg cursor-pointer
                             `}
                           >
                             <div className="text-center">
-                              <div className="text-sm font-bold mb-1">{config.name}</div>
+                              {config.name && (
+                                <div className="text-sm font-bold mb-1">{config.name}</div>
+                              )}
+                              <div className="text-xs opacity-80">
+                                {config.description.length > 60 ? config.description.substring(0, 60) + '...' : config.description}
+                              </div>
                               {isActive && (
                                 <motion.div
                                   initial={{ scale: 0 }}
@@ -388,61 +395,6 @@ const NineBoxMatrix = () => {
                 {/* Título do eixo X */}
                 <div className="flex justify-center w-96 mt-2">
                   <span className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Desempenho</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Legenda */}
-            <div className="mt-8 grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Alto Potencial</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded ${matrixConfig['3,1'].bgColor} ${matrixConfig['3,1'].borderColor} border`}></div>
-                    <span className="text-xs text-gray-600">Enigma</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded ${matrixConfig['3,2'].bgColor} ${matrixConfig['3,2'].borderColor} border`}></div>
-                    <span className="text-xs text-gray-600">Alto Potencial</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded ${matrixConfig['3,3'].bgColor} ${matrixConfig['3,3'].borderColor} border`}></div>
-                    <span className="text-xs text-gray-600">Top Performer</span>
-                  </div>
-                </div>
-              </div>
-              <div className="text-center">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Potencial Médio</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded ${matrixConfig['2,1'].bgColor} ${matrixConfig['2,1'].borderColor} border`}></div>
-                    <span className="text-xs text-gray-600">Questionável</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded ${matrixConfig['2,2'].bgColor} ${matrixConfig['2,2'].borderColor} border`}></div>
-                    <span className="text-xs text-gray-600">Mantenedor</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded ${matrixConfig['2,3'].bgColor} ${matrixConfig['2,3'].borderColor} border`}></div>
-                    <span className="text-xs text-gray-600">Alto Desempenho</span>
-                  </div>
-                </div>
-              </div>
-              <div className="text-center">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Baixo Potencial</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded ${matrixConfig['1,1'].bgColor} ${matrixConfig['1,1'].borderColor} border`}></div>
-                    <span className="text-xs text-gray-600">Insatisfatório</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded ${matrixConfig['1,2'].bgColor} ${matrixConfig['1,2'].borderColor} border`}></div>
-                    <span className="text-xs text-gray-600">Eficaz</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded ${matrixConfig['1,3'].bgColor} ${matrixConfig['1,3'].borderColor} border`}></div>
-                    <span className="text-xs text-gray-600">Forte Desempenho</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -531,10 +483,10 @@ const NineBoxMatrix = () => {
               </div>
               Plano de Ação Recomendado
             </h3>
-            <div className={`p-6 rounded-xl ${nineBoxData.bgColor} ${nineBoxData.borderColor} border-2`}>
+            <div className={`p-6 rounded-xl ${nineBoxData.gradient || nineBoxData.bgColor} ${nineBoxData.borderColor} border-2`}>
               <h4 className="font-semibold text-gray-800 mb-4 flex items-center">
                 <Award className="h-5 w-5 mr-2 text-primary-600" />
-                Categoria: {nineBoxData.name}
+                {nineBoxData.name ? `Categoria: ${nineBoxData.name}` : 'Recomendações'}
               </h4>
               <div className="space-y-3">
                 {recommendationData.actions.map((action, index) => (
