@@ -45,6 +45,8 @@ const Consensus = () => {
  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
  const [consensusScores, setConsensusScores] = useState<ScoreMap>({});
  const [consensusObservations, setConsensusObservations] = useState<Record<string, string>>({});
+ const [selfScores, setSelfScores] = useState<ScoreMap>({});
+ const [leaderScores, setLeaderScores] = useState<ScoreMap>({});
  const [showMatrix, setShowMatrix] = useState<boolean>(false);
 
  const criteria: Criterion[] = [
@@ -155,58 +157,42 @@ const Consensus = () => {
    }
  };
 
- const getEmployeeEvaluations = (employeeId: string): { selfEvaluation: EvaluationData | null; leaderEvaluation: EvaluationData | null } => {
-   if (!employeeId) return { selfEvaluation: null, leaderEvaluation: null };
-   
-   const selfEvaluation: EvaluationData = {
-     scores: {
-       'gestao-conhecimento': 3,
-       'orientacao-resultados': 3,
-       'pensamento-critico': 3,
-       'aderencia-processos': 3,
-       'comunicacao': 3,
-       'inteligencia-emocional': 3,
-       'colaboracao': 3,
-       'flexibilidade': 3,
-       'missao-dada-cumprida': 3,
-       'senso-dono': 3,
-       'planejar-preco': 3,
-       'melhoria-continua': 3
-     }
-   };
-   
-   const leaderEvaluation: EvaluationData = {
-     scores: {
-       'gestao-conhecimento': 4,
-       'orientacao-resultados': 4,
-       'pensamento-critico': 4,
-       'aderencia-processos': 4,
-       'comunicacao': 4,
-       'inteligencia-emocional': 4,
-       'colaboracao': 4,
-       'flexibilidade': 4,
-       'missao-dada-cumprida': 4,
-       'senso-dono': 4,
-       'planejar-preco': 4,
-       'melhoria-continua': 4
-     }
-   };
-
-   return { selfEvaluation, leaderEvaluation };
+ // Initialize scores when employee is selected
+ const initializeScores = () => {
+   const initialScores: ScoreMap = {};
+   criteria.forEach(criterion => {
+     initialScores[criterion.id] = 3; // Default score
+   });
+   setSelfScores(initialScores);
+   setLeaderScores({ ...initialScores, ...criteria.reduce((acc, c) => ({ ...acc, [c.id]: 4 }), {}) });
  };
 
  const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
- const { selfEvaluation, leaderEvaluation } = getEmployeeEvaluations(selectedEmployeeId);
 
  useEffect(() => {
    if (selectedEmployeeId) {
      setConsensusScores({});
      setConsensusObservations({});
+     initializeScores();
    }
  }, [selectedEmployeeId]);
 
  const handleConsensusChange = (criterionId: string, score: number): void => {
    setConsensusScores(prev => ({
+     ...prev,
+     [criterionId]: score
+   }));
+ };
+
+ const handleSelfScoreChange = (criterionId: string, score: number): void => {
+   setSelfScores(prev => ({
+     ...prev,
+     [criterionId]: score
+   }));
+ };
+
+ const handleLeaderScoreChange = (criterionId: string, score: number): void => {
+   setLeaderScores(prev => ({
      ...prev,
      [criterionId]: score
    }));
@@ -301,10 +287,10 @@ const Consensus = () => {
  }) => (
    <button
      onClick={() => onClick(score)}
-     className={`w-8 h-8 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-xs sm:text-sm font-bold transition-all duration-200 transform hover:scale-110 ${
+     className={`w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-200 transform hover:scale-105 ${
        isSelected 
-         ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg ring-2 ring-primary-300' 
-         : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-primary-600 border-2 border-gray-200 hover:border-primary-300'
+         ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg ring-2 ring-primary-300 ring-offset-2' 
+         : 'bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-600 border-2 border-gray-200 hover:border-primary-300 shadow-sm'
      }`}
      title={`Selecionar nota ${score}`}
      aria-label={`Nota ${score} ${isSelected ? '(selecionada)' : ''}`}
@@ -313,20 +299,60 @@ const Consensus = () => {
    </button>
  );
 
- const ScoreIndicator = ({ score, type }: { score: number; type: 'self' | 'leader' }) => {
+ const EditableScoreIndicator = ({ 
+   score, 
+   type, 
+   onScoreChange, 
+   criterionId 
+ }: { 
+   score: number; 
+   type: 'self' | 'leader';
+   onScoreChange: (criterionId: string, score: number) => void;
+   criterionId: string;
+ }) => {
    const config = {
-     self: { bg: 'bg-gradient-to-br from-secondary-500 to-secondary-600', label: 'Auto' },
-     leader: { bg: 'bg-gradient-to-br from-primary-500 to-primary-600', label: 'Líder' }
+     self: { 
+       bg: 'bg-gradient-to-br from-secondary-500 to-secondary-600', 
+       label: 'Autoavaliação',
+       lightBg: 'bg-secondary-50',
+       hoverBg: 'hover:bg-secondary-100',
+       borderColor: 'border-secondary-300',
+       focusRing: 'focus:ring-secondary-500'
+     },
+     leader: { 
+       bg: 'bg-gradient-to-br from-primary-500 to-primary-600', 
+       label: 'Avaliação do Líder',
+       lightBg: 'bg-primary-50',
+       hoverBg: 'hover:bg-primary-100',
+       borderColor: 'border-primary-300',
+       focusRing: 'focus:ring-primary-500'
+     }
    };
    
    return (
-     <div className="text-center">
-       <p className="text-xs text-gray-500 mb-1">{config[type].label}</p>
+     <div className="flex flex-col items-center space-y-4 w-32">
+       <h6 className="text-sm font-medium text-gray-700 text-center h-10 flex items-center justify-center">{config[type].label}</h6>
        <div 
-         className={`w-8 h-8 sm:w-12 sm:h-12 rounded-xl ${config[type].bg} flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-md`}
+         className={`w-14 h-14 rounded-xl ${config[type].bg} flex items-center justify-center text-white text-xl font-bold shadow-lg`}
          title={`${config[type].label}: ${score}`}
        >
          {score}
+       </div>
+       <div className="flex items-center space-x-1 justify-center">
+         {[1, 2, 3, 4].map(scoreValue => (
+           <button
+             key={scoreValue}
+             onClick={() => onScoreChange(criterionId, scoreValue)}
+             className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 transform hover:scale-105 ${
+               score === scoreValue
+                 ? `${config[type].bg} text-white shadow-md ring-2 ring-offset-1 ${type === 'self' ? 'ring-secondary-300' : 'ring-primary-300'}`
+                 : `bg-gray-100 text-gray-600 ${config[type].hoverBg} border border-gray-200 ${config[type].borderColor}`
+             }`}
+             title={`${config[type].label}: ${scoreValue}`}
+           >
+             {scoreValue}
+           </button>
+         ))}
        </div>
      </div>
    );
@@ -493,32 +519,59 @@ const Consensus = () => {
                  <div className="p-4 sm:p-6">
                    <div className="space-y-4">
                      {categoryCriteria.map((criterion) => {
-                       const selfScore = selfEvaluation?.scores[criterion.id] || 0;
-                       const leaderScore = leaderEvaluation?.scores[criterion.id] || 0;
+                       const selfScore = selfScores[criterion.id] || 0;
+                       const leaderScore = leaderScores[criterion.id] || 0;
                        const consensusScore = consensusScores[criterion.id] || 0;
 
                        return (
-                         <div key={criterion.id} className="p-3 sm:p-4 bg-gray-50 rounded-xl space-y-3">
-                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                         <div key={criterion.id} className="p-6 bg-gray-50 rounded-xl space-y-6 border border-gray-200 hover:border-gray-300 transition-all duration-200">
+                           <div className="flex flex-col space-y-4">
                              <div className="flex-1">
-                               <h4 className="font-medium text-gray-800 text-sm sm:text-base">{criterion.name}</h4>
-                               <p className="text-xs sm:text-sm text-gray-600 mt-1">{criterion.description}</p>
+                               <h4 className="font-semibold text-gray-800 text-base">{criterion.name}</h4>
+                               <p className="text-sm text-gray-600 mt-1 leading-relaxed">{criterion.description}</p>
                              </div>
                              
-                             <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
-                               <div className="flex items-center space-x-4 sm:space-x-6">
-                                 <ScoreIndicator score={selfScore} type="self" />
-                                 <ScoreIndicator score={leaderScore} type="leader" />
-                               </div>
-                               
-                               <div className="w-full sm:w-px h-px sm:h-12 bg-gray-300" />
-                               
-                               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                                 <div className="flex items-center space-x-2">
-                                   <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary-500" />
-                                   <span className="text-xs sm:text-sm font-medium text-gray-600">Consenso:</span>
+                             <div className="flex flex-col space-y-6">
+                               {/* Avaliações Auto e Líder */}
+                               <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                 <div className="flex items-center justify-between mb-4">
+                                   <h5 className="text-sm font-medium text-gray-700 flex items-center">
+                                     <Users className="h-4 w-4 mr-2 text-gray-500" />
+                                     Avaliações Individuais
+                                   </h5>
                                  </div>
-                                 <div className="flex items-center space-x-1 sm:space-x-2">
+                                 <div className="flex items-start justify-center space-x-8">
+                                   <EditableScoreIndicator 
+                                     score={selfScore} 
+                                     type="self" 
+                                     onScoreChange={handleSelfScoreChange}
+                                     criterionId={criterion.id}
+                                   />
+                                   <div className="h-24 w-px bg-gray-300 mt-14"></div>
+                                   <EditableScoreIndicator 
+                                     score={leaderScore} 
+                                     type="leader" 
+                                     onScoreChange={handleLeaderScoreChange}
+                                     criterionId={criterion.id}
+                                   />
+                                 </div>
+                               </div>
+
+                               {/* Consenso */}
+                               <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-lg p-4 border border-primary-200">
+                                 <div className="flex items-center justify-between mb-4">
+                                   <h5 className="text-sm font-medium text-gray-700 flex items-center">
+                                     <Sparkles className="h-4 w-4 mr-2 text-primary-500" />
+                                     Nota de Consenso
+                                   </h5>
+                                   {consensusScore > 0 && (
+                                     <div className="flex items-center space-x-1 text-xs text-green-600">
+                                       <CheckCircle className="h-3 w-3" />
+                                       <span>Definido</span>
+                                     </div>
+                                   )}
+                                 </div>
+                                 <div className="flex items-center justify-center space-x-3">
                                    {[1, 2, 3, 4].map(score => (
                                      <ScoreButton
                                        key={score}
