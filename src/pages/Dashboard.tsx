@@ -108,22 +108,22 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Welcome Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-primary-500 to-secondary-600 rounded-2xl p-8 text-white shadow-xl"
+        className="bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-white shadow-xl"
       >
-        <h1 className="text-3xl font-bold mb-2">Bem-vinda, Yasmin!</h1>
-        <p className="text-primary-100 text-lg">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Bem-vinda, Yasmin!</h1>
+        <p className="text-primary-100 text-base sm:text-lg">
           Gerencie e acompanhe todas as avaliações de desempenho em um só lugar
         </p>
       </motion.div>
 
       {/* Functionality Cards */}
       <motion.div 
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -135,28 +135,28 @@ const Dashboard = () => {
               key={card.id}
               variants={itemVariants}
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              className={`relative bg-white rounded-xl p-6 shadow-lg hover:shadow-xl ${card.shadowColor} transition-all duration-300 cursor-pointer group overflow-hidden`}
+              className={`relative bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl ${card.shadowColor} transition-all duration-300 cursor-pointer group overflow-hidden`}
               onClick={card.onClick}
             >
               {/* Background Gradient Decoration */}
               <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
               
               <div className="relative z-10">
-                <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${card.gradient} shadow-md mb-4`}>
-                  <IconComponent className="h-6 w-6 text-white" />
+                <div className={`inline-flex p-2 sm:p-3 rounded-xl bg-gradient-to-br ${card.gradient} shadow-md mb-3 sm:mb-4`}>
+                  <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
                 
-                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">
                   {card.title}
                 </h3>
                 
-                <p className="text-gray-600 mb-4 min-h-[48px]">
+                <p className="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base min-h-[40px] sm:min-h-[48px]">
                   {card.description}
                 </p>
                 
-                <div className={`inline-flex items-center text-sm font-semibold bg-gradient-to-r ${card.gradient} bg-clip-text text-transparent group-hover:gap-3 transition-all duration-300`}>
+                <div className={`inline-flex items-center text-sm font-semibold bg-gradient-to-r ${card.gradient} bg-clip-text text-transparent group-hover:gap-2 sm:group-hover:gap-3 transition-all duration-300`}>
                   <span>{card.action}</span>
-                  <ArrowRight className="h-4 w-4 text-primary-500 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-primary-500 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
               

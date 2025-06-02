@@ -7,7 +7,7 @@ import Dashboard from './pages/Dashboard';
 import SelfEvaluation from './pages/SelfEvaluation';
 import LeaderEvaluation from './pages/LeaderEvaluation';
 import PotentialEvaluation from './pages/PotentialEvaluation';
-import Consensus from './pages/Consensus'; 
+import Consensus from './pages/Consensus';
 import ActionPlan from './pages/ActionPlan';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
@@ -26,7 +26,17 @@ function App() {
               style: {
                 background: 'var(--toast-bg)',
                 color: 'var(--toast-color)',
+                fontSize: '14px',
+                maxWidth: '90vw',
+                wordBreak: 'break-word',
               },
+              // Ajustes responsivos para o toast
+              duration: window.innerWidth < 640 ? 3000 : 4000,
+            }}
+            containerStyle={{
+              top: 'env(safe-area-inset-top, 20px)',
+              left: 'env(safe-area-inset-left, 20px)',
+              right: 'env(safe-area-inset-right, 20px)',
             }}
           />
           <Routes>
@@ -35,7 +45,7 @@ function App() {
               <Route path="self-evaluation" element={<SelfEvaluation />} />
               <Route path="leader-evaluation" element={<LeaderEvaluation />} />
               <Route path="potential-evaluation" element={<PotentialEvaluation />} />
-              <Route path="consensus" element={<Consensus />} /> 
+              <Route path="consensus" element={<Consensus />} />
               <Route path="nine-box" element={<NineBoxMatrix />} />
               <Route path="action-plan" element={<ActionPlan />} />
               <Route path="reports" element={<Reports />} />

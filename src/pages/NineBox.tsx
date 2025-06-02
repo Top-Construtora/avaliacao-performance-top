@@ -219,16 +219,16 @@ const NineBoxMatrix = () => {
   const recommendationData = nineBoxKey ? recommendations[nineBoxKey as MatrixKey] : null;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8"
         >
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-4">
               <button 
                 onClick={() => window.history.back()}
@@ -237,26 +237,27 @@ const NineBoxMatrix = () => {
                 <ArrowLeft size={20} className="text-gray-600" />
               </button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-800 flex items-center">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 mr-3">
-                    <BarChart3 className="h-6 w-6 text-white" />
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
+                  <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 mr-3">
+                    <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                   Matriz 9-Box
                 </h1>
-                <p className="text-gray-600 mt-1">Análise de Performance vs Potencial</p>
+                <p className="text-gray-600 mt-1 text-sm sm:text-base">Análise de Performance vs Potencial</p>
               </div>
             </div>
             
             <div className="flex space-x-2">
-              <button className="flex items-center px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-md hover:shadow-lg">
-                <Download size={16} className="mr-2" />
-                Gerar Plano de Ação
+              <button className="flex items-center px-3 sm:px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base">
+                <Download size={14} className="mr-2" />
+                <span className="hidden sm:inline">Gerar Plano de Ação</span>
+                <span className="sm:hidden">Plano</span>
               </button>
             </div>
           </div>
 
           {/* Seleção de Colaborador */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Colaborador
@@ -281,7 +282,7 @@ const NineBoxMatrix = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Cargo
                   </label>
-                  <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-700">
+                  <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-700 text-sm">
                     {selectedEmp.position}
                   </div>
                 </div>
@@ -290,7 +291,7 @@ const NineBoxMatrix = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Departamento
                   </label>
-                  <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-700">
+                  <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-700 text-sm">
                     {selectedEmp.department}
                   </div>
                 </div>
@@ -305,15 +306,15 @@ const NineBoxMatrix = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8"
           >
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
                 Posicionamento na Matriz
               </h2>
               {nineBoxData && nineBoxData.name && (
-                <div className="flex items-center space-x-4">
-                  <span className={`px-4 py-2 rounded-full text-sm font-medium ${nineBoxData.gradient || nineBoxData.bgColor} ${nineBoxData.borderColor} border-2 ${nineBoxData.textColor}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                  <span className={`px-4 py-2 rounded-full text-sm font-medium ${nineBoxData.gradient || nineBoxData.bgColor} ${nineBoxData.borderColor} border-2 ${nineBoxData.textColor} inline-block`}>
                     {nineBoxData.name}
                   </span>
                   <span className="text-sm text-gray-600">{nineBoxData.description}</span>
@@ -321,25 +322,25 @@ const NineBoxMatrix = () => {
               )}
             </div>
 
-            {/* Grid da Matriz 9-Box */}
-            <div className="flex justify-center">
-              <div className="relative">
+            {/* Grid da Matriz 9-Box - Responsivo */}
+            <div className="flex justify-center overflow-x-auto">
+              <div className="relative min-w-0">
                 
                 {/* Título do eixo Y (Potencial) */}
-                <div className="absolute -left-20 top-1/2 transform -translate-y-1/2 -rotate-90">
-                  <span className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Potencial</span>
+                <div className="absolute -left-12 sm:-left-20 top-1/2 transform -translate-y-1/2 -rotate-90">
+                  <span className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Potencial</span>
                 </div>
                 
                 {/* Labels do eixo Y */}
-                <div className="absolute -left-16 flex flex-col justify-between h-96 py-8">
-                  <span className="text-sm font-medium text-gray-600">Alto</span>
-                  <span className="text-sm font-medium text-gray-600">Médio</span>
-                  <span className="text-sm font-medium text-gray-600">Baixo</span>
+                <div className="absolute -left-8 sm:-left-16 flex flex-col justify-between h-64 sm:h-96 py-4 sm:py-8">
+                  <span className="text-xs sm:text-sm font-medium text-gray-600">Alto</span>
+                  <span className="text-xs sm:text-sm font-medium text-gray-600">Médio</span>
+                  <span className="text-xs sm:text-sm font-medium text-gray-600">Baixo</span>
                 </div>
 
-                {/* Grid 3x3 */}
-                <div className="w-96 h-96">
-                  <div className="grid grid-cols-3 grid-rows-3 gap-2 h-full">
+                {/* Grid 3x3 - Responsivo */}
+                <div className="w-64 h-64 sm:w-96 sm:h-96">
+                  <div className="grid grid-cols-3 grid-rows-3 gap-1 sm:gap-2 h-full">
                     {[1, 2, 3].map((row) => (
                       [1, 2, 3].map((col) => {
                         const key = `${4-row},${col}`;
@@ -352,7 +353,7 @@ const NineBoxMatrix = () => {
                           <div
                             key={key}
                             className={`
-                              relative flex items-center justify-center p-4 rounded-xl transition-all duration-300
+                              relative flex items-center justify-center p-1 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-300
                               ${config.gradient || config.bgColor} ${config.borderColor} border-2 ${config.textColor}
                               ${isActive ? getQuadrantStyle(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore, row, col) : ''}
                               hover:shadow-lg cursor-pointer
@@ -360,10 +361,13 @@ const NineBoxMatrix = () => {
                           >
                             <div className="text-center">
                               {config.name && (
-                                <div className="text-sm font-bold mb-1">{config.name}</div>
+                                <div className="text-xs sm:text-sm font-bold mb-1">{config.name}</div>
                               )}
-                              <div className="text-xs opacity-80">
+                              <div className="text-xs opacity-80 hidden sm:block">
                                 {config.description.length > 60 ? config.description.substring(0, 60) + '...' : config.description}
+                              </div>
+                              <div className="text-xs opacity-80 sm:hidden">
+                                {config.description.length > 20 ? config.description.substring(0, 20) + '...' : config.description}
                               </div>
                               {isActive && (
                                 <motion.div
@@ -372,8 +376,8 @@ const NineBoxMatrix = () => {
                                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                                   className="absolute inset-0 flex items-center justify-center"
                                 >
-                                  <div className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center">
-                                    <User className="h-8 w-8 text-primary-600" />
+                                  <div className="w-8 h-8 sm:w-16 sm:h-16 bg-white rounded-full shadow-lg flex items-center justify-center">
+                                    <User className="h-4 w-4 sm:h-8 sm:w-8 text-primary-600" />
                                   </div>
                                 </motion.div>
                               )}
@@ -386,15 +390,15 @@ const NineBoxMatrix = () => {
                 </div>
 
                 {/* Labels do eixo X */}
-                <div className="flex justify-between w-96 mt-6">
-                  <span className="text-sm font-medium text-gray-600">Baixo</span>
-                  <span className="text-sm font-medium text-gray-600">Médio</span>
-                  <span className="text-sm font-medium text-gray-600">Alto</span>
+                <div className="flex justify-between w-64 sm:w-96 mt-4 sm:mt-6">
+                  <span className="text-xs sm:text-sm font-medium text-gray-600">Baixo</span>
+                  <span className="text-xs sm:text-sm font-medium text-gray-600">Médio</span>
+                  <span className="text-xs sm:text-sm font-medium text-gray-600">Alto</span>
                 </div>
 
                 {/* Título do eixo X */}
-                <div className="flex justify-center w-96 mt-2">
-                  <span className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Desempenho</span>
+                <div className="flex justify-center w-64 sm:w-96 mt-2">
+                  <span className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Desempenho</span>
                 </div>
               </div>
             </div>
@@ -407,13 +411,13 @@ const NineBoxMatrix = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"
           >
             {/* Análise de Performance */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <div className="p-2 rounded-lg bg-primary-50 mr-3">
-                  <TrendingUp className="h-5 w-5 text-primary-600" />
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600" />
                 </div>
                 Análise de Performance
               </h3>
@@ -421,7 +425,7 @@ const NineBoxMatrix = () => {
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-600">Performance Atual</span>
-                    <span className="text-2xl font-bold text-primary-600">{selectedEvaluation.consensusScore.toFixed(1)}</span>
+                    <span className="text-xl sm:text-2xl font-bold text-primary-600">{selectedEvaluation.consensusScore.toFixed(1)}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div 
@@ -439,10 +443,10 @@ const NineBoxMatrix = () => {
             </div>
 
             {/* Análise de Potencial */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <div className="p-2 rounded-lg bg-secondary-50 mr-3">
-                  <Sparkles className="h-5 w-5 text-secondary-600" />
+                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-secondary-600" />
                 </div>
                 Análise de Potencial
               </h3>
@@ -450,7 +454,7 @@ const NineBoxMatrix = () => {
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-600">Potencial Identificado</span>
-                    <span className="text-2xl font-bold text-secondary-600">{selectedEvaluation.potentialScore.toFixed(1)}</span>
+                    <span className="text-xl sm:text-2xl font-bold text-secondary-600">{selectedEvaluation.potentialScore.toFixed(1)}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div 
@@ -475,17 +479,17 @@ const NineBoxMatrix = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8"
           >
-            <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-6 flex items-center">
               <div className="p-2 rounded-lg bg-accent-50 mr-3">
-                <recommendationData.icon className="h-5 w-5 text-accent-600" />
+                <recommendationData.icon className="h-4 w-4 sm:h-5 sm:w-5 text-accent-600" />
               </div>
               Plano de Ação Recomendado
             </h3>
-            <div className={`p-6 rounded-xl ${nineBoxData.gradient || nineBoxData.bgColor} ${nineBoxData.borderColor} border-2`}>
-              <h4 className="font-semibold text-gray-800 mb-4 flex items-center">
-                <Award className="h-5 w-5 mr-2 text-primary-600" />
+            <div className={`p-4 sm:p-6 rounded-xl ${nineBoxData.gradient || nineBoxData.bgColor} ${nineBoxData.borderColor} border-2`}>
+              <h4 className="font-semibold text-gray-800 mb-4 flex items-center text-sm sm:text-base">
+                <Award className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-600" />
                 {nineBoxData.name ? `Categoria: ${nineBoxData.name}` : 'Recomendações'}
               </h4>
               <div className="space-y-3">
@@ -495,12 +499,12 @@ const NineBoxMatrix = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 + index * 0.1 }}
-                    className="flex items-center space-x-3"
+                    className="flex items-start space-x-3"
                   >
-                    <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-semibold text-primary-600">{index + 1}</span>
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs sm:text-sm font-semibold text-primary-600">{index + 1}</span>
                     </div>
-                    <p className="text-sm text-gray-700">{action}</p>
+                    <p className="text-xs sm:text-sm text-gray-700">{action}</p>
                   </motion.div>
                 ))}
               </div>
@@ -513,14 +517,14 @@ const NineBoxMatrix = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center"
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-12 text-center"
           >
             <div className="max-w-sm mx-auto">
-              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 mb-6">
-                <BarChart3 className="h-10 w-10 text-primary-600" />
+              <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 mb-6">
+                <BarChart3 className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum colaborador selecionado</h3>
-              <p className="text-gray-500">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Nenhum colaborador selecionado</h3>
+              <p className="text-gray-500 text-sm sm:text-base">
                 Selecione um colaborador acima para visualizar sua posição na Matriz 9-Box
               </p>
             </div>

@@ -33,9 +33,9 @@ const Button = ({
   };
   
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+    sm: 'px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm',
+    md: 'px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base',
+    lg: 'px-4 sm:px-6 py-2 sm:py-3 text-base sm:text-lg',
   };
   
   const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed' : '';
@@ -53,8 +53,8 @@ const Button = ({
         ${className}
       `}
     >
-      {icon && <span className="mr-2">{icon}</span>}
-      {children}
+      {icon && <span className="mr-1 sm:mr-2 flex-shrink-0">{icon}</span>}
+      <span className="truncate">{children}</span>
     </button>
   );
 };

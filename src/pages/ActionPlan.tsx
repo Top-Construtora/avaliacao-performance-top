@@ -466,21 +466,22 @@ const ActionPlan = () => {
       >
         <button
           onClick={() => toggleSection(category)}
-          className={`w-full px-8 py-6 ${categoryData.bgColor} border-b ${categoryData.borderColor} hover:opacity-90 transition-all duration-200`}
+          className={`w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${categoryData.bgColor} border-b ${categoryData.borderColor} hover:opacity-90 transition-all duration-200`}
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className={`p-3 rounded-xl ${categoryData.iconBg} shadow-md`}>
-                <categoryData.icon className="h-6 w-6 text-white" />
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <div className={`p-2 sm:p-3 rounded-xl ${categoryData.iconBg} shadow-md`}>
+                <categoryData.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div className="text-left">
-                <h3 className="text-xl font-bold text-gray-800">{categoryData.title}</h3>
-                <p className="text-sm text-gray-600 mt-1">{categoryData.subtitle} • {categoryData.description}</p>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800">{categoryData.title}</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">{categoryData.subtitle} • {categoryData.description}</p>
+                <p className="text-xs text-gray-600 mt-1 sm:hidden">{categoryData.subtitle}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="text-right">
-                <p className="text-2xl font-bold text-gray-800">{items.length}</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-800">{items.length}</p>
                 <p className="text-xs text-gray-600">itens</p>
               </div>
               {isExpanded ? (
@@ -499,19 +500,20 @@ const ActionPlan = () => {
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="p-8"
+              className="p-4 sm:p-6 lg:p-8"
             >
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {items.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gray-100 mb-4">
-                      <BookOpen className="h-8 w-8 text-gray-400" />
+                  <div className="text-center py-8 sm:py-12">
+                    <div className="mx-auto flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-gray-100 mb-4">
+                      <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
                     </div>
-                    <p className="text-gray-500 mb-4">Nenhum item de desenvolvimento adicionado</p>
+                    <p className="text-gray-500 mb-4 text-sm sm:text-base">Nenhum item de desenvolvimento adicionado</p>
                     <Button
                       variant="outline"
                       onClick={() => addActionItem(category)}
                       icon={<Plus size={16} />}
+                      size="sm"
                     >
                       Adicionar Primeiro Item
                     </Button>
@@ -524,16 +526,16 @@ const ActionPlan = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: itemIndex * 0.1 }}
-                        className="bg-gray-50 rounded-xl p-8 border border-gray-200"
+                        className="bg-gray-50 rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-200"
                       >
                         {/* Header do Item */}
-                        <div className="flex items-start justify-between mb-6">
+                        <div className="flex items-start justify-between mb-4 sm:mb-6">
                           <div className="flex items-center space-x-3">
-                            <div className={`w-10 h-10 rounded-xl ${categoryData.iconBg} flex items-center justify-center text-white font-bold shadow-md`}>
+                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${categoryData.iconBg} flex items-center justify-center text-white text-sm sm:text-base font-bold shadow-md`}>
                               {itemIndex + 1}
                             </div>
                             <div>
-                              <h4 className="text-lg font-semibold text-gray-800">
+                              <h4 className="text-base sm:text-lg font-semibold text-gray-800">
                                 Item de Desenvolvimento
                               </h4>
                               <span className={`inline-flex mt-1 px-2 py-1 rounded-full text-xs font-medium border ${statusOptions.find(s => s.value === item.status)?.color}`}>
@@ -545,20 +547,21 @@ const ActionPlan = () => {
                             onClick={() => removeActionItem(category, item.id)}
                             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
                           >
-                            <X size={20} />
+                            <X size={16} className="sm:hidden" />
+                            <X size={20} className="hidden sm:block" />
                           </button>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-4 sm:space-y-6">
                           {/* Competência a desenvolver */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                            <label className="block text-sm font-medium text-gray-700 mb-2 sm:mb-3 flex items-center">
                               <Award className="h-4 w-4 mr-2 text-primary-600" />
                               Competência a desenvolver
                             </label>
                             <input
                               type="text"
-                              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200"
+                              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200 text-sm sm:text-base"
                               placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
                               value={item.competencia}
                               onChange={(e) => updateActionItem(category, item.id, 'competencia', e.target.value)}
@@ -573,7 +576,7 @@ const ActionPlan = () => {
                             </label>
                             <input
                               type="month"
-                              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-secondary-500 focus:ring-secondary-500 transition-all duration-200"
+                              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-secondary-500 focus:ring-secondary-500 transition-all duration-200 text-sm sm:text-base"
                               value={item.calendarizacao}
                               onChange={(e) => updateActionItem(category, item.id, 'calendarizacao', e.target.value)}
                             />
@@ -586,8 +589,8 @@ const ActionPlan = () => {
                               Como desenvolver as competências
                             </label>
                             <textarea
-                              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-accent-500 focus:ring-accent-500 transition-all duration-200"
-                              rows={4}
+                              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-accent-500 focus:ring-accent-500 transition-all duration-200 text-sm sm:text-base"
+                              rows={3}
                               placeholder="Descreva as ações e métodos para desenvolver esta competência..."
                               value={item.comoDesenvolver}
                               onChange={(e) => updateActionItem(category, item.id, 'comoDesenvolver', e.target.value)}
@@ -601,15 +604,15 @@ const ActionPlan = () => {
                               Resultados Esperados
                             </label>
                             <textarea
-                              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200"
-                              rows={4}
+                              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200 text-sm sm:text-base"
+                              rows={3}
                               placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
                               value={item.resultadosEsperados}
                               onChange={(e) => updateActionItem(category, item.id, 'resultadosEsperados', e.target.value)}
                             />
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-200">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-gray-200">
                             {/* Status */}
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
@@ -617,7 +620,7 @@ const ActionPlan = () => {
                                 Status
                               </label>
                               <select
-                                className="w-full rounded-lg border-gray-200 shadow-sm focus:border-green-500 focus:ring-green-500 transition-all duration-200"
+                                className="w-full rounded-lg border-gray-200 shadow-sm focus:border-green-500 focus:ring-green-500 transition-all duration-200 text-sm sm:text-base"
                                 value={item.status}
                                 onChange={(e) => updateActionItem(category, item.id, 'status', e.target.value as any)}
                               >
@@ -636,8 +639,8 @@ const ActionPlan = () => {
                                 Observação
                               </label>
                               <textarea
-                                className="w-full rounded-lg border-gray-200 shadow-sm focus:border-secondary-500 focus:ring-secondary-500 transition-all duration-200"
-                                rows={3}
+                                className="w-full rounded-lg border-gray-200 shadow-sm focus:border-secondary-500 focus:ring-secondary-500 transition-all duration-200 text-sm sm:text-base"
+                                rows={2}
                                 placeholder="Observações..."
                                 value={item.observacao}
                                 onChange={(e) => updateActionItem(category, item.id, 'observacao', e.target.value)}
@@ -654,6 +657,7 @@ const ActionPlan = () => {
                         onClick={() => addActionItem(category)}
                         icon={<Plus size={16} />}
                         className="border-2 border-dashed hover:border-solid"
+                        size="sm"
                       >
                         Adicionar Novo Item
                       </Button>
@@ -671,41 +675,51 @@ const ActionPlan = () => {
   const progress = getProgress();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 lg:p-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8"
       >
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
+          <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-0">
             <button
               onClick={() => navigate('/')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 flex-shrink-0"
             >
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 flex items-center">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 mr-3">
-                  <FileText className="h-6 w-6 text-white" />
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center flex-wrap">
+                <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 mr-2 sm:mr-3 flex-shrink-0">
+                  <FileText className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-white" />
                 </div>
-                Plano de Desenvolvimento Individual
+                <span className="break-words">Plano de Desenvolvimento Individual</span>
               </h1>
-              <p className="text-gray-600 mt-1">Estruture o crescimento e desenvolvimento do colaborador</p>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">Estruture o crescimento e desenvolvimento do colaborador</p>
             </div>
           </div>
 
           {/* Progress Indicator */}
-          <div className="flex items-center space-x-3">
-            <div className="text-right">
+          <div className="flex items-center justify-center sm:justify-end space-x-3">
+            <div className="text-center sm:text-right">
               <p className="text-sm text-gray-500">Progresso Geral</p>
               <p className="text-lg font-bold text-gray-800">{Math.round(progress)}%</p>
             </div>
             <div className="relative">
-              <svg className="w-16 h-16 transform -rotate-90">
-                <circle cx="32" cy="32" r="28" stroke="#e5e7eb" strokeWidth="4" fill="none" />
+              <svg className="w-12 h-12 sm:w-16 sm:h-16 transform -rotate-90">
+                <circle cx="24" cy="24" r="20" stroke="#e5e7eb" strokeWidth="3" fill="none" className="sm:hidden" />
+                <circle cx="32" cy="32" r="28" stroke="#e5e7eb" strokeWidth="4" fill="none" className="hidden sm:block" />
+                <circle
+                  cx="24" cy="24" r="20"
+                  stroke="url(#progressGradient)"
+                  strokeWidth="3"
+                  fill="none"
+                  strokeDasharray={`${progress * 1.26} 126`}
+                  strokeLinecap="round"
+                  className="sm:hidden"
+                />
                 <circle
                   cx="32" cy="32" r="28"
                   stroke="url(#progressGradient)"
@@ -713,6 +727,7 @@ const ActionPlan = () => {
                   fill="none"
                   strokeDasharray={`${progress * 1.76} 176`}
                   strokeLinecap="round"
+                  className="hidden sm:block"
                 />
                 <defs>
                   <linearGradient id="progressGradient">
@@ -727,13 +742,13 @@ const ActionPlan = () => {
         </div>
 
         {/* Seleção do colaborador */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-          <div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 sm:mt-6">
+          <div className="sm:col-span-2 lg:col-span-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Colaborador
             </label>
             <select
-              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200"
+              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200 text-sm sm:text-base"
               value={selectedEmployeeId}
               onChange={(e) => setSelectedEmployeeId(e.target.value)}
             >
@@ -753,7 +768,7 @@ const ActionPlan = () => {
                   <Briefcase className="h-4 w-4 mr-1 text-gray-500" />
                   Cargo
                 </label>
-                <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-700">
+                <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 sm:px-4 py-2 sm:py-2.5 text-gray-700 text-sm sm:text-base">
                   {planData.cargo}
                 </div>
               </div>
@@ -763,7 +778,7 @@ const ActionPlan = () => {
                   <Users className="h-4 w-4 mr-1 text-gray-500" />
                   Departamento
                 </label>
-                <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-700">
+                <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 sm:px-4 py-2 sm:py-2.5 text-gray-700 text-sm sm:text-base break-words">
                   {planData.departamento}
                 </div>
               </div>
@@ -775,7 +790,7 @@ const ActionPlan = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200"
+                  className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200 text-sm sm:text-base"
                   value={planData.periodo}
                   onChange={(e) => setPlanData(prev => ({ ...prev, periodo: e.target.value }))}
                   placeholder="Ex: 2024-2025"
@@ -788,7 +803,7 @@ const ActionPlan = () => {
 
       {/* Itens de Desenvolvimento */}
       {selectedEmployeeId && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {categories.map((category, index) => (
             <motion.div
               key={category.key}
@@ -805,19 +820,19 @@ const ActionPlan = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="flex justify-between items-center"
+            className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0"
           >
             <div className="flex items-center space-x-2 text-sm">
               {planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length === 0 ? (
                 <>
-                  <AlertCircle className="h-5 w-5 text-amber-500" />
+                  <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0" />
                   <span className="text-gray-600">
                     Adicione pelo menos um item de desenvolvimento
                   </span>
                 </>
               ) : (
                 <>
-                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                   <span className="text-green-600 font-medium">
                     PDI pronto para ser salvo!
                   </span>
@@ -825,55 +840,61 @@ const ActionPlan = () => {
               )}
             </div>
 
-            <div className="flex space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => navigate('/reports')}
-                size="lg"
-              >
-                Cancelar
-              </Button>
-              
-              {/* Botões de Exportação */}
-              {planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length > 0 && (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={exportToPDF}
-                    icon={<FileDown size={18} />}
-                    size="lg"
-                    className="border-red-200 text-red-700 hover:bg-red-50"
-                  >
-                    PDF
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={exportToExcel}
-                    icon={<FileSpreadsheet size={18} />}
-                    size="lg"
-                    className="border-green-200 text-green-700 hover:bg-green-50"
-                  >
-                    Excel
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={exportToNotion}
-                    icon={<StickyNote size={18} />}
-                    size="lg"
-                    className="border-gray-300 text-gray-700 hover:bg-gray-100"
-                  >
-                    Notion
-                  </Button>
-                </>
-              )}
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+              <div className="flex flex-col xs:flex-row space-y-2 xs:space-y-0 xs:space-x-2 sm:space-x-4">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/reports')}
+                  size="sm"
+                  className="w-full xs:w-auto"
+                >
+                  Cancelar
+                </Button>
+                
+                {/* Botões de Exportação */}
+                {planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length > 0 && (
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={exportToPDF}
+                      icon={<FileDown size={16} />}
+                      size="sm"
+                      className="border-red-200 text-red-700 hover:bg-red-50 flex-1 xs:flex-none"
+                    >
+                      <span className="hidden xs:inline">PDF</span>
+                      <span className="xs:hidden">PDF</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={exportToExcel}
+                      icon={<FileSpreadsheet size={16} />}
+                      size="sm"
+                      className="border-green-200 text-green-700 hover:bg-green-50 flex-1 xs:flex-none"
+                    >
+                      <span className="hidden xs:inline">Excel</span>
+                      <span className="xs:hidden">Excel</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={exportToNotion}
+                      icon={<StickyNote size={16} />}
+                      size="sm"
+                      className="border-gray-300 text-gray-700 hover:bg-gray-100 flex-1 xs:flex-none"
+                    >
+                      <span className="hidden sm:inline">Notion</span>
+                      <span className="sm:hidden">Notion</span>
+                    </Button>
+                  </div>
+                )}
+              </div>
               
               <Button
                 variant="primary"
                 onClick={handleSave}
                 icon={<Save size={18} />}
-                size="lg"
+                size="sm"
                 disabled={planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length === 0}
-                className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700"
+                className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 w-full sm:w-auto"
               >
                 Salvar PDI
               </Button>
@@ -887,16 +908,16 @@ const ActionPlan = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center"
+          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
-            <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 mb-6">
-              <FileText className="h-10 w-10 text-primary-600" />
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 mb-6">
+              <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
               Nenhum colaborador selecionado
             </h3>
-            <p className="text-gray-500">
+            <p className="text-gray-500 text-sm sm:text-base">
               Selecione um colaborador acima para criar seu Plano de Desenvolvimento Individual
             </p>
           </div>

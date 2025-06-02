@@ -255,7 +255,7 @@ const Consensus = () => {
      feedback: {
        strengths: 'Avaliação definida por consenso',
        improvements: 'Pontos definidos em reunião de consenso',
-       observations: JSON.stringify(consensusObservations) // Armazenando observações no campo observations
+       observations: JSON.stringify(consensusObservations)
      },
      technicalScore: calculateCategoryAverage('Técnica'),
      behavioralScore: calculateCategoryAverage('Comportamental'),
@@ -301,7 +301,7 @@ const Consensus = () => {
  }) => (
    <button
      onClick={() => onClick(score)}
-     className={`w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-200 transform hover:scale-110 ${
+     className={`w-8 h-8 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-xs sm:text-sm font-bold transition-all duration-200 transform hover:scale-110 ${
        isSelected 
          ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg ring-2 ring-primary-300' 
          : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-primary-600 border-2 border-gray-200 hover:border-primary-300'
@@ -323,7 +323,7 @@ const Consensus = () => {
      <div className="text-center">
        <p className="text-xs text-gray-500 mb-1">{config[type].label}</p>
        <div 
-         className={`w-12 h-12 rounded-xl ${config[type].bg} flex items-center justify-center text-white text-sm font-bold shadow-md`}
+         className={`w-8 h-8 sm:w-12 sm:h-12 rounded-xl ${config[type].bg} flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-md`}
          title={`${config[type].label}: ${score}`}
        >
          {score}
@@ -344,14 +344,14 @@ const Consensus = () => {
  }, {} as Record<string, Criterion[]>);
 
  return (
-   <div className="space-y-6">
+   <div className="space-y-4 sm:space-y-6">
      {/* Header */}
      <motion.div
        initial={{ opacity: 0, y: -20 }}
        animate={{ opacity: 1, y: 0 }}
-       className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+       className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8"
      >
-       <div className="flex items-center justify-between mb-6">
+       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
          <div className="flex items-center space-x-4">
            <button
              onClick={() => navigate('/')}
@@ -360,11 +360,11 @@ const Consensus = () => {
              <ArrowLeft className="h-5 w-5 text-gray-600" />
            </button>
            <div>
-             <h1 className="text-3xl font-bold text-gray-800 flex items-center">
-               <GitMerge className="h-8 w-8 text-primary-500 mr-3" />
+             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
+               <GitMerge className="h-6 w-6 sm:h-8 sm:w-8 text-primary-500 mr-3" />
                Reunião de Consenso
              </h1>
-             <p className="text-gray-600 mt-1">Definição colaborativa das notas finais</p>
+             <p className="text-gray-600 mt-1 text-sm sm:text-base">Definição colaborativa das notas finais</p>
            </div>
          </div>
 
@@ -398,7 +398,7 @@ const Consensus = () => {
        </div>
 
        {/* Employee Selection */}
-       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
          <div>
            <label className="block text-sm font-medium text-gray-700 mb-2">
              Selecione o Colaborador
@@ -424,7 +424,7 @@ const Consensus = () => {
                  <Briefcase className="inline h-4 w-4 mr-1" />
                  Cargo
                </label>
-               <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700">
+               <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700 text-sm">
                  {selectedEmployee.position}
                </div>
              </div>
@@ -434,7 +434,7 @@ const Consensus = () => {
                  <Calendar className="inline h-4 w-4 mr-1" />
                  Data
                </label>
-               <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700">
+               <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700 text-sm">
                  {new Date().toLocaleDateString('pt-BR')}
                </div>
              </div>
@@ -460,24 +460,24 @@ const Consensus = () => {
                  transition={{ delay: categoryIndex * 0.1 }}
                  className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
                >
-                 <div className={`px-8 py-6 ${config.bgColor} border-b ${config.borderColor}`}>
-                   <div className="flex items-center justify-between">
+                 <div className={`px-4 sm:px-8 py-4 sm:py-6 ${config.bgColor} border-b ${config.borderColor}`}>
+                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                      <div className="flex items-center space-x-3">
-                       <div className={`p-3 rounded-xl bg-gradient-to-br ${config.gradient} shadow-md`}>
+                       <div className={`p-2 sm:p-3 rounded-xl bg-gradient-to-br ${config.gradient} shadow-md`}>
                          {(() => {
                            const Icon = categoryCriteria[0].icon;
-                           return <Icon className="h-6 w-6 text-white" />;
+                           return <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />;
                          })()}
                        </div>
                        <div>
-                         <h2 className="text-xl font-bold text-gray-800">{category}</h2>
-                         <p className="text-sm text-gray-600">
+                         <h2 className="text-lg sm:text-xl font-bold text-gray-800">{category}</h2>
+                         <p className="text-xs sm:text-sm text-gray-600">
                            {categoryCriteria.filter(c => consensusScores[c.id] > 0).length} de {categoryCriteria.length} critérios definidos
                          </p>
                        </div>
                      </div>
                      <div className="flex items-center space-x-3">
-                       <div className="w-32 bg-gray-200 rounded-full h-2">
+                       <div className="w-24 sm:w-32 bg-gray-200 rounded-full h-2">
                          <div 
                            className={`h-2 rounded-full bg-gradient-to-r ${config.gradient} transition-all duration-300`}
                            style={{ width: `${categoryProgress}%` }}
@@ -490,7 +490,7 @@ const Consensus = () => {
                    </div>
                  </div>
 
-                 <div className="p-6">
+                 <div className="p-4 sm:p-6">
                    <div className="space-y-4">
                      {categoryCriteria.map((criterion) => {
                        const selfScore = selfEvaluation?.scores[criterion.id] || 0;
@@ -498,42 +498,48 @@ const Consensus = () => {
                        const consensusScore = consensusScores[criterion.id] || 0;
 
                        return (
-                         <div key={criterion.id} className="p-4 bg-gray-50 rounded-xl space-y-3">
-                           <div className="flex items-center justify-between">
+                         <div key={criterion.id} className="p-3 sm:p-4 bg-gray-50 rounded-xl space-y-3">
+                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                              <div className="flex-1">
-                               <h4 className="font-medium text-gray-800">{criterion.name}</h4>
-                               <p className="text-sm text-gray-600 mt-1">{criterion.description}</p>
+                               <h4 className="font-medium text-gray-800 text-sm sm:text-base">{criterion.name}</h4>
+                               <p className="text-xs sm:text-sm text-gray-600 mt-1">{criterion.description}</p>
                              </div>
                              
-                             <div className="flex items-center space-x-6">
-                               <ScoreIndicator score={selfScore} type="self" />
-                               <ScoreIndicator score={leaderScore} type="leader" />
+                             <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
+                               <div className="flex items-center space-x-4 sm:space-x-6">
+                                 <ScoreIndicator score={selfScore} type="self" />
+                                 <ScoreIndicator score={leaderScore} type="leader" />
+                               </div>
                                
-                               <div className="w-px h-12 bg-gray-300" />
+                               <div className="w-full sm:w-px h-px sm:h-12 bg-gray-300" />
                                
-                               <div className="flex items-center space-x-2">
-                                 <Sparkles className="h-5 w-5 text-primary-500" />
-                                 <span className="text-sm font-medium text-gray-600 mr-3">Consenso:</span>
-                                 {[1, 2, 3, 4].map(score => (
-                                   <ScoreButton
-                                     key={score}
-                                     score={score}
-                                     isSelected={consensusScore === score}
-                                     onClick={(selectedScore: number) => handleConsensusChange(criterion.id, selectedScore)}
-                                   />
-                                 ))}
+                               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                                 <div className="flex items-center space-x-2">
+                                   <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary-500" />
+                                   <span className="text-xs sm:text-sm font-medium text-gray-600">Consenso:</span>
+                                 </div>
+                                 <div className="flex items-center space-x-1 sm:space-x-2">
+                                   {[1, 2, 3, 4].map(score => (
+                                     <ScoreButton
+                                       key={score}
+                                       score={score}
+                                       isSelected={consensusScore === score}
+                                       onClick={(selectedScore: number) => handleConsensusChange(criterion.id, selectedScore)}
+                                     />
+                                   ))}
+                                 </div>
                                </div>
                              </div>
                            </div>
                            
                            {/* Campo de Observações */}
                            <div className="mt-3">
-                             <label className="flex items-center text-sm font-medium text-gray-600 mb-1">
-                               <MessageSquare className="h-4 w-4 mr-1" />
+                             <label className="flex items-center text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                               <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                                Observações
                              </label>
                              <textarea
-                               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none transition-all duration-200"
+                               className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none transition-all duration-200"
                                rows={2}
                                placeholder="Adicione observações sobre esta competência..."
                                value={consensusObservations[criterion.id] || ''}
@@ -555,34 +561,34 @@ const Consensus = () => {
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                transition={{ delay: 0.4 }}
-               className="bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 rounded-2xl shadow-sm border border-primary-100 p-8"
+               className="bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 rounded-2xl shadow-sm border border-primary-100 p-4 sm:p-8"
              >
-               <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                 <BarChart3 className="h-6 w-6 mr-2 text-primary-600" />
+               <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center">
+                 <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary-600" />
                  Resumo do Consenso
                </h3>
-               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                 <div className="bg-white p-6 rounded-xl border border-primary-200">
-                   <h4 className="text-sm font-medium text-gray-600 mb-1">Técnicas</h4>
-                   <p className="text-3xl font-bold text-primary-600">{calculateCategoryAverage('Técnica').toFixed(1)}</p>
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                 <div className="bg-white p-4 sm:p-6 rounded-xl border border-primary-200">
+                   <h4 className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Técnicas</h4>
+                   <p className="text-2xl sm:text-3xl font-bold text-primary-600">{calculateCategoryAverage('Técnica').toFixed(1)}</p>
                    <p className="text-xs text-gray-500 mt-1">Peso 40%</p>
                  </div>
                  
-                 <div className="bg-white p-6 rounded-xl border border-secondary-200">
-                   <h4 className="text-sm font-medium text-gray-600 mb-1">Comportamentais</h4>
-                   <p className="text-3xl font-bold text-secondary-600">{calculateCategoryAverage('Comportamental').toFixed(1)}</p>
+                 <div className="bg-white p-4 sm:p-6 rounded-xl border border-secondary-200">
+                   <h4 className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Comportamentais</h4>
+                   <p className="text-2xl sm:text-3xl font-bold text-secondary-600">{calculateCategoryAverage('Comportamental').toFixed(1)}</p>
                    <p className="text-xs text-gray-500 mt-1">Peso 30%</p>
                  </div>
                  
-                 <div className="bg-white p-6 rounded-xl border border-accent-200">
-                   <h4 className="text-sm font-medium text-gray-600 mb-1">Organizacionais</h4>
-                   <p className="text-3xl font-bold text-accent-600">{calculateCategoryAverage('Organizacional').toFixed(1)}</p>
+                 <div className="bg-white p-4 sm:p-6 rounded-xl border border-accent-200">
+                   <h4 className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Organizacionais</h4>
+                   <p className="text-2xl sm:text-3xl font-bold text-accent-600">{calculateCategoryAverage('Organizacional').toFixed(1)}</p>
                    <p className="text-xs text-gray-500 mt-1">Peso 30%</p>
                  </div>
                  
-                 <div className="bg-gradient-to-br from-primary-500 to-secondary-600 p-6 rounded-xl text-white">
-                   <h4 className="text-sm font-medium text-primary-100 mb-1">Nota Final</h4>
-                   <p className="text-3xl font-bold">{calculateOverallAverage().toFixed(1)}</p>
+                 <div className="bg-gradient-to-br from-primary-500 to-secondary-600 p-4 sm:p-6 rounded-xl text-white">
+                   <h4 className="text-xs sm:text-sm font-medium text-primary-100 mb-1">Nota Final</h4>
+                   <p className="text-2xl sm:text-3xl font-bold">{calculateOverallAverage().toFixed(1)}</p>
                    <p className="text-xs text-primary-100 mt-1">Média Ponderada</p>
                  </div>
                </div>
@@ -594,7 +600,7 @@ const Consensus = () => {
              initial={{ opacity: 0 }}
              animate={{ opacity: 1 }}
              transition={{ delay: 0.5 }}
-             className="flex justify-between items-center"
+             className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0"
            >
              <div className="flex items-center space-x-2 text-sm">
                {progress < 100 ? (
@@ -614,7 +620,7 @@ const Consensus = () => {
                )}
              </div>
 
-             <div className="flex space-x-4">
+             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                <Button
                  variant="secondary"
                  onClick={handleSaveConsensus}
@@ -644,16 +650,16 @@ const Consensus = () => {
        <motion.div
          initial={{ opacity: 0, scale: 0.95 }}
          animate={{ opacity: 1, scale: 1 }}
-         className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center"
+         className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-16 text-center"
        >
          <div className="max-w-md mx-auto">
-           <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary-100 to-secondary-100 mb-6">
-             <Users className="h-10 w-10 text-primary-600" />
+           <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-100 to-secondary-100 mb-6">
+             <Users className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600" />
            </div>
-           <h3 className="text-xl font-semibold text-gray-900 mb-2">
+           <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
              Nenhum colaborador selecionado
            </h3>
-           <p className="text-gray-500">
+           <p className="text-gray-500 text-sm sm:text-base">
              Selecione um colaborador acima para iniciar a reunião de consenso
            </p>
          </div>
@@ -667,27 +673,27 @@ const Consensus = () => {
            initial={{ opacity: 0 }}
            animate={{ opacity: 1 }}
            exit={{ opacity: 0 }}
-           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
            onClick={() => setShowMatrix(false)}
          >
            <motion.div
              initial={{ scale: 0.9, opacity: 0 }}
              animate={{ scale: 1, opacity: 1 }}
              exit={{ scale: 0.9, opacity: 0 }}
-             className="bg-white rounded-2xl p-8 max-w-md w-full mx-4"
+             className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4"
              onClick={(e) => e.stopPropagation()}
            >
              <div className="text-center">
                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
                  <CheckCircle className="h-10 w-10 text-green-600" />
                </div>
-               <h2 className="text-2xl font-bold text-gray-900 mb-2">
+               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                  Matriz 9-Box Gerada!
                </h2>
-               <p className="text-gray-600 mb-6">
+               <p className="text-gray-600 mb-6 text-sm sm:text-base">
                  O colaborador {selectedEmployee?.name} foi posicionado na matriz 9-Box com base no consenso estabelecido.
                </p>
-               <div className="flex justify-center space-x-4">
+               <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4">
                  <Button
                    variant="outline"
                    onClick={() => setShowMatrix(false)}

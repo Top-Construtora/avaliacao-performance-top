@@ -10,15 +10,15 @@ import {
   FileText,
   BarChart3,
   LogOut,
-  Menu,
   X
 } from 'lucide-react';
 import logo from '../../assets/images/logo.png';
-import { useState } from 'react';
 
-const Sidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+const Sidebar = ({ onClose }: SidebarProps) => {
   const navigation = [
     { name: 'Página Inicial', icon: LayoutDashboard, path: '/' },
     { name: 'Autoavaliação', icon: User, path: '/self-evaluation' },
@@ -30,21 +30,28 @@ const Sidebar = () => {
     { name: 'Relatórios', icon: PieChart, path: '/reports' },
   ];
 
+  const handleNavClick = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
-    <aside className={`${isCollapsed ? 'w-20' : 'w-64'} h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex flex-col transition-all duration-300 ease-in-out`}>
-      <div className="h-16 flex items-center justify-between pl-2 pr-4 border-b border-gray-700/50">
-        <div className={`flex items-center ${isCollapsed ? 'justify-center' : ''}`}>
+    <aside className="w-64 h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex flex-col">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-gray-700/50">
+        <div className="flex items-center">
           <img 
             src={logo} 
             alt="Logo da empresa" 
-            className="h-14 w-auto object-contain"
+            className="h-10 sm:h-12 w-auto object-contain"
           />
         </div>
+        {/* Close button - visible only on mobile */}
         <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50 transition-colors duration-200 lg:hidden"
+          onClick={onClose}
+          className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50 transition-colors duration-200 lg:hidden"
         >
-          {isCollapsed ? <Menu size={20} /> : <X size={20} />}
+          <X size={20} />
         </button>
       </div>
       
@@ -53,44 +60,40 @@ const Sidebar = () => {
           <NavLink
             key={item.name}
             to={item.path}
+            onClick={handleNavClick}
             className={({ isActive }) => 
-              `flex items-center ${isCollapsed ? 'justify-center' : ''} px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+              `flex items-center px-3 py-3 rounded-xl transition-all duration-200 group ${
                 isActive 
                   ? 'bg-gradient-to-r from-primary-500/20 to-secondary-500/20 text-white border border-primary-500/30 shadow-lg shadow-primary-500/10' 
                   : 'text-gray-300 hover:bg-gray-700/30 hover:text-white'
               }`
             }
-            title={isCollapsed ? item.name : undefined}
           >
-            <item.icon className={`${isCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} flex-shrink-0`} />
-            {!isCollapsed && (
-              <span className="font-medium">{item.name}</span>
-            )}
-            {!isCollapsed && (
-              <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-            )}
+            <item.icon className="w-5 h-5 mr-3 flex-shrink-0" />
+            <span className="font-medium text-sm lg:text-base truncate">{item.name}</span>
+            <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
           </NavLink>
         ))}
       </nav>
       
-      <div className="px-3 py-4 border-t border-gray-700/50">
+      <div className="px-3 py-4 border-t border-gray-700/50 space-y-1">
         <NavLink
           to="/settings"
+          onClick={handleNavClick}
           className={({ isActive }) => 
-            `flex items-center ${isCollapsed ? 'justify-center' : ''} w-full px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+            `flex items-center w-full px-3 py-3 rounded-xl transition-all duration-200 group ${
               isActive 
                 ? 'bg-gradient-to-r from-primary-500/20 to-secondary-500/20 text-white border border-primary-500/30 shadow-lg shadow-primary-500/10' 
                 : 'text-gray-300 hover:bg-gray-700/30 hover:text-white'
             }`
           }
-          title={isCollapsed ? 'Configurações' : undefined}
         >
-          <Settings className={`${isCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} flex-shrink-0`} />
-          {!isCollapsed && <span className="font-medium">Configurações</span>}
+          <Settings className="w-5 h-5 mr-3 flex-shrink-0" />
+          <span className="font-medium text-sm lg:text-base">Configurações</span>
         </NavLink>
-        <button className={`flex items-center ${isCollapsed ? 'justify-center' : ''} w-full px-3 py-2.5 text-gray-300 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all duration-200 mt-1`}>
-          <LogOut className={`${isCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} flex-shrink-0`} />
-          {!isCollapsed && <span className="font-medium">Sair</span>}
+        <button className="flex items-center w-full px-3 py-3 text-gray-300 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all duration-200">
+          <LogOut className="w-5 h-5 mr-3 flex-shrink-0" />
+          <span className="font-medium text-sm lg:text-base">Sair</span>
         </button>
       </div>
     </aside>

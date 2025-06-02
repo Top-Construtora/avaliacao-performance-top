@@ -6,6 +6,9 @@ interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -30,6 +33,19 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     return 'light';
   });
 
+  // Estados para detectar o tipo de dispositivo
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // Função para detectar o tipo de dispositivo
+  const detectDevice = () => {
+    const width = window.innerWidth;
+    setIsMobile(width < 640);
+    setIsTablet(width >= 640 && width < 1024);
+    setIsDesktop(width >= 1024);
+  };
+
   useEffect(() => {
     const root = window.document.documentElement;
     
@@ -43,6 +59,41 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    // Detecta o dispositivo na montagem
+    detectDevice();
+
+    // Adiciona listener para mudanças na janela
+    const handleResize = () => {
+      detectDevice();
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // Observa mudanças na preferência de cor do sistema
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      // Só muda o tema automaticamente se não houver preferência salva
+      if (!localStorage.getItem('theme')) {
+        setThemeState(e.matches ? 'dark' : 'light');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, []);
+
   const toggleTheme = () => {
     setThemeState(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
   };
@@ -55,6 +106,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     theme,
     toggleTheme,
     setTheme,
+    isMobile,
+    isTablet,
+    isDesktop,
   };
 
   return (

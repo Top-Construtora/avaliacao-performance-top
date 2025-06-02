@@ -337,38 +337,47 @@ const LeaderEvaluation = () => {
   const progress = getProgress();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8"
       >
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
             <button
               onClick={() => navigate('/')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 flex-shrink-0"
             >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
             </button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 flex items-center">
-                <Users className="h-8 w-8 text-secondary-500 mr-3" />
-                Avaliação do Líder
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
+                <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 mr-2 sm:mr-3 flex-shrink-0" />
+                <span className="truncate">Avaliação do Líder</span>
               </h1>
-              <p className="text-gray-600 mt-1">Avalie o desempenho dos seus colaboradores</p>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">Avalie o desempenho dos seus colaboradores</p>
             </div>
           </div>
 
           {/* Progress Indicator */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 flex-shrink-0">
             <div className="text-right">
-              <p className="text-sm text-gray-500">Progresso</p>
+              <p className="text-xs sm:text-sm text-gray-500">Progresso</p>
               <p className="text-lg font-bold text-gray-800">{Math.round(progress)}%</p>
             </div>
             <div className="relative">
-              <svg className="w-16 h-16 transform -rotate-90">
+              <svg className="w-12 h-12 sm:w-16 sm:h-16 transform -rotate-90">
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="20"
+                  stroke="#e5e7eb"
+                  strokeWidth="3"
+                  fill="none"
+                  className="sm:hidden"
+                />
                 <circle
                   cx="32"
                   cy="32"
@@ -376,6 +385,18 @@ const LeaderEvaluation = () => {
                   stroke="#e5e7eb"
                   strokeWidth="4"
                   fill="none"
+                  className="hidden sm:block"
+                />
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="20"
+                  stroke="url(#progressGradient)"
+                  strokeWidth="3"
+                  fill="none"
+                  strokeDasharray={`${progress * 1.26} 126`}
+                  strokeLinecap="round"
+                  className="sm:hidden"
                 />
                 <circle
                   cx="32"
@@ -386,6 +407,7 @@ const LeaderEvaluation = () => {
                   fill="none"
                   strokeDasharray={`${progress * 1.76} 176`}
                   strokeLinecap="round"
+                  className="hidden sm:block"
                 />
                 <defs>
                   <linearGradient id="progressGradient">
@@ -399,8 +421,8 @@ const LeaderEvaluation = () => {
         </div>
 
         {/* Employee Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="md:col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Selecione o Colaborador
             </label>
@@ -425,7 +447,7 @@ const LeaderEvaluation = () => {
                   <Briefcase className="inline h-4 w-4 mr-1" />
                   Cargo
                 </label>
-                <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700">
+                <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700 text-sm">
                   {selectedEmployee.position}
                 </div>
               </div>
@@ -435,7 +457,7 @@ const LeaderEvaluation = () => {
                   <Calendar className="inline h-4 w-4 mr-1" />
                   Data
                 </label>
-                <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700">
+                <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700 text-sm">
                   {new Date().toLocaleDateString('pt-BR')}
                 </div>
               </div>
@@ -459,40 +481,40 @@ const LeaderEvaluation = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: sectionIndex * 0.1 }}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                  className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
                 >
                   <button
                     onClick={() => toggleSection(section.id)}
-                    className={`w-full px-8 py-6 ${section.bgColor} border-b ${section.borderColor} flex items-center justify-between hover:opacity-90 transition-all duration-200`}
+                    className={`w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${section.bgColor} border-b ${section.borderColor} flex items-center justify-between hover:opacity-90 transition-all duration-200`}
                   >
-                    <div className="flex items-center space-x-4">
-                      <div className={`p-3 rounded-xl bg-gradient-to-br ${section.gradient} shadow-md`}>
-                        <IconComponent className="h-6 w-6 text-white" />
+                    <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+                      <div className={`p-2 sm:p-3 rounded-xl bg-gradient-to-br ${section.gradient} shadow-md flex-shrink-0`}>
+                        <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                       </div>
-                      <div className="text-left">
-                        <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                          {section.title}
-                          <span className={`ml-3 text-xs font-medium px-2 py-1 rounded-full ${section.bgColor} text-gray-700`}>
+                      <div className="text-left min-w-0 flex-1">
+                        <h2 className="text-lg sm:text-xl font-bold text-gray-800 flex flex-col sm:flex-row sm:items-center">
+                          <span className="truncate">{section.title}</span>
+                          <span className={`mt-1 sm:mt-0 sm:ml-3 text-xs font-medium px-2 py-1 rounded-full ${section.bgColor} text-gray-700 flex-shrink-0`}>
                             Peso {section.weight}%
                           </span>
                         </h2>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1">
                           {section.items.filter(item => item.score !== undefined).length} de {section.items.length} competências avaliadas
                         </p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-4">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div className="flex items-center space-x-3 sm:space-x-4 flex-shrink-0">
+                      <div className="w-16 sm:w-32 bg-gray-200 rounded-full h-2">
                         <div 
                           className={`h-2 rounded-full bg-gradient-to-r ${section.gradient} transition-all duration-300`}
                           style={{ width: `${sectionProgress}%` }}
                         />
                       </div>
                       {section.expanded ? (
-                        <ChevronDown className="w-5 h-5 text-gray-600" />
+                        <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                       ) : (
-                        <ChevronRight className="w-5 h-5 text-gray-600" />
+                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                       )}
                     </div>
                   </button>
@@ -504,7 +526,7 @@ const LeaderEvaluation = () => {
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="p-8 space-y-6"
+                        className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6"
                       >
                         {section.items.map((item, itemIndex) => (
                           <motion.div
@@ -512,37 +534,37 @@ const LeaderEvaluation = () => {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: itemIndex * 0.05 }}
-                            className="space-y-4"
+                            className="space-y-3 sm:space-y-4"
                           >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 mr-4">
-                                <h4 className="text-lg font-semibold text-gray-800 mb-1">{item.name}</h4>
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
+                              <div className="flex-1 sm:mr-4">
+                                <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-1">{item.name}</h4>
                                 <p className="text-sm text-gray-600">{item.description}</p>
                               </div>
                               {item.score && (
-                                <div className="text-center">
-                                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${ratingLabels[item.score as keyof typeof ratingLabels].color} text-white`}>
+                                <div className="text-center sm:text-right flex-shrink-0">
+                                  <div className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${ratingLabels[item.score as keyof typeof ratingLabels].color} text-white`}>
                                     {ratingLabels[item.score as keyof typeof ratingLabels].label}
                                   </div>
                                 </div>
                               )}
                             </div>
                             
-                            <div className="flex gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                               {[1, 2, 3, 4].map((rating) => {
                                 const ratingInfo = ratingLabels[rating as keyof typeof ratingLabels];
                                 return (
                                   <button
                                     key={rating}
                                     onClick={() => handleScoreChange(section.id, item.id, rating)}
-                                    className={`flex-1 py-4 px-4 rounded-xl border-2 transition-all duration-200 ${
+                                    className={`py-3 sm:py-4 px-2 sm:px-4 rounded-xl border-2 transition-all duration-200 ${
                                       item.score === rating
                                         ? `${ratingInfo.color} text-white border-transparent shadow-lg transform scale-105`
                                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 bg-white'
                                     }`}
                                   >
                                     <div className="text-center">
-                                      <div className="text-2xl font-bold mb-1">{rating}</div>
+                                      <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
                                       <div className="text-xs">
                                         {ratingInfo.label}
                                       </div>
@@ -565,16 +587,16 @@ const LeaderEvaluation = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 rounded-2xl shadow-sm border border-primary-100 p-8"
+              className="bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 rounded-xl sm:rounded-2xl shadow-sm border border-primary-100 p-4 sm:p-6 lg:p-8"
             >
-              <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                <BarChart3 className="h-6 w-6 mr-2 text-primary-600" />
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center">
+                <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary-600" />
                 Resumo das Notas
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white p-6 rounded-xl border border-primary-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white p-4 sm:p-6 rounded-xl border border-primary-200">
                   <h4 className="text-sm font-medium text-gray-600 mb-1">Técnicas</h4>
-                  <p className="text-3xl font-bold text-primary-600">{scores.technical.toFixed(1)}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-primary-600">{scores.technical.toFixed(1)}</p>
                   <p className="text-xs text-gray-500 mt-1">Peso 50%</p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
                     <div 
@@ -584,9 +606,9 @@ const LeaderEvaluation = () => {
                   </div>
                 </div>
                 
-                <div className="bg-white p-6 rounded-xl border border-secondary-200">
+                <div className="bg-white p-4 sm:p-6 rounded-xl border border-secondary-200">
                   <h4 className="text-sm font-medium text-gray-600 mb-1">Comportamentais</h4>
-                  <p className="text-3xl font-bold text-secondary-600">{scores.behavioral.toFixed(1)}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-secondary-600">{scores.behavioral.toFixed(1)}</p>
                   <p className="text-xs text-gray-500 mt-1">Peso 30%</p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
                     <div 
@@ -596,9 +618,9 @@ const LeaderEvaluation = () => {
                   </div>
                 </div>
                 
-                <div className="bg-white p-6 rounded-xl border border-accent-200">
+                <div className="bg-white p-4 sm:p-6 rounded-xl border border-accent-200">
                   <h4 className="text-sm font-medium text-gray-600 mb-1">Organizacionais</h4>
-                  <p className="text-3xl font-bold text-accent-600">{scores.organizational.toFixed(1)}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-accent-600">{scores.organizational.toFixed(1)}</p>
                   <p className="text-xs text-gray-500 mt-1">Peso 20%</p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
                     <div 
@@ -608,12 +630,12 @@ const LeaderEvaluation = () => {
                   </div>
                 </div>
                 
-                <div className="bg-gradient-to-br from-primary-500 to-secondary-600 p-6 rounded-xl text-white">
+                <div className="bg-gradient-to-br from-primary-500 to-secondary-600 p-4 sm:p-6 rounded-xl text-white">
                   <h4 className="text-sm font-medium text-primary-100 mb-1">Nota Final</h4>
-                  <p className="text-3xl font-bold">{scores.final.toFixed(1)}</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{scores.final.toFixed(1)}</p>
                   <p className="text-xs text-primary-100 mt-1">Média Ponderada</p>
                   <div className="flex items-center mt-3">
-                    <Award className="h-5 w-5 mr-2" />
+                    <Award className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     <span className="text-sm font-medium">
                       {scores.final >= 3.5 ? 'Excelente' : scores.final >= 2.5 ? 'Bom' : scores.final >= 1.5 ? 'Regular' : 'Necessita Melhoria'}
                     </span>
@@ -627,19 +649,19 @@ const LeaderEvaluation = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="flex justify-between items-center"
+              className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0"
             >
               <div className="flex items-center space-x-2 text-sm">
                 {progress < 100 ? (
                   <>
-                    <AlertCircle className="h-5 w-5 text-amber-500" />
+                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 flex-shrink-0" />
                     <span className="text-gray-600">
                       Complete todas as avaliações para enviar
                     </span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />
                     <span className="text-green-600 font-medium">
                       Todas as competências foram avaliadas!
                     </span>
@@ -647,13 +669,14 @@ const LeaderEvaluation = () => {
                 )}
               </div>
 
-              <div className="flex space-x-4">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                 <Button
                   variant="outline"
                   onClick={handleSave}
                   icon={<Save size={18} />}
                   size="lg"
                   disabled={progress === 0}
+                  className="w-full sm:w-auto"
                 >
                   Salvar Rascunho
                 </Button>
@@ -663,6 +686,7 @@ const LeaderEvaluation = () => {
                   icon={<Send size={18} />}
                   size="lg"
                   disabled={progress < 100}
+                  className="w-full sm:w-auto"
                 >
                   Enviar Avaliação
                 </Button>
@@ -677,16 +701,16 @@ const LeaderEvaluation = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center"
+          className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
-            <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-secondary-100 to-primary-100 mb-6">
-              <User className="h-10 w-10 text-secondary-600" />
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-secondary-100 to-primary-100 mb-4 sm:mb-6">
+              <User className="h-8 w-8 sm:h-10 sm:w-10 text-secondary-600" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
               Nenhum colaborador selecionado
             </h3>
-            <p className="text-gray-500">
+            <p className="text-sm sm:text-base text-gray-500">
               Selecione um colaborador acima para iniciar a avaliação de desempenho
             </p>
           </div>
@@ -700,21 +724,21 @@ const LeaderEvaluation = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center"
+              className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 text-center"
             >
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
-                <CheckCircle className="h-10 w-10 text-green-600" />
+              <div className="mx-auto flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-green-100 mb-4">
+                <CheckCircle className="h-6 w-6 sm:h-10 sm:w-10 text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                 Avaliação Enviada!
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-sm sm:text-base text-gray-600 mb-6">
                 A avaliação foi registrada com sucesso no sistema.
               </p>
               <div className="text-sm text-gray-500">

@@ -281,7 +281,7 @@ const SelfEvaluation = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="space-y-6"
+        className="space-y-4 sm:space-y-6"
       >
         {sections.map((section: Section, sectionIndex) => {
           const IconComponent = section.icon;
@@ -291,64 +291,64 @@ const SelfEvaluation = () => {
             <motion.div
               key={section.id}
               variants={itemVariants}
-              className={`bg-white rounded-2xl shadow-sm border ${isCompleted ? section.borderColor : 'border-gray-100'} overflow-hidden transition-all duration-300`}
+              className={`bg-white rounded-xl sm:rounded-2xl shadow-sm border ${isCompleted ? section.borderColor : 'border-gray-100'} overflow-hidden transition-all duration-300`}
             >
               {/* Section Header */}
-              <div className={`px-8 py-6 ${isCompleted ? section.bgColor : 'bg-gray-50'} border-b border-gray-100`}>
+              <div className={`px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${isCompleted ? section.bgColor : 'bg-gray-50'} border-b border-gray-100`}>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className={`p-3 rounded-xl ${section.iconBg} shadow-md`}>
-                      <IconComponent className="h-6 w-6 text-white" />
+                  <div className="flex items-center space-x-3 sm:space-x-4">
+                    <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${section.iconBg} shadow-md`}>
+                      <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-gray-800">{section.title}</h2>
-                      <p className="text-sm text-gray-600">{section.subtitle}</p>
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-800">{section.title}</h2>
+                      <p className="text-xs sm:text-sm text-gray-600">{section.subtitle}</p>
                     </div>
                   </div>
                   {isCompleted && (
-                    <div className="flex items-center space-x-2 text-green-600 bg-green-50 px-3 py-1.5 rounded-full">
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="text-sm font-medium">Completo</span>
+                    <div className="flex items-center space-x-1 sm:space-x-2 text-green-600 bg-green-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="text-xs sm:text-sm font-medium hidden sm:inline">Completo</span>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Section Content */}
-              <div className="p-8">
-                <div className="space-y-3">
+              <div className="p-4 sm:p-6 lg:p-8">
+                <div className="space-y-2 sm:space-y-3">
                   {section.items.map((item: string, index: number) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="flex items-center space-x-3 group"
+                      className="flex items-center space-x-2 sm:space-x-3 group"
                     >
                       <div className="flex-1 relative">
                         <input
                           type="text"
                           value={item}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField(section.id, index, e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
                           placeholder={`Digite ${section.title.toLowerCase()} ${index + 1}...`}
                         />
                         {item.trim() && (
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            className="absolute right-3 top-3.5"
+                            className="absolute right-2 sm:right-3 top-2 sm:top-3.5"
                           >
-                            <CheckCircle className="h-5 w-5 text-green-500" />
+                            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                           </motion.div>
                         )}
                       </div>
                       {section.items.length > 1 && (
                         <button
                           onClick={() => removeField(section.id, index)}
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                          className="p-1.5 sm:p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
                         >
-                          <X className="h-5 w-5" />
+                          <X className="h-4 w-4 sm:h-5 sm:w-5" />
                         </button>
                       )}
                     </motion.div>
@@ -358,10 +358,10 @@ const SelfEvaluation = () => {
                 {/* Add More Button */}
                 <button
                   onClick={() => addField(section.id)}
-                  className={`mt-4 flex items-center space-x-2 px-4 py-2 rounded-xl border-2 border-dashed ${isCompleted ? section.borderColor : 'border-gray-300'} text-gray-600 hover:text-gray-800 hover:border-gray-400 transition-all duration-200 group`}
+                  className={`mt-3 sm:mt-4 flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl border-2 border-dashed ${isCompleted ? section.borderColor : 'border-gray-300'} text-gray-600 hover:text-gray-800 hover:border-gray-400 transition-all duration-200 group`}
                 >
-                  <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform duration-200" />
-                  <span className="text-sm font-medium">Adicionar mais</span>
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4 group-hover:rotate-90 transition-transform duration-200" />
+                  <span className="text-xs sm:text-sm font-medium">Adicionar mais</span>
                 </button>
               </div>
             </motion.div>
@@ -371,26 +371,26 @@ const SelfEvaluation = () => {
         {/* Tips Section */}
         <motion.div
           variants={itemVariants}
-          className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-2xl p-6 border border-primary-100"
+          className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-primary-100"
         >
           <div className="flex items-start space-x-3">
             <div className="p-2 bg-white rounded-lg shadow-sm">
-              <Info className="h-5 w-5 text-primary-600" />
+              <Info className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600" />
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-800 mb-2">Dicas para uma boa autoavaliação</h3>
-              <ul className="space-y-1 text-sm text-gray-600">
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base">Dicas para uma boa autoavaliação</h3>
+              <ul className="space-y-1 text-xs sm:text-sm text-gray-600">
                 <li className="flex items-start">
                   <span className="text-primary-500 mr-2">•</span>
-                  Seja específico e honesto sobre suas competências
+                  <span>Seja específico e honesto sobre suas competências</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary-500 mr-2">•</span>
-                  Inclua tanto habilidades técnicas quanto comportamentais
+                  <span>Inclua tanto habilidades técnicas quanto comportamentais</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary-500 mr-2">•</span>
-                  Pense em situações reais onde aplicou essas habilidades
+                  <span>Pense em situações reais onde aplicou essas habilidades</span>
                 </li>
               </ul>
             </div>
@@ -400,18 +400,19 @@ const SelfEvaluation = () => {
         {/* Action Buttons */}
         <motion.div
           variants={itemVariants}
-          className="flex justify-between items-center pt-6"
+          className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 space-y-4 sm:space-y-0"
         >
           <Button
             variant="outline"
             onClick={() => navigate('/')}
             size="lg"
+            className="w-full sm:w-auto order-2 sm:order-1"
           >
             Cancelar
           </Button>
           
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-500">
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 order-1 sm:order-2">
+            <span className="text-xs sm:text-sm text-center">
               {completedSections.size === sections.length ? (
                 <span className="flex items-center text-green-600">
                   <CheckCircle className="h-4 w-4 mr-1" />
@@ -427,7 +428,7 @@ const SelfEvaluation = () => {
               icon={<ArrowRight size={18} />}
               size="lg"
               disabled={completedSections.size !== sections.length}
-              className="bg-gradient-to-r from-primary-500 to-primary-600"
+              className="bg-gradient-to-r from-primary-500 to-primary-600 w-full sm:w-auto"
             >
               Próxima Etapa
             </Button>
@@ -442,7 +443,7 @@ const SelfEvaluation = () => {
       initial={{ opacity: 0, x: 100 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -100 }}
-      className="space-y-6"
+      className="space-y-4 sm:space-y-6"
     >
       {competencyCategories.map((category, categoryIndex) => {
         const IconComponent = category.icon;
@@ -455,36 +456,38 @@ const SelfEvaluation = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: categoryIndex * 0.1 }}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
           >
             <button
               onClick={() => toggleSection(category.id)}
-              className={`w-full px-8 py-6 ${category.bgColor} border-b ${category.borderColor} flex items-center justify-between hover:opacity-90 transition-all duration-200`}
+              className={`w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${category.bgColor} border-b ${category.borderColor} hover:opacity-90 transition-all duration-200`}
             >
-              <div className="flex items-center space-x-4">
-                <div className={`p-3 rounded-xl bg-gradient-to-br ${category.gradient} shadow-md`}>
-                  <IconComponent className="h-6 w-6 text-white" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-br ${category.gradient} shadow-md`}>
+                    <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h2 className="text-lg sm:text-xl font-bold text-gray-800">{category.title}</h2>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                      {category.items.filter(item => competencyScores[item.id] !== undefined).length} de {category.items.length} competências avaliadas
+                    </p>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <h2 className="text-xl font-bold text-gray-800">{category.title}</h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {category.items.filter(item => competencyScores[item.id] !== undefined).length} de {category.items.length} competências avaliadas
-                  </p>
+                
+                <div className="flex items-center space-x-2 sm:space-x-4">
+                  <div className="w-16 sm:w-32 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full bg-gradient-to-r ${category.gradient} transition-all duration-300`}
+                      style={{ width: `${categoryProgress}%` }}
+                    />
+                  </div>
+                  {isExpanded ? (
+                    <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                  )}
                 </div>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full bg-gradient-to-r ${category.gradient} transition-all duration-300`}
-                    style={{ width: `${categoryProgress}%` }}
-                  />
-                </div>
-                {isExpanded ? (
-                  <ChevronDown className="w-5 h-5 text-gray-600" />
-                ) : (
-                  <ChevronRight className="w-5 h-5 text-gray-600" />
-                )}
               </div>
             </button>
 
@@ -495,7 +498,7 @@ const SelfEvaluation = () => {
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="p-8 space-y-6"
+                  className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6"
                 >
                   {category.items.map((item, itemIndex) => (
                     <motion.div
@@ -503,16 +506,16 @@ const SelfEvaluation = () => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: itemIndex * 0.05 }}
-                      className="space-y-4"
+                      className="space-y-3 sm:space-y-4"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 mr-4">
-                          <h4 className="text-lg font-semibold text-gray-800 mb-1">{item.name}</h4>
-                          <p className="text-sm text-gray-600">{item.description}</p>
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between space-y-2 sm:space-y-0">
+                        <div className="flex-1 sm:mr-4">
+                          <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-1">{item.name}</h4>
+                          <p className="text-xs sm:text-sm text-gray-600">{item.description}</p>
                         </div>
                         {competencyScores[item.id] && (
                           <div className="text-center">
-                            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            <div className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
                               competencyScores[item.id] >= 4 ? 'bg-green-100 text-green-800' :
                               competencyScores[item.id] >= 3 ? 'bg-primary-100 text-primary-800' :
                               competencyScores[item.id] >= 2 ? 'bg-yellow-100 text-yellow-800' :
@@ -524,19 +527,19 @@ const SelfEvaluation = () => {
                         )}
                       </div>
                       
-                      <div className="flex gap-3">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                         {[1, 2, 3, 4].map((rating) => (
                           <button
                             key={rating}
                             onClick={() => handleCompetencyScore(item.id, rating)}
-                            className={`flex-1 py-4 px-4 rounded-xl border-2 transition-all duration-200 ${
+                            className={`flex-1 py-3 sm:py-4 px-2 sm:px-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200 ${
                               competencyScores[item.id] === rating
                                 ? `${rating === 4 ? 'bg-green-500' : rating === 3 ? 'bg-primary-500' : rating === 2 ? 'bg-yellow-500' : 'bg-red-500'} text-white border-transparent shadow-lg transform scale-105`
                                 : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 bg-white'
                             }`}
                           >
                             <div className="text-center">
-                              <div className="text-2xl font-bold mb-1">{rating}</div>
+                              <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
                               <div className="text-xs">
                                 {rating === 4 ? 'Excepcional' : rating === 3 ? 'Satisfatório' : rating === 2 ? 'Em Desenvolvimento' : 'Insatisfatório'}
                               </div>
@@ -558,19 +561,20 @@ const SelfEvaluation = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="flex justify-between items-center pt-6"
+        className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 space-y-4 sm:space-y-0"
       >
         <Button
           variant="outline"
           onClick={() => setCurrentStep('toolkit')}
           icon={<ArrowLeft size={18} />}
           size="lg"
+          className="w-full sm:w-auto order-2 sm:order-1"
         >
           Voltar
         </Button>
         
-        <div className="flex items-center space-x-4">
-          <span className="text-sm text-gray-500">
+        <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 order-1 sm:order-2">
+          <span className="text-xs sm:text-sm text-center">
             {competencyProgress === 100 ? (
               <span className="flex items-center text-green-600">
                 <CheckCircle className="h-4 w-4 mr-1" />
@@ -586,7 +590,7 @@ const SelfEvaluation = () => {
             icon={<Save size={18} />}
             size="lg"
             disabled={competencyProgress < 100}
-            className="bg-gradient-to-r from-primary-500 to-primary-600"
+            className="bg-gradient-to-r from-primary-500 to-primary-600 w-full sm:w-auto"
           >
             Salvar Autoavaliação
           </Button>
@@ -596,36 +600,36 @@ const SelfEvaluation = () => {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8"
       >
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 sm:mb-6 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3 sm:space-x-4 w-full lg:w-auto">
             <button
               onClick={() => navigate('/')}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
             >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
             </button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+            <div className="flex-1 lg:flex-none">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
                 {currentStep === 'toolkit' ? (
                   <>
-                    <Sparkles className="h-8 w-8 text-primary-500 mr-3" />
-                    Meu Toolkit Profissional
+                    <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-500 mr-2 sm:mr-3" />
+                    <span className="break-words">Meu Toolkit Profissional</span>
                   </>
                 ) : (
                   <>
-                    <Zap className="h-8 w-8 text-secondary-500 mr-3" />
-                    Autoavaliação de Competências
+                    <Zap className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 mr-2 sm:mr-3" />
+                    <span className="break-words">Autoavaliação de Competências</span>
                   </>
                 )}
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600 mt-1">
                 {currentStep === 'toolkit' 
                   ? 'Construa seu perfil de competências e habilidades'
                   : 'Avalie suas competências técnicas, comportamentais e organizacionais'
@@ -634,27 +638,27 @@ const SelfEvaluation = () => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 w-full lg:w-auto justify-end">
             <div className="text-right">
-              <p className="text-sm text-gray-500">Progresso</p>
-              <p className="text-lg font-bold text-gray-800">
+              <p className="text-xs sm:text-sm text-gray-500">Progresso</p>
+              <p className="text-base sm:text-lg font-bold text-gray-800">
                 {Math.round(currentStep === 'toolkit' ? toolkitProgress : competencyProgress)}%
               </p>
             </div>
             <div className="relative">
-              <svg className="w-16 h-16 transform -rotate-90">
+              <svg className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 transform -rotate-90">
                 <circle
-                  cx="32"
-                  cy="32"
-                  r="28"
+                  cx="50%"
+                  cy="50%"
+                  r="40%"
                   stroke="#e5e7eb"
                   strokeWidth="4"
                   fill="none"
                 />
                 <circle
-                  cx="32"
-                  cy="32"
-                  r="28"
+                  cx="50%"
+                  cy="50%"
+                  r="40%"
                   stroke="url(#progressGradient)"
                   strokeWidth="4"
                   fill="none"
@@ -673,29 +677,29 @@ const SelfEvaluation = () => {
         </div>
 
         {/* Step Indicator */}
-        <div className="flex items-center justify-center space-x-4">
-          <div className={`flex items-center space-x-2 px-4 py-2 rounded-full ${currentStep === 'toolkit' ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-500'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'toolkit' ? 'bg-primary-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+        <div className="flex items-center justify-center space-x-2 sm:space-x-4">
+          <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${currentStep === 'toolkit' ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-500'}`}>
+            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'toolkit' ? 'bg-primary-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
               1
             </div>
-            <span className="font-medium">Toolkit Profissional</span>
+            <span className="font-medium text-xs sm:text-sm hidden sm:inline">Toolkit Profissional</span>
           </div>
           
-          <div className="w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
+          <div className="w-8 sm:w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
             <div className={`h-full transition-all duration-500 ${currentStep === 'competencies' ? 'w-full bg-primary-500' : 'w-0'}`} />
           </div>
           
-          <div className={`flex items-center space-x-2 px-4 py-2 rounded-full ${currentStep === 'competencies' ? 'bg-secondary-100 text-secondary-700' : 'bg-gray-100 text-gray-500'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'competencies' ? 'bg-secondary-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+          <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${currentStep === 'competencies' ? 'bg-secondary-100 text-secondary-700' : 'bg-gray-100 text-gray-500'}`}>
+            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'competencies' ? 'bg-secondary-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
               2
             </div>
-            <span className="font-medium">Competências</span>
+            <span className="font-medium text-xs sm:text-sm hidden sm:inline">Competências</span>
           </div>
         </div>
 
         {/* Quick Stats for Toolkit Step */}
         {currentStep === 'toolkit' && (
-          <div className="grid grid-cols-4 gap-4 mt-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mt-4 sm:mt-6">
             {sections.map((section) => {
               const filledItems = section.items.filter(item => item.trim() !== '').length;
               const isCompleted = completedSections.has(section.id);
@@ -703,13 +707,13 @@ const SelfEvaluation = () => {
               return (
                 <div 
                   key={section.id} 
-                  className={`p-4 rounded-xl border ${isCompleted ? section.borderColor : 'border-gray-200'} ${isCompleted ? section.bgColor : 'bg-gray-50'} transition-all duration-300`}
+                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border ${isCompleted ? section.borderColor : 'border-gray-200'} ${isCompleted ? section.bgColor : 'bg-gray-50'} transition-all duration-300`}
                 >
                   <div className="flex items-center justify-between">
-                    <section.icon className={`h-5 w-5 ${isCompleted ? 'text-gray-700' : 'text-gray-400'}`} />
-                    {isCompleted && <CheckCircle className="h-4 w-4 text-green-500" />}
+                    <section.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${isCompleted ? 'text-gray-700' : 'text-gray-400'}`} />
+                    {isCompleted && <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />}
                   </div>
-                  <p className="text-sm font-medium text-gray-700 mt-2">{section.title}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-700 mt-1 sm:mt-2 break-words">{section.title}</p>
                   <p className="text-xs text-gray-500">{filledItems} itens</p>
                 </div>
               );
