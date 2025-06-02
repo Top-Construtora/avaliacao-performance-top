@@ -35,7 +35,7 @@ const Reports = () => {
    { 
      id: '1', 
      name: 'João Silva', 
-     department: 'Engineering',
+     department: 'Engenharia',
      position: 'Tech Lead',
      selfEvaluation: 'Completo', 
      leaderEvaluation: 'Completo', 
@@ -57,7 +57,7 @@ const Reports = () => {
    { 
      id: '3', 
      name: 'Pedro Oliveira', 
-     department: 'Project Management',
+     department: 'Gerência de Projetos',
      position: 'Project Manager',
      selfEvaluation: 'Completo', 
      leaderEvaluation: 'Pendente', 
@@ -68,7 +68,7 @@ const Reports = () => {
    { 
      id: '4', 
      name: 'Ana Costa', 
-     department: 'Engineering',
+     department: 'Engenharia',
      position: 'Software Developer',
      selfEvaluation: 'Pendente', 
      leaderEvaluation: 'Pendente', 
@@ -79,8 +79,8 @@ const Reports = () => {
    { 
      id: '5', 
      name: 'Carlos Mendes', 
-     department: 'People & Management',
-     position: 'HR Specialist',
+     department: 'Gente & Gestão',
+     position: 'RH',
      selfEvaluation: 'Completo', 
      leaderEvaluation: 'Completo', 
      consensus: 'Completo', 
@@ -98,10 +98,10 @@ const Reports = () => {
 
  // Department data
  const departmentData = [
-   { name: 'Engineering', completed: 8, pending: 2, inProgress: 3 },
+   { name: 'Engenharia', completed: 8, pending: 2, inProgress: 3 },
    { name: 'Design', completed: 5, pending: 1, inProgress: 2 },
-   { name: 'Project Management', completed: 3, pending: 2, inProgress: 1 },
-   { name: 'People & Management', completed: 2, pending: 2, inProgress: 3 }
+   { name: 'Gerência de Projetos', completed: 3, pending: 2, inProgress: 1 },
+   { name: 'Gente & Gestão', completed: 2, pending: 2, inProgress: 3 }
  ];
 
  // Cálculo de progresso
@@ -494,10 +494,10 @@ const Reports = () => {
                      onChange={(e) => setSelectedDepartment(e.target.value)}
                    >
                      <option value="">Todos os departamentos</option>
-                     <option value="Engineering">Engineering</option>
+                     <option value="Engenharia">Engenharia</option>
                      <option value="Design">Design</option>
-                     <option value="Project Management">Project Management</option>
-                     <option value="People & Management">People & Management</option>
+                     <option value="Gerência de Projetos">Gerência de Projetos</option>
+                     <option value="Gente & Gestão">Gente & Gestão</option>
                    </select>
                    <select 
                      className="rounded-lg border-gray-200 text-sm"
