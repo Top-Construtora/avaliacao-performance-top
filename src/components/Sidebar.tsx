@@ -5,6 +5,7 @@ import {
   PieChart, 
   History, 
   User, 
+  UserPlus,
   Settings, 
   Target,
   FileText,
@@ -21,6 +22,7 @@ interface SidebarProps {
 const Sidebar = ({ onClose }: SidebarProps) => {
   const navigation = [
     { name: 'Página Inicial', icon: LayoutDashboard, path: '/' },
+    { name: 'Cadastro de Usuários', icon: UserPlus, path: '/users' }, 
     { name: 'Autoavaliação', icon: User, path: '/self-evaluation' },
     { name: 'Avaliação do Líder', icon: User, path: '/leader-evaluation' },
     { name: 'Avaliação de Potencial', icon: Target, path: '/potential-evaluation' },

@@ -8,6 +8,7 @@ import SelfEvaluation from './pages/SelfEvaluation';
 import LeaderEvaluation from './pages/LeaderEvaluation';
 import PotentialEvaluation from './pages/PotentialEvaluation';
 import Consensus from './pages/Consensus';
+import UserManagement from './pages/UserManagement';
 import ActionPlan from './pages/ActionPlan';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
@@ -42,6 +43,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
+              <Route path="users" element={<UserManagement />} /> 
               <Route path="self-evaluation" element={<SelfEvaluation />} />
               <Route path="leader-evaluation" element={<LeaderEvaluation />} />
               <Route path="potential-evaluation" element={<PotentialEvaluation />} />
