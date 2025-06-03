@@ -81,9 +81,10 @@ export interface User {
   email: string;
   position: string;
   isLeader: boolean;
-  teamIds: string[]; // Times que participa
-  leaderOfTeamIds: string[]; // Times que lidera
-  departmentIds: string[]; // Departamentos que participa
+  isDirector: boolean; 
+  teamIds: string[]; 
+  leaderOfTeamIds: string[]; 
+  departmentIds: string[]; 
   joinDate: string;
   avatar?: string;
   active: boolean;

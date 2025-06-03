@@ -35,6 +35,7 @@ const initialDepartments: Department[] = [
 ];
 
 const initialTeams: Team[] = [
+  { id: 'team_dir', name: 'Diretoria', departmentId: 'dept3', leaderId: 'user_dir1', memberIds: ['user_dir1', 'user_dir2'], createdAt: '2024-01-01' },
   { id: 'team1', name: 'Backend', departmentId: 'dept1', leaderId: 'user1', memberIds: ['user1', 'user4'], createdAt: '2024-01-01' },
   { id: 'team2', name: 'Frontend', departmentId: 'dept1', leaderId: 'user1', memberIds: ['user1', 'user5'], createdAt: '2024-01-01' },
   { id: 'team3', name: 'UX Research', departmentId: 'dept2', leaderId: 'user2', memberIds: ['user2', 'user6'], createdAt: '2024-01-01' },
@@ -42,11 +43,38 @@ const initialTeams: Team[] = [
 
 const initialUsers: User[] = [
   {
+    id: 'user_dir1',
+    name: 'Roberto Almeida',
+    email: 'roberto.almeida@empresa.com',
+    position: 'Diretor de Tecnologia',
+    isLeader: true,
+    isDirector: true,
+    teamIds: ['team_dir'],
+    leaderOfTeamIds: ['team_dir'],
+    departmentIds: ['dept1', 'dept2', 'dept3', 'dept4'], // Diretores pertencem a todos os departamentos
+    joinDate: '2018-01-10',
+    active: true
+  },
+  {
+    id: 'user_dir2',
+    name: 'Patricia Gomes',
+    email: 'patricia.gomes@empresa.com',
+    position: 'Diretora de Pessoas',
+    isLeader: true,
+    isDirector: true,
+    teamIds: ['team_dir'],
+    leaderOfTeamIds: [],
+    departmentIds: ['dept1', 'dept2', 'dept3', 'dept4'],
+    joinDate: '2019-03-15',
+    active: true
+  },
+  {
     id: 'user1',
     name: 'João Silva',
     email: 'joao.silva@empresa.com',
     position: 'Tech Lead',
     isLeader: true,
+    isDirector: false,
     teamIds: ['team1', 'team2'],
     leaderOfTeamIds: ['team1', 'team2'],
     departmentIds: ['dept1'],
@@ -59,6 +87,7 @@ const initialUsers: User[] = [
     email: 'maria.santos@empresa.com',
     position: 'Head of Design',
     isLeader: true,
+    isDirector: false,
     teamIds: ['team3'],
     leaderOfTeamIds: ['team3'],
     departmentIds: ['dept2'],
@@ -71,6 +100,7 @@ const initialUsers: User[] = [
     email: 'ana.costa@empresa.com',
     position: 'Software Developer',
     isLeader: false,
+    isDirector: false,
     teamIds: ['team1'],
     leaderOfTeamIds: [],
     departmentIds: ['dept1'],
@@ -83,6 +113,7 @@ const initialUsers: User[] = [
     email: 'carlos.mendes@empresa.com',
     position: 'Frontend Developer',
     isLeader: false,
+    isDirector: false,
     teamIds: ['team2'],
     leaderOfTeamIds: [],
     departmentIds: ['dept1'],
@@ -95,6 +126,7 @@ const initialUsers: User[] = [
     email: 'beatriz.lima@empresa.com',
     position: 'UX Designer',
     isLeader: false,
+    isDirector: false,
     teamIds: ['team3'],
     leaderOfTeamIds: [],
     departmentIds: ['dept2'],
@@ -108,7 +140,18 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [teams, setTeams] = useState<Team[]>(initialTeams);
   const [departments, setDepartments] = useState<Department[]>(initialDepartments);
 
-  // Salvar no localStorage
+  // Load from localStorage
+  useEffect(() => {
+    const savedUsers = localStorage.getItem('users');
+    const savedTeams = localStorage.getItem('teams');
+    const savedDepartments = localStorage.getItem('departments');
+    
+    if (savedUsers) setUsers(JSON.parse(savedUsers));
+    if (savedTeams) setTeams(JSON.parse(savedTeams));
+    if (savedDepartments) setDepartments(JSON.parse(savedDepartments));
+  }, []);
+
+  // Save to localStorage
   useEffect(() => {
     localStorage.setItem('users', JSON.stringify(users));
   }, [users]);
@@ -127,15 +170,43 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       ...userData,
       id: `user${Date.now()}`,
     };
-    setUsers([...users, newUser]);
     
-    // Atualizar times com o novo usuário
-    userData.teamIds.forEach(teamId => {
-      updateTeam(teamId, {
-        memberIds: [...(teams.find(t => t.id === teamId)?.memberIds || []), newUser.id]
+    // If director, ensure Diretoria team exists
+    if (userData.isDirector) {
+      let dirTeam = teams.find(t => t.name === 'Diretoria');
+      if (!dirTeam) {
+        // Create Diretoria team
+        const newDirTeam: Team = {
+          id: `team_dir_${Date.now()}`,
+          name: 'Diretoria',
+          departmentId: departments.find(d => d.name === 'Gente & Gestão')?.id || departments[0].id,
+          leaderId: newUser.id,
+          memberIds: [newUser.id],
+          createdAt: new Date().toISOString(),
+        };
+        setTeams([...teams, newDirTeam]);
+        newUser.teamIds = [newDirTeam.id];
+        newUser.leaderOfTeamIds = [newDirTeam.id];
+      } else {
+        // Add to existing Diretoria team
+        updateTeam(dirTeam.id, {
+          memberIds: [...dirTeam.memberIds, newUser.id]
+        });
+        newUser.teamIds = [dirTeam.id];
+      }
+    } else {
+      // Regular user - add to selected teams
+      userData.teamIds.forEach(teamId => {
+        const team = teams.find(t => t.id === teamId);
+        if (team && !team.memberIds.includes(newUser.id)) {
+          updateTeam(teamId, {
+            memberIds: [...team.memberIds, newUser.id]
+          });
+        }
       });
-    });
+    }
     
+    setUsers([...users, newUser]);
     toast.success('Usuário cadastrado com sucesso!');
   };
 
@@ -148,13 +219,22 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const user = users.find(u => u.id === id);
     if (!user) return;
 
-    // Verificar se é líder de algum time
-    if (user.leaderOfTeamIds.length > 0) {
+    // Check if user is a leader
+    if (user.leaderOfTeamIds && user.leaderOfTeamIds.length > 0) {
       toast.error('Não é possível excluir um líder. Transfira a liderança primeiro.');
       return;
     }
 
-    // Remover usuário dos times
+    // Check if user is a director
+    if (user.isDirector) {
+      const dirTeam = teams.find(t => t.name === 'Diretoria');
+      if (dirTeam && dirTeam.memberIds.length <= 1) {
+        toast.error('Não é possível excluir o último diretor.');
+        return;
+      }
+    }
+
+    // Remove user from teams
     teams.forEach(team => {
       if (team.memberIds.includes(id)) {
         updateTeam(team.id, {
@@ -175,21 +255,21 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     };
     setTeams([...teams, newTeam]);
     
-    // Atualizar usuários com o novo time
+    // Update users with the new team
     teamData.memberIds.forEach(userId => {
       const user = users.find(u => u.id === userId);
-      if (user) {
+      if (user && !user.teamIds.includes(newTeam.id)) {
         updateUser(userId, {
           teamIds: [...user.teamIds, newTeam.id]
         });
       }
     });
     
-    // Atualizar líder
+    // Update leader
     const leader = users.find(u => u.id === teamData.leaderId);
     if (leader) {
       updateUser(teamData.leaderId, {
-        leaderOfTeamIds: [...leader.leaderOfTeamIds, newTeam.id],
+        leaderOfTeamIds: [...(leader.leaderOfTeamIds || []), newTeam.id],
         isLeader: true
       });
     }
@@ -202,12 +282,21 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteTeam = (id: string) => {
-    // Remover time dos usuários
+    const team = teams.find(t => t.id === id);
+    if (!team) return;
+
+    // Don't allow deleting Diretoria team if directors exist
+    if (team.name === 'Diretoria' && users.some(u => u.isDirector)) {
+      toast.error('Não é possível excluir o time Diretoria enquanto houver diretores.');
+      return;
+    }
+
+    // Remove team from users
     users.forEach(user => {
       if (user.teamIds.includes(id)) {
         updateUser(user.id, {
           teamIds: user.teamIds.filter(teamId => teamId !== id),
-          leaderOfTeamIds: user.leaderOfTeamIds.filter(teamId => teamId !== id)
+          leaderOfTeamIds: user.leaderOfTeamIds?.filter(teamId => teamId !== id) || []
         });
       }
     });
@@ -224,6 +313,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       createdAt: new Date().toISOString(),
     };
     setDepartments([...departments, newDepartment]);
+    
+    // Add all directors to new department
+    users.filter(u => u.isDirector).forEach(director => {
+      updateUser(director.id, {
+        departmentIds: [...director.departmentIds, newDepartment.id]
+      });
+    });
+    
     toast.success('Departamento criado com sucesso!');
   };
 
@@ -233,7 +330,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteDepartment = (id: string) => {
-    // Verificar se há times no departamento
+    // Check if there are teams in the department
     const teamsInDept = teams.filter(team => team.departmentId === id);
     if (teamsInDept.length > 0) {
       toast.error('Não é possível excluir um departamento com times ativos.');
@@ -241,6 +338,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setDepartments(departments.filter(dept => dept.id !== id));
+    
+    // Remove department from users (except directors who belong to all)
+    users.forEach(user => {
+      if (!user.isDirector && user.departmentIds.includes(id)) {
+        updateUser(user.id, {
+          departmentIds: user.departmentIds.filter(deptId => deptId !== id)
+        });
+      }
+    });
+    
     toast.success('Departamento removido com sucesso!');
   };
 
