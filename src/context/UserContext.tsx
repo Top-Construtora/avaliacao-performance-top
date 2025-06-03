@@ -85,7 +85,7 @@ const initialUsers: User[] = [
     id: 'user2',
     name: 'Maria Santos',
     email: 'maria.santos@empresa.com',
-    position: 'Head of Design',
+    position: 'UX Lead',
     isLeader: true,
     isDirector: false,
     teamIds: ['team3'],
