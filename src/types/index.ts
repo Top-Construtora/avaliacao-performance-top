@@ -58,3 +58,33 @@ export interface HistoryFilters {
   endDate: string;
   status: Status | 'all';
 }
+
+export interface Department {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  departmentId: string;
+  leaderId: string;
+  memberIds: string[];
+  createdAt: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  position: string;
+  isLeader: boolean;
+  teamIds: string[]; // Times que participa
+  leaderOfTeamIds: string[]; // Times que lidera
+  departmentIds: string[]; // Departamentos que participa
+  joinDate: string;
+  avatar?: string;
+  active: boolean;
+}

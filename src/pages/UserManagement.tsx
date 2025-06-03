@@ -1,419 +1,540 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
+import { useUsers } from '../context/UserContext';
 import Button from '../components/Button';
 import { 
-  ArrowLeft,
-  Save,
-  Edit,
-  Trash2,
-  Plus,
-  X,
-  Users,
-  User,
-  Mail,
-  Building,
-  UserCheck,
-  Crown,
+  Users, 
+  Plus, 
+  Edit, 
+  Trash2, 
   Search,
   Filter,
-  Download,
-  Upload,
-  CheckCircle,
-  AlertCircle,
+  Building,
   UserPlus,
   Shield,
+  Mail,
+  Calendar,
   ChevronDown,
-  ChevronUp
+  ChevronRight,
+  X,
+  Check,
+  AlertCircle,
+  Briefcase,
+  UserCheck,
+  UsersIcon,
+  Hash,
+  MoreVertical
 } from 'lucide-react';
 
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  type: 'colaborador' | 'lider' | 'lider-maximo';
-  leaderId?: string;
-  department: string;
-  team: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface FormData {
-  name: string;
-  email: string;
-  type: 'colaborador' | 'lider' | 'lider-maximo';
-  leaderId: string;
-  department: string;
-  team: string;
-}
+type TabType = 'users' | 'teams' | 'departments';
 
 const UserManagement = () => {
-  const navigate = useNavigate();
-  
-  // Estados
-  const [users, setUsers] = useState<UserData[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const { 
+    users, 
+    teams, 
+    departments, 
+    addUser, 
+    updateUser, 
+    deleteUser,
+    addTeam,
+    updateTeam,
+    deleteTeam,
+    addDepartment,
+    updateDepartment,
+    deleteDepartment,
+    getUserById,
+    getTeamById,
+    getDepartmentById,
+  } = useUsers();
+
+  const [activeTab, setActiveTab] = useState<TabType>('users');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<string>('all');
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['colaborador']));
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  
-  const [formData, setFormData] = useState<FormData>({
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState('');
+  const [showOnlyLeaders, setShowOnlyLeaders] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [modalType, setModalType] = useState<'user' | 'team' | 'department'>('user');
+
+  // Form states
+  const [formData, setFormData] = useState({
+    // User fields
     name: '',
     email: '',
-    type: 'colaborador',
-    leaderId: '',
-    department: '',
-    team: ''
+    position: '',
+    isLeader: false,
+    teamIds: [] as string[],
+    departmentIds: [] as string[],
+    
+    // Team fields
+    teamName: '',
+    teamDepartmentId: '',
+    teamLeaderId: '',
+    teamMemberIds: [] as string[],
+    
+    // Department fields
+    departmentName: '',
+    departmentDescription: '',
   });
 
-  const [errors, setErrors] = useState<Partial<FormData>>({});
-
-  // Dados mockados para exemplo
-  const mockUsers: UserData[] = [
-    {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@empresa.com',
-      type: 'lider-maximo',
-      department: 'Tecnologia',
-      team: 'Gestão',
-      createdAt: '2024-01-10',
-      updatedAt: '2024-01-10'
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      email: 'maria.santos@empresa.com',
-      type: 'lider',
-      leaderId: '1',
-      department: 'Tecnologia',
-      team: 'Desenvolvimento',
-      createdAt: '2024-01-15',
-      updatedAt: '2024-01-15'
-    },
-    {
-      id: '3',
-      name: 'Pedro Oliveira',
-      email: 'pedro.oliveira@empresa.com',
-      type: 'colaborador',
-      leaderId: '2',
-      department: 'Tecnologia',
-      team: 'Desenvolvimento Frontend',
-      createdAt: '2024-01-20',
-      updatedAt: '2024-01-20'
+  const openModal = (type: 'user' | 'team' | 'department', item?: any) => {
+    setModalType(type);
+    setEditingItem(item || null);
+    
+    if (item) {
+      if (type === 'user') {
+        setFormData({
+          ...formData,
+          name: item.name,
+          email: item.email,
+          position: item.position,
+          isLeader: item.isLeader,
+          teamIds: item.teamIds,
+          departmentIds: item.departmentIds,
+        });
+      } else if (type === 'team') {
+        setFormData({
+          ...formData,
+          teamName: item.name,
+          teamDepartmentId: item.departmentId,
+          teamLeaderId: item.leaderId,
+          teamMemberIds: item.memberIds,
+        });
+      } else if (type === 'department') {
+        setFormData({
+          ...formData,
+          departmentName: item.name,
+          departmentDescription: item.description || '',
+        });
+      }
+    } else {
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        position: '',
+        isLeader: false,
+        teamIds: [],
+        departmentIds: [],
+        teamName: '',
+        teamDepartmentId: '',
+        teamLeaderId: '',
+        teamMemberIds: [],
+        departmentName: '',
+        departmentDescription: '',
+      });
     }
-  ];
-
-  useEffect(() => {
-    // Carrega os usuários (aqui seria uma chamada à API)
-    setUsers(mockUsers);
-    setFilteredUsers(mockUsers);
-  }, []);
-
-  useEffect(() => {
-    // Aplica filtros
-    let filtered = users;
-
-    // Filtro por tipo
-    if (filterType !== 'all') {
-      filtered = filtered.filter(user => user.type === filterType);
-    }
-
-    // Filtro por busca
-    if (searchTerm) {
-      filtered = filtered.filter(user => 
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.team.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    setFilteredUsers(filtered);
-  }, [users, filterType, searchTerm]);
-
-  // Validação do formulário
-  const validateForm = (): boolean => {
-    const newErrors: Partial<FormData> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Nome é obrigatório';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email é obrigatório';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email inválido';
-    }
-
-    if (!formData.department.trim()) {
-      newErrors.department = 'Departamento é obrigatório';
-    }
-
-    if (!formData.team.trim()) {
-      newErrors.team = 'Time é obrigatório';
-    }
-
-    if (formData.type !== 'lider-maximo' && !formData.leaderId) {
-      newErrors.leaderId = 'Líder é obrigatório';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    
+    setShowModal(true);
   };
 
   const handleSubmit = () => {
-    if (!validateForm()) {
-      toast.error('Preencha todos os campos obrigatórios');
-      return;
-    }
-
-    if (editingUser) {
-      // Atualizar usuário
-      const updatedUsers = users.map(user => 
-        user.id === editingUser.id 
-          ? { 
-              ...user, 
-              ...formData, 
-              updatedAt: new Date().toISOString().split('T')[0] 
-            }
-          : user
-      );
-      setUsers(updatedUsers);
-      toast.success('Usuário atualizado com sucesso!');
-    } else {
-      // Criar novo usuário
-      const newUser: UserData = {
-        id: Date.now().toString(),
-        ...formData,
-        leaderId: formData.type === 'lider-maximo' ? undefined : formData.leaderId,
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0]
-      };
-      setUsers([...users, newUser]);
-      toast.success('Usuário cadastrado com sucesso!');
-    }
-
-    handleCloseModal();
-  };
-
-  const handleEdit = (user: UserData) => {
-    setEditingUser(user);
-    setFormData({
-      name: user.name,
-      email: user.email,
-      type: user.type,
-      leaderId: user.leaderId || '',
-      department: user.department,
-      team: user.team
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = (userId: string) => {
-    // Verifica se há dependências
-    const hasDependents = users.some(user => user.leaderId === userId);
-    
-    if (hasDependents) {
-      toast.error('Não é possível excluir este usuário pois existem colaboradores vinculados a ele');
-      return;
-    }
-
-    setUsers(users.filter(user => user.id !== userId));
-    setShowDeleteConfirm(null);
-    toast.success('Usuário excluído com sucesso!');
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingUser(null);
-    setFormData({
-      name: '',
-      email: '',
-      type: 'colaborador',
-      leaderId: '',
-      department: '',
-      team: ''
-    });
-    setErrors({});
-  };
-
-  const exportData = () => {
-    const csvData = users.map(user => ({
-      Nome: user.name,
-      Email: user.email,
-      Tipo: getUserTypeLabel(user.type),
-      Líder: getLeaderName(user.leaderId),
-      Departamento: user.department,
-      Time: user.team,
-      'Data de Cadastro': user.createdAt
-    }));
-
-    const csv = [
-      Object.keys(csvData[0]).join(','),
-      ...csvData.map(row => Object.values(row).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `usuarios_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    
-    toast.success('Dados exportados com sucesso!');
-  };
-
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(section)) {
-        newSet.delete(section);
-      } else {
-        newSet.add(section);
+    if (modalType === 'user') {
+      if (!formData.name || !formData.email || !formData.position) {
+        toast.error('Preencha todos os campos obrigatórios');
+        return;
       }
-      return newSet;
-    });
-  };
 
-  const getUserTypeLabel = (type: string) => {
-    const labels = {
-      'colaborador': 'Colaborador',
-      'lider': 'Líder',
-      'lider-maximo': 'Líder Máximo'
-    };
-    return labels[type as keyof typeof labels] || type;
-  };
+      if (formData.teamIds.length === 0) {
+        toast.error('O usuário deve pertencer a pelo menos um time');
+        return;
+      }
 
-  const getUserTypeIcon = (type: string) => {
-    if (type === 'lider-maximo') return Crown;
-    if (type === 'lider') return Shield;
-    return User;
-  };
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        position: formData.position,
+        isLeader: formData.isLeader,
+        teamIds: formData.teamIds,
+        leaderOfTeamIds: formData.isLeader ? formData.teamIds.filter(teamId => {
+          const team = getTeamById(teamId);
+          return team && team.leaderId === (editingItem?.id || 'new');
+        }) : [],
+        departmentIds: formData.departmentIds,
+        joinDate: editingItem?.joinDate || new Date().toISOString().split('T')[0],
+        active: true,
+      };
 
-  const getUserTypeColor = (type: string) => {
-    if (type === 'lider-maximo') return 'text-accent-600 bg-accent-50 border-accent-200';
-    if (type === 'lider') return 'text-primary-600 bg-primary-50 border-primary-200';
-    return 'text-secondary-600 bg-secondary-50 border-secondary-200';
-  };
+      if (editingItem) {
+        updateUser(editingItem.id, userData);
+      } else {
+        addUser(userData);
+      }
+    } else if (modalType === 'team') {
+      if (!formData.teamName || !formData.teamDepartmentId || !formData.teamLeaderId) {
+        toast.error('Preencha todos os campos obrigatórios');
+        return;
+      }
 
-  const getLeaderName = (leaderId?: string) => {
-    if (!leaderId) return '-';
-    const leader = users.find(u => u.id === leaderId);
-    return leader ? leader.name : '-';
-  };
+      if (!formData.teamMemberIds.includes(formData.teamLeaderId)) {
+        formData.teamMemberIds.push(formData.teamLeaderId);
+      }
 
-  const getAvailableLeaders = () => {
-    if (formData.type === 'lider-maximo') return [];
-    if (formData.type === 'lider') {
-      return users.filter(u => u.type === 'lider-maximo');
+      const teamData = {
+        name: formData.teamName,
+        departmentId: formData.teamDepartmentId,
+        leaderId: formData.teamLeaderId,
+        memberIds: formData.teamMemberIds,
+        createdAt: editingItem?.createdAt || new Date().toISOString(),
+      };
+
+      if (editingItem) {
+        updateTeam(editingItem.id, teamData);
+      } else {
+        addTeam(teamData);
+      }
+    } else if (modalType === 'department') {
+      if (!formData.departmentName) {
+        toast.error('Nome do departamento é obrigatório');
+        return;
+      }
+
+      const departmentData = {
+        name: formData.departmentName,
+        description: formData.departmentDescription,
+      };
+
+      if (editingItem) {
+        updateDepartment(editingItem.id, departmentData);
+      } else {
+        addDepartment(departmentData);
+      }
     }
-    return users.filter(u => u.type === 'lider' || u.type === 'lider-maximo');
+
+    setShowModal(false);
   };
 
-  // Agrupa usuários por tipo
-  const groupedUsers = {
-    'lider-maximo': filteredUsers.filter(u => u.type === 'lider-maximo'),
-    'lider': filteredUsers.filter(u => u.type === 'lider'),
-    'colaborador': filteredUsers.filter(u => u.type === 'colaborador')
+  const handleDelete = (type: 'user' | 'team' | 'department', id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir?')) {
+      if (type === 'user') {
+        deleteUser(id);
+      } else if (type === 'team') {
+        deleteTeam(id);
+      } else if (type === 'department') {
+        deleteDepartment(id);
+      }
+    }
   };
 
-  const stats = {
-    total: users.length,
-    lideresMaximos: users.filter(u => u.type === 'lider-maximo').length,
-    lideres: users.filter(u => u.type === 'lider').length,
-    colaboradores: users.filter(u => u.type === 'colaborador').length
+  // Filters
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.position.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesDepartment = !selectedDepartment || user.departmentIds.includes(selectedDepartment);
+    const matchesLeader = !showOnlyLeaders || user.isLeader;
+
+    return matchesSearch && matchesDepartment && matchesLeader;
+  });
+
+  const filteredTeams = teams.filter(team => {
+    const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDepartment = !selectedDepartment || team.departmentId === selectedDepartment;
+    return matchesSearch && matchesDepartment;
+  });
+
+  const filteredDepartments = departments.filter(dept => 
+    dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (dept.description && dept.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const renderUserCard = (user: typeof users[0]) => {
+    const userTeams = teams.filter(team => user.teamIds.includes(team.id));
+    const userDepartments = departments.filter(dept => user.departmentIds.includes(dept.id));
+    
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200"
+      >
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center space-x-4">
+            <div className={`h-12 w-12 rounded-xl ${user.isLeader ? 'bg-gradient-to-br from-primary-500 to-secondary-600' : 'bg-gradient-to-br from-gray-400 to-gray-500'} flex items-center justify-center text-white font-bold shadow-md`}>
+              {user.name.split(' ').map(n => n[0]).join('')}
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800">{user.name}</h3>
+              <p className="text-sm text-gray-600">{user.position}</p>
+              {user.isLeader && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-700 mt-1">
+                  <Shield className="h-3 w-3 mr-1" />
+                  Líder
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div className="relative group">
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <MoreVertical className="h-4 w-4 text-gray-500" />
+            </button>
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+              <button
+                onClick={() => openModal('user', user)}
+                className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </button>
+              <button
+                onClick={() => handleDelete('user', user.id)}
+                className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center text-gray-600">
+            <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span className="truncate">{user.email}</span>
+          </div>
+          
+          <div className="flex items-center text-gray-600">
+            <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span>Desde {new Date(user.joinDate).toLocaleDateString('pt-BR')}</span>
+          </div>
+
+          <div className="flex items-start text-gray-600">
+            <UsersIcon className="h-4 w-4 mr-2 flex-shrink-0 mt-0.5" />
+            <div className="flex flex-wrap gap-1">
+              {userTeams.map(team => (
+                <span key={team.id} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-700">
+                  {team.name}
+                  {user.leaderOfTeamIds.includes(team.id) && (
+                    <Shield className="h-3 w-3 ml-1" />
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-start text-gray-600">
+            <Building className="h-4 w-4 mr-2 flex-shrink-0 mt-0.5" />
+            <div className="flex flex-wrap gap-1">
+              {userDepartments.map(dept => (
+                <span key={dept.id} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent-100 text-accent-700">
+                  {dept.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  const renderTeamCard = (team: typeof teams[0]) => {
+    const leader = getUserById(team.leaderId);
+    const department = getDepartmentById(team.departmentId);
+    const members = users.filter(user => team.memberIds.includes(user.id));
+    
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200"
+      >
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="font-semibold text-gray-800 text-lg">{team.name}</h3>
+            <p className="text-sm text-gray-600">{department?.name}</p>
+          </div>
+          
+          <div className="relative group">
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <MoreVertical className="h-4 w-4 text-gray-500" />
+            </button>
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+              <button
+                onClick={() => openModal('team', team)}
+                className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </button>
+              <button
+                onClick={() => handleDelete('team', team.id)}
+                className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center">
+            <Shield className="h-4 w-4 mr-2 text-primary-600" />
+            <span className="text-sm font-medium text-gray-700">Líder:</span>
+            <span className="ml-2 text-sm text-gray-600">{leader?.name || 'Não definido'}</span>
+          </div>
+
+          <div>
+            <div className="flex items-center mb-2">
+              <Users className="h-4 w-4 mr-2 text-secondary-600" />
+              <span className="text-sm font-medium text-gray-700">Membros ({members.length}):</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {members.map(member => (
+                <div
+                  key={member.id}
+                  className="flex items-center space-x-2 bg-gray-50 rounded-lg px-3 py-1.5"
+                >
+                  <div className="h-6 w-6 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-xs font-bold">
+                    {member.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <span className="text-sm text-gray-700">{member.name}</span>
+                  {member.id === team.leaderId && (
+                    <Shield className="h-3 w-3 text-primary-600" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  const renderDepartmentCard = (department: typeof departments[0]) => {
+    const deptTeams = teams.filter(team => team.departmentId === department.id);
+    const deptUsers = users.filter(user => user.departmentIds.includes(department.id));
+    
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200"
+      >
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="font-semibold text-gray-800 text-lg">{department.name}</h3>
+            {department.description && (
+              <p className="text-sm text-gray-600 mt-1">{department.description}</p>
+            )}
+          </div>
+          
+          <div className="relative group">
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <MoreVertical className="h-4 w-4 text-gray-500" />
+            </button>
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+              <button
+                onClick={() => openModal('department', department)}
+                className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </button>
+              <button
+                onClick={() => handleDelete('department', department.id)}
+                className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-primary-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <Users className="h-5 w-5 text-primary-600" />
+              <span className="text-2xl font-bold text-primary-600">{deptTeams.length}</span>
+            </div>
+            <p className="text-sm text-gray-600 mt-1">Times</p>
+          </div>
+          
+          <div className="bg-secondary-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <UserCheck className="h-5 w-5 text-secondary-600" />
+              <span className="text-2xl font-bold text-secondary-600">{deptUsers.length}</span>
+            </div>
+            <p className="text-sm text-gray-600 mt-1">Colaboradores</p>
+          </div>
+        </div>
+      </motion.div>
+    );
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8"
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
       >
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => navigate('/')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
-            </button>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
-                <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 mr-3">
-                  <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                </div>
-                Cadastro de Usuários
-              </h1>
-              <p className="text-gray-600 mt-1 text-sm sm:text-base">
-                Gerencie colaboradores, líderes e líderes máximos
-              </p>
-            </div>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 mr-3 text-primary-500" />
+              Gestão de Usuários
+            </h1>
+            <p className="text-gray-600 mt-1">Gerencie usuários, times e departamentos</p>
           </div>
-
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-            <Button
-              variant="outline"
-              onClick={exportData}
-              icon={<Download size={16} />}
-              size="sm"
-              className="w-full sm:w-auto"
-            >
-              Exportar
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => setIsModalOpen(true)}
-              icon={<Plus size={16} />}
-              size="sm"
-              className="w-full sm:w-auto"
-            >
-              Novo Usuário
-            </Button>
-          </div>
+          
+          <Button
+            variant="primary"
+            onClick={() => openModal(activeTab === 'users' ? 'user' : activeTab === 'teams' ? 'team' : 'department')}
+            icon={<Plus size={18} />}
+          >
+            Adicionar {activeTab === 'users' ? 'Usuário' : activeTab === 'teams' ? 'Time' : 'Departamento'}
+          </Button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
-            <div className="flex items-center justify-between mb-2">
-              <Users className="h-5 w-5 text-gray-600" />
-              <span className="text-2xl font-bold text-gray-800">{stats.total}</span>
-            </div>
-            <p className="text-sm text-gray-600">Total de Usuários</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-accent-50 to-accent-100 rounded-xl p-4 border border-accent-200">
-            <div className="flex items-center justify-between mb-2">
-              <Crown className="h-5 w-5 text-accent-600" />
-              <span className="text-2xl font-bold text-accent-700">{stats.lideresMaximos}</span>
-            </div>
-            <p className="text-sm text-accent-700">Líderes Máximos</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 border border-primary-200">
-            <div className="flex items-center justify-between mb-2">
-              <Shield className="h-5 w-5 text-primary-600" />
-              <span className="text-2xl font-bold text-primary-700">{stats.lideres}</span>
-            </div>
-            <p className="text-sm text-primary-700">Líderes</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-xl p-4 border border-secondary-200">
-            <div className="flex items-center justify-between mb-2">
-              <User className="h-5 w-5 text-secondary-600" />
-              <span className="text-2xl font-bold text-secondary-700">{stats.colaboradores}</span>
-            </div>
-            <p className="text-sm text-secondary-700">Colaboradores</p>
-          </div>
+        {/* Tabs */}
+        <div className="flex space-x-1 border-b border-gray-200 mt-6 -mb-6">
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`flex items-center space-x-2 px-4 py-3 border-b-2 transition-colors ${
+              activeTab === 'users'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <UserCheck className="h-4 w-4" />
+            <span>Usuários ({users.length})</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('teams')}
+            className={`flex items-center space-x-2 px-4 py-3 border-b-2 transition-colors ${
+              activeTab === 'teams'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <UsersIcon className="h-4 w-4" />
+            <span>Times ({teams.length})</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('departments')}
+            className={`flex items-center space-x-2 px-4 py-3 border-b-2 transition-colors ${
+              activeTab === 'departments'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Building className="h-4 w-4" />
+            <span>Departamentos ({departments.length})</span>
+          </button>
         </div>
       </motion.div>
 
@@ -421,424 +542,327 @@ const UserManagement = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6"
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-          <div className="relative flex-1 lg:max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar por nome, email, departamento ou time..."
-              className="w-full pl-10 pr-4 py-2 text-sm sm:text-base rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Filter className="h-5 w-5 text-gray-500" />
-            <select
-              className="rounded-lg border-gray-200 text-sm sm:text-base focus:border-primary-500 focus:ring-primary-500"
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar..."
+                className="w-full pl-10 pr-4 py-2 rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
+                showFilters ? 'bg-primary-50 border-primary-300 text-primary-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
             >
-              <option value="all">Todos os tipos</option>
-              <option value="lider-maximo">Líderes Máximos</option>
-              <option value="lider">Líderes</option>
-              <option value="colaborador">Colaboradores</option>
-            </select>
+              <Filter size={18} />
+              <span>Filtros</span>
+            </button>
           </div>
         </div>
+
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="mt-4 pt-4 border-t border-gray-200"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <select
+                  className="rounded-lg border-gray-200"
+                  value={selectedDepartment}
+                  onChange={(e) => setSelectedDepartment(e.target.value)}
+                >
+                  <option value="">Todos os departamentos</option>
+                  {departments.map(dept => (
+                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  ))}
+                </select>
+                
+                {activeTab === 'users' && (
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      checked={showOnlyLeaders}
+                      onChange={(e) => setShowOnlyLeaders(e.target.checked)}
+                    />
+                    <span className="text-gray-700">Apenas líderes</span>
+                  </label>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
-      {/* Users List by Type */}
-      <div className="space-y-4">
-        {Object.entries(groupedUsers).map(([type, typeUsers], index) => {
-          const isExpanded = expandedSections.has(type);
-          const TypeIcon = getUserTypeIcon(type);
-          const typeLabel = getUserTypeLabel(type);
+      {/* Content */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
+        <AnimatePresence mode="popLayout">
+          {activeTab === 'users' && filteredUsers.map(user => (
+            <div key={user.id}>{renderUserCard(user)}</div>
+          ))}
           
-          return (
-            <motion.div
-              key={type}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + index * 0.1 }}
-              className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
-            >
-              <button
-                onClick={() => toggleSection(type)}
-                className={`w-full px-4 sm:px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors duration-200 ${
-                  getUserTypeColor(type).split(' ')[1]
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${getUserTypeColor(type)}`}>
-                    <TypeIcon className="h-5 w-5" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-semibold text-gray-800">{typeLabel}</h3>
-                    <p className="text-sm text-gray-600">{typeUsers.length} usuários</p>
-                  </div>
-                </div>
-                {isExpanded ? (
-                  <ChevronUp className="h-5 w-5 text-gray-500" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-gray-500" />
-                )}
-              </button>
+          {activeTab === 'teams' && filteredTeams.map(team => (
+            <div key={team.id}>{renderTeamCard(team)}</div>
+          ))}
+          
+          {activeTab === 'departments' && filteredDepartments.map(dept => (
+            <div key={dept.id}>{renderDepartmentCard(dept)}</div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
 
-              <AnimatePresence>
-                {isExpanded && typeUsers.length > 0 && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="border-t border-gray-100"
-                  >
-                    <div className="p-4 sm:p-6">
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full">
-                          <thead>
-                            <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              <th className="pb-3">Nome</th>
-                              <th className="pb-3 hidden sm:table-cell">Email</th>
-                              <th className="pb-3 hidden lg:table-cell">Líder</th>
-                              <th className="pb-3 hidden md:table-cell">Departamento</th>
-                              <th className="pb-3 hidden lg:table-cell">Time</th>
-                              <th className="pb-3 text-right">Ações</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {typeUsers.map((user) => (
-                              <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="py-3">
-                                  <div className="flex items-center space-x-3">
-                                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-400 to-secondary-600 flex items-center justify-center text-white font-semibold">
-                                      {user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                                    </div>
-                                    <div>
-                                      <p className="font-medium text-gray-900">{user.name}</p>
-                                      <p className="text-xs text-gray-500 sm:hidden">{user.email}</p>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="py-3 hidden sm:table-cell">
-                                  <div className="flex items-center space-x-1 text-gray-600">
-                                    <Mail className="h-4 w-4" />
-                                    <span className="text-sm">{user.email}</span>
-                                  </div>
-                                </td>
-                                <td className="py-3 hidden lg:table-cell">
-                                  <span className="text-sm text-gray-600">
-                                    {getLeaderName(user.leaderId)}
-                                  </span>
-                                </td>
-                                <td className="py-3 hidden md:table-cell">
-                                  <span className="text-sm text-gray-600">{user.department}</span>
-                                </td>
-                                <td className="py-3 hidden lg:table-cell">
-                                  <span className="text-sm text-gray-600">{user.team}</span>
-                                </td>
-                                <td className="py-3 text-right">
-                                  <div className="flex items-center justify-end space-x-2">
-                                    <button
-                                      onClick={() => handleEdit(user)}
-                                      className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                      onClick={() => setShowDeleteConfirm(user.id)}
-                                      className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {isExpanded && typeUsers.length === 0 && (
-                <div className="p-8 text-center border-t border-gray-100">
-                  <TypeIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500">Nenhum {typeLabel.toLowerCase()} cadastrado</p>
-                </div>
-              )}
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* Modal de Cadastro/Edição */}
+      {/* Modal */}
       <AnimatePresence>
-        {isModalOpen && (
+        {showModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={handleCloseModal}
+            onClick={() => setShowModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                  <UserPlus className="h-6 w-6 mr-3 text-primary-600" />
-                  {editingUser ? 'Editar Usuário' : 'Novo Usuário'}
+                <h2 className="text-xl font-bold text-gray-800">
+                  {editingItem ? 'Editar' : 'Adicionar'} {modalType === 'user' ? 'Usuário' : modalType === 'team' ? 'Time' : 'Departamento'}
                 </h2>
                 <button
-                  onClick={handleCloseModal}
+                  onClick={() => setShowModal(false)}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <X className="h-5 w-5 text-gray-500" />
                 </button>
               </div>
 
-              <div className="space-y-6">
-                {/* Tipo de Usuário */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tipo de Usuário *
-                  </label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { value: 'colaborador', label: 'Colaborador', icon: User },
-                      { value: 'lider', label: 'Líder', icon: Shield },
-                      { value: 'lider-maximo', label: 'Líder Máximo', icon: Crown }
-                    ].map((option) => {
-                      const Icon = option.icon;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, type: option.value as any, leaderId: '' })}
-                          className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                            formData.type === option.value
-                              ? 'border-primary-500 bg-primary-50 text-primary-700'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                        >
-                          <Icon className="h-6 w-6 mx-auto mb-2" />
-                          <p className="text-sm font-medium">{option.label}</p>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Dados Básicos */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {modalType === 'user' && (
+                <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nome Completo *
+                      Nome *
                     </label>
                     <input
                       type="text"
+                      className="w-full rounded-lg border-gray-200"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className={`w-full rounded-lg border ${
-                        errors.name ? 'border-red-300' : 'border-gray-200'
-                      } focus:border-primary-500 focus:ring-primary-500`}
-                      placeholder="Digite o nome completo"
                     />
-                    {errors.name && (
-                      <p className="mt-1 text-xs text-red-600">{errors.name}</p>
-                    )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Email *
                     </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className={`w-full pl-10 rounded-lg border ${
-                          errors.email ? 'border-red-300' : 'border-gray-200'
-                        } focus:border-primary-500 focus:ring-primary-500`}
-                        placeholder="email@empresa.com"
-                      />
-                    </div>
-                    {errors.email && (
-                      <p className="mt-1 text-xs text-red-600">{errors.email}</p>
-                    )}
+                    <input
+                      type="email"
+                      className="w-full rounded-lg border-gray-200"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    />
                   </div>
-                </div>
 
-                {/* Líder (apenas para colaboradores e líderes) */}
-                {formData.type !== 'lider-maximo' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Líder Responsável *
+                      Cargo *
                     </label>
-                    <select
-                      value={formData.leaderId}
-                      onChange={(e) => setFormData({ ...formData, leaderId: e.target.value })}
-                      className={`w-full rounded-lg border ${
-                        errors.leaderId ? 'border-red-300' : 'border-gray-200'
-                      } focus:border-primary-500 focus:ring-primary-500`}
-                    >
-                      <option value="">Selecione o líder</option>
-                      {getAvailableLeaders().map((leader) => (
-                        <option key={leader.id} value={leader.id}>
-                          {leader.name} ({getUserTypeLabel(leader.type)})
-                        </option>
-                      ))}
-                    </select>
-                    {errors.leaderId && (
-                      <p className="mt-1 text-xs text-red-600">{errors.leaderId}</p>
-                    )}
+                    <input
+                      type="text"
+                      className="w-full rounded-lg border-gray-200"
+                      value={formData.position}
+                      onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                    />
                   </div>
-                )}
 
-                {/* Organização */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        checked={formData.isLeader}
+                        onChange={(e) => setFormData({ ...formData, isLeader: e.target.checked })}
+                      />
+                      <span className="text-gray-700">É líder</span>
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Times *
+                    </label>
+                    <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                      {teams.map(team => (
+                        <label key={team.id} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                            checked={formData.teamIds.includes(team.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({ 
+                                  ...formData, 
+                                  teamIds: [...formData.teamIds, team.id],
+                                  departmentIds: [...new Set([...formData.departmentIds, team.departmentId])]
+                                });
+                              } else {
+                                setFormData({ 
+                                  ...formData, 
+                                  teamIds: formData.teamIds.filter(id => id !== team.id)
+                                });
+                              }
+                            }}
+                          />
+                          <span className="text-gray-700">{team.name} ({getDepartmentById(team.departmentId)?.name})</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {modalType === 'team' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nome do Time *
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full rounded-lg border-gray-200"
+                      value={formData.teamName}
+                      onChange={(e) => setFormData({ ...formData, teamName: e.target.value })}
+                    />
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Departamento *
                     </label>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <input
-                        type="text"
-                        value={formData.department}
-                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                        className={`w-full pl-10 rounded-lg border ${
-                          errors.department ? 'border-red-300' : 'border-gray-200'
-                        } focus:border-primary-500 focus:ring-primary-500`}
-                        placeholder="Ex: Tecnologia, RH, Comercial"
-                      />
-                    </div>
-                    {errors.department && (
-                      <p className="mt-1 text-xs text-red-600">{errors.department}</p>
-                    )}
+                    <select
+                      className="w-full rounded-lg border-gray-200"
+                      value={formData.teamDepartmentId}
+                      onChange={(e) => setFormData({ ...formData, teamDepartmentId: e.target.value })}
+                    >
+                      <option value="">Selecione um departamento</option>
+                      {departments.map(dept => (
+                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Time *
+                      Líder do Time *
                     </label>
-                    <div className="relative">
-                      <Users className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <input
-                        type="text"
-                        value={formData.team}
-                        onChange={(e) => setFormData({ ...formData, team: e.target.value })}
-                        className={`w-full pl-10 rounded-lg border ${
-                          errors.team ? 'border-red-300' : 'border-gray-200'
-                        } focus:border-primary-500 focus:ring-primary-500`}
-                        placeholder="Ex: Desenvolvimento, Suporte, Vendas"
-                      />
+                    <select
+                      className="w-full rounded-lg border-gray-200"
+                      value={formData.teamLeaderId}
+                      onChange={(e) => setFormData({ ...formData, teamLeaderId: e.target.value })}
+                    >
+                      <option value="">Selecione um líder</option>
+                      {users.filter(u => u.isLeader).map(user => (
+                        <option key={user.id} value={user.id}>{user.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Membros do Time
+                    </label>
+                    <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                      {users.map(user => (
+                        <label key={user.id} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                            checked={formData.teamMemberIds.includes(user.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({ 
+                                  ...formData, 
+                                  teamMemberIds: [...formData.teamMemberIds, user.id]
+                                });
+                              } else {
+                                setFormData({ 
+                                  ...formData, 
+                                  teamMemberIds: formData.teamMemberIds.filter(id => id !== user.id)
+                                });
+                              }
+                            }}
+                          />
+                          <span className="text-gray-700">
+                            {user.name} {user.id === formData.teamLeaderId && '(Líder)'}
+                          </span>
+                        </label>
+                      ))}
                     </div>
-                    {errors.team && (
-                      <p className="mt-1 text-xs text-red-600">{errors.team}</p>
-                    )}
                   </div>
                 </div>
+              )}
 
-                {/* Informação sobre hierarquia */}
-                {formData.type === 'lider-maximo' && (
-                  <div className="bg-accent-50 border border-accent-200 rounded-lg p-4">
-                    <div className="flex items-start space-x-3">
-                      <Crown className="h-5 w-5 text-accent-600 mt-0.5" />
-                      <div>
-                        <h4 className="text-sm font-medium text-accent-900">Líder Máximo</h4>
-                        <p className="text-xs text-accent-700 mt-1">
-                          Este usuário não terá um líder superior e poderá ter líderes e colaboradores sob sua gestão.
-                        </p>
-                      </div>
-                    </div>
+              {modalType === 'department' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nome do Departamento *
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full rounded-lg border-gray-200"
+                      value={formData.departmentName}
+                      onChange={(e) => setFormData({ ...formData, departmentName: e.target.value })}
+                    />
                   </div>
-                )}
 
-                {/* Botões de Ação */}
-                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6 border-t">
-                  <Button
-                    variant="outline"
-                    onClick={handleCloseModal}
-                    size="lg"
-                    className="w-full sm:w-auto"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    variant="primary"
-                    onClick={handleSubmit}
-                    icon={<Save size={18} />}
-                    size="lg"
-                    className="w-full sm:w-auto"
-                  >
-                    {editingUser ? 'Salvar Alterações' : 'Cadastrar Usuário'}
-                  </Button>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Descrição
+                    </label>
+                    <textarea
+                      className="w-full rounded-lg border-gray-200"
+                      rows={3}
+                      value={formData.departmentDescription}
+                      onChange={(e) => setFormData({ ...formData, departmentDescription: e.target.value })}
+                    />
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              )}
 
-      {/* Modal de Confirmação de Exclusão */}
-      <AnimatePresence>
-        {showDeleteConfirm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowDeleteConfirm(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 max-w-md w-full"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                  <AlertCircle className="h-6 w-6 text-red-600" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Confirmar Exclusão
-                </h3>
-                <p className="text-sm text-gray-500 mb-6">
-                  Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.
-                </p>
-                <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowDeleteConfirm(null)}
-                    className="w-full sm:w-auto"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => handleDelete(showDeleteConfirm)}
-                    icon={<Trash2 size={16} />}
-                    className="w-full sm:w-auto"
-                  >
-                    Excluir
-                  </Button>
-                </div>
+              <div className="flex justify-end space-x-4 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowModal(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleSubmit}
+                  icon={<Check size={18} />}
+                >
+                  {editingItem ? 'Salvar' : 'Adicionar'}
+                </Button>
               </div>
             </motion.div>
           </motion.div>
