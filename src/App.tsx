@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
 import { EvaluationProvider } from './context/EvaluationContext';
-import { UserProvider } from './context/UserContext'; // Add this
+import { UserProvider } from './context/UserContext'; 
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import SelfEvaluation from './pages/SelfEvaluation';
@@ -14,12 +14,12 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import NineBoxMatrix from './pages/NineBox';
-import UserManagement from './pages/UserManagement'; // Add this
+import UserManagement from './pages/UserManagement'; 
 
 function App() {
   return (
     <ThemeProvider>
-      <UserProvider> {/* Add UserProvider */}
+      <UserProvider>
         <EvaluationProvider>
           <Router>
             <Toaster 
@@ -52,7 +52,7 @@ function App() {
                 <Route path="action-plan" element={<ActionPlan />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="settings" element={<Settings />} />
-                <Route path="users" element={<UserManagement />} /> {/* Add this route */}
+                <Route path="users" element={<UserManagement />} /> 
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>
