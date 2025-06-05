@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, BarChart3, Download, Calendar, Briefcase, TrendingUp, Target, Award, Info } from 'lucide-react';
+import { ArrowLeft, User, BarChart3, Download, Calendar, Briefcase, TrendingUp, Target, Award, Info, Grid3x3 } from 'lucide-react';
 
 // Tipos
 interface Employee {
@@ -222,11 +222,9 @@ const NineBoxMatrix = () => {
                 <ArrowLeft size={20} className="text-gray-600" />
               </button>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
-                  <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 mr-3 shadow-md">
-                    <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                  </div>
-                  Matriz 9-Box
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
+                  <Grid3x3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 mr-2 sm:mr-3 flex-shrink-0" />
+                  <span className="truncate">Matriz 9-Box</span>
                 </h1>
                 <p className="text-gray-600 mt-1 text-sm sm:text-base">Análise de Performance vs Potencial</p>
               </div>
@@ -370,7 +368,7 @@ const NineBoxMatrix = () => {
                   <div className="relative">
                     
                     {/* Título do eixo Y (Potencial) */}
-                    <div className="absolute -left-14 sm:-left-20 top-1/2 transform -translate-y-1/2 -rotate-90">
+                    <div className="absolute -left-12 sm:-left-40 top-1/2 transform -translate-y-1/2 -rotate-90">
                       <span className="text-sm sm:text-base font-bold text-gray-700 uppercase tracking-widest">
                         POTENCIAL
                       </span>
