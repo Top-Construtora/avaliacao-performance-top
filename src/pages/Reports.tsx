@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useEvaluation } from '../context/EvaluationContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../components/Button';
@@ -10,7 +9,6 @@ import {
  AlertTriangle,
  CheckCircle,
  Clock,
- Calendar,
  Search,
  Download,
  Printer,
@@ -106,9 +104,6 @@ const Reports = () => {
    { name: 'Gerência de Projetos', completed: 3, pending: 2, inProgress: 1 },
    { name: 'Gente & Gestão', completed: 2, pending: 2, inProgress: 3 }
  ];
-
- // Cálculo de progresso
- const progressPercentage = (reportSummary.completedEvaluations / reportSummary.totalCollaborators) * 100;
 
  // Export functions
  const exportPDF = () => {
