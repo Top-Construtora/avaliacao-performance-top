@@ -8,7 +8,9 @@ import {
   Users, Plus, Building, FilePlus, Shield, Mail, Calendar, 
   X, Check, AlertCircle, Briefcase, UserCheck, UsersIcon, 
   Sparkles, Crown, User, Phone, CalendarDays, Camera, Upload,
-  GitBranch, Network, ArrowLeft, Eye, EyeOff, UserCog, Save
+  GitBranch, Network, ArrowLeft, Eye, EyeOff, UserCog, Save,
+  Zap, Target, Star, Hash, MapPin, FileText, Award, MessageSquare,
+  ChevronRight, Info, HelpCircle, Loader2, CheckCircle2
 } from 'lucide-react';
 
 type TabType = 'user' | 'team' | 'department';
@@ -23,6 +25,7 @@ const UserRegistration = () => {
 
   const [activeTab, setActiveTab] = useState<TabType>('user');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -56,6 +59,29 @@ const UserRegistration = () => {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: 'spring',
+        stiffness: 100,
+      }
+    }
+  };
+
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     if (numbers.length <= 11) {
@@ -75,17 +101,18 @@ const UserRegistration = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({ ...formData, profileImage: reader.result as string });
+        toast.success('Imagem carregada com sucesso!');
       };
       reader.readAsDataURL(file);
     }
   };
 
   const positionTemplates = [
-    { value: 'developer', label: 'Desenvolvedor(a)', icon: '💻' },
-    { value: 'designer', label: 'Designer', icon: '🎨' },
-    { value: 'manager', label: 'Gerente', icon: '📊' },
-    { value: 'analyst', label: 'Analista', icon: '📈' },
-    { value: 'coordinator', label: 'Coordenador(a)', icon: '🎯' },
+    { value: 'developer', label: 'Desenvolvedor(a)', icon: '💻', color: 'from-blue-500 to-blue-600' },
+    { value: 'designer', label: 'Designer', icon: '🎨', color: 'from-purple-500 to-purple-600' },
+    { value: 'manager', label: 'Gerente', icon: '📊', color: 'from-green-500 to-green-600' },
+    { value: 'analyst', label: 'Analista', icon: '📈', color: 'from-orange-500 to-orange-600' },
+    { value: 'coordinator', label: 'Coordenador(a)', icon: '🎯', color: 'from-red-500 to-red-600' },
   ];
 
   const validateForm = (): boolean => {
@@ -127,8 +154,13 @@ const UserRegistration = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
+
+    setIsLoading(true);
+
+    // Simular delay de processamento
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     if (activeTab === 'user') {
       const userData = {
@@ -176,7 +208,7 @@ const UserRegistration = () => {
       const teamData = {
         name: formData.teamName.trim(),
         departmentId: formData.teamDepartmentId,
-        leaderId: formData.teamResponsibleId,
+        responsibleId: formData.teamResponsibleId,
         memberIds: formData.teamMemberIds,
         description: formData.teamDescription.trim(),
         createdAt: new Date().toISOString(),
@@ -188,12 +220,14 @@ const UserRegistration = () => {
       const departmentData = {
         name: formData.departmentName.trim(),
         description: formData.departmentDescription.trim(),
-        goals: formData.departmentGoals.trim(),
+        responsibleId: formData.departmentResponsibleId,
       };
 
       addDepartment(departmentData);
       toast.success('Departamento cadastrado com sucesso!');
     }
+
+    setIsLoading(false);
 
     // Reset form
     setFormData({
@@ -223,230 +257,234 @@ const UserRegistration = () => {
   };
 
   const renderUserForm = () => (
-    <div className="space-y-6">
+    <motion.div 
+      className="space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Profile Type Selection */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+      <motion.div variants={itemVariants}>
+        <label className="block text-sm font-semibold text-gray-700 mb-4">
           Tipo de Usuário
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <label 
-            className={`relative flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              formData.profileType === 'regular' 
-                ? 'border-primary-500 bg-primary-50' 
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            <input
-              type="radio"
-              name="profileType"
-              value="regular"
-              checked={formData.profileType === 'regular'}
-              onChange={(e) => setFormData({ 
-                ...formData, 
-                profileType: 'regular',
-                isLeader: false,
-                isDirector: false
-              })}
-              className="sr-only"
-            />
-            <div className="flex items-center flex-1">
-              <div className="p-2 rounded-lg bg-gray-100 mr-3">
-                <UserCheck className="h-5 w-5 text-gray-600" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            {
+              value: 'regular',
+              label: 'Colaborador',
+              description: 'Membro da equipe',
+              icon: UserCheck,
+              gradient: 'from-secondary-500 to-secondary-600',
+              bgGradient: 'from-secondary-50 to-secondary-100',
+              borderColor: 'border-secondary-300',
+              iconBg: 'bg-secondary-100',
+              iconColor: 'text-secondary-600'
+            },
+            {
+              value: 'leader',
+              label: 'Líder',
+              description: 'Lidera equipes',
+              icon: Crown,
+              gradient: 'from-primary-500 to-primary-600',
+              bgGradient: 'from-primary-50 to-primary-100',
+              borderColor: 'border-primary-300',
+              iconBg: 'bg-primary-100',
+              iconColor: 'text-primary-600'
+            },
+            {
+              value: 'director',
+              label: 'Diretor',
+              description: 'Lidera líderes',
+              icon: Sparkles,
+              gradient: 'from-purple-500 to-purple-600',
+              bgGradient: 'from-purple-50 to-purple-100',
+              borderColor: 'border-purple-300',
+              iconBg: 'bg-purple-100',
+              iconColor: 'text-purple-600'
+            }
+          ].map((type) => (
+            <label 
+              key={type.value}
+              className={`relative flex items-center p-5 rounded-2xl border-2 cursor-pointer transition-all transform hover:scale-[1.02] ${
+                formData.profileType === type.value 
+                  ? `bg-gradient-to-br ${type.bgGradient} ${type.borderColor} shadow-lg` 
+                  : 'border-gray-200 hover:border-gray-300 bg-white'
+              }`}
+            >
+              <input
+                type="radio"
+                name="profileType"
+                value={type.value}
+                checked={formData.profileType === type.value}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  profileType: type.value as any,
+                  isLeader: type.value !== 'regular',
+                  isDirector: type.value === 'director'
+                })}
+                className="sr-only"
+              />
+              <div className="flex items-center flex-1">
+                <div className={`p-3 rounded-xl ${type.iconBg} mr-4`}>
+                  <type.icon className={`h-6 w-6 ${type.iconColor}`} />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900">{type.label}</p>
+                  <p className="text-xs text-gray-600 mt-0.5">{type.description}</p>
+                </div>
               </div>
-              <div>
-                <p className="font-medium text-gray-900">Colaborador</p>
-                <p className="text-xs text-gray-600">Membro da equipe</p>
-              </div>
-            </div>
-            {formData.profileType === 'regular' && (
-              <Check className="h-4 w-4 text-primary-600" />
-            )}
-          </label>
-
-          <label 
-            className={`relative flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              formData.profileType === 'leader' 
-                ? 'border-primary-500 bg-primary-50' 
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            <input
-              type="radio"
-              name="profileType"
-              value="leader"
-              checked={formData.profileType === 'leader'}
-              onChange={(e) => setFormData({ 
-                ...formData, 
-                profileType: 'leader',
-                isLeader: true,
-                isDirector: false
-              })}
-              className="sr-only"
-            />
-            <div className="flex items-center flex-1">
-              <div className="p-2 rounded-lg bg-primary-100 mr-3">
-                <Crown className="h-5 w-5 text-primary-600" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">Líder</p>
-                <p className="text-xs text-gray-600">Lidera equipes</p>
-              </div>
-            </div>
-            {formData.profileType === 'leader' && (
-              <Check className="h-4 w-4 text-primary-600" />
-            )}
-          </label>
-
-          <label 
-            className={`relative flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              formData.profileType === 'director' 
-                ? 'border-purple-500 bg-purple-50' 
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            <input
-              type="radio"
-              name="profileType"
-              value="director"
-              checked={formData.profileType === 'director'}
-              onChange={(e) => setFormData({ 
-                ...formData, 
-                profileType: 'director',
-                isLeader: true,
-                isDirector: true
-              })}
-              className="sr-only"
-            />
-            <div className="flex items-center flex-1">
-              <div className="p-2 rounded-lg bg-purple-100 mr-3">
-                <Sparkles className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">Diretor</p>
-                <p className="text-xs text-gray-600">Lidera líderes</p>
-              </div>
-            </div>
-            {formData.profileType === 'director' && (
-              <Check className="h-4 w-4 text-purple-600" />
-            )}
-          </label>
+              {formData.profileType === type.value && (
+                <div className={`absolute top-3 right-3 p-1.5 rounded-full bg-gradient-to-br ${type.gradient} shadow-md`}>
+                  <Check className="h-3 w-3 text-white" />
+                </div>
+              )}
+            </label>
+          ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Basic Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Nome completo *
-          </label>
-          <input
-            type="text"
-            className={`w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
-              formErrors.name ? 'border-red-300' : ''
-            }`}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Ex: João Silva"
-          />
-          {formErrors.name && (
-            <p className="text-xs text-red-600 mt-1">{formErrors.name}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Email corporativo *
-          </label>
-          <input
-            type="email"
-            className={`w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
-              formErrors.email ? 'border-red-300' : ''
-            }`}
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            placeholder="joao.silva@empresa.com"
-          />
-          {formErrors.email && (
-            <p className="text-xs text-red-600 mt-1">{formErrors.email}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Senha temporária *
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              className={`w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 pr-10 ${
-                formErrors.password ? 'border-red-300' : ''
-              }`}
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              placeholder="••••••••"
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-          {formErrors.password && (
-            <p className="text-xs text-red-600 mt-1">{formErrors.password}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Cargo *
-          </label>
-          <div className="grid grid-cols-3 gap-2 mb-2">
-            {positionTemplates.slice(0, 3).map(template => (
-              <button
-                key={template.value}
-                type="button"
-                onClick={() => setFormData({ ...formData, position: template.label })}
-                className={`p-2 text-xs rounded-lg border transition-all ${
-                  formData.position === template.label
-                    ? 'border-primary-500 bg-primary-50 text-primary-700'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <span className="mr-1">{template.icon}</span>
-                {template.label}
-              </button>
-            ))}
-          </div>
-          <input
-            type="text"
-            className={`w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
-              formErrors.position ? 'border-red-300' : ''
-            }`}
-            value={formData.position}
-            onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-            placeholder="Digite ou selecione acima"
-          />
-          {formErrors.position && (
-            <p className="text-xs text-red-600 mt-1">{formErrors.position}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Personal Information */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Informações Pessoais</h3>
+      <motion.div variants={itemVariants} className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
+          <User className="h-5 w-5 mr-2 text-primary-500" />
+          Informações Básicas
+        </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Nome completo *
+            </label>
+            <input
+              type="text"
+              className={`w-full rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                formErrors.name ? 'border-red-300 bg-red-50' : ''
+              }`}
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Ex: João Silva"
+            />
+            {formErrors.name && (
+              <p className="text-xs text-red-600 mt-1 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.name}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Email corporativo *
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="email"
+                className={`w-full pl-10 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                  formErrors.email ? 'border-red-300 bg-red-50' : ''
+                }`}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="joao.silva@empresa.com"
+              />
+            </div>
+            {formErrors.email && (
+              <p className="text-xs text-red-600 mt-1 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.email}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Senha temporária *
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className={`w-full rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 pr-10 ${
+                  formErrors.password ? 'border-red-300 bg-red-50' : ''
+                }`}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {formErrors.password && (
+              <p className="text-xs text-red-600 mt-1 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.password}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Cargo *
+            </label>
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {positionTemplates.slice(0, 3).map(template => (
+                <button
+                  key={template.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, position: template.label })}
+                  className={`p-2.5 text-xs rounded-xl border-2 transition-all transform hover:scale-105 ${
+                    formData.position === template.label
+                      ? `border-primary-500 bg-gradient-to-r ${template.color} text-white shadow-lg`
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <span className="mr-1">{template.icon}</span>
+                  <span className="font-medium">{template.label}</span>
+                </button>
+              ))}
+            </div>
+            <div className="relative">
+              <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                className={`w-full pl-10 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                  formErrors.position ? 'border-red-300 bg-red-50' : ''
+                }`}
+                value={formData.position}
+                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                placeholder="Digite ou selecione acima"
+              />
+            </div>
+            {formErrors.position && (
+              <p className="text-xs text-red-600 mt-1 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.position}
+              </p>
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Personal Information */}
+      <motion.div variants={itemVariants} className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
+          <Info className="h-5 w-5 mr-2 text-primary-500" />
+          Informações Pessoais
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
               Foto de perfil
             </label>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <div className="h-20 w-20 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+            <div className="flex items-center space-x-6">
+              <div className="relative group">
+                <div className="h-24 w-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden shadow-inner">
                   {formData.profileImage ? (
                     <img 
                       src={formData.profileImage} 
@@ -454,16 +492,16 @@ const UserRegistration = () => {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <Camera className="h-8 w-8 text-gray-400" />
+                    <Camera className="h-10 w-10 text-gray-400" />
                   )}
                 </div>
                 {formData.profileImage && (
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, profileImage: null })}
-                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <X size={12} />
+                    <X size={14} />
                   </button>
                 )}
               </div>
@@ -478,25 +516,26 @@ const UserRegistration = () => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  className="inline-flex items-center px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all"
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   Enviar foto
                 </button>
+                <p className="text-xs text-gray-500 mt-2">JPG, PNG ou GIF até 5MB</p>
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Telefone
             </label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="tel"
-                className={`w-full pl-10 rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
-                  formErrors.phone ? 'border-red-300' : ''
+                className={`w-full pl-10 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                  formErrors.phone ? 'border-red-300 bg-red-50' : ''
                 }`}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
@@ -505,20 +544,23 @@ const UserRegistration = () => {
               />
             </div>
             {formErrors.phone && (
-              <p className="text-xs text-red-600 mt-1">{formErrors.phone}</p>
+              <p className="text-xs text-red-600 mt-1 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.phone}
+              </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Data de nascimento
             </label>
             <div className="relative">
               <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="date"
-                className={`w-full pl-10 rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
-                  formErrors.birthDate ? 'border-red-300' : ''
+                className={`w-full pl-10 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                  formErrors.birthDate ? 'border-red-300 bg-red-50' : ''
                 }`}
                 value={formData.birthDate}
                 onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
@@ -527,39 +569,46 @@ const UserRegistration = () => {
               />
             </div>
             {formErrors.birthDate && (
-              <p className="text-xs text-red-600 mt-1">{formErrors.birthDate}</p>
+              <p className="text-xs text-red-600 mt-1 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.birthDate}
+              </p>
             )}
             {formData.birthDate && (
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 mt-1 flex items-center">
+                <Info className="h-3 w-3 mr-1" />
                 Idade: {calculateAge(formData.birthDate)} anos
               </p>
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Team Assignment */}
       {formData.profileType !== 'director' && (
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Alocação em Times</h3>
+        <motion.div variants={itemVariants} className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
+            <UsersIcon className="h-5 w-5 mr-2 text-primary-500" />
+            Alocação em Times
+          </h3>
           
-          <div className={`border rounded-lg overflow-hidden ${
-            formErrors.teams ? 'border-red-300' : 'border-gray-200'
+          <div className={`border-2 rounded-xl overflow-hidden ${
+            formErrors.teams ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'
           }`}>
-            <div className="max-h-64 overflow-y-auto">
+            <div className="max-h-72 overflow-y-auto custom-scrollbar">
               {departments.map(dept => {
                 const deptTeams = teams.filter(t => t.departmentId === dept.id && t.name !== 'Diretoria');
                 if (deptTeams.length === 0) return null;
                 
                 return (
                   <div key={dept.id} className="border-b border-gray-100 last:border-0">
-                    <div className="px-4 py-2 bg-gray-50">
-                      <p className="text-sm font-medium text-gray-700 flex items-center">
+                    <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100/50">
+                      <p className="text-sm font-semibold text-gray-700 flex items-center">
                         <Building className="h-4 w-4 mr-2 text-gray-500" />
                         {dept.name}
                       </p>
                     </div>
-                    <div className="p-2">
+                    <div className="p-3 space-y-2">
                       {deptTeams.map(team => {
                         const isSelected = formData.teamIds.includes(team.id);
                         const responsible = team.responsibleId ? getUserById(team.responsibleId) : undefined;
@@ -567,15 +616,15 @@ const UserRegistration = () => {
                         return (
                           <label
                             key={team.id}
-                            className={`flex items-center p-3 rounded-lg cursor-pointer transition-all ${
+                            className={`flex items-center p-4 rounded-xl cursor-pointer transition-all ${
                               isSelected 
-                                ? 'bg-primary-50 border border-primary-200' 
-                                : 'hover:bg-gray-50'
+                                ? 'bg-gradient-to-r from-primary-50 to-primary-100 border-2 border-primary-300 shadow-sm' 
+                                : 'hover:bg-gray-50 border-2 border-transparent'
                             }`}
                           >
                             <input
                               type="checkbox"
-                              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                              className="rounded-md border-gray-300 text-primary-600 focus:ring-primary-500 shadow-sm"
                               checked={isSelected}
                               onChange={(e) => {
                                 if (e.target.checked) {
@@ -592,7 +641,7 @@ const UserRegistration = () => {
                               }}
                             />
                             <div className="ml-3 flex-1">
-                              <p className="font-medium text-gray-900 text-sm">
+                              <p className="font-semibold text-gray-900 text-sm">
                                 {team.name}
                               </p>
                               <div className="flex items-center mt-1 text-xs text-gray-600">
@@ -607,6 +656,9 @@ const UserRegistration = () => {
                                 )}
                               </div>
                             </div>
+                            {isSelected && (
+                              <CheckCircle2 className="h-5 w-5 text-primary-600" />
+                            )}
                           </label>
                         );
                       })}
@@ -618,269 +670,366 @@ const UserRegistration = () => {
           </div>
           
           {formErrors.teams && (
-            <p className="text-xs text-red-600 mt-1">{formErrors.teams}</p>
+            <p className="text-xs text-red-600 mt-2 flex items-center">
+              <AlertCircle className="h-3 w-3 mr-1" />
+              {formErrors.teams}
+            </p>
           )}
-        </div>
+        </motion.div>
       )}
 
       {/* Hierarchy */}
       {formData.profileType === 'regular' && (
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Hierarquia</h3>
+        <motion.div variants={itemVariants} className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
+            <GitBranch className="h-5 w-5 mr-2 text-primary-500" />
+            Hierarquia
+          </h3>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Reporta para *
             </label>
-            <select
-              className={`w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
-                formErrors.reportsTo ? 'border-red-300' : ''
+            <div className="relative">
+              <Network className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <select
+                className={`w-full pl-10 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                  formErrors.reportsTo ? 'border-red-300 bg-red-50' : ''
+                }`}
+                value={formData.reportsTo}
+                onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
+              >
+                <option value="">Selecione seu líder direto</option>
+                {users
+                  .filter(u => (u.isLeader || u.isDirector) && u.id !== formData.email)
+                  .map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.name} - {user.position}
+                      {user.isDirector && ' (Diretor)'}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            {formErrors.reportsTo && (
+              <p className="text-xs text-red-600 mt-2 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.reportsTo}
+              </p>
+            )}
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+
+  const renderTeamForm = () => (
+    <motion.div 
+      className="space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={itemVariants} className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
+          <Info className="h-5 w-5 mr-2 text-primary-500" />
+          Informações do Time
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Nome do Time *
+            </label>
+            <input
+              type="text"
+              className={`w-full rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                formErrors.teamName ? 'border-red-300 bg-red-50' : ''
               }`}
-              value={formData.reportsTo}
-              onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
-            >
-              <option value="">Selecione seu líder direto</option>
-              {users
-                .filter(u => (u.isLeader || u.isDirector) && u.id !== formData.email)
-                .map(user => (
+              value={formData.teamName}
+              onChange={(e) => setFormData({ ...formData, teamName: e.target.value })}
+              placeholder="Ex: Backend, Frontend, UX Research"
+            />
+            {formErrors.teamName && (
+              <p className="text-xs text-red-600 mt-1 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.teamName}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Departamento *
+            </label>
+            <div className="relative">
+              <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <select
+                className={`w-full pl-10 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                  formErrors.department ? 'border-red-300 bg-red-50' : ''
+                }`}
+                value={formData.teamDepartmentId}
+                onChange={(e) => setFormData({ ...formData, teamDepartmentId: e.target.value })}
+              >
+                <option value="">Selecione um departamento</option>
+                {departments.map(dept => (
+                  <option key={dept.id} value={dept.id}>{dept.name}</option>
+                ))}
+              </select>
+            </div>
+            {formErrors.department && (
+              <p className="text-xs text-red-600 mt-1 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.department}
+              </p>
+            )}
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Descrição
+            </label>
+            <div className="relative">
+              <MessageSquare className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <textarea
+                className="w-full pl-10 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500"
+                rows={3}
+                value={formData.teamDescription}
+                onChange={(e) => setFormData({ ...formData, teamDescription: e.target.value })}
+                placeholder="Descreva as responsabilidades e objetivos do time..."
+              />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div variants={itemVariants} className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
+          <UserCog className="h-5 w-5 mr-2 text-primary-500" />
+          Responsável e Membros
+        </h3>
+
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Responsável pelo Time *
+            </label>
+            <div className="relative">
+              <Crown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <select
+                className={`w-full pl-10 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                  formErrors.responsible ? 'border-red-300 bg-red-50' : ''
+                }`}
+                value={formData.teamResponsibleId}
+                onChange={(e) => setFormData({ ...formData, teamResponsibleId: e.target.value })}
+              >
+                <option value="">Selecione o responsável</option>
+                {users.map(user => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} - {user.position}
+                    {user.isDirector && ' (Diretor)'}
+                    {user.isLeader && !user.isDirector && ' (Líder)'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {formErrors.responsible && (
+              <p className="text-xs text-red-600 mt-1 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.responsible}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Membros do Time *
+            </label>
+            <div className={`border-2 rounded-xl overflow-hidden ${
+              formErrors.members ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'
+            }`}>
+              <div className="max-h-80 overflow-y-auto p-3 space-y-2">
+                {users.map(user => {
+                  const isSelected = formData.teamMemberIds.includes(user.id);
+                  
+                  return (
+                    <label
+                      key={user.id}
+                      className={`flex items-center p-4 rounded-xl cursor-pointer transition-all ${
+                        isSelected 
+                          ? 'bg-gradient-to-r from-primary-50 to-primary-100 border-2 border-primary-300 shadow-sm' 
+                          : 'hover:bg-gray-50 border-2 border-transparent'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="rounded-md border-gray-300 text-primary-600 focus:ring-primary-500 shadow-sm"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({ 
+                              ...formData, 
+                              teamMemberIds: [...formData.teamMemberIds, user.id]
+                            });
+                          } else {
+                            setFormData({ 
+                              ...formData, 
+                              teamMemberIds: formData.teamMemberIds.filter(id => id !== user.id)
+                            });
+                          }
+                        }}
+                      />
+                      <div className="ml-3 flex-1 flex items-center">
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-900 text-sm">
+                            {user.name}
+                          </p>
+                          <p className="text-xs text-gray-600 flex items-center mt-0.5">
+                            <Briefcase className="h-3 w-3 mr-1" />
+                            {user.position}
+                            {user.id === formData.teamResponsibleId && (
+                              <span className="ml-2 text-primary-600 font-semibold">(Responsável)</span>
+                            )}
+                          </p>
+                        </div>
+                        {user.profileImage ? (
+                          <img
+                            src={user.profileImage}
+                            alt={user.name}
+                            className="h-10 w-10 rounded-xl ml-4"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-sm font-bold text-white ml-4">
+                            {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                          </div>
+                        )}
+                      </div>
+                      {isSelected && (
+                        <CheckCircle2 className="h-5 w-5 text-primary-600 ml-2" />
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+            {formErrors.members && (
+              <p className="text-xs text-red-600 mt-2 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.members}
+              </p>
+            )}
+            
+            {formData.teamMemberIds.length > 0 && (
+              <div className="mt-3 p-3 bg-primary-50 rounded-xl border border-primary-200">
+                <p className="text-sm text-primary-700 font-medium">
+                  {formData.teamMemberIds.length} {formData.teamMemberIds.length === 1 ? 'membro selecionado' : 'membros selecionados'}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+
+  const renderDepartmentForm = () => (
+    <motion.div 
+      className="space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={itemVariants} className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
+          <Info className="h-5 w-5 mr-2 text-primary-500" />
+          Informações do Departamento
+        </h3>
+
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Nome do Departamento *
+            </label>
+            <input
+              type="text"
+              className={`w-full rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                formErrors.departmentName ? 'border-red-300 bg-red-50' : ''
+              }`}
+              value={formData.departmentName}
+              onChange={(e) => setFormData({ ...formData, departmentName: e.target.value })}
+              placeholder="Ex: Engenharia, Design, Comercial"
+            />
+            {formErrors.departmentName && (
+              <p className="text-xs text-red-600 mt-1 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.departmentName}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Descrição
+            </label>
+            <div className="relative">
+              <MessageSquare className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <textarea
+                className="w-full pl-10 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500"
+                rows={3}
+                value={formData.departmentDescription}
+                onChange={(e) => setFormData({ ...formData, departmentDescription: e.target.value })}
+                placeholder="Descreva as responsabilidades do departamento..."
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Objetivos e Metas
+            </label>
+            <div className="relative">
+              <Target className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <textarea
+                className="w-full pl-10 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500"
+                rows={3}
+                value={formData.departmentGoals}
+                onChange={(e) => setFormData({ ...formData, departmentGoals: e.target.value })}
+                placeholder="Defina os principais objetivos do departamento..."
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Responsável pelo Departamento *
+            </label>
+            <div className="relative">
+              <Crown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <select
+                className={`w-full pl-10 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                  formErrors.responsible ? 'border-red-300 bg-red-50' : ''
+                }`}
+                value={formData.departmentResponsibleId}
+                onChange={(e) => setFormData({ ...formData, departmentResponsibleId: e.target.value })}
+              >
+                <option value="">Selecione o responsável</option>
+                {users.filter(u => u.isLeader || u.isDirector).map(user => (
                   <option key={user.id} value={user.id}>
                     {user.name} - {user.position}
                     {user.isDirector && ' (Diretor)'}
                   </option>
                 ))}
-            </select>
-            {formErrors.reportsTo && (
-              <p className="text-xs text-red-600 mt-1">{formErrors.reportsTo}</p>
+              </select>
+            </div>
+            {formErrors.responsible && (
+              <p className="text-xs text-red-600 mt-1 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                {formErrors.responsible}
+              </p>
             )}
           </div>
         </div>
-      )}
-    </div>
-  );
-
-  const renderTeamForm = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Nome do Time *
-          </label>
-          <input
-            type="text"
-            className={`w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
-              formErrors.teamName ? 'border-red-300' : ''
-            }`}
-            value={formData.teamName}
-            onChange={(e) => setFormData({ ...formData, teamName: e.target.value })}
-            placeholder="Ex: Backend, Frontend, UX Research"
-          />
-          {formErrors.teamName && (
-            <p className="text-xs text-red-600 mt-1">{formErrors.teamName}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Departamento *
-          </label>
-          <select
-            className={`w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
-              formErrors.department ? 'border-red-300' : ''
-            }`}
-            value={formData.teamDepartmentId}
-            onChange={(e) => setFormData({ ...formData, teamDepartmentId: e.target.value })}
-          >
-            <option value="">Selecione um departamento</option>
-            {departments.map(dept => (
-              <option key={dept.id} value={dept.id}>{dept.name}</option>
-            ))}
-          </select>
-          {formErrors.department && (
-            <p className="text-xs text-red-600 mt-1">{formErrors.department}</p>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Descrição
-        </label>
-        <textarea
-          className="w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500"
-          rows={3}
-          value={formData.teamDescription}
-          onChange={(e) => setFormData({ ...formData, teamDescription: e.target.value })}
-          placeholder="Descreva as responsabilidades e objetivos do time..."
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Responsável pelo Time *
-        </label>
-        <select
-          className={`w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
-            formErrors.responsible ? 'border-red-300' : ''
-          }`}
-          value={formData.teamResponsibleId}
-          onChange={(e) => setFormData({ ...formData, teamResponsibleId: e.target.value })}
-        >
-          <option value="">Selecione o responsável</option>
-          {users.map(user => (
-            <option key={user.id} value={user.id}>
-              {user.name} - {user.position}
-              {user.isDirector && ' (Diretor)'}
-              {user.isLeader && !user.isDirector && ' (Líder)'}
-            </option>
-          ))}
-        </select>
-        {formErrors.responsible && (
-          <p className="text-xs text-red-600 mt-1">{formErrors.responsible}</p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Membros do Time *
-        </label>
-        <div className={`border rounded-lg overflow-hidden ${
-          formErrors.members ? 'border-red-300' : 'border-gray-200'
-        }`}>
-          <div className="max-h-64 overflow-y-auto p-2">
-            {users.map(user => {
-              const isSelected = formData.teamMemberIds.includes(user.id);
-              
-              return (
-                <label
-                  key={user.id}
-                  className={`flex items-center p-3 rounded-lg cursor-pointer transition-all ${
-                    isSelected 
-                      ? 'bg-primary-50 border border-primary-200' 
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                    checked={isSelected}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setFormData({ 
-                          ...formData, 
-                          teamMemberIds: [...formData.teamMemberIds, user.id]
-                        });
-                      } else {
-                        setFormData({ 
-                          ...formData, 
-                          teamMemberIds: formData.teamMemberIds.filter(id => id !== user.id)
-                        });
-                      }
-                    }}
-                  />
-                  <div className="ml-3 flex-1">
-                    <p className="font-medium text-gray-900 text-sm">
-                      {user.name}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      {user.position}
-                      {user.id === formData.teamResponsibleId && (
-                        <span className="ml-2 text-primary-600 font-medium">(Responsável)</span>
-                      )}
-                    </p>
-                  </div>
-                  {user.profileImage ? (
-                    <img
-                      src={user.profileImage}
-                      alt={user.name}
-                      className="h-8 w-8 rounded-full"
-                    />
-                  ) : (
-                    <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-700">
-                      {user.name.charAt(0)}
-                    </div>
-                  )}
-                </label>
-              );
-            })}
-          </div>
-        </div>
-        {formErrors.members && (
-          <p className="text-xs text-red-600 mt-1">{formErrors.members}</p>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderDepartmentForm = () => (
-    <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Nome do Departamento *
-        </label>
-        <input
-          type="text"
-          className={`w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
-            formErrors.departmentName ? 'border-red-300' : ''
-          }`}
-          value={formData.departmentName}
-          onChange={(e) => setFormData({ ...formData, departmentName: e.target.value })}
-          placeholder="Ex: Engenharia, Design, Comercial"
-        />
-        {formErrors.departmentName && (
-          <p className="text-xs text-red-600 mt-1">{formErrors.departmentName}</p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Descrição
-        </label>
-        <textarea
-          className="w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500"
-          rows={3}
-          value={formData.departmentDescription}
-          onChange={(e) => setFormData({ ...formData, departmentDescription: e.target.value })}
-          placeholder="Descreva as responsabilidades do departamento..."
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Objetivos e Metas
-        </label>
-        <textarea
-          className="w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500"
-          rows={3}
-          value={formData.departmentGoals}
-          onChange={(e) => setFormData({ ...formData, departmentGoals: e.target.value })}
-          placeholder="Defina os principais objetivos do departamento..."
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Responsável pelo Departamento *
-        </label>
-        <select
-          className={`w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
-            formErrors.responsible ? 'border-red-300' : ''
-          }`}
-          value={formData.departmentResponsibleId}
-          onChange={(e) => setFormData({ ...formData, departmentResponsibleId: e.target.value })}
-        >
-          <option value="">Selecione o responsável</option>
-          {users.filter(u => u.isLeader || u.isDirector).map(user => (
-            <option key={user.id} value={user.id}>
-              {user.name} - {user.position}
-              {user.isDirector && ' (Diretor)'}
-            </option>
-          ))}
-        </select>
-        {formErrors.responsible && (
-          <p className="text-xs text-red-600 mt-1">{formErrors.responsible}</p>
-        )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 
   return (
@@ -913,40 +1062,32 @@ const UserRegistration = () => {
       {/* Content */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8">
         {/* Tabs */}
-        <div className="flex space-x-1 p-1 bg-gray-100 rounded-lg mb-8">
-          <button
-            onClick={() => setActiveTab('user')}
-            className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-all ${
-              activeTab === 'user'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <User className="h-4 w-4 inline-block mr-2" />
-            Usuário
-          </button>
-          <button
-            onClick={() => setActiveTab('team')}
-            className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-all ${
-              activeTab === 'team'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <UsersIcon className="h-4 w-4 inline-block mr-2" />
-            Time
-          </button>
-          <button
-            onClick={() => setActiveTab('department')}
-            className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-all ${
-              activeTab === 'department'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <Building className="h-4 w-4 inline-block mr-2" />
-            Departamento
-          </button>
+        <div className="flex p-1.5 bg-gray-100/80 backdrop-blur-sm rounded-2xl mb-8">
+          {[
+            { id: 'user', label: 'Usuário', icon: User, color: 'text-secondary-600' },
+            { id: 'team', label: 'Time', icon: UsersIcon, color: 'text-primary-600' },
+            { id: 'department', label: 'Departamento', icon: Building, color: 'text-accent-600' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as TabType)}
+              className={`relative flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center space-x-2 ${
+                activeTab === tab.id
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <tab.icon className={`h-4 w-4 ${activeTab === tab.id ? tab.color : ''}`} />
+              <span>{tab.label}</span>
+              {activeTab === tab.id && (
+                <motion.div
+                  layoutId="activeTabIndicator"
+                  className="absolute inset-0 bg-white rounded-xl shadow-sm -z-10"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+            </button>
+          ))}
         </div>
 
         {/* Form Content */}
@@ -986,21 +1127,30 @@ const UserRegistration = () => {
         </AnimatePresence>
 
         {/* Actions */}
-        <div className="flex justify-end space-x-4 mt-8 pt-6 border-t">
+        <motion.div 
+          className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-8 pt-8 border-t border-gray-100"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
           <Button
             variant="outline"
             onClick={() => navigate('/users')}
+            size="lg"
+            disabled={isLoading}
           >
             Cancelar
           </Button>
           <Button
             variant="primary"
             onClick={handleSubmit}
-            icon={<Save size={18} />}
+            icon={isLoading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+            size="lg"
+            disabled={isLoading}
           >
-            Salvar {activeTab === 'user' ? 'Usuário' : activeTab === 'team' ? 'Time' : 'Departamento'}
+            {isLoading ? 'Salvando...' : `Salvar ${activeTab === 'user' ? 'Usuário' : activeTab === 'team' ? 'Time' : 'Departamento'}`}
           </Button>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

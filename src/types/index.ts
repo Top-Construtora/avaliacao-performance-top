@@ -1,7 +1,5 @@
-// Evaluation status
 export type Status = 'pending' | 'in-progress' | 'completed';
 
-// Employee information
 export interface Employee {
   id: string;
   name: string;
@@ -10,7 +8,6 @@ export interface Employee {
   joinDate: string;
 }
 
-// Evaluation criteria
 export interface Criterion {
   id: string;
   name: string;
@@ -19,14 +16,12 @@ export interface Criterion {
   score?: number;
 }
 
-// Feedback sections
 export interface Feedback {
   strengths: string;
   improvements: string;
   observations: string;
 }
 
-// Complete evaluation
 export interface Evaluation {
   id: string;
   employeeId: string;
@@ -43,7 +38,6 @@ export interface Evaluation {
   isDraft: boolean;
 }
 
-// Summary statistics for dashboard
 export interface EvaluationStats {
   pending: number;
   inProgress: number;
@@ -51,7 +45,6 @@ export interface EvaluationStats {
   total: number;
 }
 
-// Filter options for history
 export interface HistoryFilters {
   employee: string;
   startDate: string;
@@ -63,7 +56,7 @@ export interface Department {
   id: string;
   name: string;
   description?: string;
-  responsibleId?: string; // Responsável pelo departamento (sem hierarquia)
+  responsibleId?: string; 
   createdAt: string;
 }
 
@@ -71,7 +64,7 @@ export interface Team {
   id: string;
   name: string;
   departmentId: string;
-  responsibleId?: string; // Responsável pelo time (sem hierarquia)
+  responsibleId?: string; 
   memberIds: string[];
   description?: string;
   createdAt: string;
@@ -92,7 +85,7 @@ export interface User {
   phone?: string;
   birthDate?: string;
   age?: number;
-  reportsTo?: string; // Superior hierárquico direto
+  reportsTo?: string; 
   profileImage?: string; 
 }
 
