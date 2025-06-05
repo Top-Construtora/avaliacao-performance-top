@@ -8,7 +8,6 @@ import {
  ArrowLeft,
  Save,
  Users,
- User,
  Award,
  CheckCircle,
  Target,
@@ -17,9 +16,9 @@ import {
  Briefcase,
  AlertCircle,
  TrendingUp,
- GitMerge,
+ Handshake,
+ MessageSquare,
  Sparkles,
- MessageSquare
 } from 'lucide-react';
 
 interface ScoreMap {
@@ -387,7 +386,7 @@ const Consensus = () => {
            </button>
            <div>
              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
-               <GitMerge className="h-6 w-6 sm:h-8 sm:w-8 text-primary-500 mr-3" />
+               <Handshake className="h-6 w-6 sm:h-8 sm:w-8 text-primary-500 mr-3" />
                Reunião de Consenso
              </h1>
              <p className="text-gray-600 mt-1 text-sm sm:text-base">Definição colaborativa das notas finais</p>
@@ -536,8 +535,8 @@ const Consensus = () => {
                                <div className="bg-white rounded-lg p-4 border border-gray-200">
                                  <div className="flex items-center justify-between mb-4">
                                    <h5 className="text-sm font-medium text-gray-700 flex items-center">
-                                     <Users className="h-4 w-4 mr-2 text-gray-500" />
-                                     Avaliações Individuais
+                                     <Sparkles className="h-4 w-4 mr-2 text-gray-500" />
+                                     Avaliações
                                    </h5>
                                  </div>
                                  <div className="flex items-start justify-center space-x-8">
@@ -561,7 +560,7 @@ const Consensus = () => {
                                <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-lg p-4 border border-primary-200">
                                  <div className="flex items-center justify-between mb-4">
                                    <h5 className="text-sm font-medium text-gray-700 flex items-center">
-                                     <Sparkles className="h-4 w-4 mr-2 text-primary-500" />
+                                     <Handshake className="h-4 w-4 mr-2 text-primary-500" />
                                      Nota de Consenso
                                    </h5>
                                    {consensusScore > 0 && (
