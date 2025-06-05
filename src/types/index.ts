@@ -88,4 +88,17 @@ export interface User {
   joinDate: string;
   avatar?: string;
   active: boolean;
+  phone?: string;
+  birthDate?: string;
+  age?: number;
+  directReports?: string[]; 
+  reportsTo?: string; 
+  profileImage?: string; 
+}
+
+export interface HierarchicalRelation {
+  leaderId: string;
+  subordinateId: string;
+  teamId: string;
+  createdAt: string;
 }

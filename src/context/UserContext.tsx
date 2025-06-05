@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { User, Team, Department } from '../types';
+import { User, Team, Department, HierarchicalRelation } from '../types';
 import { toast } from 'react-hot-toast';
 
 interface UserContextType {
   users: User[];
   teams: Team[];
   departments: Department[];
+  hierarchicalRelations: HierarchicalRelation[];
   addUser: (user: Omit<User, 'id'>) => void;
   updateUser: (id: string, user: Partial<User>) => void;
   deleteUser: (id: string) => void;
@@ -22,11 +23,30 @@ interface UserContextType {
   getDepartmentById: (id: string) => Department | undefined;
   getTeamById: (id: string) => Team | undefined;
   getUserById: (id: string) => User | undefined;
+  addHierarchicalRelation: (relation: Omit<HierarchicalRelation, 'createdAt'>) => void;
+  removeHierarchicalRelation: (leaderId: string, subordinateId: string) => void;
+  getSubordinates: (leaderId: string) => User[];
+  getLeader: (subordinateId: string) => User | undefined;
+  calculateAge: (birthDate: string) => number;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-// Dados iniciais
+// Função para calcular idade
+const calculateAge = (birthDate: string): number => {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  
+  return age;
+};
+
+// Dados iniciais atualizados
 const initialDepartments: Department[] = [
   { id: 'dept1', name: 'Engenharia', description: 'Desenvolvimento de Software', createdAt: '2024-01-01' },
   { id: 'dept2', name: 'Design', description: 'UX/UI e Design Gráfico', createdAt: '2024-01-01' },
@@ -51,9 +71,14 @@ const initialUsers: User[] = [
     isDirector: true,
     teamIds: ['team_dir'],
     leaderOfTeamIds: ['team_dir'],
-    departmentIds: ['dept1', 'dept2', 'dept3', 'dept4'], // Diretores pertencem a todos os departamentos
+    departmentIds: ['dept1', 'dept2', 'dept3', 'dept4'],
     joinDate: '2018-01-10',
-    active: true
+    active: true,
+    phone: '(11) 98765-4321',
+    birthDate: '1975-03-15',
+    age: 49,
+    directReports: ['user1', 'user2'],
+    profileImage: undefined
   },
   {
     id: 'user_dir2',
@@ -66,7 +91,12 @@ const initialUsers: User[] = [
     leaderOfTeamIds: [],
     departmentIds: ['dept1', 'dept2', 'dept3', 'dept4'],
     joinDate: '2019-03-15',
-    active: true
+    active: true,
+    phone: '(11) 98765-4322',
+    birthDate: '1978-07-22',
+    age: 46,
+    directReports: [],
+    profileImage: undefined
   },
   {
     id: 'user1',
@@ -79,7 +109,13 @@ const initialUsers: User[] = [
     leaderOfTeamIds: ['team1', 'team2'],
     departmentIds: ['dept1'],
     joinDate: '2020-03-15',
-    active: true
+    active: true,
+    phone: '(11) 98765-4323',
+    birthDate: '1985-05-10',
+    age: 39,
+    reportsTo: 'user_dir1',
+    directReports: ['user4', 'user5'],
+    profileImage: undefined
   },
   {
     id: 'user2',
@@ -92,7 +128,13 @@ const initialUsers: User[] = [
     leaderOfTeamIds: ['team3'],
     departmentIds: ['dept2'],
     joinDate: '2021-06-10',
-    active: true
+    active: true,
+    phone: '(11) 98765-4324',
+    birthDate: '1990-12-03',
+    age: 33,
+    reportsTo: 'user_dir1',
+    directReports: ['user6'],
+    profileImage: undefined
   },
   {
     id: 'user4',
@@ -105,7 +147,13 @@ const initialUsers: User[] = [
     leaderOfTeamIds: [],
     departmentIds: ['dept1'],
     joinDate: '2022-01-20',
-    active: true
+    active: true,
+    phone: '(11) 98765-4325',
+    birthDate: '1995-09-18',
+    age: 29,
+    reportsTo: 'user1',
+    directReports: [],
+    profileImage: undefined
   },
   {
     id: 'user5',
@@ -118,7 +166,13 @@ const initialUsers: User[] = [
     leaderOfTeamIds: [],
     departmentIds: ['dept1'],
     joinDate: '2021-04-12',
-    active: true
+    active: true,
+    phone: '(11) 98765-4326',
+    birthDate: '1992-11-25',
+    age: 31,
+    reportsTo: 'user1',
+    directReports: [],
+    profileImage: undefined
   },
   {
     id: 'user6',
@@ -131,24 +185,41 @@ const initialUsers: User[] = [
     leaderOfTeamIds: [],
     departmentIds: ['dept2'],
     joinDate: '2022-08-15',
-    active: true
+    active: true,
+    phone: '(11) 98765-4327',
+    birthDate: '1993-04-07',
+    age: 31,
+    reportsTo: 'user2',
+    directReports: [],
+    profileImage: undefined
   }
+];
+
+const initialHierarchicalRelations: HierarchicalRelation[] = [
+  { leaderId: 'user_dir1', subordinateId: 'user1', teamId: 'team1', createdAt: '2020-03-15' },
+  { leaderId: 'user_dir1', subordinateId: 'user2', teamId: 'team3', createdAt: '2021-06-10' },
+  { leaderId: 'user1', subordinateId: 'user4', teamId: 'team1', createdAt: '2022-01-20' },
+  { leaderId: 'user1', subordinateId: 'user5', teamId: 'team2', createdAt: '2021-04-12' },
+  { leaderId: 'user2', subordinateId: 'user6', teamId: 'team3', createdAt: '2022-08-15' },
 ];
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [teams, setTeams] = useState<Team[]>(initialTeams);
   const [departments, setDepartments] = useState<Department[]>(initialDepartments);
+  const [hierarchicalRelations, setHierarchicalRelations] = useState<HierarchicalRelation[]>(initialHierarchicalRelations);
 
   // Load from localStorage
   useEffect(() => {
     const savedUsers = localStorage.getItem('users');
     const savedTeams = localStorage.getItem('teams');
     const savedDepartments = localStorage.getItem('departments');
+    const savedRelations = localStorage.getItem('hierarchicalRelations');
     
     if (savedUsers) setUsers(JSON.parse(savedUsers));
     if (savedTeams) setTeams(JSON.parse(savedTeams));
     if (savedDepartments) setDepartments(JSON.parse(savedDepartments));
+    if (savedRelations) setHierarchicalRelations(JSON.parse(savedRelations));
   }, []);
 
   // Save to localStorage
@@ -164,11 +235,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('departments', JSON.stringify(departments));
   }, [departments]);
 
+  useEffect(() => {
+    localStorage.setItem('hierarchicalRelations', JSON.stringify(hierarchicalRelations));
+  }, [hierarchicalRelations]);
+
   // User operations
   const addUser = (userData: Omit<User, 'id'>) => {
     const newUser: User = {
       ...userData,
       id: `user${Date.now()}`,
+      age: userData.birthDate ? calculateAge(userData.birthDate) : undefined,
     };
     
     // If director, ensure Diretoria team exists
@@ -211,7 +287,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateUser = (id: string, userData: Partial<User>) => {
-    setUsers(users.map(user => user.id === id ? { ...user, ...userData } : user));
+    const updatedData = { ...userData };
+    if (userData.birthDate) {
+      updatedData.age = calculateAge(userData.birthDate);
+    }
+    setUsers(users.map(user => user.id === id ? { ...user, ...updatedData } : user));
     toast.success('Usuário atualizado com sucesso!');
   };
 
@@ -234,12 +314,35 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
+    // Check if user has direct reports
+    if (user.directReports && user.directReports.length > 0) {
+      toast.error('Não é possível excluir um usuário com subordinados diretos. Reatribua os subordinados primeiro.');
+      return;
+    }
+
     // Remove user from teams
     teams.forEach(team => {
       if (team.memberIds.includes(id)) {
         updateTeam(team.id, {
           memberIds: team.memberIds.filter(memberId => memberId !== id)
         });
+      }
+    });
+
+    // Remove hierarchical relations
+    setHierarchicalRelations(hierarchicalRelations.filter(
+      rel => rel.leaderId !== id && rel.subordinateId !== id
+    ));
+
+    // Update other users' directReports and reportsTo
+    users.forEach(u => {
+      if (u.directReports?.includes(id)) {
+        updateUser(u.id, {
+          directReports: u.directReports.filter(subId => subId !== id)
+        });
+      }
+      if (u.reportsTo === id) {
+        updateUser(u.id, { reportsTo: undefined });
       }
     });
 
@@ -301,6 +404,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
+    // Remove hierarchical relations for this team
+    setHierarchicalRelations(hierarchicalRelations.filter(rel => rel.teamId !== id));
+
     setTeams(teams.filter(team => team.id !== id));
     toast.success('Time removido com sucesso!');
   };
@@ -351,6 +457,65 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     toast.success('Departamento removido com sucesso!');
   };
 
+  // Hierarchical relation operations
+  const addHierarchicalRelation = (relation: Omit<HierarchicalRelation, 'createdAt'>) => {
+    const newRelation: HierarchicalRelation = {
+      ...relation,
+      createdAt: new Date().toISOString(),
+    };
+    
+    // Check if relation already exists
+    const exists = hierarchicalRelations.some(
+      rel => rel.leaderId === relation.leaderId && rel.subordinateId === relation.subordinateId
+    );
+    
+    if (exists) {
+      toast.error('Esta relação hierárquica já existe.');
+      return;
+    }
+    
+    setHierarchicalRelations([...hierarchicalRelations, newRelation]);
+    
+    // Update users' directReports and reportsTo
+    const leader = users.find(u => u.id === relation.leaderId);
+    const subordinate = users.find(u => u.id === relation.subordinateId);
+    
+    if (leader && subordinate) {
+      updateUser(relation.leaderId, {
+        directReports: [...(leader.directReports || []), relation.subordinateId]
+      });
+      updateUser(relation.subordinateId, {
+        reportsTo: relation.leaderId
+      });
+    }
+    
+    toast.success('Relação hierárquica criada com sucesso!');
+  };
+
+  const removeHierarchicalRelation = (leaderId: string, subordinateId: string) => {
+    setHierarchicalRelations(hierarchicalRelations.filter(
+      rel => !(rel.leaderId === leaderId && rel.subordinateId === subordinateId)
+    ));
+    
+    // Update users' directReports and reportsTo
+    const leader = users.find(u => u.id === leaderId);
+    const subordinate = users.find(u => u.id === subordinateId);
+    
+    if (leader) {
+      updateUser(leaderId, {
+        directReports: leader.directReports?.filter(id => id !== subordinateId) || []
+      });
+    }
+    
+    if (subordinate && subordinate.reportsTo === leaderId) {
+      updateUser(subordinateId, {
+        reportsTo: undefined
+      });
+    }
+    
+    toast.success('Relação hierárquica removida com sucesso!');
+  };
+
   // Helper functions
   const getUsersByTeam = (teamId: string) => {
     const team = teams.find(t => t.id === teamId);
@@ -374,10 +539,26 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const getTeamById = (id: string) => teams.find(t => t.id === id);
   const getUserById = (id: string) => users.find(u => u.id === id);
 
+  const getSubordinates = (leaderId: string) => {
+    const subordinateIds = hierarchicalRelations
+      .filter(rel => rel.leaderId === leaderId)
+      .map(rel => rel.subordinateId);
+    return users.filter(user => subordinateIds.includes(user.id));
+  };
+
+  const getLeader = (subordinateId: string) => {
+    const relation = hierarchicalRelations.find(rel => rel.subordinateId === subordinateId);
+    if (relation) {
+      return users.find(user => user.id === relation.leaderId);
+    }
+    return undefined;
+  };
+
   const value = {
     users,
     teams,
     departments,
+    hierarchicalRelations,
     addUser,
     updateUser,
     deleteUser,
@@ -394,6 +575,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     getDepartmentById,
     getTeamById,
     getUserById,
+    addHierarchicalRelation,
+    removeHierarchicalRelation,
+    getSubordinates,
+    getLeader,
+    calculateAge,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

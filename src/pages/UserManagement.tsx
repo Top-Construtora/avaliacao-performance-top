@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useUsers } from '../context/UserContext';
@@ -10,18 +10,21 @@ import {
   ArrowUpDown, Sparkles, Hash, Info, ChevronLeft, Zap,
   Crown, Target, Layers, Eye, EyeOff, Copy, Download,
   FolderPlus, UserCog, MapPin, FileText, BarChart,
-  User
+  User, Phone, CalendarDays, Camera, Upload, Link2,
+  GitBranch, Network, UserX, ArrowRight
 } from 'lucide-react';
 
 type TabType = 'users' | 'teams' | 'departments';
 type ViewMode = 'grid' | 'list';
-type WizardStep = 'type' | 'basic' | 'role' | 'teams' | 'review';
+type WizardStep = 'type' | 'basic' | 'personal' | 'role' | 'teams' | 'hierarchy' | 'review';
 
 const UserManagement = () => {
   const { 
     users, teams, departments, addUser, updateUser, deleteUser,
     addTeam, updateTeam, deleteTeam, addDepartment, updateDepartment,
     deleteDepartment, getUserById, getTeamById, getDepartmentById,
+    addHierarchicalRelation, removeHierarchicalRelation, getSubordinates,
+    getLeader, calculateAge
   } = useUsers();
 
   const [activeTab, setActiveTab] = useState<TabType>('users');
@@ -37,6 +40,7 @@ const UserManagement = () => {
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'department'>('name');
   const [wizardStep, setWizardStep] = useState<WizardStep>('type');
   const [showPassword, setShowPassword] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form states with better structure
   const [formData, setFormData] = useState({
@@ -49,6 +53,15 @@ const UserManagement = () => {
     isDirector: false,
     teamIds: [] as string[],
     profileType: 'regular' as 'regular' | 'leader' | 'director',
+    
+    // New personal fields
+    phone: '',
+    birthDate: '',
+    profileImage: null as string | null,
+    
+    // Hierarchical fields
+    reportsTo: '',
+    directReports: [] as string[],
     
     // Team fields
     teamName: '',
@@ -64,6 +77,32 @@ const UserManagement = () => {
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  // Phone mask function
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 11) {
+      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+    return value;
+  };
+
+  // Handle profile image upload
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('A imagem deve ter no máximo 5MB');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, profileImage: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Quick templates
   const positionTemplates = [
@@ -94,8 +133,10 @@ const UserManagement = () => {
   const wizardSteps = modalType === 'user' ? [
     { id: 'type', label: 'Tipo', icon: UserCheck },
     { id: 'basic', label: 'Dados Básicos', icon: User },
+    { id: 'personal', label: 'Dados Pessoais', icon: CalendarDays },
     { id: 'role', label: 'Função', icon: Briefcase },
     { id: 'teams', label: 'Times', icon: Users },
+    { id: 'hierarchy', label: 'Hierarquia', icon: GitBranch },
     { id: 'review', label: 'Revisar', icon: Check },
   ] : [];
 
@@ -112,11 +153,24 @@ const UserManagement = () => {
           errors.email = 'Email inválido';
         }
         if (!editingItem && !formData.password.trim()) errors.password = 'Senha é obrigatória';
+      } else if (wizardStep === 'personal') {
+        if (formData.phone && !/^\(\d{2}\) \d{5}-\d{4}$/.test(formData.phone)) {
+          errors.phone = 'Telefone inválido';
+        }
+        if (formData.birthDate) {
+          const age = calculateAge(formData.birthDate);
+          if (age < 16) errors.birthDate = 'Idade mínima: 16 anos';
+          if (age > 100) errors.birthDate = 'Data de nascimento inválida';
+        }
       } else if (wizardStep === 'role') {
         if (!formData.position.trim()) errors.position = 'Cargo é obrigatório';
       } else if (wizardStep === 'teams') {
         if (formData.teamIds.length === 0 && formData.profileType !== 'director') {
           errors.teams = 'Selecione pelo menos um time';
+        }
+      } else if (wizardStep === 'hierarchy') {
+        if (formData.profileType === 'regular' && !formData.reportsTo) {
+          errors.reportsTo = 'Selecione um líder';
         }
       }
     } else if (modalType === 'team') {
@@ -166,6 +220,11 @@ const UserManagement = () => {
           isDirector: item.isDirector || false,
           teamIds: item.teamIds,
           profileType: item.isDirector ? 'director' : item.isLeader ? 'leader' : 'regular',
+          phone: item.phone || '',
+          birthDate: item.birthDate || '',
+          profileImage: item.profileImage || null,
+          reportsTo: item.reportsTo || '',
+          directReports: item.directReports || [],
         });
       } else if (type === 'team') {
         setFormData({
@@ -195,6 +254,11 @@ const UserManagement = () => {
         isDirector: false,
         teamIds: [],
         profileType: 'regular',
+        phone: '',
+        birthDate: '',
+        profileImage: null,
+        reportsTo: '',
+        directReports: [],
         teamName: '',
         teamDepartmentId: '',
         teamLeaderId: '',
@@ -229,12 +293,43 @@ const UserManagement = () => {
             }).filter(Boolean) as string[])],
         joinDate: editingItem?.joinDate || new Date().toISOString().split('T')[0],
         active: true,
+        phone: formData.phone,
+        birthDate: formData.birthDate,
+        profileImage: formData.profileImage,
+        reportsTo: formData.reportsTo || undefined,
+        directReports: formData.directReports,
       };
 
       if (editingItem) {
-        updateUser(editingItem.id, userData);
+        updateUser(editingItem.id, { ...userData, profileImage: userData.profileImage ?? undefined });
+        
+        // Update hierarchical relations
+        if (formData.reportsTo && formData.reportsTo !== editingItem.reportsTo) {
+          if (editingItem.reportsTo) {
+            removeHierarchicalRelation(editingItem.reportsTo, editingItem.id);
+          }
+          const teamId = formData.teamIds[0] || teams[0].id;
+          addHierarchicalRelation({
+            leaderId: formData.reportsTo,
+            subordinateId: editingItem.id,
+            teamId: teamId
+          });
+        }
       } else {
-        addUser(userData);
+        const newUserId = `user${Date.now()}`;
+        addUser({ ...userData, profileImage: userData.profileImage ?? undefined });
+        
+        // Create hierarchical relation if needed
+        if (formData.reportsTo) {
+          const teamId = formData.teamIds[0] || teams[0].id;
+          setTimeout(() => {
+            addHierarchicalRelation({
+              leaderId: formData.reportsTo,
+              subordinateId: newUserId,
+              teamId: teamId
+            });
+          }, 100);
+        }
       }
     } else if (modalType === 'team') {
       if (!formData.teamMemberIds.includes(formData.teamLeaderId)) {
@@ -545,6 +640,113 @@ const UserManagement = () => {
           </div>
         );
 
+      case 'personal':
+        return (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">
+              Informações pessoais
+            </h3>
+            
+            {/* Profile Image Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Foto de perfil
+              </label>
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <div className="h-24 w-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                    {formData.profileImage ? (
+                      <img 
+                        src={formData.profileImage} 
+                        alt="Profile" 
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <Camera className="h-8 w-8 text-gray-400" />
+                    )}
+                  </div>
+                  {formData.profileImage && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, profileImage: null })}
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Enviar foto
+                  </button>
+                  <p className="text-xs text-gray-500 mt-1">JPG, PNG ou GIF até 5MB</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Telefone
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="tel"
+                  className={`w-full pl-10 rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                    formErrors.phone ? 'border-red-300' : ''
+                  }`}
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
+                  placeholder="(11) 98765-4321"
+                  maxLength={15}
+                />
+              </div>
+              {formErrors.phone && (
+                <p className="text-xs text-red-600 mt-1">{formErrors.phone}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Data de nascimento
+              </label>
+              <div className="relative">
+                <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="date"
+                  className={`w-full pl-10 rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                    formErrors.birthDate ? 'border-red-300' : ''
+                  }`}
+                  value={formData.birthDate}
+                  onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split('T')[0]}
+                  min={new Date(new Date().setFullYear(new Date().getFullYear() - 100)).toISOString().split('T')[0]}
+                />
+              </div>
+              {formErrors.birthDate && (
+                <p className="text-xs text-red-600 mt-1">{formErrors.birthDate}</p>
+              )}
+              {formData.birthDate && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Idade: {calculateAge(formData.birthDate)} anos
+                </p>
+              )}
+            </div>
+          </div>
+        );
+
       case 'role':
         return (
           <div className="space-y-4">
@@ -768,11 +970,142 @@ const UserManagement = () => {
           </div>
         );
 
+        case 'hierarchy':
+        return (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">
+              Estrutura hierárquica
+            </h3>
+            
+            {formData.profileType === 'director' ? (
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <Network className="h-5 w-5 text-purple-600 mr-3" />
+                  <div>
+                    <p className="font-medium text-purple-900">
+                      Posição no topo da hierarquia
+                    </p>
+                    <p className="text-sm text-purple-700 mt-1">
+                      Diretores não reportam a ninguém e podem ter outros líderes como subordinados diretos.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : formData.profileType === 'leader' ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Liderado por
+                  </label>
+                  <select
+                    className="w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500"
+                    value={formData.reportsTo}
+                    onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
+                  >
+                    <option value="">Selecione um superior (opcional)</option>
+                    {users
+                      .filter(u => u.isDirector || (u.isLeader && u.id !== editingItem?.id))
+                      .map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.name} - {user.position}
+                          {user.isDirector && ' (Diretor)'}
+                        </option>
+                      ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Líderes podem reportar para diretores ou outros líderes
+                  </p>
+                </div>
+
+                <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <Info className="h-5 w-5 text-primary-600 mr-3 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium text-primary-900 mb-1">
+                        Subordinados diretos
+                      </p>
+                      <p className="text-primary-700">
+                        Os membros dos times que você lidera serão automaticamente seus subordinados diretos.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Reporta para *
+                  </label>
+                  <select
+                    className={`w-full rounded-lg border-gray-200 focus:border-primary-500 focus:ring-primary-500 ${
+                      formErrors.reportsTo ? 'border-red-300' : ''
+                    }`}
+                    value={formData.reportsTo}
+                    onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
+                  >
+                    <option value="">Selecione seu líder direto</option>
+                    {(() => {
+                      // Get leaders from selected teams
+                      const selectedTeamLeaders = formData.teamIds
+                        .map(teamId => {
+                          const team = teams.find(t => t.id === teamId);
+                          return team ? getUserById(team.leaderId) : null;
+                        })
+                        .filter(Boolean);
+                      
+                      // Get all leaders and directors
+                      const allLeaders = users.filter(u => (u.isLeader || u.isDirector) && u.id !== editingItem?.id);
+                      
+                      // Combine and remove duplicates
+                      const availableLeaders = Array.from(
+                        new Map([...selectedTeamLeaders, ...allLeaders].map(user => [user!.id, user])).values()
+                      ).filter(Boolean) as typeof users;
+
+                      return availableLeaders.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.name} - {user.position}
+                          {user.isDirector && ' (Diretor)'}
+                          {selectedTeamLeaders.some(l => l?.id === user.id) && ' (Líder do time)'}
+                        </option>
+                      ));
+                    })()}
+                  </select>
+                  {formErrors.reportsTo && (
+                    <p className="text-xs text-red-600 mt-1">{formErrors.reportsTo}</p>
+                  )}
+                </div>
+
+                {formData.reportsTo && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Estrutura hierárquica</p>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <div className="flex items-center">
+                        <User className="h-4 w-4 text-gray-500 mr-1" />
+                        <span className="text-gray-600">{formData.name || 'Novo usuário'}</span>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-gray-400" />
+                      <div className="flex items-center">
+                        <Shield className="h-4 w-4 text-primary-500 mr-1" />
+                        <span className="text-gray-800 font-medium">
+                          {getUserById(formData.reportsTo)?.name}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+
       case 'review':
         const selectedTeams = teams.filter(t => formData.teamIds.includes(t.id));
         const selectedDepartments = [...new Set(selectedTeams.map(t => t.departmentId))].map(id => 
           departments.find(d => d.id === id)
         ).filter(Boolean);
+        const reportingTo = formData.reportsTo ? getUserById(formData.reportsTo) : null;
+        const age = formData.birthDate ? calculateAge(formData.birthDate) : null;
         
         return (
           <div className="space-y-4">
@@ -808,24 +1141,66 @@ const UserManagement = () => {
                 </div>
               </div>
 
-              {/* Basic info */}
+              {/* Profile image and basic info */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Informações básicas</h4>
-                <dl className="space-y-2">
-                  <div className="flex justify-between">
-                    <dt className="text-sm text-gray-600">Nome:</dt>
-                    <dd className="text-sm font-medium text-gray-900">{formData.name}</dd>
+                <div className="flex items-start space-x-4">
+                  {formData.profileImage && (
+                    <div className="h-16 w-16 rounded-full overflow-hidden flex-shrink-0">
+                      <img 
+                        src={formData.profileImage} 
+                        alt="Profile" 
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Informações básicas</h4>
+                    <dl className="space-y-2">
+                      <div className="flex justify-between">
+                        <dt className="text-sm text-gray-600">Nome:</dt>
+                        <dd className="text-sm font-medium text-gray-900">{formData.name}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-sm text-gray-600">Email:</dt>
+                        <dd className="text-sm font-medium text-gray-900">{formData.email}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-sm text-gray-600">Cargo:</dt>
+                        <dd className="text-sm font-medium text-gray-900">{formData.position}</dd>
+                      </div>
+                    </dl>
                   </div>
-                  <div className="flex justify-between">
-                    <dt className="text-sm text-gray-600">Email:</dt>
-                    <dd className="text-sm font-medium text-gray-900">{formData.email}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-sm text-gray-600">Cargo:</dt>
-                    <dd className="text-sm font-medium text-gray-900">{formData.position}</dd>
-                  </div>
-                </dl>
+                </div>
               </div>
+
+              {/* Personal info */}
+              {(formData.phone || formData.birthDate) && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Informações pessoais</h4>
+                  <dl className="space-y-2">
+                    {formData.phone && (
+                      <div className="flex justify-between">
+                        <dt className="text-sm text-gray-600">Telefone:</dt>
+                        <dd className="text-sm font-medium text-gray-900">{formData.phone}</dd>
+                      </div>
+                    )}
+                    {formData.birthDate && (
+                      <>
+                        <div className="flex justify-between">
+                          <dt className="text-sm text-gray-600">Data de nascimento:</dt>
+                          <dd className="text-sm font-medium text-gray-900">
+                            {new Date(formData.birthDate).toLocaleDateString('pt-BR')}
+                          </dd>
+                        </div>
+                        <div className="flex justify-between">
+                          <dt className="text-sm text-gray-600">Idade:</dt>
+                          <dd className="text-sm font-medium text-gray-900">{age} anos</dd>
+                        </div>
+                      </>
+                    )}
+                  </dl>
+                </div>
+              )}
 
               {/* Teams allocation */}
               <div className="bg-gray-50 rounded-lg p-4">
@@ -871,6 +1246,30 @@ const UserManagement = () => {
                   </>
                 )}
               </div>
+
+              {/* Hierarchy */}
+              {reportingTo && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Hierarquia</h4>
+                  <div className="flex items-center space-x-2 text-sm">
+                    <div className="flex items-center">
+                      <User className="h-4 w-4 text-gray-500 mr-1" />
+                      <span className="text-gray-600">{formData.name}</span>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                    <div className="flex items-center">
+                      {reportingTo.isDirector ? (
+                        <Sparkles className="h-4 w-4 text-purple-500 mr-1" />
+                      ) : (
+                        <Shield className="h-4 w-4 text-primary-500 mr-1" />
+                      )}
+                      <span className="text-gray-800 font-medium">
+                        {reportingTo.name}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -878,6 +1277,174 @@ const UserManagement = () => {
       default:
         return null;
     }
+  };
+
+  const renderUserCard = (user: typeof users[0]) => {
+    const userTeams = teams.filter(team => user.teamIds.includes(team.id));
+    const userDepartments = departments.filter(dept => user.departmentIds.includes(dept.id));
+    const subordinates = getSubordinates(user.id);
+    const leader = getLeader(user.id);
+    
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        whileHover={{ y: -2 }}
+        className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200"
+      >
+        {/* Header with visual hierarchy */}
+        <div className="p-5 border-b border-gray-50">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                {user.profileImage ? (
+                  <img 
+                    src={user.profileImage} 
+                    alt={user.name}
+                    className="h-12 w-12 rounded-xl object-cover"
+                  />
+                ) : (
+                  <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-white font-bold shadow-sm ${
+                    user.isDirector 
+                      ? 'bg-gradient-to-br from-purple-500 to-purple-700' 
+                      : user.isLeader 
+                        ? 'bg-gradient-to-br from-primary-500 to-primary-700' 
+                        : 'bg-gradient-to-br from-gray-400 to-gray-600'
+                  }`}>
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                {user.isDirector && (
+                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-md">
+                    <Sparkles className="h-3 w-3 text-purple-500" />
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                <h3 className="font-semibold text-gray-900">{user.name}</h3>
+                <p className="text-sm text-gray-600">{user.position}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={() => openModal('user', user)}
+                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Editar"
+              >
+                <Edit className="h-4 w-4 text-gray-500" />
+              </button>
+              <button
+                onClick={() => handleDelete('user', user.id)}
+                className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                title="Excluir"
+              >
+                <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-600" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Role badge */}
+          {(user.isDirector || user.isLeader) && (
+            <div className="mt-3">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                user.isDirector
+                  ? 'bg-purple-100 text-purple-800'
+                  : 'bg-primary-100 text-primary-800'
+              }`}>
+                {user.isDirector ? (
+                  <>
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Diretor
+                  </>
+                ) : (
+                  <>
+                    <Crown className="h-3 w-3 mr-1" />
+                    Líder
+                  </>
+                )}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Content with better organization */}
+        <div className="p-5 space-y-3">
+          <div className="space-y-2">
+            <div className="flex items-center text-gray-600">
+              <Mail className="h-4 w-4 mr-2 text-gray-400" />
+              <span className="text-sm truncate">{user.email}</span>
+            </div>
+            
+            {user.phone && (
+              <div className="flex items-center text-gray-600">
+                <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                <span className="text-sm">{user.phone}</span>
+              </div>
+            )}
+            
+            <div className="flex items-center text-gray-600">
+              <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+              <span className="text-sm">
+                Desde {new Date(user.joinDate).toLocaleDateString('pt-BR', { 
+                  month: 'short', 
+                  year: 'numeric' 
+                })}
+              </span>
+            </div>
+            
+            {user.age && (
+              <div className="flex items-center text-gray-600">
+                <CalendarDays className="h-4 w-4 mr-2 text-gray-400" />
+                <span className="text-sm">{user.age} anos</span>
+              </div>
+            )}
+          </div>
+
+          {/* Hierarchy info */}
+          {(leader || subordinates.length > 0) && (
+            <div className="pt-3 border-t border-gray-100">
+              {leader && (
+                <div className="flex items-center text-sm text-gray-600 mb-2">
+                  <GitBranch className="h-4 w-4 mr-2 text-gray-400" />
+                  <span>Reporta para: </span>
+                  <span className="font-medium text-gray-800 ml-1">{leader.name}</span>
+                </div>
+              )}
+              {subordinates.length > 0 && (
+                <div className="flex items-center text-sm text-gray-600">
+                  <Network className="h-4 w-4 mr-2 text-gray-400" />
+                  <span>{subordinates.length} subordinado{subordinates.length > 1 ? 's' : ''}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Teams section */}
+          {userTeams.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-2">Times</p>
+              <div className="flex flex-wrap gap-1.5">
+                {userTeams.map(team => (
+                  <span
+                    key={team.id}
+                    className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-700"
+                  >
+                    {team.name}
+                    {user.leaderOfTeamIds?.includes(team.id) && (
+                      <Shield className="h-3 w-3 ml-1 text-primary-600" />
+                    )}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    );
   };
 
   const renderTeamModal = () => (
@@ -991,9 +1558,10 @@ const UserManagement = () => {
           onChange={(e) => setFormData({ ...formData, teamLeaderId: e.target.value })}
         >
           <option value="">Selecione um líder</option>
-          {users.filter(u => u.isLeader && !u.isDirector).map(user => (
+          {users.filter(u => u.isLeader).map(user => (
             <option key={user.id} value={user.id}>
               {user.name} - {user.position}
+              {user.isDirector && ' (Diretor)'}
             </option>
           ))}
         </select>
@@ -1086,6 +1654,17 @@ const UserManagement = () => {
                     />
                     <div className="ml-3 flex-1">
                       <div className="flex items-center">
+                        {user.profileImage ? (
+                          <img 
+                            src={user.profileImage} 
+                            alt={user.name}
+                            className="h-6 w-6 rounded-full mr-2"
+                          />
+                        ) : (
+                          <div className="h-6 w-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-white mr-2">
+                            {user.name.charAt(0)}
+                          </div>
+                        )}
                         <span className="text-sm text-gray-900">{user.name}</span>
                         {user.isDirector && <Sparkles className="h-3 w-3 ml-2 text-purple-600" />}
                         {user.isLeader && !user.isDirector && <Shield className="h-3 w-3 ml-2 text-primary-600" />}
@@ -1095,7 +1674,7 @@ const UserManagement = () => {
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-gray-500">{user.position}</span>
+                      <span className="text-xs text-gray-500 ml-8">{user.position}</span>
                     </div>
                   </label>
                 ))}
@@ -1112,6 +1691,23 @@ const UserManagement = () => {
           <span>{formData.teamMemberIds.length} membros selecionados</span>
         </div>
       </div>
+
+      {/* Hierarchical Relations Info */}
+      {formData.teamLeaderId && formData.teamMemberIds.length > 0 && (
+        <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <GitBranch className="h-5 w-5 text-primary-600 mr-3 flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-primary-900 mb-1">
+                Relações hierárquicas
+              </p>
+              <p className="text-primary-700">
+                Ao criar este time, o líder selecionado será automaticamente definido como superior hierárquico de todos os membros.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -1222,131 +1818,6 @@ const UserManagement = () => {
     </div>
   );
 
-  const renderUserCard = (user: typeof users[0]) => {
-    const userTeams = teams.filter(team => user.teamIds.includes(team.id));
-    const userDepartments = departments.filter(dept => user.departmentIds.includes(dept.id));
-    
-    return (
-      <motion.div
-        layout
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        whileHover={{ y: -2 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200"
-      >
-        {/* Header with visual hierarchy */}
-        <div className="p-5 border-b border-gray-50">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-white font-bold shadow-sm ${
-                  user.isDirector 
-                    ? 'bg-gradient-to-br from-purple-500 to-purple-700' 
-                    : user.isLeader 
-                      ? 'bg-gradient-to-br from-primary-500 to-primary-700' 
-                      : 'bg-gradient-to-br from-gray-400 to-gray-600'
-                }`}>
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                {user.isDirector && (
-                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-md">
-                    <Sparkles className="h-3 w-3 text-purple-500" />
-                  </div>
-                )}
-              </div>
-              
-              <div>
-                <h3 className="font-semibold text-gray-900">{user.name}</h3>
-                <p className="text-sm text-gray-600">{user.position}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-1">
-              <button
-                onClick={() => openModal('user', user)}
-                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Editar"
-              >
-                <Edit className="h-4 w-4 text-gray-500" />
-              </button>
-              <button
-                onClick={() => handleDelete('user', user.id)}
-                className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
-                title="Excluir"
-              >
-                <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-600" />
-              </button>
-            </div>
-          </div>
-          
-          {/* Role badge */}
-          {(user.isDirector || user.isLeader) && (
-            <div className="mt-3">
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                user.isDirector
-                  ? 'bg-purple-100 text-purple-800'
-                  : 'bg-primary-100 text-primary-800'
-              }`}>
-                {user.isDirector ? (
-                  <>
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    Diretor
-                  </>
-                ) : (
-                  <>
-                    <Crown className="h-3 w-3 mr-1" />
-                    Líder
-                  </>
-                )}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Content with better organization */}
-        <div className="p-5 space-y-3">
-          <div className="space-y-2">
-            <div className="flex items-center text-gray-600">
-              <Mail className="h-4 w-4 mr-2 text-gray-400" />
-              <span className="text-sm truncate">{user.email}</span>
-            </div>
-            
-            <div className="flex items-center text-gray-600">
-              <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-              <span className="text-sm">
-                Desde {new Date(user.joinDate).toLocaleDateString('pt-BR', { 
-                  month: 'short', 
-                  year: 'numeric' 
-                })}
-              </span>
-            </div>
-          </div>
-
-          {/* Teams section */}
-          {userTeams.length > 0 && (
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-2">Times</p>
-              <div className="flex flex-wrap gap-1.5">
-                {userTeams.map(team => (
-                  <span
-                    key={team.id}
-                    className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-700"
-                  >
-                    {team.name}
-                    {user.leaderOfTeamIds?.includes(team.id) && (
-                      <Shield className="h-3 w-3 ml-1 text-primary-600" />
-                    )}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </motion.div>
-    );
-  };
-
   const renderTeamCard = (team: typeof teams[0]) => {
     const leader = getUserById(team.leaderId);
     const department = getDepartmentById(team.departmentId);
@@ -1395,9 +1866,56 @@ const UserManagement = () => {
           {leader && (
             <div className="mb-4 p-3 bg-primary-50 rounded-lg">
               <div className="flex items-center">
-                <Shield className="h-4 w-4 text-primary-600 mr-2" />
-                <span className="text-sm font-medium text-gray-700">Líder:</span>
-                <span className="ml-2 text-sm text-gray-900">{leader.name}</span>
+                {leader.profileImage ? (
+                  <img 
+                    src={leader.profileImage} 
+                    alt={leader.name}
+                    className="h-8 w-8 rounded-full mr-3"
+                  />
+                ) : (
+                  <div className="h-8 w-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-700 font-medium text-sm mr-3">
+                    {leader.name.charAt(0)}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <div className="flex items-center">
+                    <Shield className="h-4 w-4 text-primary-600 mr-2" />
+                    <span className="text-sm font-medium text-gray-700">Líder</span>
+                  </div>
+                  <p className="text-sm text-gray-900">{leader.name}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Members preview */}
+          {members.length > 0 && (
+            <div className="mb-4">
+              <div className="flex -space-x-2">
+                {members.slice(0, 5).map(member => (
+                  <div key={member.id} className="relative">
+                    {member.profileImage ? (
+                      <img 
+                        src={member.profileImage} 
+                        alt={member.name}
+                        className="h-8 w-8 rounded-full border-2 border-white"
+                        title={member.name}
+                      />
+                    ) : (
+                      <div 
+                        className="h-8 w-8 rounded-full border-2 border-white bg-gray-300 flex items-center justify-center text-xs text-white"
+                        title={member.name}
+                      >
+                        {member.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {members.length > 5 && (
+                  <div className="h-8 w-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-xs text-gray-600 font-medium">
+                    +{members.length - 5}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1430,575 +1948,575 @@ const UserManagement = () => {
         exit={{ opacity: 0, y: -20 }}
         whileHover={{ y: -2 }}
         className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200"
-     >
-       <div className="p-5">
-         <div className="flex items-start justify-between mb-4">
-           <div className="flex items-center">
-             <div className="p-2 rounded-lg bg-gradient-to-br from-accent-100 to-primary-100 mr-3">
-               <Building className="h-5 w-5 text-accent-600" />
-             </div>
-             <div>
-               <h3 className="font-semibold text-gray-900">{department.name}</h3>
-               {department.description && (
-                 <p className="text-sm text-gray-600">{department.description}</p>
-               )}
-             </div>
-           </div>
-           
-           <div className="flex items-center space-x-1">
-             <button
-               onClick={() => openModal('department', department)}
-               className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-               title="Editar"
-             >
-               <Edit className="h-4 w-4 text-gray-500" />
-             </button>
-             <button
-               onClick={() => handleDelete('department', department.id)}
-               className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
-               title="Excluir"
-             >
-               <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-600" />
-             </button>
-           </div>
-         </div>
+      >
+        <div className="p-5">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-accent-100 to-primary-100 mr-3">
+                <Building className="h-5 w-5 text-accent-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">{department.name}</h3>
+                {department.description && (
+                  <p className="text-sm text-gray-600">{department.description}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={() => openModal('department', department)}
+                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Editar"
+              >
+                <Edit className="h-4 w-4 text-gray-500" />
+              </button>
+              <button
+                onClick={() => handleDelete('department', department.id)}
+                className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                title="Excluir"
+              >
+                <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-600" />
+              </button>
+            </div>
+          </div>
 
-         {/* Stats */}
-         <div className="grid grid-cols-3 gap-3 mb-4">
-           <div className="text-center p-3 bg-gray-50 rounded-lg">
-             <div className="text-2xl font-bold text-primary-600">{deptTeams.length}</div>
-             <p className="text-xs text-gray-600">Times</p>
-           </div>
-           <div className="text-center p-3 bg-gray-50 rounded-lg">
-             <div className="text-2xl font-bold text-secondary-600">{deptUsers.length}</div>
-             <p className="text-xs text-gray-600">Pessoas</p>
-           </div>
-           <div className="text-center p-3 bg-gray-50 rounded-lg">
-             <div className="text-2xl font-bold text-accent-600">{deptLeaders.length}</div>
-             <p className="text-xs text-gray-600">Líderes</p>
-           </div>
-         </div>
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-primary-600">{deptTeams.length}</div>
+              <p className="text-xs text-gray-600">Times</p>
+            </div>
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-secondary-600">{deptUsers.length}</div>
+              <p className="text-xs text-gray-600">Pessoas</p>
+            </div>
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-accent-600">{deptLeaders.length}</div>
+              <p className="text-xs text-gray-600">Líderes</p>
+            </div>
+          </div>
 
-         {/* Teams preview */}
-         {deptTeams.length > 0 && (
-           <div className="flex items-center justify-between text-sm">
-             <span className="text-gray-600">
-               {deptTeams.slice(0, 2).map(t => t.name).join(', ')}
-               {deptTeams.length > 2 && ` +${deptTeams.length - 2}`}
-             </span>
-             <button className="text-primary-600 hover:text-primary-700 font-medium">
-               Ver times
-             </button>
-           </div>
-         )}
-       </div>
-     </motion.div>
-   );
- };
+          {/* Teams preview */}
+          {deptTeams.length > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">
+                {deptTeams.slice(0, 2).map(t => t.name).join(', ')}
+                {deptTeams.length > 2 && ` +${deptTeams.length - 2}`}
+              </span>
+              <button className="text-primary-600 hover:text-primary-700 font-medium">
+                Ver times
+              </button>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    );
+  };
 
- return (
-   <div className="space-y-6 max-w-7xl mx-auto">
-     {/* Enhanced Header */}
-     <motion.div
-       initial={{ opacity: 0, y: -20 }}
-       animate={{ opacity: 1, y: 0 }}
-       className="bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-600 rounded-2xl shadow-xl p-8 text-white"
-     >
-       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
-         <div>
-           <h1 className="text-3xl font-bold flex items-center">
-             <Users className="h-8 w-8 mr-3" />
-             Gestão de Pessoas
-           </h1>
-           <p className="text-primary-100 mt-1">
-             Gerencie colaboradores, times e departamentos de forma integrada
-           </p>
-         </div>
-         
-         {/* Quick stats */}
-         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-           <div className="text-center">
-             <div className="text-3xl font-bold">{stats.totalUsers}</div>
-             <div className="text-sm text-primary-100">Total</div>
-           </div>
-           <div className="text-center">
-             <div className="text-3xl font-bold">{stats.totalDirectors}</div>
-             <div className="text-sm text-primary-100">Diretores</div>
-           </div>
-           <div className="text-center">
-             <div className="text-3xl font-bold">{stats.totalLeaders}</div>
-             <div className="text-sm text-primary-100">Líderes</div>
-           </div>
-           <div className="text-center">
-             <div className="text-3xl font-bold">{stats.totalCollaborators}</div>
-             <div className="text-sm text-primary-100">Colaboradores</div>
-           </div>
-         </div>
-       </div>
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Enhanced Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-600 rounded-2xl shadow-xl p-8 text-white"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center">
+              <Users className="h-8 w-8 mr-3" />
+              Gestão de Pessoas
+            </h1>
+            <p className="text-primary-100 mt-1">
+              Gerencie colaboradores, times e departamentos de forma integrada
+            </p>
+          </div>
+          
+          {/* Quick stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-3xl font-bold">{stats.totalUsers}</div>
+              <div className="text-sm text-primary-100">Total</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold">{stats.totalDirectors}</div>
+              <div className="text-sm text-primary-100">Diretores</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold">{stats.totalLeaders}</div>
+              <div className="text-sm text-primary-100">Líderes</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold">{stats.totalCollaborators}</div>
+              <div className="text-sm text-primary-100">Colaboradores</div>
+            </div>
+          </div>
+        </div>
 
-       {/* Quick actions */}
-       <div className="mt-6 flex flex-wrap gap-2">
-         <button
-           onClick={() => handleQuickAction('import')}
-           className="inline-flex items-center px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm transition-colors"
-         >
-           <Download className="h-4 w-4 mr-1" />
-           Importar CSV
-         </button>
-         <button
-           onClick={() => handleQuickAction('export')}
-           className="inline-flex items-center px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm transition-colors"
-         >
-           <Copy className="h-4 w-4 mr-1" />
-           Exportar dados
-         </button>
-       </div>
-     </motion.div>
+        {/* Quick actions */}
+        <div className="mt-6 flex flex-wrap gap-2">
+          <button
+            onClick={() => handleQuickAction('import')}
+            className="inline-flex items-center px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm transition-colors"
+          >
+            <Download className="h-4 w-4 mr-1" />
+            Importar CSV
+          </button>
+          <button
+            onClick={() => handleQuickAction('export')}
+            className="inline-flex items-center px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm transition-colors"
+          >
+            <Copy className="h-4 w-4 mr-1" />
+            Exportar dados
+          </button>
+        </div>
+      </motion.div>
 
-     {/* Enhanced Controls */}
-     <motion.div
-       initial={{ opacity: 0, y: 20 }}
-       animate={{ opacity: 1, y: 0 }}
-       className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
-     >
-       {/* Better tab design */}
-       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
-         <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl">
-           {[
-             { id: 'users', label: 'Pessoas', icon: UserCheck, count: users.length },
-             { id: 'teams', label: 'Times', icon: UsersIcon, count: teams.length },
-             { id: 'departments', label: 'Departamentos', icon: Building, count: departments.length },
-           ].map(tab => (
-             <button
-               key={tab.id}
-               onClick={() => setActiveTab(tab.id as TabType)}
-               className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
-                 activeTab === tab.id
-                   ? 'bg-white text-primary-600 shadow-sm'
-                   : 'text-gray-600 hover:text-gray-800'
-               }`}
-             >
-               <tab.icon className="h-4 w-4" />
-               <span className="font-medium">{tab.label}</span>
-               <span className={`px-2 py-0.5 text-xs rounded-full ${
-                 activeTab === tab.id
-                   ? 'bg-primary-100 text-primary-700'
-                   : 'bg-gray-200 text-gray-600'
-               }`}>
-                 {tab.count}
-               </span>
-             </button>
-           ))}
-         </div>
+      {/* Enhanced Controls */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+      >
+        {/* Better tab design */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
+          <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl">
+            {[
+              { id: 'users', label: 'Pessoas', icon: UserCheck, count: users.length },
+              { id: 'teams', label: 'Times', icon: UsersIcon, count: teams.length },
+              { id: 'departments', label: 'Departamentos', icon: Building, count: departments.length },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as TabType)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <tab.icon className="h-4 w-4" />
+                <span className="font-medium">{tab.label}</span>
+                <span className={`px-2 py-0.5 text-xs rounded-full ${
+                  activeTab === tab.id
+                    ? 'bg-primary-100 text-primary-700'
+                    : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
 
-         <Button
-           variant="primary"
-           onClick={() => openModal(activeTab === 'users' ? 'user' : activeTab === 'teams' ? 'team' : 'department')}
-           icon={<Plus size={18} />}
-           className="shadow-md"
-         >
-           Adicionar {activeTab === 'users' ? 'Pessoa' : activeTab === 'teams' ? 'Time' : 'Departamento'}
-         </Button>
-       </div>
+          <Button
+            variant="primary"
+            onClick={() => openModal(activeTab === 'users' ? 'user' : activeTab === 'teams' ? 'team' : 'department')}
+            icon={<Plus size={18} />}
+            className="shadow-md"
+          >
+            Adicionar {activeTab === 'users' ? 'Pessoa' : activeTab === 'teams' ? 'Time' : 'Departamento'}
+          </Button>
+        </div>
 
-       {/* Enhanced search and filters */}
-       <div className="space-y-4">
-         <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-           <div className="relative flex-1 max-w-md">
-             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-             <input
-               type="text"
-               placeholder={`Buscar ${activeTab === 'users' ? 'pessoas' : activeTab === 'teams' ? 'times' : 'departamentos'}...`}
-               className="w-full pl-10 pr-4 py-2.5 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500"
-               value={searchTerm}
-               onChange={(e) => setSearchTerm(e.target.value)}
-             />
-             {searchTerm && (
-               <button
-                 onClick={() => setSearchTerm('')}
-                 className="absolute right-3 top-1/2 transform -translate-y-1/2"
-               >
-                 <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-               </button>
-             )}
-           </div>
-           
-           <div className="flex items-center gap-2">
-             <button
-               onClick={() => setShowFilters(!showFilters)}
-               className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg border transition-all ${
-                 showFilters 
-                   ? 'bg-primary-50 border-primary-300 text-primary-700' 
-                   : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-               }`}
-             >
-               <Filter size={18} />
-               <span>Filtros</span>
-               {(selectedDepartment || selectedTeam || showOnlyLeaders) && (
-                 <span className="bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                   {[selectedDepartment, selectedTeam, showOnlyLeaders].filter(Boolean).length}
-                 </span>
-               )}
-             </button>
+        {/* Enhanced search and filters */}
+        <div className="space-y-4">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder={`Buscar ${activeTab === 'users' ? 'pessoas' : activeTab === 'teams' ? 'times' : 'departamentos'}...`}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                >
+                  <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                </button>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg border transition-all ${
+                  showFilters 
+                    ? 'bg-primary-50 border-primary-300 text-primary-700' 
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <Filter size={18} />
+                <span>Filtros</span>
+                {(selectedDepartment || selectedTeam || showOnlyLeaders) && (
+                  <span className="bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {[selectedDepartment, selectedTeam, showOnlyLeaders].filter(Boolean).length}
+                  </span>
+                )}
+              </button>
 
-             {/* View mode toggle */}
-             <div className="flex items-center border border-gray-300 rounded-lg">
-               <button
-                 onClick={() => setViewMode('grid')}
-                 className={`p-2 ${viewMode === 'grid' ? 'text-primary-600 bg-primary-50' : 'text-gray-600'}`}
-                 title="Visualização em grade"
-               >
-                 <Layers size={18} />
-               </button>
-               <button
-                 onClick={() => setViewMode('list')}
-                 className={`p-2 ${viewMode === 'list' ? 'text-primary-600 bg-primary-50' : 'text-gray-600'}`}
-                 title="Visualização em lista"
-               >
-                 <Target size={18} />
-               </button>
-             </div>
-           </div>
-         </div>
+              {/* View mode toggle */}
+              <div className="flex items-center border border-gray-300 rounded-lg">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 ${viewMode === 'grid' ? 'text-primary-600 bg-primary-50' : 'text-gray-600'}`}
+                  title="Visualização em grade"
+                >
+                  <Layers size={18} />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 ${viewMode === 'list' ? 'text-primary-600 bg-primary-50' : 'text-gray-600'}`}
+                  title="Visualização em lista"
+                >
+                  <Target size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
 
-         {/* Enhanced filters */}
-         <AnimatePresence>
-           {showFilters && (
-             <motion.div
-               initial={{ height: 0, opacity: 0 }}
-               animate={{ height: 'auto', opacity: 1 }}
-               exit={{ height: 0, opacity: 0 }}
-               className="overflow-hidden"
-             >
-               <div className="pt-4 border-t border-gray-200">
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                   {(activeTab === 'users' || activeTab === 'teams') && (
-                     <div>
-                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                         Departamento
-                       </label>
-                       <select
-                         className="w-full rounded-lg border-gray-200"
-                         value={selectedDepartment}
-                         onChange={(e) => setSelectedDepartment(e.target.value)}
-                       >
-                         <option value="">Todos</option>
-                         {departments.map(dept => (
-                           <option key={dept.id} value={dept.id}>{dept.name}</option>
-                         ))}
-                       </select>
-                     </div>
-                   )}
+          {/* Enhanced filters */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {(activeTab === 'users' || activeTab === 'teams') && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Departamento
+                        </label>
+                        <select
+                          className="w-full rounded-lg border-gray-200"
+                          value={selectedDepartment}
+                          onChange={(e) => setSelectedDepartment(e.target.value)}
+                        >
+                          <option value="">Todos</option>
+                          {departments.map(dept => (
+                            <option key={dept.id} value={dept.id}>{dept.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
 
-                   {activeTab === 'users' && (
-                     <>
-                       <div>
-                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                           Time
-                         </label>
-                         <select
-                           className="w-full rounded-lg border-gray-200"
-                           value={selectedTeam}
-                           onChange={(e) => setSelectedTeam(e.target.value)}
-                         >
-                           <option value="">Todos</option>
-                           {teams.map(team => (
-                             <option key={team.id} value={team.id}>{team.name}</option>
-                           ))}
-                         </select>
-                       </div>
+                    {activeTab === 'users' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Time
+                          </label>
+                          <select
+                            className="w-full rounded-lg border-gray-200"
+                            value={selectedTeam}
+                            onChange={(e) => setSelectedTeam(e.target.value)}
+                          >
+                            <option value="">Todos</option>
+                            {teams.map(team => (
+                              <option key={team.id} value={team.id}>{team.name}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                       <div>
-                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                           Ordenar por
-                         </label>
-                         <select
-                           className="w-full rounded-lg border-gray-200"
-                           value={sortBy}
-                           onChange={(e) => setSortBy(e.target.value as any)}
-                         >
-                           <option value="name">Nome</option>
-                           <option value="date">Data de entrada</option>
-                           <option value="department">Departamento</option>
-                         </select>
-                       </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Ordenar por
+                          </label>
+                          <select
+                            className="w-full rounded-lg border-gray-200"
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value as any)}
+                          >
+                            <option value="name">Nome</option>
+                            <option value="date">Data de entrada</option>
+                            <option value="department">Departamento</option>
+                          </select>
+                        </div>
 
-                       <div className="flex items-end">
-                         <label className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 w-full">
-                           <input
-                             type="checkbox"
-                             className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                             checked={showOnlyLeaders}
-                             onChange={(e) => setShowOnlyLeaders(e.target.checked)}
-                           />
-                           <span className="text-gray-700">Apenas líderes</span>
-                         </label>
-                       </div>
-                     </>
-                   )}
-                 </div>
+                        <div className="flex items-end">
+                          <label className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 w-full">
+                            <input
+                              type="checkbox"
+                              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                              checked={showOnlyLeaders}
+                              onChange={(e) => setShowOnlyLeaders(e.target.checked)}
+                            />
+                            <span className="text-gray-700">Apenas líderes</span>
+                          </label>
+                        </div>
+                      </>
+                    )}
+                  </div>
 
-                 {(selectedDepartment || selectedTeam || showOnlyLeaders) && (
-                   <button
-                     onClick={() => {
-                       setSelectedDepartment('');
-                       setSelectedTeam('');
-                       setShowOnlyLeaders(false);
-                     }}
-                     className="mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium"
-                   >
-                     Limpar filtros
-                   </button>
-                 )}
-               </div>
-             </motion.div>
-           )}
-         </AnimatePresence>
-       </div>
-     </motion.div>
+                  {(selectedDepartment || selectedTeam || showOnlyLeaders) && (
+                    <button
+                      onClick={() => {
+                        setSelectedDepartment('');
+                        setSelectedTeam('');
+                        setShowOnlyLeaders(false);
+                      }}
+                      className="mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium"
+                    >
+                      Limpar filtros
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
 
-     {/* Content Grid */}
-     <motion.div
-       initial={{ opacity: 0 }}
-       animate={{ opacity: 1 }}
-       className={`grid ${
-         viewMode === 'grid' 
-           ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' 
-           : 'grid-cols-1 gap-4'
-       }`}
-     >
-       <AnimatePresence mode="popLayout">
-         {activeTab === 'users' && filteredUsers.map(user => (
-           <div key={user.id}>{renderUserCard(user)}</div>
-         ))}
-         
-         {activeTab === 'teams' && filteredTeams.map(team => (
-           <div key={team.id}>{renderTeamCard(team)}</div>
-         ))}
-         
-         {activeTab === 'departments' && filteredDepartments.map(dept => (
-           <div key={dept.id}>{renderDepartmentCard(dept)}</div>
-         ))}
-       </AnimatePresence>
-     </motion.div>
+      {/* Content Grid */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className={`grid ${
+          viewMode === 'grid' 
+            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' 
+            : 'grid-cols-1 gap-4'
+        }`}
+      >
+        <AnimatePresence mode="popLayout">
+          {activeTab === 'users' && filteredUsers.map(user => (
+            <div key={user.id}>{renderUserCard(user)}</div>
+          ))}
+          
+          {activeTab === 'teams' && filteredTeams.map(team => (
+            <div key={team.id}>{renderTeamCard(team)}</div>
+          ))}
+          
+          {activeTab === 'departments' && filteredDepartments.map(dept => (
+            <div key={dept.id}>{renderDepartmentCard(dept)}</div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
 
-     {/* Empty states */}
-     {activeTab === 'users' && filteredUsers.length === 0 && (
-       <motion.div
-         initial={{ opacity: 0 }}
-         animate={{ opacity: 1 }}
-         className="text-center py-12"
-       >
-         <UserCheck className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-         <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma pessoa encontrada</h3>
-         <p className="text-gray-500 mb-4">Tente ajustar os filtros ou adicione uma nova pessoa.</p>
-         <Button
-           variant="primary"
-           onClick={() => openModal('user')}
-           icon={<Plus size={18} />}
-         >
-           Adicionar Pessoa
-         </Button>
-       </motion.div>
-     )}
+      {/* Empty states */}
+      {activeTab === 'users' && filteredUsers.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-12"
+        >
+          <UserCheck className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma pessoa encontrada</h3>
+          <p className="text-gray-500 mb-4">Tente ajustar os filtros ou adicione uma nova pessoa.</p>
+          <Button
+            variant="primary"
+            onClick={() => openModal('user')}
+            icon={<Plus size={18} />}
+          >
+            Adicionar Pessoa
+          </Button>
+        </motion.div>
+      )}
 
-     {activeTab === 'teams' && filteredTeams.length === 0 && (
-       <motion.div
-         initial={{ opacity: 0 }}
-         animate={{ opacity: 1 }}
-         className="text-center py-12"
-       >
-         <UsersIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-         <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum time encontrado</h3>
-         <p className="text-gray-500 mb-4">Comece criando o primeiro time.</p>
-         <Button
-           variant="primary"
-           onClick={() => openModal('team')}
-           icon={<Plus size={18} />}
-         >
-           Criar Time
-         </Button>
-       </motion.div>
-     )}
+      {activeTab === 'teams' && filteredTeams.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-12"
+        >
+          <UsersIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum time encontrado</h3>
+          <p className="text-gray-500 mb-4">Comece criando o primeiro time.</p>
+          <Button
+            variant="primary"
+            onClick={() => openModal('team')}
+            icon={<Plus size={18} />}
+          >
+            Criar Time
+          </Button>
+        </motion.div>
+      )}
 
-     {activeTab === 'departments' && filteredDepartments.length === 0 && (
-       <motion.div
-         initial={{ opacity: 0 }}
-         animate={{ opacity: 1 }}
-         className="text-center py-12"
-       >
-         <Building className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-         <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum departamento encontrado</h3>
-         <p className="text-gray-500 mb-4">Crie o primeiro departamento para começar.</p>
-         <Button
-           variant="primary"
-           onClick={() => openModal('department')}
-           icon={<Plus size={18} />}
-         >
-           Criar Departamento
-         </Button>
-       </motion.div>
-     )}
+      {activeTab === 'departments' && filteredDepartments.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-12"
+        >
+          <Building className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum departamento encontrado</h3>
+          <p className="text-gray-500 mb-4">Crie o primeiro departamento para começar.</p>
+          <Button
+            variant="primary"
+            onClick={() => openModal('department')}
+            icon={<Plus size={18} />}
+          >
+            Criar Departamento
+          </Button>
+        </motion.div>
+      )}
 
-     {/* Enhanced Modal */}
-     <AnimatePresence>
-       {showModal && (
-         <motion.div
-           initial={{ opacity: 0 }}
-           animate={{ opacity: 1 }}
-           exit={{ opacity: 0 }}
-           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-           onClick={() => setShowModal(false)}
-         >
-           <motion.div
-             initial={{ scale: 0.9, opacity: 0 }}
-             animate={{ scale: 1, opacity: 1 }}
-             exit={{ scale: 0.9, opacity: 0 }}
-             className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-             onClick={(e) => e.stopPropagation()}
-           >
-             {/* Modal Header */}
-             <div className="px-6 py-4 border-b border-gray-100">
-               <div className="flex items-center justify-between">
-                 <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                   {modalType === 'user' && <UserPlus className="h-5 w-5 mr-2 text-primary-600" />}
-                   {modalType === 'team' && <UsersIcon className="h-5 w-5 mr-2 text-secondary-600" />}
-                   {modalType === 'department' && <Building className="h-5 w-5 mr-2 text-accent-600" />}
-                   {editingItem ? 'Editar' : 'Adicionar'} {
-                     modalType === 'user' ? 'Pessoa' : 
-                     modalType === 'team' ? 'Time' : 
-                     'Departamento'
-                   }
-                 </h2>
-                 <button
-                   onClick={() => setShowModal(false)}
-                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                 >
-                   <X className="h-5 w-5 text-gray-500" />
-                 </button>
-               </div>
+      {/* Enhanced Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="px-6 py-4 border-b border-gray-100">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                    {modalType === 'user' && <UserPlus className="h-5 w-5 mr-2 text-primary-600" />}
+                    {modalType === 'team' && <UsersIcon className="h-5 w-5 mr-2 text-secondary-600" />}
+                    {modalType === 'department' && <Building className="h-5 w-5 mr-2 text-accent-600" />}
+                    {editingItem ? 'Editar' : 'Adicionar'} {
+                      modalType === 'user' ? 'Pessoa' : 
+                      modalType === 'team' ? 'Time' : 
+                      'Departamento'
+                    }
+                  </h2>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="h-5 w-5 text-gray-500" />
+                  </button>
+                </div>
 
-               {/* Progress Steps for User */}
-               {modalType === 'user' && (
-                 <div className="mt-4">
-                   <div className="flex items-center justify-between">
-                     {wizardSteps.map((step, index) => {
-                       const StepIcon = step.icon;
-                       const isActive = step.id === wizardStep;
-                       const isCompleted = getCurrentStepIndex() > index;
-                       
-                       return (
-                         <div key={step.id} className="flex items-center flex-1">
-                           <div
-                             className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${
-                               isActive
-                                 ? 'bg-primary-600 text-white'
-                                 : isCompleted
-                                   ? 'bg-primary-100 text-primary-600'
-                                   : 'bg-gray-100 text-gray-400'
-                             }`}
-                           >
-                             {isCompleted ? (
-                               <Check className="h-5 w-5" />
-                             ) : (
-                               <StepIcon className="h-5 w-5" />
-                             )}
-                           </div>
-                           <div className="ml-2 hidden sm:block">
-                             <p className={`text-sm font-medium ${
-                               isActive ? 'text-gray-900' : 'text-gray-500'
-                             }`}>
-                               {step.label}
-                             </p>
-                           </div>
-                           {index < wizardSteps.length - 1 && (
-                             <div className={`flex-1 h-0.5 mx-4 ${
-                               isCompleted ? 'bg-primary-200' : 'bg-gray-200'
-                             }`} />
-                           )}
-                         </div>
-                       );
-                     })}
-                   </div>
-                 </div>
-               )}
-             </div>
+                {/* Progress Steps for User */}
+                {modalType === 'user' && (
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between">
+                      {wizardSteps.map((step, index) => {
+                        const StepIcon = step.icon;
+                        const isActive = step.id === wizardStep;
+                        const isCompleted = getCurrentStepIndex() > index;
+                        
+                        return (
+                          <div key={step.id} className="flex items-center flex-1">
+                            <div
+                              className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${
+                                isActive
+                                  ? 'bg-primary-600 text-white'
+                                  : isCompleted
+                                    ? 'bg-primary-100 text-primary-600'
+                                    : 'bg-gray-100 text-gray-400'
+                              }`}
+                            >
+                              {isCompleted ? (
+                                <Check className="h-5 w-5" />
+                              ) : (
+                                <StepIcon className="h-5 w-5" />
+                              )}
+                            </div>
+                            <div className="ml-2 hidden sm:block">
+                              <p className={`text-sm font-medium ${
+                                isActive ? 'text-gray-900' : 'text-gray-500'
+                              }`}>
+                                {step.label}
+                              </p>
+                            </div>
+                            {index < wizardSteps.length - 1 && (
+                              <div className={`flex-1 h-0.5 mx-4 ${
+                                isCompleted ? 'bg-primary-200' : 'bg-gray-200'
+                              }`} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
 
-             {/* Modal Content */}
-             <div className="flex-1 overflow-y-auto p-6">
-               <AnimatePresence mode="wait">
-                 <motion.div
-                   key={modalType === 'user' ? wizardStep : modalType}
-                   initial={{ opacity: 0, x: 20 }}
-                   animate={{ opacity: 1, x: 0 }}
-                   exit={{ opacity: 0, x: -20 }}
-                   transition={{ duration: 0.2 }}
-                 >
-                   {modalType === 'user' && renderWizardStep()}
-                   {modalType === 'team' && renderTeamModal()}
-                   {modalType === 'department' && renderDepartmentModal()}
-                 </motion.div>
-               </AnimatePresence>
-             </div>
+              {/* Modal Content */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={modalType === 'user' ? wizardStep : modalType}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {modalType === 'user' && renderWizardStep()}
+                    {modalType === 'team' && renderTeamModal()}
+                    {modalType === 'department' && renderDepartmentModal()}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
 
-             {/* Modal Footer */}
-             <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
-               <div className="flex justify-between">
-                 {modalType === 'user' ? (
-                   <>
-                     <Button
-                       variant="outline"
-                       onClick={getCurrentStepIndex() > 0 ? handlePreviousStep : () => setShowModal(false)}
-                       icon={<ChevronLeft size={18} />}
-                     >
-                       {getCurrentStepIndex() > 0 ? 'Voltar' : 'Cancelar'}
-                     </Button>
-                     
-                     {wizardStep === 'review' ? (
-                       <Button
-                         variant="primary"
-                         onClick={handleSubmit}
-                         icon={<Check size={18} />}
-                       >
-                         {editingItem ? 'Salvar Alterações' : 'Criar Usuário'}
-                       </Button>
-                     ) : (
-                       <Button
-                         variant="primary"
-                         onClick={handleNextStep}
-                         icon={<ChevronRight size={18} />}
-                       >
-                         Próximo
-                       </Button>
-                     )}
-                   </>
-                 ) : (
-                   <>
-                     <Button
-                       variant="outline"
-                       onClick={() => setShowModal(false)}
-                     >
-                       Cancelar
-                     </Button>
-                     <Button
-                       variant="primary"
-                       onClick={handleSubmit}
-                       icon={<Check size={18} />}
-                     >
-                       {editingItem ? 'Salvar Alterações' : 
-                         modalType === 'team' ? 'Criar Time' : 'Criar Departamento'
-                       }
-                     </Button>
-                   </>
-                 )}
-               </div>
-             </div>
-           </motion.div>
-         </motion.div>
-       )}
-     </AnimatePresence>
-   </div>
- );
+              {/* Modal Footer */}
+              <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
+                <div className="flex justify-between">
+                  {modalType === 'user' ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={getCurrentStepIndex() > 0 ? handlePreviousStep : () => setShowModal(false)}
+                        icon={<ChevronLeft size={18} />}
+                      >
+                        {getCurrentStepIndex() > 0 ? 'Voltar' : 'Cancelar'}
+                      </Button>
+                      
+                      {wizardStep === 'review' ? (
+                        <Button
+                          variant="primary"
+                          onClick={handleSubmit}
+                          icon={<Check size={18} />}
+                        >
+                          {editingItem ? 'Salvar Alterações' : 'Criar Usuário'}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="primary"
+                          onClick={handleNextStep}
+                          icon={<ChevronRight size={18} />}
+                        >
+                          Próximo
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowModal(false)}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        variant="primary"
+                        onClick={handleSubmit}
+                        icon={<Check size={18} />}
+                      >
+                        {editingItem ? 'Salvar Alterações' : 
+                          modalType === 'team' ? 'Criar Time' : 'Criar Departamento'
+                        }
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 };
 
 export default UserManagement;
