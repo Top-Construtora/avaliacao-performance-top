@@ -63,6 +63,7 @@ export interface Department {
   id: string;
   name: string;
   description?: string;
+  responsibleId?: string; // Responsável pelo departamento (sem hierarquia)
   createdAt: string;
 }
 
@@ -70,8 +71,9 @@ export interface Team {
   id: string;
   name: string;
   departmentId: string;
-  leaderId: string;
+  responsibleId?: string; // Responsável pelo time (sem hierarquia)
   memberIds: string[];
+  description?: string;
   createdAt: string;
 }
 
@@ -83,7 +85,6 @@ export interface User {
   isLeader: boolean;
   isDirector: boolean; 
   teamIds: string[]; 
-  leaderOfTeamIds: string[]; 
   departmentIds: string[]; 
   joinDate: string;
   avatar?: string;
@@ -91,14 +92,12 @@ export interface User {
   phone?: string;
   birthDate?: string;
   age?: number;
-  directReports?: string[]; 
-  reportsTo?: string; 
+  reportsTo?: string; // Superior hierárquico direto
   profileImage?: string; 
 }
 
 export interface HierarchicalRelation {
   leaderId: string;
   subordinateId: string;
-  teamId: string;
   createdAt: string;
 }
