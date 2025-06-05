@@ -139,8 +139,31 @@ const NineBoxMatrix = () => {
    * Obtém o quadrante baseado nas notas (retorna índices de 1-3)
    */
   const getQuadrant = (performance: number, potential: number): { row: number; col: number } => {
-    const perfQuadrant = Math.ceil(performance);
-    const potQuadrant = Math.ceil(potential);
+    // Determina o quadrante baseado nos intervalos:
+    // 1.0-2.0 = quadrante 1
+    // 2.0-3.0 = quadrante 2  
+    // 3.0-4.0 = quadrante 3
+    
+    let perfQuadrant: number;
+    let potQuadrant: number;
+    
+    // Performance (coluna)
+    if (performance <= 2.0) {
+      perfQuadrant = 1;
+    } else if (performance <= 3.0) {
+      perfQuadrant = 2;
+    } else {
+      perfQuadrant = 3;
+    }
+    
+    // Potencial (linha)
+    if (potential <= 2.0) {
+      potQuadrant = 1;
+    } else if (potential <= 3.0) {
+      potQuadrant = 2;
+    } else {
+      potQuadrant = 3;
+    }
     
     return {
       row: potQuadrant,
@@ -324,6 +347,7 @@ const NineBoxMatrix = () => {
                 <div className={`rounded-2xl p-4 sm:p-6 border-2 ${getActiveQuadrantInfo()!.borderColor} bg-gradient-to-br ${getActiveQuadrantInfo()!.gradient}`}>
                   <div className="flex items-center mb-3">
                     <h4 className={`text-lg font-bold ${getActiveQuadrantInfo()!.textColor}`}>
+                      Status Atual
                     </h4>
                   </div>
                   <p className={`text-sm ${getActiveQuadrantInfo()!.textColor} opacity-90`}>
