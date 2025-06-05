@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import SelfEvaluation from './pages/SelfEvaluation';
 import LeaderEvaluation from './pages/LeaderEvaluation';
 import PotentialEvaluation from './pages/PotentialEvaluation';
+import UserRegistration from './pages/UserRegistration';
 import Consensus from './pages/Consensus';
 import ActionPlan from './pages/ActionPlan';
 import Reports from './pages/Reports';
@@ -53,6 +54,7 @@ function App() {
                 <Route path="reports" element={<Reports />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="users" element={<UserManagement />} /> 
+                <Route path="users/new" element={<UserRegistration />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>

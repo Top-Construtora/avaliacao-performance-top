@@ -5,8 +5,9 @@ import {
   PieChart, 
   History, 
   User, 
-  UserPlus,
+  FilePlus,
   Settings, 
+  Users,
   Target,
   FileText,
   BarChart3,
@@ -22,7 +23,8 @@ interface SidebarProps {
 const Sidebar = ({ onClose }: SidebarProps) => {
   const navigation = [
     { name: 'Página Inicial', icon: LayoutDashboard, path: '/' },
-    { name: 'Cadastro de Usuários', icon: UserPlus, path: '/users' }, 
+    { name: 'Novo Cadastro', icon: FilePlus, path: '/users/new' },
+    { name: 'Lista de Usuários', icon: Users, path: '/users' },
     { name: 'Autoavaliação', icon: User, path: '/self-evaluation' },
     { name: 'Avaliação do Líder', icon: User, path: '/leader-evaluation' },
     { name: 'Avaliação de Potencial', icon: Target, path: '/potential-evaluation' },
