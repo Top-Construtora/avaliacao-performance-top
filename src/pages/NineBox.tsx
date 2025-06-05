@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, BarChart3, Download, Calendar, Briefcase } from 'lucide-react';
+import { ArrowLeft, User, BarChart3, Download, Calendar, Briefcase, TrendingUp, Target, Award, Info } from 'lucide-react';
 
 // Tipos
 interface Employee {
@@ -17,87 +17,87 @@ interface Evaluation {
 }
 
 interface MatrixConfig {
-  name: string;
   bgColor: string;
   borderColor: string;
   textColor: string;
   description: string;
   activeBorderColor: string;
+  gradient: string;
 }
 
-// Configuração da matriz com cores mais sóbrias
+// Configuração da matriz com cores do sistema
 const matrixConfig: Record<string, MatrixConfig> = {
   '1,1': { 
-    name: '', 
-    bgColor: 'bg-red-50/70',
+    bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
-    textColor: 'text-gray-700',
+    textColor: 'text-red-700',
     description: 'Avaliar possibilidade de movimentação para função menor ou demissão',
-    activeBorderColor: 'border-red-400'
+    activeBorderColor: 'border-red-500',
+    gradient: 'from-red-100 to-red-50',
   },
   '1,2': { 
-    name: '', 
-    bgColor: 'bg-yellow-50/70',
-    borderColor: 'border-yellow-200',
-    textColor: 'text-gray-700',
+    bgColor: 'bg-amber-50',
+    borderColor: 'border-amber-200',
+    textColor: 'text-amber-700',
     description: 'Avaliar possibilidade de movimentação horizontal',
-    activeBorderColor: 'border-yellow-400'
+    activeBorderColor: 'border-amber-500',
+    gradient: 'from-amber-100 to-amber-50',
   },
   '1,3': { 
-    name: '', 
-    bgColor: 'bg-emerald-50/70',
+    bgColor: 'bg-emerald-50',
     borderColor: 'border-emerald-200',
-    textColor: 'text-gray-700',
+    textColor: 'text-emerald-700',
     description: 'Está no lugar certo. Manter na posição e rever remuneração',
-    activeBorderColor: 'border-emerald-400'
+    activeBorderColor: 'border-emerald-500',
+    gradient: 'from-emerald-100 to-emerald-50',
   },
   '2,1': { 
-    name: '', 
-    bgColor: 'bg-rose-50/70',
-    borderColor: 'border-rose-200',
-    textColor: 'text-gray-700',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
+    textColor: 'text-orange-700',
     description: 'Avaliar se está na área certa. Rever atribuições',
-    activeBorderColor: 'border-rose-400'
+    activeBorderColor: 'border-orange-500',
+    gradient: 'from-orange-100 to-orange-50',
   },
   '2,2': { 
-    name: '', 
-    bgColor: 'bg-blue-50/70',
+    bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
-    textColor: 'text-gray-700',
+    textColor: 'text-blue-700',
     description: 'Investir no potencial e desempenho para manter na atual função',
-    activeBorderColor: 'border-blue-400'
+    activeBorderColor: 'border-blue-500',
+    gradient: 'from-blue-100 to-blue-50',
   },
   '2,3': { 
-    name: '', 
-    bgColor: 'bg-green-50/70',
+    bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
-    textColor: 'text-gray-700',
+    textColor: 'text-green-700',
     description: 'Avaliar a possibilidade de promoção na própria área',
-    activeBorderColor: 'border-green-400'
+    activeBorderColor: 'border-green-500',
+    gradient: 'from-green-100 to-green-50',
   },
   '3,1': { 
-    name: '', 
-    bgColor: 'bg-gray-50/70',
-    borderColor: 'border-gray-200',
-    textColor: 'text-gray-700',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200',
+    textColor: 'text-purple-700',
     description: 'Verificar a causa: Local ou Chefe errado? Investir no desenvolvimento',
-    activeBorderColor: 'border-gray-400'
+    activeBorderColor: 'border-purple-500',
+    gradient: 'from-purple-100 to-purple-50',
   },
   '3,2': { 
-    name: '', 
-    bgColor: 'bg-indigo-50/70',
+    bgColor: 'bg-indigo-50',
     borderColor: 'border-indigo-200',
-    textColor: 'text-gray-700',
+    textColor: 'text-indigo-700',
     description: 'Concentrar-se no desempenho de curto prazo. Avaliar oportunidades a longo prazo',
-    activeBorderColor: 'border-indigo-400'
+    activeBorderColor: 'border-indigo-500',
+    gradient: 'from-indigo-100 to-indigo-50',
   },
   '3,3': { 
-    name: '', 
-    bgColor: 'bg-teal-600',
-    borderColor: 'border-teal-600',
+    bgColor: 'bg-gradient-to-br from-primary-500 to-secondary-600',
+    borderColor: 'border-primary-500',
     textColor: 'text-white',
     description: 'Dar mais atribuições. Preparar para função maior. Líder do futuro!',
-    activeBorderColor: 'border-teal-800'
+    activeBorderColor: 'border-primary-700',
+    gradient: 'from-primary-500 to-secondary-600',
   }
 };
 
@@ -122,6 +122,7 @@ const NineBoxMatrix = () => {
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [employees] = useState(mockEmployees);
   const [evaluations] = useState(mockEvaluations);
+  const [hoveredQuadrant, setHoveredQuadrant] = useState<string | null>(null);
 
   const selectedEvaluation = evaluations.find(e => e.employeeId === selectedEmployee);
   const selectedEmp = employees.find(e => e.id === selectedEmployee);
@@ -172,6 +173,13 @@ const NineBoxMatrix = () => {
     return quadrant.row === row && quadrant.col === col;
   };
 
+  const getActiveQuadrantInfo = () => {
+    if (!selectedEvaluation) return null;
+    const quadrant = getQuadrant(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore);
+    const key = `${quadrant.row},${quadrant.col}`;
+    return matrixConfig[key];
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
@@ -192,7 +200,7 @@ const NineBoxMatrix = () => {
               </button>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
-                  <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 mr-3">
+                  <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 mr-3 shadow-md">
                     <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                   Matriz 9-Box
@@ -201,188 +209,237 @@ const NineBoxMatrix = () => {
               </div>
             </div>
             
-            <div className="flex space-x-2">
-              <button className="flex items-center px-3 sm:px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base">
-                <Download size={14} className="mr-2" />
-                <span className="hidden sm:inline">Gerar Plano de Ação</span>
-                <span className="sm:hidden">Plano</span>
-              </button>
-            </div>
+            <button className="flex items-center px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base font-medium">
+              <Download size={16} className="mr-2" />
+              Gerar Plano de Ação
+            </button>
           </div>
 
           {/* Seleção de Colaborador */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Colaborador
-              </label>
-              <select
-                className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200"
-                value={selectedEmployee}
-                onChange={(e) => setSelectedEmployee(e.target.value)}
-              >
-                <option value="">Selecione um colaborador</option>
-                {employees.map((employee) => (
-                  <option key={employee.id} value={employee.id}>
-                    {employee.name}
-                  </option>
-                ))}
-              </select>
+          <div className="bg-gray-50 rounded-xl p-4 sm:p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <User className="h-5 w-5 mr-2 text-gray-600" />
+              Selecionar Colaborador
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Colaborador
+                </label>
+                <select
+                  className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200 text-sm"
+                  value={selectedEmployee}
+                  onChange={(e) => setSelectedEmployee(e.target.value)}
+                >
+                  <option value="">Selecione um colaborador</option>
+                  {employees.map((employee) => (
+                    <option key={employee.id} value={employee.id}>
+                      {employee.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedEmp && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                      <Briefcase className="h-4 w-4 mr-1" />
+                      Cargo
+                    </label>
+                    <div className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-gray-700 text-sm">
+                      {selectedEmp.position}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                      <Award className="h-4 w-4 mr-1" />
+                      Departamento
+                    </label>
+                    <div className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-gray-700 text-sm">
+                      {selectedEmp.department}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-
-            {selectedEmp && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cargo
-                  </label>
-                  <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-700 text-sm">
-                    {selectedEmp.position}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Departamento
-                  </label>
-                  <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-700 text-sm">
-                    {selectedEmp.department}
-                  </div>
-                </div>
-              </>
-            )}
           </div>
         </motion.div>
 
-        {/* Matriz 9-Box */}
+        {/* Conteúdo Principal */}
         {selectedEmployee && selectedEvaluation && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8"
+            className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6"
           >
-            <div className="mb-6">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
-                Posicionamento na Matriz
-              </h2>
-              
-              {/* Scores */}
-              <div className="grid grid-cols-2 gap-4 max-w-md">
-                <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 border border-primary-200">
-                  <p className="text-sm font-medium text-gray-700 mb-1">Performance</p>
-                  <p className="text-3xl font-bold text-primary-600">
-                    {selectedEvaluation.consensusScore.toFixed(1)}
-                  </p>
-                </div>
-                <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-xl p-4 border border-secondary-200">
-                  <p className="text-sm font-medium text-gray-700 mb-1">Potencial</p>
-                  <p className="text-3xl font-bold text-secondary-600">
-                    {selectedEvaluation.potentialScore.toFixed(1)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Grid da Matriz 9-Box */}
-            <div className="flex justify-center">
-              <div className="relative">
+            {/* Coluna Esquerda - Scores e Info */}
+            <div className="space-y-4">
+              {/* Card de Scores */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Avaliação de {selectedEmp?.name}
+                </h3>
                 
-                {/* Título do eixo Y (Potencial) */}
-                <div className="absolute -left-14 sm:-left-20 top-1/2 transform -translate-y-1/2 -rotate-90">
-                  <span className="text-sm sm:text-base font-bold text-gray-700 uppercase tracking-widest">
-                    POTENCIAL
-                  </span>
-                </div>
-                
-                {/* Labels do eixo Y */}
-                <div className="absolute -left-10 sm:-left-12 flex flex-col justify-between h-72 sm:h-[420px]">
-                  <span className="text-xs sm:text-sm font-semibold text-gray-600">Alto</span>
-                  <span className="text-xs sm:text-sm font-semibold text-gray-600">Médio</span>
-                  <span className="text-xs sm:text-sm font-semibold text-gray-600">Baixo</span>
-                </div>
-
-                {/* Container da Matriz */}
-                <div className="relative w-72 h-72 sm:w-[420px] sm:h-[420px]">
-                  {/* Grid 3x3 */}
-                  <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
-                    {[3, 2, 1].map((row) => (
-                      [1, 2, 3].map((col) => {
-                        const key = `${row},${col}`;
-                        const config = matrixConfig[key];
-                        const isActive = isQuadrantActive(row, col);
-                        
-                        return (
-                          <div
-                            key={key}
-                            className={`
-                              relative flex items-center justify-center p-3 sm:p-5
-                              ${config.bgColor} ${config.textColor}
-                              border-[1.5px] ${isActive ? `${config.activeBorderColor} border-[3px] shadow-lg z-10` : config.borderColor}
-                              transition-all duration-300
-                            `}
-                          >
-                            <div className="text-center px-1">
-                              <div className="text-[11px] sm:text-sm leading-relaxed">
-                                {config.description}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })
-                    ))}
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 border border-primary-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-gray-700">Performance</p>
+                      <TrendingUp className="h-4 w-4 text-primary-600" />
+                    </div>
+                    <p className="text-3xl font-bold text-primary-600">
+                      {selectedEvaluation.consensusScore.toFixed(1)}
+                    </p>
+                    <div className="mt-2 bg-primary-200 rounded-full h-2">
+                      <div 
+                        className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${(selectedEvaluation.consensusScore / 4) * 100}%` }}
+                      />
+                    </div>
                   </div>
+                  
+                  <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-xl p-4 border border-secondary-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-gray-700">Potencial</p>
+                      <Target className="h-4 w-4 text-secondary-600" />
+                    </div>
+                    <p className="text-3xl font-bold text-secondary-600">
+                      {selectedEvaluation.potentialScore.toFixed(1)}
+                    </p>
+                    <div className="mt-2 bg-secondary-200 rounded-full h-2">
+                      <div 
+                        className="bg-secondary-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${(selectedEvaluation.potentialScore / 4) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                  {/* Ponto do Colaborador */}
-                  {selectedEvaluation && (
-                    <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                      className="absolute w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full shadow-md z-20"
-                      style={{
-                        left: `${getPointPosition(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore).x}%`,
-                        top: `${getPointPosition(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore).y}%`,
-                        transform: 'translate(-50%, -50%)'
-                      }}
-                    />
-                  )}
+              {/* Card de Status Atual */}
+              {getActiveQuadrantInfo() && (
+                <div className={`rounded-2xl p-4 sm:p-6 border-2 ${getActiveQuadrantInfo()!.borderColor} bg-gradient-to-br ${getActiveQuadrantInfo()!.gradient}`}>
+                  <div className="flex items-center mb-3">
+                    <h4 className={`text-lg font-bold ${getActiveQuadrantInfo()!.textColor}`}>
+                    </h4>
+                  </div>
+                  <p className={`text-sm ${getActiveQuadrantInfo()!.textColor} opacity-90`}>
+                    {getActiveQuadrantInfo()!.description}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Coluna Central e Direita - Matriz */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                  <BarChart3 className="h-5 w-5 mr-2 text-gray-600" />
+                  Posicionamento na Matriz
+                </h2>
+
+                {/* Grid da Matriz 9-Box */}
+                <div className="flex justify-center">
+                  <div className="relative">
+                    
+                    {/* Título do eixo Y (Potencial) */}
+                    <div className="absolute -left-14 sm:-left-20 top-1/2 transform -translate-y-1/2 -rotate-90">
+                      <span className="text-sm sm:text-base font-bold text-gray-700 uppercase tracking-widest">
+                        POTENCIAL
+                      </span>
+                    </div>
+                    
+                    {/* Labels do eixo Y */}
+                    <div className="absolute -left-10 sm:-left-12 flex flex-col justify-between h-72 sm:h-[420px]">
+                      <span className="text-xs sm:text-sm font-semibold text-gray-600">Alto</span>
+                      <span className="text-xs sm:text-sm font-semibold text-gray-600">Médio</span>
+                      <span className="text-xs sm:text-sm font-semibold text-gray-600">Baixo</span>
+                    </div>
+
+                    {/* Container da Matriz */}
+                    <div className="relative w-72 h-72 sm:w-[420px] sm:h-[420px]">
+                      {/* Grid 3x3 */}
+                      <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
+                        {[3, 2, 1].map((row) => (
+                          [1, 2, 3].map((col) => {
+                            const key = `${row},${col}`;
+                            const config = matrixConfig[key];
+                            const isActive = isQuadrantActive(row, col);
+                            const isHovered = hoveredQuadrant === key;
+                            
+                            return (
+                              <motion.div
+                                key={key}
+                                whileHover={{ scale: 1.02 }}
+                                onMouseEnter={() => setHoveredQuadrant(key)}
+                                onMouseLeave={() => setHoveredQuadrant(null)}
+                                className={`
+                                  relative flex flex-col items-center justify-center p-3 sm:p-5
+                                  ${config.bgColor} ${config.textColor}
+                                  border-2 ${isActive ? `${config.activeBorderColor} shadow-xl z-10` : config.borderColor}
+                                  transition-all duration-300 cursor-pointer
+                                  ${isHovered && !isActive ? 'shadow-lg z-5' : ''}
+                                `}
+                              >
+                                <div className="text-center">
+                                  <div className="text-[10px] sm:text-xs opacity-80 leading-tight">
+                                    {config.description}
+                                  </div>
+                                </div>
+                              </motion.div>
+                            );
+                          })
+                        ))}
+                      </div>
+
+                      {/* Ponto do Colaborador */}
+                      {selectedEvaluation && (
+                        <motion.div
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                          className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-full shadow-lg z-20 ring-4 ring-white"
+                          style={{
+                            left: `${getPointPosition(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore).x}%`,
+                            top: `${getPointPosition(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore).y}%`,
+                            transform: 'translate(-50%, -50%)'
+                          }}
+                        />
+                      )}
+                    </div>
+
+                    {/* Labels do eixo X */}
+                    <div className="flex justify-between w-72 sm:w-[420px] mt-4 sm:mt-6">
+                      <span className="text-xs sm:text-sm font-semibold text-gray-600">Baixo</span>
+                      <span className="text-xs sm:text-sm font-semibold text-gray-600">Médio</span>
+                      <span className="text-xs sm:text-sm font-semibold text-gray-600">Alto</span>
+                    </div>
+
+                    {/* Título do eixo X */}
+                    <div className="flex justify-center w-72 sm:w-[420px] mt-3">
+                      <span className="text-sm sm:text-base font-bold text-gray-700 uppercase tracking-widest">
+                        DESEMPENHO
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Labels do eixo X */}
-                <div className="flex justify-between w-72 sm:w-[420px] mt-4 sm:mt-6">
-                  <span className="text-xs sm:text-sm font-semibold text-gray-600">Baixo</span>
-                  <span className="text-xs sm:text-sm font-semibold text-gray-600">Médio</span>
-                  <span className="text-xs sm:text-sm font-semibold text-gray-600">Alto</span>
-                </div>
-
-                {/* Título do eixo X */}
-                <div className="flex justify-center w-72 sm:w-[420px] mt-3">
-                  <span className="text-sm sm:text-base font-bold text-gray-700 uppercase tracking-widest">
-                    DESEMPENHO
-                  </span>
+                {/* Info Box */}
+                <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200 flex items-start">
+                  <Info className="h-5 w-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-700">
+                    <p className="font-semibold mb-1">Como interpretar a matriz:</p>
+                    <p className="opacity-90">
+                      A posição do colaborador é determinada pela combinação de sua performance (eixo horizontal) 
+                      e potencial (eixo vertical). Cada quadrante indica uma estratégia de desenvolvimento específica.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Legenda do quadrante ativo */}
-            {selectedEvaluation && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="mt-8 p-4 bg-gray-50 rounded-xl border border-gray-200"
-              >
-                <p className="text-sm font-semibold text-gray-700 mb-2">Posição Atual:</p>
-                <p className="text-sm text-gray-600">
-                  {(() => {
-                    const quadrant = getQuadrant(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore);
-                    const key = `${quadrant.row},${quadrant.col}`;
-                    return matrixConfig[key]?.description || '';
-                  })()}
-                </p>
-              </motion.div>
-            )}
           </motion.div>
         )}
 
@@ -394,7 +451,7 @@ const NineBoxMatrix = () => {
             className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-16 text-center"
           >
             <div className="max-w-sm mx-auto">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 mb-6">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-100 to-secondary-100 mb-6">
                 <BarChart3 className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600" />
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">

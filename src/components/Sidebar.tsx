@@ -12,7 +12,9 @@ import {
   FileText,
   BarChart3,
   LogOut,
-  X
+  X,
+  Grid3x3,
+  Handshake
 } from 'lucide-react';
 import logo from '../../assets/images/logo.png';
 
@@ -28,8 +30,8 @@ const Sidebar = ({ onClose }: SidebarProps) => {
     { name: 'Autoavaliação', icon: User, path: '/self-evaluation' },
     { name: 'Avaliação do Líder', icon: User, path: '/leader-evaluation' },
     { name: 'Avaliação de Potencial', icon: Target, path: '/potential-evaluation' },
-    { name: 'Consenso', icon: Target, path: '/consensus' }, 
-    { name: 'Matriz 9 Box', icon: BarChart3, path: '/nine-box' },
+    { name: 'Consenso', icon: Handshake, path: '/consensus' }, 
+    { name: 'Matriz 9 Box', icon: Grid3x3, path: '/nine-box' },
     { name: 'Plano de Ação (PDI)', icon: FileText, path: '/action-plan' },
     { name: 'Relatórios', icon: PieChart, path: '/reports' },
   ];
