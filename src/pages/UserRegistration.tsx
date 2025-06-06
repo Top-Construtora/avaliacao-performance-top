@@ -1041,12 +1041,6 @@ const UserRegistration = () => {
         className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8"
       >
         <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate('/users')}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-600" />
-          </button>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
               <FilePlus className="h-6 w-6 sm:h-8 sm:w-8 text-primary-500 mr-3" />

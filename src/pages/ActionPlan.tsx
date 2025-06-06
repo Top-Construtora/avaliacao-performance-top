@@ -406,7 +406,7 @@ const ActionPlan = () => {
       key: 'curtosPrazos' as const,
       title: 'Curto Prazo',
       subtitle: '0-6 meses',
-      icon: Rocket,
+      icon: BookOpen,
       gradient: 'from-primary-500 to-primary-600',
       bgColor: 'bg-primary-50',
       borderColor: 'border-primary-200',
@@ -428,7 +428,7 @@ const ActionPlan = () => {
       key: 'longosPrazos' as const,
       title: 'Longo Prazo',
       subtitle: '12-24 meses',
-      icon: TrendingUp,
+      icon: Rocket,
       gradient: 'from-accent-500 to-accent-600',
       bgColor: 'bg-accent-50',
       borderColor: 'border-accent-200',
@@ -438,11 +438,11 @@ const ActionPlan = () => {
   ];
 
   const statusOptions = [
-    { value: '1', label: '1 - Não iniciado', color: 'bg-gray-100 text-gray-700 border-gray-300' },
-    { value: '2', label: '2 - Iniciado', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-    { value: '3', label: '3 - Em andamento', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-    { value: '4', label: '4 - Quase concluído', color: 'bg-orange-100 text-orange-700 border-orange-300' },
-    { value: '5', label: '5 - Concluído', color: 'bg-green-100 text-green-700 border-green-300' }
+    { value: '1', label: 'Não iniciado', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+    { value: '2', label: 'Iniciado', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+    { value: '3', label: 'Em andamento', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+    { value: '4', label: 'Quase concluído', color: 'bg-orange-100 text-orange-700 border-orange-300' },
+    { value: '5', label: 'Concluído', color: 'bg-green-100 text-green-700 border-green-300' }
   ];
 
   const getProgress = () => {
@@ -462,7 +462,7 @@ const ActionPlan = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
       >
         <button
           onClick={() => toggleSection(category)}
@@ -470,18 +470,18 @@ const ActionPlan = () => {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 sm:space-x-4">
-              <div className={`p-2 sm:p-3 rounded-xl ${categoryData.iconBg} shadow-md`}>
+              <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${categoryData.iconBg} shadow-md`}>
                 <categoryData.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div className="text-left">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-800">{categoryData.title}</h3>
-                <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">{categoryData.subtitle} • {categoryData.description}</p>
-                <p className="text-xs text-gray-600 mt-1 sm:hidden">{categoryData.subtitle}</p>
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800">{categoryData.title}</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mt-0.5 hidden sm:block">{categoryData.subtitle} • {categoryData.description}</p>
+                <p className="text-xs text-gray-600 mt-0.5 sm:hidden">{categoryData.subtitle}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="text-right">
-                <p className="text-xl sm:text-2xl font-bold text-gray-800">{items.length}</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">{items.length}</p>
                 <p className="text-xs text-gray-600">itens</p>
               </div>
               {isExpanded ? (
@@ -526,16 +526,16 @@ const ActionPlan = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: itemIndex * 0.1 }}
-                        className="bg-gray-50 rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-200"
+                        className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-200"
                       >
                         {/* Header do Item */}
                         <div className="flex items-start justify-between mb-4 sm:mb-6">
                           <div className="flex items-center space-x-3">
-                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${categoryData.iconBg} flex items-center justify-center text-white text-sm sm:text-base font-bold shadow-md`}>
+                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl ${categoryData.iconBg} flex items-center justify-center text-white text-sm sm:text-base font-bold shadow-md`}>
                               {itemIndex + 1}
                             </div>
                             <div>
-                              <h4 className="text-base sm:text-lg font-semibold text-gray-800">
+                              <h4 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-800">
                                 Item de Desenvolvimento
                               </h4>
                               <span className={`inline-flex mt-1 px-2 py-1 rounded-full text-xs font-medium border ${statusOptions.find(s => s.value === item.status)?.color}`}>
@@ -545,7 +545,7 @@ const ActionPlan = () => {
                           </div>
                           <button
                             onClick={() => removeActionItem(category, item.id)}
-                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+                            className="p-1.5 sm:p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
                           >
                             <X size={16} className="sm:hidden" />
                             <X size={20} className="hidden sm:block" />
@@ -555,7 +555,7 @@ const ActionPlan = () => {
                         <div className="space-y-4 sm:space-y-6">
                           {/* Competência a desenvolver */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2 sm:mb-3 flex items-center">
+                            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                               <Award className="h-4 w-4 mr-2 text-primary-600" />
                               Competência a desenvolver
                             </label>
@@ -585,7 +585,7 @@ const ActionPlan = () => {
                           {/* Como desenvolver as competências */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                              <Sparkles className="h-4 w-4 mr-2 text-accent-600" />
+                              <Lightbulb className="h-4 w-4 mr-2 text-accent-600" />
                               Como desenvolver as competências
                             </label>
                             <textarea
@@ -600,7 +600,7 @@ const ActionPlan = () => {
                           {/* Resultados Esperados */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                              <ListChecks className="h-4 w-4 mr-2 text-primary-600" />
+                              <Target className="h-4 w-4 mr-2 text-primary-600" />
                               Resultados Esperados
                             </label>
                             <textarea
@@ -641,7 +641,7 @@ const ActionPlan = () => {
                               <textarea
                                 className="w-full rounded-lg border-gray-200 shadow-sm focus:border-secondary-500 focus:ring-secondary-500 transition-all duration-200 text-sm sm:text-base"
                                 rows={2}
-                                placeholder="Observações..."
+                                placeholder="Observações adicionais..."
                                 value={item.observacao}
                                 onChange={(e) => updateActionItem(category, item.id, 'observacao', e.target.value)}
                               />
@@ -675,26 +675,18 @@ const ActionPlan = () => {
   const progress = getProgress();
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 lg:p-0">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8"
+        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8"
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
           <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-0">
-            <button
-              onClick={() => navigate('/')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 flex-shrink-0"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
-            </button>
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center flex-wrap">
-                <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 mr-2 sm:mr-3 flex-shrink-0">
-                  <FileText className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-white" />
-                </div>
+                <FileText className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-accent-500 mr-2 sm:mr-3" />
                 <span className="break-words">Plano de Desenvolvimento Individual</span>
               </h1>
               <p className="text-gray-600 mt-1 text-sm sm:text-base">Estruture o crescimento e desenvolvimento do colaborador</p>
@@ -742,7 +734,7 @@ const ActionPlan = () => {
         </div>
 
         {/* Seleção do colaborador */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 sm:mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="sm:col-span-2 lg:col-span-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Colaborador
@@ -822,17 +814,17 @@ const ActionPlan = () => {
             transition={{ delay: 0.5 }}
             className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0"
           >
-            <div className="flex items-center space-x-2 text-sm">
+            <div className="flex items-center space-x-2 text-sm order-2 sm:order-1">
               {planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length === 0 ? (
                 <>
-                  <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 flex-shrink-0" />
                   <span className="text-gray-600">
                     Adicione pelo menos um item de desenvolvimento
                   </span>
                 </>
               ) : (
                 <>
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />
                   <span className="text-green-600 font-medium">
                     PDI pronto para ser salvo!
                   </span>
@@ -840,12 +832,12 @@ const ActionPlan = () => {
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 order-1 sm:order-2">
               <div className="flex flex-col xs:flex-row space-y-2 xs:space-y-0 xs:space-x-2 sm:space-x-4">
                 <Button
                   variant="outline"
                   onClick={() => navigate('/reports')}
-                  size="sm"
+                  size="md"
                   className="w-full xs:w-auto"
                 >
                   Cancelar
@@ -892,7 +884,7 @@ const ActionPlan = () => {
                 variant="primary"
                 onClick={handleSave}
                 icon={<Save size={18} />}
-                size="sm"
+                size="md"
                 disabled={planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length === 0}
                 className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 w-full sm:w-auto"
               >
@@ -908,10 +900,10 @@ const ActionPlan = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-16 text-center"
+          className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-12 lg:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 mb-6">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 mb-4 sm:mb-6">
               <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600" />
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">

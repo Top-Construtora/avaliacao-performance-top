@@ -378,12 +378,6 @@ const Consensus = () => {
      >
        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
          <div className="flex items-center space-x-4">
-           <button
-             onClick={() => navigate('/')}
-             className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-           >
-             <ArrowLeft className="h-5 w-5 text-gray-600" />
-           </button>
            <div>
              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
                <Handshake className="h-6 w-6 sm:h-8 sm:w-8 text-primary-500 mr-3" />

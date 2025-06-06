@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+import { useEvaluation } from '../context/EvaluationContext';
+import { useUsers } from '../context/UserContext';
 import Button from '../components/Button';
 import { 
  FileDown, 
@@ -18,10 +20,20 @@ import {
  ChevronUp,
  BarChart3,
  FileText,
+ PieChart,
  Briefcase,
  Menu,
  X
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
+declare module 'jspdf' {
+ interface jsPDF {
+   autoTable: (options: any) => jsPDF;
+ }
+}
 
 const Reports = () => {
  const [activeTab, setActiveTab] = useState('overview');
@@ -31,86 +43,156 @@ const Reports = () => {
  const [selectedStatus, setSelectedStatus] = useState('');
  const [showMobileActions, setShowMobileActions] = useState(false);
  
- // Mock data
- const mockReportData = [
-   { 
-     id: '1', 
-     name: 'João Silva', 
-     department: 'Engenharia',
-     position: 'Tech Lead',
-     selfEvaluation: 'Completo', 
-     leaderEvaluation: 'Completo', 
-     consensus: 'Completo', 
-     pdi: 'Definido', 
-     finalScore: 3.8
-   },
-   { 
-     id: '2', 
-     name: 'Maria Santos', 
-     department: 'Design',
-     position: 'UX Designer',
-     selfEvaluation: 'Completo', 
-     leaderEvaluation: 'Completo', 
-     consensus: 'Em Andamento', 
-     pdi: 'Aguardando', 
-     finalScore: 3.2
-   },
-   { 
-     id: '3', 
-     name: 'Pedro Oliveira', 
-     department: 'Gerência de Projetos',
-     position: 'Project Manager',
-     selfEvaluation: 'Completo', 
-     leaderEvaluation: 'Pendente', 
-     consensus: 'Aguardando', 
-     pdi: 'Aguardando', 
-     finalScore: 2.8
-   },
-   { 
-     id: '4', 
-     name: 'Ana Costa', 
-     department: 'Engenharia',
-     position: 'Software Developer',
-     selfEvaluation: 'Pendente', 
-     leaderEvaluation: 'Pendente', 
-     consensus: 'Aguardando', 
-     pdi: 'Aguardando', 
-     finalScore: 0
-   },
-   { 
-     id: '5', 
-     name: 'Carlos Mendes', 
-     department: 'Gente & Gestão',
-     position: 'RH',
-     selfEvaluation: 'Completo', 
-     leaderEvaluation: 'Completo', 
-     consensus: 'Completo', 
-     pdi: 'Em Andamento', 
-     finalScore: 3.5
-   },
- ];
+ const { evaluations, getEvaluationsByEmployeeId } = useEvaluation();
+ const { users, teams, departments } = useUsers();
 
- const reportSummary = {
-   totalCollaborators: 25,
-   completedEvaluations: 12,
-   inProgress: 8,
-   pending: 5
- };
+ const reportData = useMemo(() => {
+   return users.map(user => {
+     const userEvaluations = getEvaluationsByEmployeeId(user.id);
+     const selfEval = userEvaluations.find(e => e.evaluatorId === user.id);
+     const leaderEval = userEvaluations.find(e => e.evaluatorId !== user.id && e.evaluatorId !== 'consensus');
+     const consensusEval = userEvaluations.find(e => e.evaluatorId === 'consensus');
+     
+     const userDepts = user.departmentIds.map(id => departments.find(d => d.id === id)?.name).filter(Boolean);
+     
+     return {
+       id: user.id,
+       name: user.name,
+       department: userDepts.join(', ') || 'Sem departamento',
+       position: user.position,
+       selfEvaluation: selfEval ? 
+         (selfEval.status === 'completed' ? 'Completo' : 
+          selfEval.status === 'in-progress' ? 'Em Andamento' : 'Pendente') : 'Pendente',
+       leaderEvaluation: leaderEval ? 
+         (leaderEval.status === 'completed' ? 'Completo' : 
+          leaderEval.status === 'in-progress' ? 'Em Andamento' : 'Pendente') : 'Pendente',
+       consensus: consensusEval ? 'Completo' : 'Aguardando',
+       pdi: consensusEval ? 'Definido' : 'Aguardando',
+       finalScore: consensusEval ? consensusEval.finalScore : 0
+     };
+   });
+ }, [users, departments, getEvaluationsByEmployeeId]);
 
- // Department data
- const departmentData = [
-   { name: 'Engenharia', completed: 8, pending: 2, inProgress: 3 },
-   { name: 'Design', completed: 5, pending: 1, inProgress: 2 },
-   { name: 'Gerência de Projetos', completed: 3, pending: 2, inProgress: 1 },
-   { name: 'Gente & Gestão', completed: 2, pending: 2, inProgress: 3 }
- ];
+ const reportSummary = useMemo(() => {
+   const completed = reportData.filter(r => 
+     r.selfEvaluation === 'Completo' && 
+     r.leaderEvaluation === 'Completo' && 
+     r.consensus === 'Completo'
+   ).length;
+   
+   const inProgress = reportData.filter(r => 
+     r.selfEvaluation === 'Em Andamento' || 
+     r.leaderEvaluation === 'Em Andamento'
+   ).length;
+   
+   const pending = reportData.filter(r => 
+     r.selfEvaluation === 'Pendente' || 
+     r.leaderEvaluation === 'Pendente'
+   ).length;
 
- // Export functions
+   return {
+     totalCollaborators: users.length,
+     completedEvaluations: completed,
+     inProgress: inProgress,
+     pending: pending
+   };
+ }, [reportData, users.length]);
+
+ const departmentData = useMemo(() => {
+   return departments.map(dept => {
+     const deptUsers = users.filter(u => u.departmentIds.includes(dept.id));
+     const deptReports = reportData.filter(r => r.department.includes(dept.name));
+     
+     const completed = deptReports.filter(r => 
+       r.selfEvaluation === 'Completo' && 
+       r.leaderEvaluation === 'Completo'
+     ).length;
+     
+     const inProgress = deptReports.filter(r => 
+       r.selfEvaluation === 'Em Andamento' || 
+       r.leaderEvaluation === 'Em Andamento'
+     ).length;
+     
+     const pending = deptReports.filter(r => 
+       r.selfEvaluation === 'Pendente' || 
+       r.leaderEvaluation === 'Pendente'
+     ).length;
+     
+     return {
+       name: dept.name,
+       completed,
+       pending,
+       inProgress,
+       total: deptUsers.length
+     };
+   });
+ }, [departments, users, reportData]);
+
+ const filteredData = useMemo(() => {
+   return reportData.filter(employee => {
+     const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          employee.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          employee.position.toLowerCase().includes(searchTerm.toLowerCase());
+     
+     const matchesDepartment = !selectedDepartment || employee.department.includes(selectedDepartment);
+     const matchesStatus = !selectedStatus || 
+                          employee.selfEvaluation === selectedStatus || 
+                          employee.leaderEvaluation === selectedStatus ||
+                          employee.consensus === selectedStatus;
+
+     return matchesSearch && matchesDepartment && matchesStatus;
+   });
+ }, [reportData, searchTerm, selectedDepartment, selectedStatus]);
+
  const exportPDF = () => {
+   const doc = new jsPDF();
+   
+   doc.setFontSize(16);
+   doc.text('Relatório de Avaliações', 14, 15);
+   
+   doc.setFontSize(10);
+   doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 25);
+   
+   const tableData = filteredData.map(employee => [
+     employee.name,
+     employee.position,
+     employee.department,
+     employee.selfEvaluation,
+     employee.leaderEvaluation,
+     employee.consensus,
+     employee.finalScore > 0 ? employee.finalScore.toFixed(1) : '-'
+   ]);
+   
+   doc.autoTable({
+     head: [['Nome', 'Cargo', 'Departamento', 'Autoavaliação', 'Líder', 'Consenso', 'Nota']],
+     body: tableData,
+     startY: 35,
+     theme: 'grid',
+     styles: { fontSize: 8 },
+     headStyles: { fillColor: [18, 176, 160] }
+   });
+   
+   doc.save('relatorio_avaliacoes.pdf');
    toast.success('Relatório PDF gerado com sucesso!');
  };
  
  const exportExcel = () => {
+   const data = filteredData.map(employee => ({
+     'Nome': employee.name,
+     'Cargo': employee.position,
+     'Departamento': employee.department,
+     'Autoavaliação': employee.selfEvaluation,
+     'Avaliação do Líder': employee.leaderEvaluation,
+     'Consenso': employee.consensus,
+     'PDI': employee.pdi,
+     'Nota Final': employee.finalScore > 0 ? employee.finalScore : '-'
+   }));
+   
+   const ws = XLSX.utils.json_to_sheet(data);
+   const wb = XLSX.utils.book_new();
+   XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
+   
+   XLSX.writeFile(wb, 'relatorio_avaliacoes.xlsx');
    toast.success('Relatório Excel gerado com sucesso!');
  };
 
@@ -203,21 +285,6 @@ const Reports = () => {
    );
  };
 
- // Filtros
- const filteredData = mockReportData.filter(employee => {
-   const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        employee.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        employee.position.toLowerCase().includes(searchTerm.toLowerCase());
-   
-   const matchesDepartment = !selectedDepartment || employee.department === selectedDepartment;
-   const matchesStatus = !selectedStatus || 
-                        employee.selfEvaluation === selectedStatus || 
-                        employee.leaderEvaluation === selectedStatus ||
-                        employee.consensus === selectedStatus;
-
-   return matchesSearch && matchesDepartment && matchesStatus;
- });
-
  const tabs = [
    { id: 'overview', label: 'Visão Geral', icon: BarChart3 },
    { id: 'detailed', label: 'Detalhado', icon: FileText }
@@ -233,17 +300,13 @@ const Reports = () => {
      >
        <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-start md:space-y-0 mb-6">
          <div className="flex-1">
-           <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center">
-             <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 mr-2 md:mr-3">
-               <Award className="h-5 w-5 md:h-6 md:w-6 text-white" />
-             </div>
-             <span className="hidden sm:inline">Central de Relatórios</span>
-             <span className="sm:hidden">Relatórios</span>
-           </h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center flex-wrap">
+                <PieChart className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-500 mr-2 sm:mr-3 flex-shrink-0" />
+                <span className="break-words">Central de Relatórios</span>
+            </h1>
            <p className="text-sm md:text-base text-gray-600 mt-1">Acompanhe o progresso das avaliações</p>
          </div>
          
-         {/* Desktop Actions */}
          <div className="hidden md:flex items-center space-x-3">
            <button
              onClick={printReport}
@@ -277,7 +340,6 @@ const Reports = () => {
            </Button>
          </div>
 
-         {/* Mobile Actions Menu */}
          <div className="md:hidden">
            <button
              onClick={() => setShowMobileActions(!showMobileActions)}
@@ -328,7 +390,6 @@ const Reports = () => {
          </div>
        </div>
 
-       {/* Tabs */}
        <div className="flex space-x-1 border-b border-gray-200 mt-4 md:mt-6 -mb-4 md:-mb-8 overflow-x-auto">
          {tabs.map((tab) => {
            const Icon = tab.icon;
@@ -350,10 +411,8 @@ const Reports = () => {
        </div>
      </motion.div>
 
-     {/* Overview Tab */}
      {activeTab === 'overview' && (
        <>
-         {/* KPI Cards */}
          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
            <motion.div
              className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white"
@@ -381,7 +440,10 @@ const Reports = () => {
                <div className="p-2 md:p-3 bg-white/20 rounded-lg md:rounded-xl backdrop-blur-sm">
                  <CheckCircle size={20} className="md:w-6 md:h-6" />
                </div>
-               <span className="text-xs bg-white/20 px-2 py-1 rounded-full">48%</span>
+               <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                 {reportSummary.totalCollaborators > 0 ? 
+                   Math.round((reportSummary.completedEvaluations / reportSummary.totalCollaborators) * 100) : 0}%
+               </span>
              </div>
              <p className="text-2xl md:text-3xl font-bold mb-1">{reportSummary.completedEvaluations}</p>
              <p className="text-secondary-100 text-xs md:text-sm">Avaliações Completas</p>
@@ -397,7 +459,10 @@ const Reports = () => {
                <div className="p-2 md:p-3 bg-white/20 rounded-lg md:rounded-xl backdrop-blur-sm">
                  <Clock size={20} className="md:w-6 md:h-6" />
                </div>
-               <span className="text-xs bg-white/20 px-2 py-1 rounded-full">32%</span>
+               <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                 {reportSummary.totalCollaborators > 0 ? 
+                   Math.round((reportSummary.inProgress / reportSummary.totalCollaborators) * 100) : 0}%
+               </span>
              </div>
              <p className="text-2xl md:text-3xl font-bold mb-1">{reportSummary.inProgress}</p>
              <p className="text-accent-100 text-xs md:text-sm">Em Andamento</p>
@@ -413,14 +478,16 @@ const Reports = () => {
                <div className="p-2 md:p-3 bg-red-50 rounded-lg md:rounded-xl">
                  <AlertTriangle size={20} className="md:w-6 md:h-6 text-red-600" />
                </div>
-               <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">20%</span>
+               <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                 {reportSummary.totalCollaborators > 0 ? 
+                   Math.round((reportSummary.pending / reportSummary.totalCollaborators) * 100) : 0}%
+               </span>
              </div>
              <p className="text-2xl md:text-3xl font-bold text-gray-800 mb-1">{reportSummary.pending}</p>
              <p className="text-gray-600 text-xs md:text-sm">Pendentes</p>
            </motion.div>
          </div>
 
-         {/* Department Overview */}
          <motion.div
            className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8"
            initial={{ opacity: 0, y: 20 }}
@@ -455,11 +522,11 @@ const Reports = () => {
                    <div className="h-full flex">
                      <div 
                        className="bg-gradient-to-r from-primary-500 to-primary-600 h-full transition-all duration-500"
-                       style={{ width: `${(dept.completed / (dept.completed + dept.inProgress + dept.pending)) * 100}%` }}
+                       style={{ width: dept.total > 0 ? `${(dept.completed / dept.total) * 100}%` : '0%' }}
                      />
                      <div 
                        className="bg-gradient-to-r from-secondary-500 to-secondary-600 h-full transition-all duration-500"
-                       style={{ width: `${(dept.inProgress / (dept.completed + dept.inProgress + dept.pending)) * 100}%` }}
+                       style={{ width: dept.total > 0 ? `${(dept.inProgress / dept.total) * 100}%` : '0%' }}
                      />
                    </div>
                  </div>
@@ -470,14 +537,12 @@ const Reports = () => {
        </>
      )}
 
-     {/* Detailed Tab */}
      {activeTab === 'detailed' && (
        <motion.div
          className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
          initial={{ opacity: 0, y: 20 }}
          animate={{ opacity: 1, y: 0 }}
        >
-         {/* Search and Filters */}
          <div className="p-4 md:p-6 border-b border-gray-200">
            <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
              <div className="flex flex-col space-y-3 md:flex-row md:items-center md:space-x-4 md:space-y-0 flex-1">
@@ -502,7 +567,7 @@ const Reports = () => {
                </button>
              </div>
              <div className="text-xs md:text-sm text-gray-600 text-center md:text-right">
-               {filteredData.length} de {mockReportData.length} colaboradores
+               {filteredData.length} de {reportData.length} colaboradores
              </div>
            </div>
 
@@ -522,10 +587,9 @@ const Reports = () => {
                      onChange={(e) => setSelectedDepartment(e.target.value)}
                    >
                      <option value="">Todos os departamentos</option>
-                     <option value="Engenharia">Engenharia</option>
-                     <option value="Design">Design</option>
-                     <option value="Gerência de Projetos">Gerência de Projetos</option>
-                     <option value="Gente & Gestão">Gente & Gestão</option>
+                     {departments.map(dept => (
+                       <option key={dept.id} value={dept.name}>{dept.name}</option>
+                     ))}
                    </select>
                    <select 
                      className="rounded-lg border-gray-200 text-sm focus:border-primary-500 focus:ring-primary-500"
@@ -544,7 +608,6 @@ const Reports = () => {
            </AnimatePresence>
          </div>
 
-         {/* Desktop Table */}
          <div className="hidden lg:block overflow-x-auto">
            <table className="min-w-full">
              <thead className="bg-gray-50">
@@ -616,7 +679,6 @@ const Reports = () => {
            </table>
          </div>
 
-         {/* Mobile Cards */}
          <div className="lg:hidden divide-y divide-gray-200">
            {filteredData.map((employee, index) => (
              <motion.div 
