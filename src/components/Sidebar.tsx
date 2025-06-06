@@ -32,7 +32,7 @@ const Sidebar = ({ onClose }: SidebarProps) => {
     { name: 'Avaliação de Potencial', icon: Target, path: '/potential-evaluation' },
     { name: 'Consenso', icon: Handshake, path: '/consensus' }, 
     { name: 'Matriz 9 Box', icon: Grid3x3, path: '/nine-box' },
-    { name: 'Plano de Ação (PDI)', icon: FileText, path: '/action-plan' },
+    { name: 'PDI', icon: FileText, path: '/action-plan' },
     { name: 'Relatórios', icon: PieChart, path: '/reports' },
   ];
 

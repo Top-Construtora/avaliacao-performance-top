@@ -1,20 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, User, BarChart3, Download, Calendar, Briefcase, TrendingUp, Target, Award, Info, Grid3x3 } from 'lucide-react';
-
-// Tipos
-interface Employee {
-  id: string;
-  name: string;
-  position: string;
-  department: string;
-}
-
-interface Evaluation {
-  employeeId: string;
-  consensusScore: number; // Performance (1-4)
-  potentialScore: number; // Potencial (1-4)
-}
+import { useEvaluation } from '../context/EvaluationContext';
+import Button from '../components/Button';
 
 interface MatrixConfig {
   bgColor: string;
@@ -101,16 +90,8 @@ const matrixConfig: Record<string, MatrixConfig> = {
   }
 };
 
-// Mock data
-const mockEmployees: Employee[] = [
-  { id: '1', name: 'Maria Santos', position: 'UX Designer', department: 'Design' },
-  { id: '2', name: 'João Silva', position: 'Tech Lead', department: 'Engineering' },
-  { id: '3', name: 'Pedro Oliveira', position: 'Project Manager', department: 'Project Management' },
-  { id: '4', name: 'Ana Costa', position: 'Software Developer', department: 'Engineering' },
-  { id: '5', name: 'Carlos Mendes', position: 'HR Specialist', department: 'People & Management' },
-];
-
-const mockEvaluations: Evaluation[] = [
+// Mock evaluations for Nine Box (apenas para demonstração)
+const mockNineBoxEvaluations = [
   { employeeId: '1', consensusScore: 3.2, potentialScore: 2.5 },
   { employeeId: '2', consensusScore: 3.8, potentialScore: 3.5 },
   { employeeId: '3', consensusScore: 2.2, potentialScore: 1.8 },
@@ -119,9 +100,10 @@ const mockEvaluations: Evaluation[] = [
 ];
 
 const NineBoxMatrix = () => {
+  const navigate = useNavigate();
+  const { employees } = useEvaluation();
   const [selectedEmployee, setSelectedEmployee] = useState('');
-  const [employees] = useState(mockEmployees);
-  const [evaluations] = useState(mockEvaluations);
+  const [evaluations] = useState(mockNineBoxEvaluations);
   const [hoveredQuadrant, setHoveredQuadrant] = useState<string | null>(null);
 
   const selectedEvaluation = evaluations.find(e => e.employeeId === selectedEmployee);
@@ -204,288 +186,290 @@ const NineBoxMatrix = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-        
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8"
-        >
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => window.history.back()}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 sm:mb-6 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <button 
+              onClick={() => navigate('/')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            >
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
+                <Grid3x3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 mr-2 sm:mr-3" />
+                <span className="break-words">Matriz 9-Box</span>
+              </h1>
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600 mt-1">
+                Análise de Performance vs Potencial
+              </p>
+            </div>
+          </div>
+          
+          <Button
+            variant="primary"
+            icon={<Download size={18} />}
+            onClick={() => navigate('/action-plan')}
+            size="lg"
+            className="w-full sm:w-auto"
+          >
+            Gerar Plano de Ação
+          </Button>
+        </div>
+
+        {/* Seleção de Colaborador */}
+        <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+            <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600" />
+            Selecionar Colaborador
+          </h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Colaborador
+              </label>
+              <select
+                className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-700 text-sm sm:text-base"
+                value={selectedEmployee}
+                onChange={(e) => setSelectedEmployee(e.target.value)}
               >
-                <ArrowLeft size={20} className="text-gray-600" />
-              </button>
-              <div>
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
-                  <Grid3x3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 mr-2 sm:mr-3 flex-shrink-0" />
-                  <span className="truncate">Matriz 9-Box</span>
-                </h1>
-                <p className="text-gray-600 mt-1 text-sm sm:text-base">Análise de Performance vs Potencial</p>
+                <option value="">Selecione um colaborador</option>
+                {employees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {selectedEmp && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Briefcase className="inline h-4 w-4 mr-1" />
+                    Cargo
+                  </label>
+                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white rounded-lg sm:rounded-xl text-gray-700 text-sm sm:text-base border border-gray-200">
+                    {selectedEmp.position}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Award className="inline h-4 w-4 mr-1" />
+                    Departamento
+                  </label>
+                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white rounded-lg sm:rounded-xl text-gray-700 text-sm sm:text-base border border-gray-200">
+                    {selectedEmp.department}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Conteúdo Principal */}
+      {selectedEmployee && selectedEvaluation && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6"
+        >
+          {/* Coluna Esquerda - Scores e Info */}
+          <div className="space-y-4">
+            {/* Card de Scores */}
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
+                Avaliação de {selectedEmp?.name}
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg sm:rounded-xl p-4 border border-primary-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-gray-700">Performance</p>
+                    <TrendingUp className="h-4 w-4 text-primary-600" />
+                  </div>
+                  <p className="text-2xl sm:text-3xl font-bold text-primary-600">
+                    {selectedEvaluation.consensusScore.toFixed(1)}
+                  </p>
+                  <div className="mt-2 bg-primary-200 rounded-full h-2">
+                    <div 
+                      className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(selectedEvaluation.consensusScore / 4) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-lg sm:rounded-xl p-4 border border-secondary-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-gray-700">Potencial</p>
+                    <Target className="h-4 w-4 text-secondary-600" />
+                  </div>
+                  <p className="text-2xl sm:text-3xl font-bold text-secondary-600">
+                    {selectedEvaluation.potentialScore.toFixed(1)}
+                  </p>
+                  <div className="mt-2 bg-secondary-200 rounded-full h-2">
+                    <div 
+                      className="bg-secondary-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(selectedEvaluation.potentialScore / 4) * 100}%` }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <button className="flex items-center px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base font-medium">
-              <Download size={16} className="mr-2" />
-              Gerar Plano de Ação
-            </button>
+
+            {/* Card de Status Atual */}
+            {getActiveQuadrantInfo() && (
+              <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 ${getActiveQuadrantInfo()!.borderColor} bg-gradient-to-br ${getActiveQuadrantInfo()!.gradient}`}>
+                <h4 className={`text-base sm:text-lg font-bold mb-3 ${getActiveQuadrantInfo()!.textColor}`}>
+                  Status Atual
+                </h4>
+                <p className={`text-sm ${getActiveQuadrantInfo()!.textColor} opacity-90`}>
+                  {getActiveQuadrantInfo()!.description}
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* Seleção de Colaborador */}
-          <div className="bg-gray-50 rounded-xl p-4 sm:p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <User className="h-5 w-5 mr-2 text-gray-600" />
-              Selecionar Colaborador
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Colaborador
-                </label>
-                <select
-                  className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200 text-sm"
-                  value={selectedEmployee}
-                  onChange={(e) => setSelectedEmployee(e.target.value)}
-                >
-                  <option value="">Selecione um colaborador</option>
-                  {employees.map((employee) => (
-                    <option key={employee.id} value={employee.id}>
-                      {employee.name}
-                    </option>
-                  ))}
-                </select>
+          {/* Coluna Central e Direita - Matriz */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8">
+              <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-4 sm:mb-6 flex items-center">
+                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600" />
+                Posicionamento na Matriz
+              </h2>
+
+              {/* Grid da Matriz 9-Box */}
+              <div className="flex justify-center">
+                <div className="relative">
+                  
+                  {/* Título do eixo Y (Potencial) */}
+                  <div className="absolute -left-12 sm:-left-40 top-1/2 transform -translate-y-1/2 -rotate-90">
+                    <span className="text-sm sm:text-base font-bold text-gray-700 uppercase tracking-widest">
+                      POTENCIAL
+                    </span>
+                  </div>
+                  
+                  {/* Labels do eixo Y */}
+                  <div className="absolute -left-10 sm:-left-12 flex flex-col justify-between h-72 sm:h-[420px]">
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600">Alto</span>
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600">Médio</span>
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600">Baixo</span>
+                  </div>
+
+                  {/* Container da Matriz */}
+                  <div className="relative w-72 h-72 sm:w-[420px] sm:h-[420px]">
+                    {/* Grid 3x3 */}
+                    <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
+                      {[3, 2, 1].map((row) => (
+                        [1, 2, 3].map((col) => {
+                          const key = `${row},${col}`;
+                          const config = matrixConfig[key];
+                          const isActive = isQuadrantActive(row, col);
+                          const isHovered = hoveredQuadrant === key;
+                          
+                          return (
+                            <motion.div
+                              key={key}
+                              whileHover={{ scale: 1.02 }}
+                              onMouseEnter={() => setHoveredQuadrant(key)}
+                              onMouseLeave={() => setHoveredQuadrant(null)}
+                              className={`
+                                relative flex flex-col items-center justify-center p-3 sm:p-5
+                                ${config.bgColor} ${config.textColor}
+                                border-2 ${isActive ? `${config.activeBorderColor} shadow-xl z-10` : config.borderColor}
+                                transition-all duration-300 cursor-pointer
+                                ${isHovered && !isActive ? 'shadow-lg z-5' : ''}
+                              `}
+                            >
+                              <div className="text-center">
+                                <div className="text-[10px] sm:text-xs opacity-80 leading-tight">
+                                  {config.description}
+                                </div>
+                              </div>
+                            </motion.div>
+                          );
+                        })
+                      ))}
+                    </div>
+
+                    {/* Ponto do Colaborador */}
+                    {selectedEvaluation && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                        className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-full shadow-lg z-20 ring-4 ring-white"
+                        style={{
+                          left: `${getPointPosition(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore).x}%`,
+                          top: `${getPointPosition(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore).y}%`,
+                          transform: 'translate(-50%, -50%)'
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {/* Labels do eixo X */}
+                  <div className="flex justify-between w-72 sm:w-[420px] mt-4 sm:mt-6">
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600">Baixo</span>
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600">Médio</span>
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600">Alto</span>
+                  </div>
+
+                  {/* Título do eixo X */}
+                  <div className="flex justify-center w-72 sm:w-[420px] mt-3">
+                    <span className="text-sm sm:text-base font-bold text-gray-700 uppercase tracking-widest">
+                      DESEMPENHO
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              {selectedEmp && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                      <Briefcase className="h-4 w-4 mr-1" />
-                      Cargo
-                    </label>
-                    <div className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-gray-700 text-sm">
-                      {selectedEmp.position}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                      <Award className="h-4 w-4 mr-1" />
-                      Departamento
-                    </label>
-                    <div className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-gray-700 text-sm">
-                      {selectedEmp.department}
-                    </div>
-                  </div>
-                </>
-              )}
+              {/* Info Box */}
+              <div className="mt-6 sm:mt-8 p-4 bg-blue-50 rounded-lg sm:rounded-xl border border-blue-200 flex items-start">
+                <Info className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-700">
+                  <p className="font-semibold mb-1">Como interpretar a matriz:</p>
+                  <p className="opacity-90">
+                    A posição do colaborador é determinada pela combinação de sua performance (eixo horizontal) 
+                    e potencial (eixo vertical). Cada quadrante indica uma estratégia de desenvolvimento específica.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
+      )}
 
-        {/* Conteúdo Principal */}
-        {selectedEmployee && selectedEvaluation && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6"
-          >
-            {/* Coluna Esquerda - Scores e Info */}
-            <div className="space-y-4">
-              {/* Card de Scores */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  Avaliação de {selectedEmp?.name}
-                </h3>
-                
-                <div className="space-y-4">
-                  <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 border border-primary-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-medium text-gray-700">Performance</p>
-                      <TrendingUp className="h-4 w-4 text-primary-600" />
-                    </div>
-                    <p className="text-3xl font-bold text-primary-600">
-                      {selectedEvaluation.consensusScore.toFixed(1)}
-                    </p>
-                    <div className="mt-2 bg-primary-200 rounded-full h-2">
-                      <div 
-                        className="bg-primary-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${(selectedEvaluation.consensusScore / 4) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-xl p-4 border border-secondary-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-medium text-gray-700">Potencial</p>
-                      <Target className="h-4 w-4 text-secondary-600" />
-                    </div>
-                    <p className="text-3xl font-bold text-secondary-600">
-                      {selectedEvaluation.potentialScore.toFixed(1)}
-                    </p>
-                    <div className="mt-2 bg-secondary-200 rounded-full h-2">
-                      <div 
-                        className="bg-secondary-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${(selectedEvaluation.potentialScore / 4) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card de Status Atual */}
-              {getActiveQuadrantInfo() && (
-                <div className={`rounded-2xl p-4 sm:p-6 border-2 ${getActiveQuadrantInfo()!.borderColor} bg-gradient-to-br ${getActiveQuadrantInfo()!.gradient}`}>
-                  <div className="flex items-center mb-3">
-                    <h4 className={`text-lg font-bold ${getActiveQuadrantInfo()!.textColor}`}>
-                      Status Atual
-                    </h4>
-                  </div>
-                  <p className={`text-sm ${getActiveQuadrantInfo()!.textColor} opacity-90`}>
-                    {getActiveQuadrantInfo()!.description}
-                  </p>
-                </div>
-              )}
+      {/* Empty State */}
+      {!selectedEmployee && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-16 text-center"
+        >
+          <div className="max-w-md mx-auto">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 mb-4 sm:mb-6">
+              <Grid3x3 className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600" />
             </div>
-
-            {/* Coluna Central e Direita - Matriz */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8">
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2 text-gray-600" />
-                  Posicionamento na Matriz
-                </h2>
-
-                {/* Grid da Matriz 9-Box */}
-                <div className="flex justify-center">
-                  <div className="relative">
-                    
-                    {/* Título do eixo Y (Potencial) */}
-                    <div className="absolute -left-12 sm:-left-40 top-1/2 transform -translate-y-1/2 -rotate-90">
-                      <span className="text-sm sm:text-base font-bold text-gray-700 uppercase tracking-widest">
-                        POTENCIAL
-                      </span>
-                    </div>
-                    
-                    {/* Labels do eixo Y */}
-                    <div className="absolute -left-10 sm:-left-12 flex flex-col justify-between h-72 sm:h-[420px]">
-                      <span className="text-xs sm:text-sm font-semibold text-gray-600">Alto</span>
-                      <span className="text-xs sm:text-sm font-semibold text-gray-600">Médio</span>
-                      <span className="text-xs sm:text-sm font-semibold text-gray-600">Baixo</span>
-                    </div>
-
-                    {/* Container da Matriz */}
-                    <div className="relative w-72 h-72 sm:w-[420px] sm:h-[420px]">
-                      {/* Grid 3x3 */}
-                      <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
-                        {[3, 2, 1].map((row) => (
-                          [1, 2, 3].map((col) => {
-                            const key = `${row},${col}`;
-                            const config = matrixConfig[key];
-                            const isActive = isQuadrantActive(row, col);
-                            const isHovered = hoveredQuadrant === key;
-                            
-                            return (
-                              <motion.div
-                                key={key}
-                                whileHover={{ scale: 1.02 }}
-                                onMouseEnter={() => setHoveredQuadrant(key)}
-                                onMouseLeave={() => setHoveredQuadrant(null)}
-                                className={`
-                                  relative flex flex-col items-center justify-center p-3 sm:p-5
-                                  ${config.bgColor} ${config.textColor}
-                                  border-2 ${isActive ? `${config.activeBorderColor} shadow-xl z-10` : config.borderColor}
-                                  transition-all duration-300 cursor-pointer
-                                  ${isHovered && !isActive ? 'shadow-lg z-5' : ''}
-                                `}
-                              >
-                                <div className="text-center">
-                                  <div className="text-[10px] sm:text-xs opacity-80 leading-tight">
-                                    {config.description}
-                                  </div>
-                                </div>
-                              </motion.div>
-                            );
-                          })
-                        ))}
-                      </div>
-
-                      {/* Ponto do Colaborador */}
-                      {selectedEvaluation && (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                          className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-full shadow-lg z-20 ring-4 ring-white"
-                          style={{
-                            left: `${getPointPosition(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore).x}%`,
-                            top: `${getPointPosition(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore).y}%`,
-                            transform: 'translate(-50%, -50%)'
-                          }}
-                        />
-                      )}
-                    </div>
-
-                    {/* Labels do eixo X */}
-                    <div className="flex justify-between w-72 sm:w-[420px] mt-4 sm:mt-6">
-                      <span className="text-xs sm:text-sm font-semibold text-gray-600">Baixo</span>
-                      <span className="text-xs sm:text-sm font-semibold text-gray-600">Médio</span>
-                      <span className="text-xs sm:text-sm font-semibold text-gray-600">Alto</span>
-                    </div>
-
-                    {/* Título do eixo X */}
-                    <div className="flex justify-center w-72 sm:w-[420px] mt-3">
-                      <span className="text-sm sm:text-base font-bold text-gray-700 uppercase tracking-widest">
-                        DESEMPENHO
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Info Box */}
-                <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200 flex items-start">
-                  <Info className="h-5 w-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-blue-700">
-                    <p className="font-semibold mb-1">Como interpretar a matriz:</p>
-                    <p className="opacity-90">
-                      A posição do colaborador é determinada pela combinação de sua performance (eixo horizontal) 
-                      e potencial (eixo vertical). Cada quadrante indica uma estratégia de desenvolvimento específica.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Empty State */}
-        {!selectedEmployee && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-16 text-center"
-          >
-            <div className="max-w-sm mx-auto">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-100 to-secondary-100 mb-6">
-                <BarChart3 className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
-                Nenhum colaborador selecionado
-              </h3>
-              <p className="text-gray-500 text-sm sm:text-base">
-                Selecione um colaborador acima para visualizar sua posição na Matriz 9-Box
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </div>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+              Nenhum colaborador selecionado
+            </h3>
+            <p className="text-sm sm:text-base text-gray-500">
+              Selecione um colaborador acima para visualizar sua posição na Matriz 9-Box
+            </p>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
