@@ -43,11 +43,11 @@ const Settings = () => {
   const [unsavedChanges, setUnsavedChanges] = useState(false);
 
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: 'Luiz Santos',
-    email: 'luiz.santos@empresa.com',
+    name: 'Luiz',
+    email: 'exemplo@empresa.com',
     phone: '+55 (11) 99999-9999',
-    position: 'Gerente de Gente e Gestão',
-    department: 'People & Management',
+    position: 'Exemplo de Cargo',
+    department: 'Exemplo',
     location: 'São Paulo, SP - Brasil'
   });
 
