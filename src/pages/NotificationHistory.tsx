@@ -172,20 +172,10 @@ const NotificationHistory: React.FC = () => {
       actionUrl: '/nine-box'
     },
     {
-      id: 2,
-      type: 'self_assessment_pending',
-      title: 'Autoavaliação Pendente',
-      message: 'Roberto Costa está com autoavaliação pendente - Prazo: 3 dias. É importante completar a avaliação dentro do prazo estabelecido',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-      read: false,
-      department: 'Operações',
-      actionUrl: '/self-evaluation'
-    },
-    {
       id: 3,
       type: 'leader_assessment_complete',
       title: 'Avaliação Concluída',
-      message: 'Ana Costa teve sua avaliação do líder concluída - Nota final: 4.5/5.0. Desempenho excepcional reconhecido',
+      message: 'Ana Costa teve sua avaliação do líder concluída - Nota final: 3.5/4.0. Desempenho excepcional reconhecido',
       timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
       read: false,
       department: 'Vendas',
@@ -221,16 +211,6 @@ const NotificationHistory: React.FC = () => {
       read: true,
       department: 'Marketing',
       actionUrl: '/nine-box'
-    },
-    {
-      id: 7,
-      type: 'feedback_received',
-      title: 'Novo Feedback',
-      message: 'Beatriz Souza recebeu feedback positivo do líder sobre apresentação do projeto Q4',
-      timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      read: true,
-      department: 'Projetos',
-      actionUrl: '/feedback'
     },
     {
       id: 8,
@@ -567,14 +547,6 @@ const NotificationHistory: React.FC = () => {
                               {formatFullDate(notification.timestamp)}
                             </p>
                           </div>
-                          
-                          {/* Ações */}
-                          <button
-                            onClick={() => {/* Navegar para actionUrl */}}
-                            className="flex-shrink-0 text-sm text-primary-600 hover:text-primary-700 font-medium"
-                          >
-                            Ver detalhes
-                          </button>
                         </div>
                       </div>
                     </div>

@@ -201,7 +201,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       id: 5,
       type: 'leader_assessment_complete',
       title: 'Avaliação Concluída',
-      message: 'Ana Costa teve sua avaliação do líder concluída - Nota: 4.5/5.0',
+      message: 'Ana Costa teve sua avaliação do líder concluída - Nota: 3.5/4.0',
       timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
       read: false,
       department: 'Vendas',
@@ -350,7 +350,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50"
+                      className="absolute right-0 sm:right-0 left-0 sm:left-auto mt-2 mx-2 sm:mx-0 w-auto sm:w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50"
                     >
                       {/* Header */}
                       <div className="bg-gradient-to-r from-primary-50/70 to-secondary-50/70 px-3.5 py-2.5 border-b border-gray-100">
@@ -421,7 +421,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                                   initial={{ opacity: 0, x: -20 }}
                                   animate={{ opacity: 1, x: 0 }}
                                   transition={{ delay: index * 0.05 }}
-                                  className={`group relative mx-2 my-1 p-3 rounded-lg transition-all duration-200 cursor-pointer ${
+                                                                      className={`group relative mx-1 sm:mx-2 my-1 p-2.5 sm:p-3 rounded-lg transition-all duration-200 cursor-pointer ${
                                     !notification.read 
                                       ? 'bg-gradient-to-r from-primary-50/40 to-transparent hover:from-primary-50/60' 
                                       : 'hover:bg-gray-50'
