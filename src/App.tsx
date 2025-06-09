@@ -15,6 +15,7 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import NineBoxMatrix from './pages/NineBox';
+import NotificationHistory from './pages/NotificationHistory';
 import UserManagement from './pages/UserManagement'; 
 
 function App() {
@@ -81,6 +82,7 @@ function App() {
                 <Route path="reports" element={<Reports />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="users" element={<UserManagement />} /> 
+                <Route path="/notifications" element={<NotificationHistory />} />
                 <Route path="users/new" element={<UserRegistration />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
