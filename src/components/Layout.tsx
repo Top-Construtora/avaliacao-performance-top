@@ -82,10 +82,7 @@ export default function Layout() {
         isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'
       }`}>
         {/* Header */}
-        <Header 
-          onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          isSidebarCollapsed={isSidebarCollapsed}
-        />
+        <Header />
 
         {/* Page Content */}
         <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">

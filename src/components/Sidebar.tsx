@@ -53,18 +53,30 @@ export default function Sidebar({
   // Definir itens de navegação com permissões
   const navItems: NavItem[] = [
     {
-      label: 'Dashboard',
+      label: 'Página Inicial',
       icon: Home,
       path: '/',
+    },
+    {
+      label: 'Cadastro de Usuários',
+      icon: UserPlus,
+      path: '/users/new',
+      allowedRoles: ['director'],
+    },
+    {
+      label: 'Gerenciar Usuários',
+      icon: Users,
+      path: 'users',
+      allowedRoles: ['director'],
     },
     {
       label: 'Autoavaliação',
       icon: FileText,
       path: '/self-evaluation',
-      hideForRoles: ['director'], // Diretores não fazem autoavaliação
+      hideForRoles: ['director'],
     },
     {
-      label: 'Avaliação da Equipe',
+      label: 'Avaliação do Líder',
       icon: Users,
       path: '/leader-evaluation',
       allowedRoles: ['leader', 'director'],
@@ -82,13 +94,13 @@ export default function Sidebar({
       allowedRoles: ['director'],
     },
     {
-      label: 'Matriz 9-Box',
+      label: 'Matriz 9 Box',
       icon: Grid3X3,
       path: '/nine-box',
       allowedRoles: ['director'],
     },
     {
-      label: 'PDI',
+      label: 'Plano de Ação (PDI)',
       icon: Target,
       path: '/action-plan',
       allowedRoles: ['director'],
@@ -99,32 +111,14 @@ export default function Sidebar({
       path: '/reports',
       allowedRoles: ['director'],
     },
-    {
-      label: 'Gestão de Usuários',
-      icon: UserPlus,
-      path: '/users',
-      allowedRoles: ['director'],
-    },
-    {
-      label: 'Notificações',
-      icon: Bell,
-      path: '/notifications',
-    },
-    {
-      label: 'Configurações',
-      icon: Settings,
-      path: '/settings',
-    },
   ];
 
   // Filtrar itens baseado no papel do usuário
   const filteredNavItems = navItems.filter(item => {
-    // Se tem hideForRoles, verificar se o papel atual está na lista
     if (item.hideForRoles && item.hideForRoles.includes(role as 'director' | 'leader' | 'collaborator')) {
       return false;
     }
     
-    // Se tem allowedRoles, verificar se o papel atual está permitido
     if (item.allowedRoles && !item.allowedRoles.includes(role as 'director' | 'leader' | 'collaborator')) {
       return false;
     }
@@ -142,152 +136,103 @@ export default function Sidebar({
     }
   };
 
-  // Componente do ícone de papel do usuário
-  const RoleIcon = () => {
-    if (isDirector) return <Crown className="h-4 w-4" />;
-    if (isLeader) return <Briefcase className="h-4 w-4" />;
-    return <Users className="h-4 w-4" />;
-  };
-
-  const getRoleLabel = () => {
-    if (isDirector) return 'Diretor';
-    if (isLeader) return 'Líder';
-    return 'Colaborador';
-  };
-
   const sidebarContent = (
-    <>
+    <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <motion.div
-            initial={false}
-            animate={{ opacity: isCollapsed ? 0 : 1 }}
-            className={`flex items-center space-x-3 ${isCollapsed ? 'hidden' : 'block'}`}
-          >
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">Avaliação</h1>
-              <p className="text-xs text-gray-500">Sistema de Desempenho</p>
-            </div>
-          </motion.div>
-          
-          {/* Botão de colapsar (desktop) */}
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden md:flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4 text-gray-600" />
-            ) : (
-              <ChevronLeft className="h-4 w-4 text-gray-600" />
-            )}
-          </button>
-
-          {/* Botão de fechar (mobile) */}
-          <button
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <X className="h-4 w-4 text-gray-600" />
-          </button>
-        </div>
-      </div>
-
-      {/* Informações do usuário */}
-      <div className="p-4 border-b border-gray-200">
-        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'}`}>
-          <div className="relative">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-secondary-500 rounded-full flex items-center justify-center text-white font-semibold">
-              {profile?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
-            </div>
-            <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${
-              isDirector ? 'bg-purple-500' : isLeader ? 'bg-blue-500' : 'bg-green-500'
-            } text-white border-2 border-white`}>
-              <RoleIcon />
-            </div>
-          </div>
-          
-          {!isCollapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">
-                {profile?.name || 'Usuário'}
-              </p>
-              <p className="text-xs text-gray-500 truncate">
-                {getRoleLabel()} • {profile?.position || 'Cargo'}
-              </p>
-            </div>
-          )}
+      <div className="h-16 flex items-center justify-between pl-2 pr-4 border-b border-gray-700/50">
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : ''}`}>
+          <img 
+            src="/assets/images/logo.png" 
+            alt="Logo da empresa" 
+            className="h-14 w-auto object-contain"
+          />
         </div>
       </div>
 
       {/* Menu de navegação */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {filteredNavItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) => `
-              flex items-center ${isCollapsed ? 'justify-center' : ''} px-3 py-2.5 rounded-xl transition-all
-              ${isActive 
-                ? 'bg-gradient-to-r from-primary-500 to-secondary-600 text-white shadow-lg' 
-                : 'text-gray-700 hover:bg-gray-100'
-              }
-            `}
-            title={isCollapsed ? item.label : undefined}
-          >
-            <item.icon className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'} flex-shrink-0`} />
-            {!isCollapsed && (
-              <span className="text-sm font-medium truncate">{item.label}</span>
-            )}
-          </NavLink>
-        ))}
+      <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        <div className="space-y-1">
+          {filteredNavItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) => `
+                flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
+                ${isActive 
+                  ? 'bg-gradient-to-r from-teal-500/20 to-teal-600/20 text-white border border-teal-500/40 shadow-lg shadow-teal-500/10' 
+                  : 'text-white/70 hover:bg-gray-800/50 hover:text-white'
+                }
+              `}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </div>
       </nav>
 
-      {/* Botão de logout */}
-      <div className="p-4 border-t border-gray-200">
-        <button
-          onClick={handleLogout}
-          className={`w-full flex items-center ${
-            isCollapsed ? 'justify-center' : ''
-          } px-3 py-2.5 rounded-xl text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all`}
-          title={isCollapsed ? 'Sair' : undefined}
-        >
-          <LogOut className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'} flex-shrink-0`} />
-          {!isCollapsed && (
-            <span className="text-sm font-medium">Sair</span>
-          )}
-        </button>
+      {/* Separador e opções inferiores */}
+      <div className="px-3 py-4 border-t border-gray-800">
+        <div className="space-y-1">
+          <NavLink
+            to="/settings"
+            className={({ isActive }) => `
+              flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
+              ${isActive 
+                ? 'bg-gradient-to-r from-teal-500/20 to-teal-600/20 text-white border border-teal-500/40 shadow-lg shadow-teal-500/10' 
+                : 'text-white/70 hover:bg-gray-800/50 hover:text-white'
+              }
+            `}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <Settings className="h-5 w-5 mr-3 flex-shrink-0" />
+            <span>Configurações</span>
+          </NavLink>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center px-4 py-3 text-[15px] font-medium rounded-lg text-white/70 hover:bg-gray-800/50 hover:text-white transition-all duration-200"
+          >
+            <LogOut className="h-5 w-5 mr-3 flex-shrink-0" />
+            <span>Sair</span>
+          </button>
+        </div>
       </div>
-    </>
+    </div>
   );
 
   return (
     <>
       {/* Sidebar Desktop */}
-      <motion.aside
-        initial={false}
-        animate={{ width: isCollapsed ? '5rem' : '16rem' }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="hidden md:flex flex-col bg-white border-r border-gray-200 fixed h-full z-30"
-      >
+      <aside className="hidden md:flex flex-col bg-slate-900 w-64 fixed h-full z-30">
         {sidebarContent}
-      </motion.aside>
+      </aside>
 
       {/* Sidebar Mobile */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.aside
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'tween', duration: 0.3 }}
-            className="md:hidden flex flex-col bg-white border-r border-gray-200 fixed h-full w-64 z-50"
-          >
-            {sidebarContent}
-          </motion.aside>
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="md:hidden fixed inset-0 bg-black/50 z-40"
+            />
+            
+            {/* Sidebar */}
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'tween', duration: 0.3 }}
+              className="md:hidden flex flex-col bg-slate-900 fixed h-full w-64 z-50"
+            >
+              {sidebarContent}
+            </motion.aside>
+          </>
         )}
       </AnimatePresence>
     </>
