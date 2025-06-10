@@ -23,7 +23,6 @@ import {
   Briefcase,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
-import logo from '../../assets/images/logo.png';
 import { toast } from 'react-hot-toast';
 
 interface SidebarProps {
@@ -142,7 +141,11 @@ export default function Sidebar({
       {/* Logo */}
       <div className="h-16 flex items-center justify-between pl-2 pr-4 border-b border-gray-700/50">
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : ''}`}>
-          <img src={logo}/>
+          <img 
+            src="../../assets/images/logo.png" 
+            alt="Logo da empresa" 
+            className="h-14 w-auto object-contain"
+          />
         </div>
       </div>
 
