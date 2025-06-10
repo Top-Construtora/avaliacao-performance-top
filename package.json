@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@fontsource/space-grotesk": "^5.2.7",
+    "@supabase/supabase-js": "^2.50.0",
     "chart.js": "^4.4.1",
     "framer-motion": "^11.0.8",
     "jspdf": "^3.0.1",
