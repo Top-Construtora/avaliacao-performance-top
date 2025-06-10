@@ -18,6 +18,8 @@ import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { useSupabaseData } from '../hooks/useSupabaseData';
 import type { UserWithDetails, TeamWithDetails, DepartmentWithDetails } from '../types/supabase';
+import { PermissionGuard, ActionGuard, UIGuard, OperationWarning } from '../components/PermissionGuard';
+import { usePermissions, useUIPermissions, useOperationValidator } from '../hooks/usePermissions';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -33,6 +35,9 @@ type ExportFormat = 'excel' | 'notion' | 'pdf';
 
 const UserManagement = () => {
   const navigate = useNavigate();
+  const permissions = usePermissions();
+  const uiPermissions = useUIPermissions();
+  const operationValidator = useOperationValidator();
   
   const { users, teams, departments, loading, actions } = useSupabaseData();
 
@@ -48,6 +53,12 @@ const UserManagement = () => {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editType, setEditType] = useState<'user' | 'team' | 'department'>('user');
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+  const [pendingOperation, setPendingOperation] = useState<{
+    type: string;
+    data: any;
+    callback: () => void;
+  } | null>(null);
 
   const getUserById = (id: string) => users.find(u => u.id === id);
   const getTeamById = (id: string) => teams.find(t => t.id === id);
@@ -75,18 +86,68 @@ const UserManagement = () => {
   };
 
   const handleEdit = (type: 'user' | 'team' | 'department', item: any) => {
+    if (type === 'user' && !permissions.canEditUser(item.id)) {
+      toast.error('Você não tem permissão para editar este usuário');
+      return;
+    }
+    if (type === 'team' && !permissions.canEditTeam(item.id, item.responsible_id)) {
+      toast.error('Você não tem permissão para editar este time');
+      return;
+    }
+    if (type === 'department' && !permissions.canEditDepartment()) {
+      toast.error('Você não tem permissão para editar departamentos');
+      return;
+    }
+    
     setEditType(type);
     setEditingItem(item);
     setShowEditModal(true);
   };
 
   const handleDelete = async (type: 'user' | 'team' | 'department', id: string) => {
+    if (!permissions.hasPermission(type + 's', 'delete')) {
+      toast.error('Você não tem permissão para esta ação');
+      return;
+    }
+
+    const operation = type === 'user' ? 'deactivate_user' : `delete_${type}`;
+    const targetData = type === 'user' 
+      ? users.find(u => u.id === id)
+      : type === 'team' 
+      ? teams.find(t => t.id === id)
+      : departments.find(d => d.id === id);
+
+    if (!operationValidator.canExecute(operation, targetData)) {
+      const errors = operationValidator.getValidationErrors(operation, targetData);
+      toast.error(errors[0] || 'Operação não permitida');
+      return;
+    }
+
+    const warnings = operationValidator.getValidationWarnings(operation, targetData);
+    if (warnings.length > 0) {
+      setPendingOperation({
+        type: operation,
+        data: targetData,
+        callback: async () => {
+          if (type === 'user') {
+            await actions.users.deactivate(id);
+          } else if (type === 'team') {
+            await actions.teams.delete(id);
+          } else {
+            await actions.departments.delete(id);
+          }
+        }
+      });
+      setShowWarning(true);
+      return;
+    }
+
     if (window.confirm('Tem certeza que deseja excluir?')) {
       if (type === 'user') {
         await actions.users.deactivate(id);
       } else if (type === 'team') {
         await actions.teams.delete(id);
-      } else if (type === 'department') {
+      } else {
         await actions.departments.delete(id);
       }
     }
@@ -101,6 +162,10 @@ const UserManagement = () => {
         setShowExportMenu(true);
         break;
       case 'bulk':
+        if (!permissions.hasPermission('users', 'delete')) {
+          toast.error('Você não tem permissão para ações em massa');
+          return;
+        }
         toast.success('Ações em massa em desenvolvimento');
         break;
     }
@@ -119,7 +184,7 @@ const UserManagement = () => {
         Departamentos: user.departments?.map(d => d.name).join(', ') || '-',
         Times: user.teams?.map(t => t.name).join(', ') || '-',
         'Data de Entrada': new Date(user.join_date).toLocaleDateString('pt-BR'),
-        Telefone: user.phone || '-',
+        Telefone: uiPermissions.showFullContactInfo ? (user.phone || '-') : '***',
         Idade: user.birth_date ? calculateAge(user.birth_date) : '-',
         'Reporta para': user.manager?.name || '-'
       }));
@@ -259,6 +324,11 @@ const UserManagement = () => {
   };
 
   const handleExport = (format: ExportFormat) => {
+    if (!uiPermissions.showExportButton) {
+      toast.error('Você não tem permissão para exportar dados');
+      return;
+    }
+    
     switch (format) {
       case 'excel':
         exportToExcel();
@@ -425,20 +495,25 @@ const UserManagement = () => {
             </div>
             
             <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={() => handleEdit('user', user)}
-                className="p-2 hover:bg-primary-50 rounded-xl transition-all hover:text-primary-600"
-                title="Editar"
-              >
-                <Edit className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => handleDelete('user', user.id)}
-                className="p-2 hover:bg-red-50 rounded-xl transition-all hover:text-red-600"
-                title="Excluir"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <ActionGuard can={() => permissions.canEditUser(user.id)}>
+                <button
+                  onClick={() => handleEdit('user', user)}
+                  className="p-2 hover:bg-primary-50 rounded-xl transition-all hover:text-primary-600"
+                  title="Editar"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+              </ActionGuard>
+              
+              <ActionGuard can={permissions.canDeactivateUser}>
+                <button
+                  onClick={() => handleDelete('user', user.id)}
+                  className="p-2 hover:bg-red-50 rounded-xl transition-all hover:text-red-600"
+                  title="Desativar"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </ActionGuard>
             </div>
           </div>
 
@@ -448,12 +523,14 @@ const UserManagement = () => {
               <span className="text-sm truncate">{user.email}</span>
             </div>
             
-            {user.phone && (
-              <div className="flex items-center text-gray-600 group/item hover:text-primary-600 transition-colors">
-                <Phone className="h-4 w-4 mr-3 text-gray-400 group-hover/item:text-primary-500" />
-                <span className="text-sm">{user.phone}</span>
-              </div>
-            )}
+            <UIGuard show="showFullContactInfo">
+              {user.phone && (
+                <div className="flex items-center text-gray-600 group/item hover:text-primary-600 transition-colors">
+                  <Phone className="h-4 w-4 mr-3 text-gray-400 group-hover/item:text-primary-500" />
+                  <span className="text-sm">{user.phone}</span>
+                </div>
+              )}
+            </UIGuard>
             
             <div className="flex items-center text-gray-600">
               <Calendar className="h-4 w-4 mr-3 text-gray-400" />
@@ -538,20 +615,24 @@ const UserManagement = () => {
                 )}
               </div>
             </div>
-            
             <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={() => handleEdit('team', team)}
-                className="p-2 hover:bg-primary-50 rounded-xl transition-all hover:text-primary-600"
-              >
-                <Edit className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => handleDelete('team', team.id)}
-                className="p-2 hover:bg-red-50 rounded-xl transition-all hover:text-red-600"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <ActionGuard can={() => permissions.canEditTeam(team.id, team.responsible_id ?? undefined)}>
+                <button
+                  onClick={() => handleEdit('team', team)}
+                  className="p-2 hover:bg-primary-50 rounded-xl transition-all hover:text-primary-600"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+              </ActionGuard>
+              
+              <ActionGuard can={permissions.canDeleteTeam}>
+                <button
+                  onClick={() => handleDelete('team', team.id)}
+                  className="p-2 hover:bg-red-50 rounded-xl transition-all hover:text-red-600"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </ActionGuard>
             </div>
           </div>
 
@@ -640,18 +721,23 @@ const UserManagement = () => {
             </div>
             
             <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={() => handleEdit('department', department)}
-                className="p-2 hover:bg-primary-50 rounded-xl transition-all hover:text-primary-600"
-              >
-                <Edit className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => handleDelete('department', department.id)}
-                className="p-2 hover:bg-red-50 rounded-xl transition-all hover:text-red-600"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <ActionGuard can={permissions.canEditDepartment}>
+                <button
+                  onClick={() => handleEdit('department', department)}
+                  className="p-2 hover:bg-primary-50 rounded-xl transition-all hover:text-primary-600"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+              </ActionGuard>
+              
+              <ActionGuard can={permissions.canDeleteDepartment}>
+                <button
+                  onClick={() => handleDelete('department', department.id)}
+                  className="p-2 hover:bg-red-50 rounded-xl transition-all hover:text-red-600"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </ActionGuard>
             </div>
           </div>
 
@@ -696,460 +782,490 @@ const UserManagement = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8"
-      >
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
-          <div className="flex items-center space-x-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
-                <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 mr-2 sm:mr-3 flex-shrink-0" />
-                Gerenciar Usuários
-              </h1>
-              <p className="text-gray-600 mt-1 text-sm sm:text-base">
-                Visualize e gerencie usuários, times e departamentos
-              </p>
-            </div>
-          </div>
-
-          <Button
-            variant="primary"
-            onClick={() => navigate('/users/new')}
-            icon={<Plus size={18} />}
-            size="lg"
-          >
-            Novo Cadastro
-          </Button>
-        </div>
-
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-700 flex items-center">
-            <Database className="w-4 h-4 mr-2" />
-            Usando dados do Supabase. As alterações serão salvas no banco de dados.
-          </p>
-        </div>
-
-        <motion.div 
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+    <PermissionGuard resource="users" action="read">
+      <div className="space-y-4 sm:space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8"
         >
-          <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.totalUsers}</p>
-              <p className="text-sm text-gray-300 font-medium">Usuários</p>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
+            <div className="flex items-center space-x-4">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
+                  <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 mr-2 sm:mr-3 flex-shrink-0" />
+                  Gerenciar Usuários
+                </h1>
+                <p className="text-gray-600 mt-1 text-sm sm:text-base">
+                  Visualize e gerencie usuários, times e departamentos
+                </p>
+              </div>
             </div>
-            <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-700 opacity-50" />
-          </motion.div>
-          
-          <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-gray-700 via-gray-600 to-gray-700 rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.totalDirectors}</p>
-              <p className="text-sm text-gray-200 font-medium">Diretores</p>
-            </div>
-            <Shield className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-600 opacity-50" />
-          </motion.div>
-          
-          <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.totalLeaders}</p>
-              <p className="text-sm text-primary-100 font-medium">Líderes</p>
-            </div>
-            <Crown className="absolute -bottom-2 -right-2 h-16 w-16 text-primary-400 opacity-50" />
-          </motion.div>
-          
-          <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-secondary-500 via-secondary-600 to-secondary-700 rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.totalCollaborators}</p>
-              <p className="text-sm text-secondary-100 font-medium">Colaboradores</p>
-            </div>
-            <UserCheck className="absolute -bottom-2 -right-2 h-16 w-16 text-secondary-400 opacity-50" />
-          </motion.div>
-          
+
+            <UIGuard show="showCreateUserButton">
+              <Button
+                variant="primary"
+                onClick={() => navigate('/users/new')}
+                icon={<Plus size={18} />}
+                size="lg"
+              >
+                Novo Cadastro
+              </Button>
+            </UIGuard>
+          </div>
+
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-700 flex items-center">
+              <Database className="w-4 h-4 mr-2" />
+              Usando dados do Supabase. As alterações serão salvas no banco de dados.
+            </p>
+          </div>
+
           <motion.div 
-            variants={itemVariants} 
-            className="relative overflow-hidden rounded-xl p-4 text-center shadow-lg"
-            style={{ background: 'linear-gradient(to bottom right, #247B7B, #1B5B5B)' }}
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
           >
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.totalTeams}</p>
-              <p className="text-sm text-teal-100 font-medium">Times</p>
-            </div>
-            <UsersIcon className="absolute -bottom-2 -right-2 h-16 w-16 text-teal-300 opacity-50" />
-          </motion.div>
-          
-          <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-accent-500 via-accent-600 to-accent-700 rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.totalDepartments}</p>
-              <p className="text-sm text-accent-100 font-medium">Departamentos</p>
-            </div>
-            <Building className="absolute -bottom-2 -right-2 h-16 w-16 text-accent-400 opacity-50" />
-          </motion.div>
-        </motion.div>
-      </motion.div>
-
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
-          <div className="flex p-1.5 bg-gray-100/80 backdrop-blur-sm rounded-2xl">
-            {[
-              { id: 'users', label: 'Usuários', icon: Users },
-              { id: 'teams', label: 'Times', icon: UsersIcon },
-              { id: 'departments', label: 'Departamentos', icon: Building }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as TabType)}
-                className={`relative px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center space-x-2 ${
-                  activeTab === tab.id
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <tab.icon className="h-4 w-4" />
-                <span>{tab.label}</span>
-                {activeTab === tab.id && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-white rounded-xl shadow-sm -z-10"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center bg-gray-100/80 backdrop-blur-sm rounded-xl p-1.5">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg transition-all ${
-                  viewMode === 'grid'
-                    ? 'bg-white text-primary-600 shadow-sm'
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-                title="Visualização em grade"
-              >
-                <Grid3x3 className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-2 rounded-lg transition-all ${
-                  viewMode === 'list'
-                    ? 'bg-white text-primary-600 shadow-sm'
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-                title="Visualização em lista"
-              >
-                <List className="h-4 w-4" />
-              </button>
-            </div>
-
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`p-2.5 rounded-xl transition-all ${
-                showFilters 
-                  ? 'bg-primary-100 text-primary-600' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              <Filter className="h-4 w-4" />
-            </button>
-
-            <div className="relative group">
-              <button className="p-2.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all">
-                <MoreVertical className="h-4 w-4" />
-              </button>
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                <button
-                  onClick={() => handleQuickAction('import')}
-                  className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors"
-                >
-                  <Upload className="h-4 w-4 text-gray-400" />
-                  <span>Importar dados</span>
-                </button>
-                <button
-                  onClick={() => handleQuickAction('export')}
-                  className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors"
-                >
-                  <Download className="h-4 w-4 text-gray-400" />
-                  <span>Exportar lista</span>
-                </button>
-                <div className="border-t border-gray-100 my-2" />
-                <button
-                  onClick={() => handleQuickAction('bulk')}
-                  className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors"
-                >
-                  <Copy className="h-4 w-4 text-gray-400" />
-                  <span>Ações em massa</span>
-                </button>
+            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-lg">
+              <div className="relative z-10">
+                <p className="text-2xl font-bold text-white">{stats.totalUsers}</p>
+                <p className="text-sm text-gray-300 font-medium">Usuários</p>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder={`Buscar ${activeTab === 'users' ? 'usuários' : activeTab === 'teams' ? 'times' : 'departamentos'}...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 bg-gray-50/50 placeholder-gray-500"
-            />
-          </div>
-
-          <AnimatePresence>
-            {showFilters && activeTab === 'users' && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Departamento
-                    </label>
-                    <select
-                      value={selectedDepartment}
-                      onChange={(e) => setSelectedDepartment(e.target.value)}
-                      className="w-full rounded-xl border-gray-200 bg-white"
-                    >
-                      <option value="">Todos</option>
-                      {departments.map(dept => (
-                        <option key={dept.id} value={dept.id}>{dept.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Time
-                    </label>
-                    <select
-                      value={selectedTeam}
-                      onChange={(e) => setSelectedTeam(e.target.value)}
-                      className="w-full rounded-xl border-gray-200 bg-white"
-                    >
-                      <option value="">Todos</option>
-                      {teams.map(team => (
-                        <option key={team.id} value={team.id}>{team.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Ordenar por
-                    </label>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as any)}
-                      className="w-full rounded-xl border-gray-200 bg-white"
-                    >
-                      <option value="name">Nome</option>
-                      <option value="date">Data de entrada</option>
-                      <option value="department">Departamento</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-end">
-                    <label className="flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={showOnlyLeaders}
-                        onChange={(e) => setShowOnlyLeaders(e.target.checked)}
-                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 mr-3"
-                      />
-                      <span className="text-sm font-medium text-gray-700">Apenas líderes</span>
-                    </label>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <div className="mt-6">
-          <AnimatePresence mode="wait">
-            {activeTab === 'users' && (
-              <motion.div
-                key="users"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                exit={{ opacity: 0 }}
-                className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
-              >
-                {filteredUsers.map(user => renderUserCard(user))}
-              </motion.div>
-            )}
-
-            {activeTab === 'teams' && (
-              <motion.div
-                key="teams"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                exit={{ opacity: 0 }}
-                className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
-              >
-                {filteredTeams.map(team => renderTeamCard(team))}
-              </motion.div>
-            )}
-
-            {activeTab === 'departments' && (
-              <motion.div
-                key="departments"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                exit={{ opacity: 0 }}
-                className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
-              >
-                {filteredDepartments.map(dept => renderDepartmentCard(dept))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {activeTab === 'users' && filteredUsers.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-12"
-          >
-            <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mb-6">
-              <UserX className="h-10 w-10 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum usuário encontrado</h3>
-            <p className="text-gray-500 mb-6">Tente ajustar os filtros ou realizar uma nova busca</p>
-            <Button
-              variant="primary"
-              onClick={() => navigate('/users/new')}
-              icon={<Plus size={18} />}
-            >
-              Cadastrar Usuário
-            </Button>
-          </motion.div>
-        )}
-
-        {activeTab === 'teams' && filteredTeams.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-12"
-          >
-            <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mb-6">
-              <UsersIcon className="h-10 w-10 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum time encontrado</h3>
-            <p className="text-gray-500 mb-6">Crie o primeiro time da organização</p>
-            <Button
-              variant="primary"
-              onClick={() => navigate('/users/new')}
-              icon={<Plus size={18} />}
-            >
-              Criar Time
-            </Button>
-          </motion.div>
-        )}
-
-        {activeTab === 'departments' && filteredDepartments.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-12"
-          >
-            <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mb-6">
-              <Building className="h-10 w-10 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum departamento encontrado</h3>
-            <p className="text-gray-500 mb-6">Crie o primeiro departamento da organização</p>
-            <Button
-              variant="primary"
-              onClick={() => navigate('/users/new')}
-              icon={<Plus size={18} />}
-            >
-              Criar Departamento
-            </Button>
-          </motion.div>
-        )}
-      </div>
-
-      <AnimatePresence>
-        {showExportMenu && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowExportMenu(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                <Download className="h-5 w-5 mr-2 text-primary-500" />
-                Exportar Dados
-              </h2>
-              
-              <div className="space-y-3">
-                <button
-                  onClick={() => handleExport('excel')}
-                  className="w-full p-4 bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-xl border border-green-200 text-green-700 font-medium text-left flex items-center space-x-3 transition-all"
-                >
-                  <FileSpreadsheet className="h-5 w-5" />
-                  <div className="flex-1">
-                    <p className="font-semibold">Excel</p>
-                    <p className="text-xs text-green-600">Arquivo .xlsx para análises</p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleExport('notion')}
-                  className="w-full p-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 rounded-xl border border-gray-200 text-gray-700 font-medium text-left flex items-center space-x-3 transition-all"
-                >
-                  <FileText className="h-5 w-5" />
-                  <div className="flex-1">
-                    <p className="font-semibold">Notion</p>
-                    <p className="text-xs text-gray-600">Markdown para importar</p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleExport('pdf')}
-                  className="w-full p-4 bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 rounded-xl border border-red-200 text-red-700 font-medium text-left flex items-center space-x-3 transition-all"
-                >
-                  <FileDown className="h-5 w-5" />
-                  <div className="flex-1">
-                    <p className="font-semibold">PDF</p>
-                    <p className="text-xs text-red-600">Documento para impressão</p>
-                  </div>
-                </button>
+              <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-700 opacity-50" />
+            </motion.div>
+            
+            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-gray-700 via-gray-600 to-gray-700 rounded-xl p-4 text-center shadow-lg">
+              <div className="relative z-10">
+                <p className="text-2xl font-bold text-white">{stats.totalDirectors}</p>
+                <p className="text-sm text-gray-200 font-medium">Diretores</p>
               </div>
-
-              <button
-                onClick={() => setShowExportMenu(false)}
-                className="w-full mt-4 p-3 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
-              >
-                Cancelar
-              </button>
+              <Shield className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-600 opacity-50" />
+            </motion.div>
+            
+            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-xl p-4 text-center shadow-lg">
+              <div className="relative z-10">
+                <p className="text-2xl font-bold text-white">{stats.totalLeaders}</p>
+                <p className="text-sm text-primary-100 font-medium">Líderes</p>
+              </div>
+              <Crown className="absolute -bottom-2 -right-2 h-16 w-16 text-primary-400 opacity-50" />
+            </motion.div>
+            
+            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-secondary-500 via-secondary-600 to-secondary-700 rounded-xl p-4 text-center shadow-lg">
+              <div className="relative z-10">
+                <p className="text-2xl font-bold text-white">{stats.totalCollaborators}</p>
+                <p className="text-sm text-secondary-100 font-medium">Colaboradores</p>
+              </div>
+              <UserCheck className="absolute -bottom-2 -right-2 h-16 w-16 text-secondary-400 opacity-50" />
+            </motion.div>
+            
+            <motion.div 
+              variants={itemVariants} 
+              className="relative overflow-hidden rounded-xl p-4 text-center shadow-lg"
+              style={{ background: 'linear-gradient(to bottom right, #247B7B, #1B5B5B)' }}
+            >
+              <div className="relative z-10">
+                <p className="text-2xl font-bold text-white">{stats.totalTeams}</p>
+                <p className="text-sm text-teal-100 font-medium">Times</p>
+              </div>
+              <UsersIcon className="absolute -bottom-2 -right-2 h-16 w-16 text-teal-300 opacity-50" />
+            </motion.div>
+            
+            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-accent-500 via-accent-600 to-accent-700 rounded-xl p-4 text-center shadow-lg">
+              <div className="relative z-10">
+                <p className="text-2xl font-bold text-white">{stats.totalDepartments}</p>
+                <p className="text-sm text-accent-100 font-medium">Departamentos</p>
+              </div>
+              <Building className="absolute -bottom-2 -right-2 h-16 w-16 text-accent-400 opacity-50" />
             </motion.div>
           </motion.div>
+        </motion.div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
+            <div className="flex p-1.5 bg-gray-100/80 backdrop-blur-sm rounded-2xl">
+              {[
+                { id: 'users', label: 'Usuários', icon: Users },
+                { id: 'teams', label: 'Times', icon: UsersIcon },
+                { id: 'departments', label: 'Departamentos', icon: Building }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as TabType)}
+                  className={`relative px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center space-x-2 ${
+                    activeTab === tab.id
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <tab.icon className="h-4 w-4" />
+                  <span>{tab.label}</span>
+                  {activeTab === tab.id && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-white rounded-xl shadow-sm -z-10"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center bg-gray-100/80 backdrop-blur-sm rounded-xl p-1.5">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === 'grid'
+                      ? 'bg-white text-primary-600 shadow-sm'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                  title="Visualização em grade"
+                >
+                  <Grid3x3 className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === 'list'
+                      ? 'bg-white text-primary-600 shadow-sm'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                  title="Visualização em lista"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`p-2.5 rounded-xl transition-all ${
+                  showFilters 
+                    ? 'bg-primary-100 text-primary-600' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Filter className="h-4 w-4" />
+              </button>
+
+              <div className="relative group">
+                <button className="p-2.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all">
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                  <button
+                    onClick={() => handleQuickAction('import')}
+                    className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+                  >
+                    <Upload className="h-4 w-4 text-gray-400" />
+                    <span>Importar dados</span>
+                  </button>
+                  <UIGuard show="showExportButton">
+                    <button
+                      onClick={() => handleQuickAction('export')}
+                      className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+                    >
+                      <Download className="h-4 w-4 text-gray-400" />
+                      <span>Exportar lista</span>
+                    </button>
+                  </UIGuard>
+                  <div className="border-t border-gray-100 my-2" />
+                  <UIGuard show="showBulkActionsButton">
+                    <button
+                      onClick={() => handleQuickAction('bulk')}
+                      className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+                    >
+                      <Copy className="h-4 w-4 text-gray-400" />
+                      <span>Ações em massa</span>
+                    </button>
+                  </UIGuard>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder={`Buscar ${activeTab === 'users' ? 'usuários' : activeTab === 'teams' ? 'times' : 'departamentos'}...`}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 bg-gray-50/50 placeholder-gray-500"
+              />
+            </div>
+
+            <AnimatePresence>
+              {showFilters && activeTab === 'users' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Departamento
+                      </label>
+                      <select
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                        className="w-full rounded-xl border-gray-200 bg-white"
+                      >
+                        <option value="">Todos</option>
+                        {departments.map(dept => (
+                          <option key={dept.id} value={dept.id}>{dept.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Time
+                      </label>
+                      <select
+                        value={selectedTeam}
+                        onChange={(e) => setSelectedTeam(e.target.value)}
+                        className="w-full rounded-xl border-gray-200 bg-white"
+                      >
+                        <option value="">Todos</option>
+                        {teams.map(team => (
+                          <option key={team.id} value={team.id}>{team.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Ordenar por
+                      </label>
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as any)}
+                        className="w-full rounded-xl border-gray-200 bg-white"
+                      >
+                        <option value="name">Nome</option>
+                        <option value="date">Data de entrada</option>
+                        <option value="department">Departamento</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-end">
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={showOnlyLeaders}
+                          onChange={(e) => setShowOnlyLeaders(e.target.checked)}
+                          className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 mr-3"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Apenas líderes</span>
+                      </label>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="mt-6">
+            <AnimatePresence mode="wait">
+              {activeTab === 'users' && (
+                <motion.div
+                  key="users"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit={{ opacity: 0 }}
+                  className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
+                >
+                  {filteredUsers.map(user => renderUserCard(user))}
+                </motion.div>
+              )}
+
+              {activeTab === 'teams' && (
+                <motion.div
+                  key="teams"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit={{ opacity: 0 }}
+                  className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
+                >
+                  {filteredTeams.map(team => renderTeamCard(team))}
+                </motion.div>
+              )}
+
+              {activeTab === 'departments' && (
+                <motion.div
+                  key="departments"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit={{ opacity: 0 }}
+                  className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
+                >
+                  {filteredDepartments.map(dept => renderDepartmentCard(dept))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {activeTab === 'users' && filteredUsers.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-12"
+            >
+              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mb-6">
+                <UserX className="h-10 w-10 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum usuário encontrado</h3>
+              <p className="text-gray-500 mb-6">Tente ajustar os filtros ou realizar uma nova busca</p>
+              <UIGuard show="showCreateUserButton">
+                <Button
+                  variant="primary"
+                  onClick={() => navigate('/users/new')}
+                  icon={<Plus size={18} />}
+                >
+                  Cadastrar Usuário
+                </Button>
+              </UIGuard>
+            </motion.div>
+          )}
+
+          {activeTab === 'teams' && filteredTeams.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-12"
+            >
+              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mb-6">
+                <UsersIcon className="h-10 w-10 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum time encontrado</h3>
+              <p className="text-gray-500 mb-6">Crie o primeiro time da organização</p>
+              <UIGuard show="showCreateTeamButton">
+                <Button
+                  variant="primary"
+                  onClick={() => navigate('/users/new')}
+                  icon={<Plus size={18} />}
+                >
+                  Criar Time
+                </Button>
+              </UIGuard>
+            </motion.div>
+          )}
+
+          {activeTab === 'departments' && filteredDepartments.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-12"
+            >
+              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mb-6">
+                <Building className="h-10 w-10 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum departamento encontrado</h3>
+              <p className="text-gray-500 mb-6">Crie o primeiro departamento da organização</p>
+              <UIGuard show="showCreateDepartmentButton">
+                <Button
+                  variant="primary"
+                  onClick={() => navigate('/users/new')}
+                  icon={<Plus size={18} />}
+                >
+                  Criar Departamento
+                </Button>
+              </UIGuard>
+            </motion.div>
+          )}
+        </div>
+
+        <AnimatePresence>
+          {showExportMenu && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+              onClick={() => setShowExportMenu(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                  <Download className="h-5 w-5 mr-2 text-primary-500" />
+                  Exportar Dados
+                </h2>
+                
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleExport('excel')}
+                    className="w-full p-4 bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-xl border border-green-200 text-green-700 font-medium text-left flex items-center space-x-3 transition-all"
+                  >
+                    <FileSpreadsheet className="h-5 w-5" />
+                    <div className="flex-1">
+                      <p className="font-semibold">Excel</p>
+                      <p className="text-xs text-green-600">Arquivo .xlsx para análises</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleExport('notion')}
+                    className="w-full p-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 rounded-xl border border-gray-200 text-gray-700 font-medium text-left flex items-center space-x-3 transition-all"
+                  >
+                    <FileText className="h-5 w-5" />
+                    <div className="flex-1">
+                      <p className="font-semibold">Notion</p>
+                      <p className="text-xs text-gray-600">Markdown para importar</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleExport('pdf')}
+                    className="w-full p-4 bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 rounded-xl border border-red-200 text-red-700 font-medium text-left flex items-center space-x-3 transition-all"
+                  >
+                    <FileDown className="h-5 w-5" />
+                    <div className="flex-1">
+                      <p className="font-semibold">PDF</p>
+                      <p className="text-xs text-red-600">Documento para impressão</p>
+                    </div>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setShowExportMenu(false)}
+                  className="w-full mt-4 p-3 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {showWarning && pendingOperation && (
+          <OperationWarning
+            operation={pendingOperation.type}
+            targetData={pendingOperation.data}
+            onConfirm={() => {
+              pendingOperation.callback();
+              setShowWarning(false);
+              setPendingOperation(null);
+            }}
+            onCancel={() => {
+              setShowWarning(false);
+              setPendingOperation(null);
+            }}
+          />
         )}
-      </AnimatePresence>
-    </div>
+      </div>
+    </PermissionGuard>
   );
 };
 

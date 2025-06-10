@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
+import { authCacheManager } from '../utils/authCacheManager';
 
 interface UserProfile {
   id: string;
@@ -41,33 +42,123 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Buscar perfil do usuário no banco
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('AuthContext: Buscando perfil para user ID:', userId);
+      
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('AuthContext: Erro ao buscar perfil:', error);
+        
+        // Se o usuário não existe na tabela public.users, tenta criar
+        if (error.code === 'PGRST116') {
+          console.log('AuthContext: Usuário não encontrado em public.users, criando...');
+          
+          const authUser = await supabase.auth.getUser();
+          if (authUser.data.user) {
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert({
+                id: authUser.data.user.id,
+                email: authUser.data.user.email!,
+                name: authUser.data.user.user_metadata?.name || authUser.data.user.email!.split('@')[0],
+                position: authUser.data.user.user_metadata?.position || 'Colaborador',
+                is_director: authUser.data.user.user_metadata?.is_director || false,
+                is_leader: authUser.data.user.user_metadata?.is_leader || false,
+                active: true,
+                join_date: new Date().toISOString().split('T')[0]
+              });
+
+            if (!insertError) {
+              // Tentar buscar novamente
+              const { data: newProfile } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', userId)
+                .single();
+              
+              if (newProfile) {
+                setProfile(newProfile);
+                return;
+              }
+            }
+          }
+        }
+        
+        throw error;
+      }
+      
+      console.log('AuthContext: Perfil carregado:', data);
       setProfile(data);
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);
       toast.error('Erro ao carregar perfil do usuário');
+      
+      // Em caso de erro, fazer logout
+      await signOut();
     }
   };
 
   // Verificar sessão ao carregar
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
+    let mounted = true;
+    
+    const initializeAuth = async () => {
+      console.log('AuthContext: Iniciando verificação de sessão...');
+      
+      // Limpar cache ao iniciar (sempre)
+      authCacheManager.checkAndCleanCache();
+      
+      try {
+        // Pequeno delay para evitar condições de corrida
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        console.log('AuthContext: Sessão obtida:', { session: !!session, error });
+        
+        if (error) {
+          console.error('AuthContext: Erro ao obter sessão:', error);
+          setLoading(false);
+          return;
+        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          console.log('AuthContext: Usuário autenticado, buscando perfil...');
+          await fetchUserProfile(session.user.id);
+        } else {
+          console.log('AuthContext: Nenhum usuário autenticado');
+        }
+      } catch (err) {
+        console.error('AuthContext: Erro durante inicialização:', err);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     // Escutar mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
+      console.log('AuthContext: Auth state changed:', event, session?.user?.email);
+      
+      // Limpar cache em eventos de logout
+      if (event === 'SIGNED_OUT') {
+        authCacheManager.clearOnLogout();
+      }
+      
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -78,7 +169,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Login
@@ -94,7 +188,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Se for o primeiro login (senha temporária), forçar redefinição
       if (data.user?.user_metadata?.must_reset_password) {
-        toast('Por favor, defina uma nova senha');
+        toast('Por favor, defina uma nova senha', {
+          icon: '🔑',
+          duration: 5000
+        });
         // Aqui você pode redirecionar para uma página de redefinição
       } else {
         toast.success('Login realizado com sucesso!');
@@ -118,8 +215,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       setLoading(true);
+      
+      // Limpar cache antes de fazer logout
+      authCacheManager.clearOnLogout();
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Limpar estado local
+      setUser(null);
+      setSession(null);
+      setProfile(null);
       
       toast.success('Logout realizado com sucesso');
     } catch (error) {

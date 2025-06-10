@@ -120,12 +120,12 @@ export default function Sidebar({
   // Filtrar itens baseado no papel do usuário
   const filteredNavItems = navItems.filter(item => {
     // Se tem hideForRoles, verificar se o papel atual está na lista
-    if (item.hideForRoles && item.hideForRoles.includes(role)) {
+    if (item.hideForRoles && item.hideForRoles.includes(role as 'director' | 'leader' | 'collaborator')) {
       return false;
     }
     
     // Se tem allowedRoles, verificar se o papel atual está permitido
-    if (item.allowedRoles && !item.allowedRoles.includes(role)) {
+    if (item.allowedRoles && !item.allowedRoles.includes(role as 'director' | 'leader' | 'collaborator')) {
       return false;
     }
     

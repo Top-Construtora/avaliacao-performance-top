@@ -1,5 +1,10 @@
 export type Status = 'pending' | 'in-progress' | 'completed';
 
+export * from './auth';
+
+export type { UserRole, Permission, UserPermissions, AccessControl, AuditLog, SecurityValidation } from './auth';
+export { ROLE_PERMISSIONS, hasPermission, ROUTE_ACCESS, validateSecurityOperation } from './auth';
+
 export interface Employee {
   id: string;
   name: string;

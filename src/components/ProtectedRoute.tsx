@@ -90,7 +90,7 @@ export default function ProtectedRoute({
   }
 
   // Verificar permissões de papel
-  if (allowedRoles && !allowedRoles.includes(role as "director" | "leader" | "collaborator")) {
+  if (allowedRoles && !allowedRoles.includes(role as 'director' | 'leader' | 'collaborator')) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <motion.div
