@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, Mail, Lock, Eye, EyeOff, AlertCircle, Sparkles } from 'lucide-react';
+import logo from '../../assets/images/logo.png';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -70,7 +71,7 @@ export default function Login() {
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
               className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-2xl shadow-lg"
             >
-              <img src="../../assets/images/logo.png" />
+              <img src={logo}/>
             </motion.div>
             <h1 className="text-3xl font-bold text-gray-900">
               Sistema de Avaliação
