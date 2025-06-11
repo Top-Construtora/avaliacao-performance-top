@@ -12,7 +12,7 @@ import Dashboard from './pages/Dashboard';
 import SelfEvaluation from './pages/SelfEvaluation';
 import LeaderEvaluation from './pages/LeaderEvaluation';
 import PotentialEvaluation from './pages/PotentialEvaluation';
-import SessionManager from './components/SessionManager';
+import NineBoxGuide from './pages/NineBoxGuide';
 import UserRegistration from './pages/UserRegistration';
 import Consensus from './pages/Consensus';
 import ActionPlan from './pages/ActionPlan';
@@ -267,6 +267,16 @@ function App() {
                         <UserRegistration />
                       </ProtectedRoute>
                     } 
+                  />
+
+                  {/* Guia NineBox - Todos os Usuários */}
+                  <Route
+                    path="nine-box-guide"
+                    element={
+                      <ProtectedRoute allowedRoles={['director', 'leader']}>
+                        <NineBoxGuide />
+                      </ProtectedRoute>
+                    }
                   />
                   
                   {/* 404 - Página não encontrada */}

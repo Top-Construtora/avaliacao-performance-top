@@ -20,6 +20,7 @@ import {
   X,
   Crown,
   Briefcase,
+  BookOpen,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import logo from '../../assets/images/logo.png';
@@ -110,6 +111,12 @@ export default function Sidebar({
       icon: PieChart,
       path: '/reports',
       allowedRoles: ['director'],
+    },
+    {
+      label: 'Guia NineBox',
+      icon: BookOpen,
+      path: '/nine-box-guide',
+      allowedRoles: ['director', 'leader'],
     },
   ];
 
