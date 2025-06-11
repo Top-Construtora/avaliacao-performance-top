@@ -1,559 +1,561 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { 
-  Users, 
+  Grid3x3, 
   TrendingUp, 
-  AlertTriangle, 
-  UserCheck, 
-  Star, 
-  Award,
-  Target,
-  Briefcase,
-  GraduationCap,
-  Gift,
-  ChevronRight,
-  Info,
-  Sparkles,
-  Zap,
+  Users, 
   Trophy,
-  Heart,
-  Rocket,
-  Shield,
-  Brain,
-  Gem,
-  X
+  BookOpen,
+  Info,
+  Briefcase,
+  UserCheck,
+  GraduationCap,
+  DollarSign,
+  Target,
+  AlertTriangle,
+  HelpCircle,
+  Zap,
+  ShieldCheck,
+  TrendingDown,
+  Activity,
+  Award,
+  Star,
+  Rocket
 } from 'lucide-react';
 
 const NineBoxGuide = () => {
-  const [selectedBox, setSelectedBox] = useState<number | null>(null);
-  const [hoveredBox, setHoveredBox] = useState<number | null>(null);
+  const [selectedBox, setSelectedBox] = useState<string | null>(null);
 
+  // Box definitions com posições corretas
   const boxes = [
+    // Linha Superior (Alto Potencial)
     {
-      id: 1,
-      title: "Insuficiente",
-      icon: AlertTriangle,
-      bgColor: "bg-red-100",
-      borderColor: "border-red-300",
-      bgLight: "bg-red-50",
-      textColor: "text-red-700",
-      hoverBg: "hover:bg-red-200",
-      performance: "baixo",
-      potential: "baixo",
-      summary: "Risco com assuntos de desempenho",
-      description: "Não consegue se adaptar eficazmente a novas situações, não está disposto ou é incapaz de tomar iniciativas suficientes para alavancar seu próprio desempenho.",
+      id: '3',
+      position: { row: 0, col: 0 },
+      title: 'Enigma',
+      subtitle: 'Iniciante ou com problema de gestão',
+      performance: 'baixo',
+      potential: 'alto',
+      icon: HelpCircle,
+      bgColor: 'bg-yellow-50',
+      borderColor: 'border-yellow-300',
+      textColor: 'text-yellow-700',
+      gradient: 'from-yellow-400 to-amber-500',
       details: {
-        recompensa: "Congele o salário base e evite pagar incentivos",
-        engajamento: "Crie um plano formal de melhoria de desempenho e acompanhe regularmente. Avalie o valor para organização para determinar se permanece na função ou se será devolvido ao mercado.",
-        atribuicoes: "Determine primeiro qual é o problema de desempenho. Se for o caso, passe o indivíduo para uma atribuição mais apropriada.",
-        mentoria: "Designe um mentor com cargo superior que esteja com uma performance satisfatória para aumentar o desempenho imediato.",
-        desenvolvimento: "O gestor direto deve acompanhar de perto, criando um plano específico para melhoria do desempenho."
+        descricao: 'Excede expectativas quanto ao potencial. Pode estar na função errada ou ser iniciante.',
+        atribuicoes: 'Manter na atribuição atual enquanto trabalha para melhorar o desempenho',
+        mentoria: 'Designar mentor do Box 8 para aumentar desempenho rapidamente',
+        desenvolvimento: 'Avaliar habilidades funcionais/técnicas. Plano detalhado para construir novas habilidades',
+        recompensa: 'Baixo ou nenhum aumento no salário base. Incentivo simbólico se houver evolução',
+        engajamento: 'Promover tarefas funcionais importantes. Participação em projetos especiais'
       }
     },
     {
-      id: 2,
-      title: "Questionável",
-      icon: UserCheck,
-      bgColor: "bg-orange-100",
-      borderColor: "border-orange-300",
-      bgLight: "bg-orange-50",
-      textColor: "text-orange-700",
-      hoverBg: "hover:bg-orange-200",
-      performance: "baixo",
-      potential: "médio",
-      summary: "Potencial para melhorar o desempenho",
-      description: "Tem algum potencial para fazer mais, porém, ainda não demonstrou plenamente. Pode ser novo no trabalho ou na empresa.",
+      id: '6',
+      position: { row: 0, col: 1 },
+      title: 'Crescimento',
+      subtitle: 'Progressão para alto desempenho',
+      performance: 'médio',
+      potential: 'alto',
+      icon: TrendingUp,
+      bgColor: 'bg-primary-50',
+      borderColor: 'border-primary-300',
+      textColor: 'text-primary-700',
+      gradient: 'from-primary-400 to-primary-600',
       details: {
-        recompensa: "Baixo ou nenhum aumento no salário e pagamento de incentivos. Ainda não há o que recompensar.",
-        engajamento: "Trabalhe com o avaliando para estabelecer metas no desempenho passado bem-sucedido e futuras exigências. Foque em poucas metas importantes.",
-        atribuicoes: "Encontre primeiro a causa do problema de desempenho. Discuta as habilidades e competências necessárias para desempenhar bem o papel.",
-        mentoria: "Encoraje a pessoa procurar um mentor do mesmo nível (se possível indique alguém do Box 5) na área de especialização.",
-        desenvolvimento: "O gestor direto deve fornecer mentoria para o desenvolvimento de habilidades técnicas, metas de carreira e adequação do trabalho."
+        descricao: 'Atende e muitas vezes excede expectativas. Potencial para mudanças na carreira.',
+        atribuicoes: 'Trabalhos desafiadores e variados a cada 12-24 meses com aumento de responsabilidades',
+        mentoria: 'Mentor sênior da alta gerência, preferencialmente dos Boxes 8 ou 9',
+        desenvolvimento: 'Coaching externo para desenvolver liderança e habilidades técnicas',
+        recompensa: 'Crescimento agressivo no salário-base. Pagar acima do mercado, bonificações de retenção',
+        engajamento: 'Liderar forças-tarefas interfuncionais. Convites especiais para eventos externos'
       }
     },
     {
-      id: 3,
-      title: "Enigma",
-      icon: Brain,
-      bgColor: "bg-yellow-100",
-      borderColor: "border-yellow-300",
-      bgLight: "bg-yellow-50",
-      textColor: "text-yellow-700",
-      hoverBg: "hover:bg-yellow-200",
-      performance: "baixo",
-      potential: "alto",
-      summary: "Iniciante ou com problema de gestão",
-      description: "Mostra agilidade de aprendizagem muito alta e alto potencial. Não tem tido tempo ou oportunidade suficiente para demonstrar o que pode fazer.",
-      details: {
-        recompensa: "Baixo ou nenhum aumento no salário base e incentivos. É esperado passar para tratamento agressivo.",
-        engajamento: "Promova tarefas funcionais ou interfuncionais importantes. Incentive a participação em projetos especiais.",
-        atribuicoes: "Mantenha na atribuição atual, enquanto trabalha para melhorar o desempenho, a menos que esteja mal adequado ao trabalho.",
-        mentoria: "Designe um mentor do Box 8 com a meta de aumentar o desempenho rapidamente.",
-        desenvolvimento: "Avalie habilidades funcionais/técnicas para aumentar o desempenho. Designe um mentor interno."
-      }
-    },
-    {
-      id: 4,
-      title: "Eficaz",
-      icon: Shield,
-      bgColor: "bg-blue-100",
-      borderColor: "border-blue-300",
-      bgLight: "bg-blue-50",
-      textColor: "text-blue-700",
-      hoverBg: "hover:bg-blue-200",
-      performance: "médio",
-      potential: "baixo",
-      summary: "Especialista de alto valor",
-      description: "Atua consistentemente e pode ocasionalmente exceder as expectativas. Conhece bem o trabalho atual. É sólido em território familiar.",
-      details: {
-        recompensa: "Pague o salário-base. Pagamento de incentivo somente por desempenho.",
-        engajamento: "Designe atividades que os conhecimentos sejam valorizados. Exponha para pessoas de alto desempenho.",
-        atribuicoes: "Proporcione oportunidades para participar de atividades de resolução de problemas. Desenvolva a especialização.",
-        mentoria: "Encoraje a pessoa procurar um mentor de mesmo nível (se puder recomende alguém do Box 7).",
-        desenvolvimento: "O gestor direto deve fornecer mentoria para desenvolvimento de habilidades técnicas."
-      }
-    },
-    {
-      id: 5,
-      title: "Mantenedor",
-      icon: Target,
-      bgColor: "bg-teal-100",
-      borderColor: "border-teal-300",
-      bgLight: "bg-teal-50",
-      textColor: "text-teal-700",
-      hoverBg: "hover:bg-teal-200",
-      performance: "médio",
-      potential: "médio",
-      summary: "Boa performance com espaço para crescimento",
-      description: "Atende consistentemente e ocasionalmente excede as expectativas. Pode se adaptar a novas situações conforme necessário.",
-      details: {
-        recompensa: "Aumento moderado no salário. Objetivo pagar dentro da faixa de mercado.",
-        engajamento: "Promova atividades relevantes, grupos de estudos e rede de contatos.",
-        atribuicoes: "Proporcione oportunidades para atuarem como membros de um projeto com metas importantes.",
-        mentoria: "Encoraje a pessoa a procurar um mentor (Box 8 para desenvolvimento vertical ou Box 6 para horizontal).",
-        desenvolvimento: "O gestor direto deve fornecer mentoria para ajudar no desenvolvimento de habilidades técnicas."
-      }
-    },
-    {
-      id: 6,
-      title: "Crescimento",
+      id: '9',
+      position: { row: 0, col: 2 },
+      title: 'Futuro Líder',
+      subtitle: 'Potencial além da função atual',
+      performance: 'alto',
+      potential: 'alto',
       icon: Rocket,
-      bgColor: "bg-cyan-100",
-      borderColor: "border-cyan-300",
-      bgLight: "bg-cyan-50",
-      textColor: "text-cyan-700",
-      hoverBg: "hover:bg-cyan-200",
-      performance: "médio",
-      potential: "alto",
-      summary: "Progressão para alto desempenho",
-      description: "Atua consistentemente e algumas vezes excede as expectativas. Tem capacidade de assumir novos desafios em base consistente.",
+      bgColor: 'bg-gradient-to-br from-secondary-50 to-primary-50',
+      borderColor: 'border-secondary-300',
+      textColor: 'text-secondary-700',
+      gradient: 'from-secondary-400 to-primary-600',
       details: {
-        recompensa: "Crescimento agressivo no salário-base e incentivos. Pagar acima do mercado, considere bonificações de retenção.",
-        engajamento: "Designe-o para liderar em forças-tarefas interfuncionais. Arranje convites especiais para reuniões e eventos externos.",
-        atribuicoes: "Mude-o entre uma série de trabalhos desafiadores a cada 12 a 24 meses.",
-        mentoria: "Designe um mentor de nível sênior da alta gerência ou diretoria (Boxes 8 ou 9).",
-        desenvolvimento: "Proporcione Coaching preferencialmente externo, para identificar e desenvolver habilidades."
+        descricao: 'O melhor que existe. Atua bem em quase tudo. Aprende rápido e é engenhoso.',
+        atribuicoes: 'Trabalhos desafiadores a cada 12-24 meses. Atribuições com alto risco e pensamento estratégico',
+        mentoria: 'Mentor de nível superior dos boxes 6, 8 ou 9. Mentores de outras divisões',
+        desenvolvimento: 'Coaching de alto grau com avaliação contínua e desenvolvimento de competências críticas',
+        recompensa: 'Agressivo na base e incentivos. Pagar acima do mercado. Bonificação de ações',
+        engajamento: 'Liderar forças-tarefas globais-chave. Reuniões externas. Monitoramento sério do RH'
+      }
+    },
+    // Linha do Meio (Médio Potencial)
+    {
+      id: '2',
+      position: { row: 1, col: 0 },
+      title: 'Questionável',
+      subtitle: 'Potencial para melhorar',
+      performance: 'baixo',
+      potential: 'médio',
+      icon: AlertTriangle,
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-300',
+      textColor: 'text-orange-700',
+      gradient: 'from-orange-400 to-orange-600',
+      details: {
+        descricao: 'Pode ser novo ou não apresentar competência para função. Tem potencial não demonstrado.',
+        atribuicoes: 'Encontrar a causa do problema. Desenvolver plano detalhado de habilidades',
+        mentoria: 'Mentor do mesmo nível, preferencialmente do Box 5',
+        desenvolvimento: 'Mentoria do gestor direto. Avaliações periódicas a cada 18-24 meses',
+        recompensa: 'Baixo ou nenhum aumento no salário. Ainda não há o que recompensar',
+        engajamento: 'Estabelecer metas focadas em poucas áreas importantes com resultados sólidos'
       }
     },
     {
-      id: 7,
-      title: "Comprometimento",
-      icon: Heart,
-      bgColor: "bg-emerald-100",
-      borderColor: "border-emerald-300",
-      bgLight: "bg-emerald-50",
-      textColor: "text-emerald-700",
-      hoverBg: "hover:bg-emerald-200",
-      performance: "alto",
-      potential: "baixo",
-      summary: "Especialista na função, difícil de ser substituído",
-      description: "Produz consistentemente trabalhos excepcionais. Conhece o trabalho atual extremamente bem. Altamente valioso para a organização.",
+      id: '5',
+      position: { row: 1, col: 1 },
+      title: 'Mantenedor',
+      subtitle: 'Boa performance, espaço para crescer',
+      performance: 'médio',
+      potential: 'médio',
+      icon: Activity,
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-300',
+      textColor: 'text-blue-700',
+      gradient: 'from-blue-400 to-blue-600',
       details: {
-        recompensa: "Pode pagar o salário base na parte alta da faixa. Considere bonificações de retenção.",
-        engajamento: "Designe para liderar força-tarefa funcional. Alavanque seus conhecimentos para atuarem como mentores.",
-        atribuicoes: "Atribua projetos com mudanças mensuráveis no volume de trabalho.",
-        mentoria: "Encoraje a procurar mentor de outra companhia (não concorrente). Designe-o como mentor para outras áreas.",
-        desenvolvimento: "Proporcione um líder sênior interno dentro da função como coach."
+        descricao: 'Atende consistentemente e ocasionalmente excede expectativas. Promovível um nível.',
+        atribuicoes: 'Projetos com metas importantes e prazo apertado. Gerenciar grupo temporário',
+        mentoria: 'Mentor do Box 8 (desenvolvimento vertical) ou Box 6 (desenvolvimento horizontal)',
+        desenvolvimento: 'Mentoria do gestor direto. Participação em conferências e treinamentos',
+        recompensa: 'Aumento moderado no salário. Pagar dentro da faixa de mercado',
+        engajamento: 'Atividades relevantes, grupos de estudos e rede de contatos'
       }
     },
     {
-      id: 8,
-      title: "Alto Impacto",
-      icon: Zap,
-      bgColor: "bg-purple-100",
-      borderColor: "border-purple-300",
-      bgLight: "bg-purple-50",
-      textColor: "text-purple-700",
-      hoverBg: "hover:bg-purple-200",
-      performance: "alto",
-      potential: "médio",
-      summary: "Potencial para outro trabalho de mesmo nível",
-      description: "Produz consistentemente resultados excepcionais. Pode se adaptar a novas situações e aprender novas áreas.",
+      id: '8',
+      position: { row: 1, col: 2 },
+      title: 'Performance de Alto Impacto',
+      subtitle: 'Contribuição de valor',
+      performance: 'alto',
+      potential: 'médio',
+      icon: Award,
+      bgColor: 'bg-teal-50',
+      borderColor: 'border-teal-300',
+      textColor: 'text-teal-700',
+      gradient: 'from-teal-400 to-teal-600',
       details: {
-        recompensa: "Objetive pagar na parte alta da faixa de referência. Pagamentos agressivos em incentivos.",
-        engajamento: "Designe-o para liderar em forças-tarefas funcionais ou interfuncionais importantes.",
-        atribuicoes: "Gerenciamento de uma equipe de projetos interfuncionais. Atuação como consultor interno.",
-        mentoria: "Designe mentor dos boxes 8 ou 9 em outra área funcional. Podem atuar como mentores dos boxes 5 ou 7.",
-        desenvolvimento: "Forneça coaching interno ou externo para identificar ou desenvolver competências."
+        descricao: 'Produz resultados excepcionais. Pode ser promovido em múltiplas áreas.',
+        atribuicoes: 'Gerenciar equipes interfuncionais. Atuar como consultor interno',
+        mentoria: 'Mentor dos boxes 8 ou 9 em outra área. Pode mentorar outros dos boxes 5 ou 7',
+        desenvolvimento: 'Coaching interno ou externo para competências de liderança',
+        recompensa: 'Pagar na parte alta da faixa. Pagamentos agressivos em incentivos',
+        engajamento: 'Liderar forças-tarefas importantes. Monitoramento constante do RH'
+      }
+    },
+    // Linha Inferior (Baixo Potencial)
+    {
+      id: '1',
+      position: { row: 2, col: 0 },
+      title: 'Insuficiente',
+      subtitle: 'Risco com desempenho',
+      performance: 'baixo',
+      potential: 'baixo',
+      icon: TrendingDown,
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-300',
+      textColor: 'text-red-700',
+      gradient: 'from-red-400 to-red-600',
+      details: {
+        descricao: 'Não está alcançando resultados esperados. Menor valor em termos de ROI.',
+        atribuicoes: 'Determinar o problema. Passar para atribuição apropriada ou encaminhar demissão',
+        mentoria: 'Mentor com cargo superior se valer a pena. Monitorar de perto',
+        desenvolvimento: 'Plano específico de melhoria do gestor direto. Máximo 30 dias para ação',
+        recompensa: 'Congelar salário base. Evitar pagar incentivos',
+        engajamento: 'Plano formal de melhoria. Avaliar valor para organização'
       }
     },
     {
-      id: 9,
-      title: "Futuro Líder",
+      id: '4',
+      position: { row: 2, col: 1 },
+      title: 'Eficaz',
+      subtitle: 'Especialista de alto valor',
+      performance: 'médio',
+      potential: 'baixo',
+      icon: ShieldCheck,
+      bgColor: 'bg-indigo-50',
+      borderColor: 'border-indigo-300',
+      textColor: 'text-indigo-700',
+      gradient: 'from-indigo-400 to-indigo-600',
+      details: {
+        descricao: 'Competente mas não promovível. Atingiu máximo potencial na carreira.',
+        atribuicoes: 'Atividades de resolução de problemas. Revisão de produtos ou serviços',
+        mentoria: 'Mentor do mesmo nível, preferencialmente do Box 7',
+        desenvolvimento: 'Desenvolver especialização. Avaliações periódicas a cada 18-24 meses',
+        recompensa: 'Pagar salário-base. Incentivo somente por desempenho',
+        engajamento: 'Atividades onde conhecimentos sejam valorizados. Exposição a alto desempenho'
+      }
+    },
+    {
+      id: '7',
+      position: { row: 2, col: 2 },
+      title: 'Comprometimento',
+      subtitle: 'Especialista difícil de substituir',
+      performance: 'alto',
+      potential: 'baixo',
       icon: Star,
-      bgColor: "bg-gradient-to-br from-teal-100 to-cyan-100",
-      borderColor: "border-teal-300",
-      bgLight: "bg-gradient-to-br from-teal-50 to-cyan-50",
-      textColor: "text-teal-700",
-      hoverBg: "hover:from-teal-200 hover:to-cyan-200",
-      performance: "alto",
-      potential: "alto",
-      summary: "Potencial além da função atual",
-      description: "O melhor que existe. Atua bem em quase tudo que faz. Aprende rápido. Tem habilidade de assumir importantes atribuições.",
+      bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-300',
+      textColor: 'text-purple-700',
+      gradient: 'from-purple-400 to-purple-600',
       details: {
-        recompensa: "Agressivo na base e incentivos. Pagar acima do mercado. Use bonificação de ações voltadas à retenção.",
-        engajamento: "Designe-o para liderar em forças-tarefas globais-chave. Arranje convites para reuniões externas.",
-        atribuicoes: "Coloque-o em trabalhos desafiadores a cada 12/24 meses. Proporcione atribuições com alto risco.",
-        mentoria: "Designe mentor de nível superior (boxes 6, 8 ou 9). Considere mentores de outras divisões.",
-        desenvolvimento: "Proporcione Coaching de alto grau para avaliação contínua e desenvolvimento de habilidades críticas."
+        descricao: 'Produz trabalhos excepcionais. Altamente valioso para organização.',
+        atribuicoes: 'Projetos com mudanças mensuráveis. Alavancar habilidades técnicas',
+        mentoria: 'Mentor de outra empresa não concorrente. Atuar como mentor para outros',
+        desenvolvimento: 'Coach interno sênior. Avaliações periódicas de liderança',
+        recompensa: 'Salário na parte alta da faixa. Considerar bonificações de retenção',
+        engajamento: 'Liderar força-tarefa funcional. Atuar como mentor e tutor'
       }
     }
   ];
 
+  // Get box by position
   const getBoxByPosition = (row: number, col: number) => {
-    // Matriz correta: Alto potencial em cima, baixo embaixo
-    const matrix = [
-      [3, 6, 9], // Alto potencial
-      [2, 5, 8], // Médio potencial
-      [1, 4, 7]  // Baixo potencial
-    ];
-    return boxes.find(box => box.id === matrix[row][col]);
+    return boxes.find(box => box.position.row === row && box.position.col === col);
   };
 
-  return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 sm:mb-6 space-y-4 lg:space-y-0">
-            <div className="flex items-center space-x-3 sm:space-x-4 w-full lg:w-auto">
-              <div className="flex-1 lg:flex-none">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
-                  <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-teal-500 mr-2 sm:mr-3" />
-                  <span className="break-words">Guia Nine Box (9-Box)</span>
-                </h1>
-                <p className="text-xs sm:text-sm lg:text-base text-gray-600 mt-1">
-                  Matriz de talentos para avaliação e desenvolvimento de colaboradores
-                </p>
-              </div>
-            </div>
+  // Matrix Component
+  const MatrixView = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      {/* Matrix */}
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+        <div className="relative">
+          {/* Potencial Label - Vertical Left */}
+          <div className="absolute -left-0 top-1/2 -translate-y-1/2">
+            <span className="text-sm font-medium text-gray-600 -rotate-90 block whitespace-nowrap">Potencial →</span>
           </div>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Matrix Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Gem className="w-5 h-5 text-teal-500" />
-            Matriz 9-Box
-          </h2>
           
-          <div className="relative">
-            {/* Y-axis label */}
-            <div className="absolute -left-10 top-1/2 -translate-y-1/2 -rotate-90 text-xs font-medium text-gray-600">
-              POTENCIAL →
-            </div>
-            
-            {/* Matrix Grid */}
-            <div className="inline-block">
-              <div className="grid grid-cols-3 gap-1.5 bg-gray-100 p-2 rounded-lg">
-                {[0, 1, 2].map(row => (
-                  <React.Fragment key={row}>
-                    {[0, 1, 2].map(col => {
-                      const box = getBoxByPosition(row, col);
-                      if (!box) return null;
-                      const Icon = box.icon;
-                      
-                      return (
-                        <div
-                          key={`${row}-${col}`}
-                          onClick={() => setSelectedBox(box.id)}
-                          onMouseEnter={() => setHoveredBox(box.id)}
-                          onMouseLeave={() => setHoveredBox(null)}
-                          className={`
-                            relative cursor-pointer transition-all duration-200
-                            ${box.bgColor} ${box.hoverBg} ${box.borderColor}
-                            ${selectedBox === box.id ? 'ring-2 ring-teal-500 ring-offset-2' : ''}
-                            border-2 rounded-lg p-4 w-28 h-28
-                            flex flex-col items-center justify-center
-                          `}
-                        >
-                          <Icon className={`w-5 h-5 ${box.textColor} mb-1`} />
-                          <span className={`text-xs font-semibold ${box.textColor}`}>Box {box.id}</span>
-                          <span className={`text-xs ${box.textColor} text-center mt-1`}>{box.title}</span>
-                        </div>
-                      );
-                    })}
-                  </React.Fragment>
-                ))}
+          {/* Matrix Grid Container */}
+          <div className="max-w-md mx-auto px-8">
+            {/* Header - Performance labels */}
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <div className="text-center">
+                <span className="text-xs sm:text-sm font-medium text-gray-600">Baixo</span>
               </div>
-              
-              {/* X-axis label */}
-              <div className="text-center mt-2">
-                <span className="text-xs font-medium text-gray-600">DESEMPENHO →</span>
+              <div className="text-center">
+                <span className="text-xs sm:text-sm font-medium text-gray-600">Médio</span>
+              </div>
+              <div className="text-center">
+                <span className="text-xs sm:text-sm font-medium text-gray-600">Alto</span>
               </div>
             </div>
-          </div>
 
-          {/* Legend */}
-          <div className="mt-6 space-y-3">
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Níveis de Desempenho:</h3>
-              <div className="flex gap-2 text-xs">
-                <span className="px-2 py-1 bg-red-100 text-red-700 rounded">Baixo</span>
-                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Médio</span>
-                <span className="px-2 py-1 bg-green-100 text-green-700 rounded">Alto</span>
+            {/* Matrix boxes with side labels */}
+            <div className="relative">
+              {/* Right side labels - positioned absolutely */}
+              <div className="absolute -right-16 top-0 h-full">
+                <div className="h-full flex flex-col">
+                  <div className="flex-1 flex items-center justify-start">
+                    <span className="text-xs sm:text-sm font-medium text-gray-600">Alto</span>
+                  </div>
+                  <div className="flex-1 flex items-center justify-start">
+                    <span className="text-xs sm:text-sm font-medium text-gray-600">Médio</span>
+                  </div>
+                  <div className="flex-1 flex items-center justify-start">
+                    <span className="text-xs sm:text-sm font-medium text-gray-600">Baixo</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {/* Row 1 - Alto Potencial */}
+                {[0, 1, 2].map(col => {
+                  const box = getBoxByPosition(0, col);
+                  if (!box) return <div key={`0-${col}`} />;
+                  
+                  return (
+                    <div
+                      key={box.id}
+                      onClick={() => setSelectedBox(box.id)}
+                      className={`
+                        ${box.bgColor} ${box.borderColor} border-2 p-3 sm:p-4 cursor-pointer
+                        hover:shadow-md aspect-square
+                        ${selectedBox === box.id ? 'ring-2 ring-offset-1 ring-primary-500 shadow-lg' : ''}
+                        rounded-lg
+                      `}
+                    >
+                      <div className="flex flex-col items-center justify-center h-full space-y-1">
+                        <box.icon className={`w-6 h-6 sm:w-7 sm:h-7 ${box.textColor}`} />
+                        <span className="text-xl sm:text-2xl font-bold text-gray-800">{box.id}</span>
+                        <span className={`text-xs font-medium ${box.textColor} text-center leading-tight`}>
+                          {box.title}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Row 2 - Médio Potencial */}
+                {[0, 1, 2].map(col => {
+                  const box = getBoxByPosition(1, col);
+                  if (!box) return <div key={`1-${col}`} />;
+                  
+                  return (
+                    <div
+                      key={box.id}
+                      onClick={() => setSelectedBox(box.id)}
+                      className={`
+                        ${box.bgColor} ${box.borderColor} border-2 p-3 sm:p-4 cursor-pointer
+                        hover:shadow-md aspect-square
+                        ${selectedBox === box.id ? 'ring-2 ring-offset-1 ring-primary-500 shadow-lg' : ''}
+                        rounded-lg
+                      `}
+                    >
+                      <div className="flex flex-col items-center justify-center h-full space-y-1">
+                        <box.icon className={`w-6 h-6 sm:w-7 sm:h-7 ${box.textColor}`} />
+                        <span className="text-xl sm:text-2xl font-bold text-gray-800">{box.id}</span>
+                        <span className={`text-xs font-medium ${box.textColor} text-center leading-tight`}>
+                          {box.title}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Row 3 - Baixo Potencial */}
+                {[0, 1, 2].map(col => {
+                  const box = getBoxByPosition(2, col);
+                  if (!box) return <div key={`2-${col}`} />;
+                  
+                  return (
+                    <div
+                      key={box.id}
+                      onClick={() => setSelectedBox(box.id)}
+                      className={`
+                        ${box.bgColor} ${box.borderColor} border-2 p-3 sm:p-4 cursor-pointer
+                        hover:shadow-md aspect-square
+                        ${selectedBox === box.id ? 'ring-2 ring-offset-1 ring-primary-500 shadow-lg' : ''}
+                        rounded-lg
+                      `}
+                    >
+                      <div className="flex flex-col items-center justify-center h-full space-y-1">
+                        <box.icon className={`w-6 h-6 sm:w-7 sm:h-7 ${box.textColor}`} />
+                        <span className="text-xl sm:text-2xl font-bold text-gray-800">{box.id}</span>
+                        <span className={`text-xs font-medium ${box.textColor} text-center leading-tight`}>
+                          {box.title}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Níveis de Potencial:</h3>
-              <div className="flex gap-2 text-xs">
-                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded">Baixo</span>
-                <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded">Médio</span>
-                <span className="px-2 py-1 bg-gray-300 text-gray-700 rounded">Alto</span>
-              </div>
+
+            {/* Footer - Desempenho label */}
+            <div className="text-center mt-2">
+              <span className="text-sm font-medium text-gray-600">Desempenho →</span>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Selected Box Details */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          {selectedBox ? (
-            <>
-              {(() => {
-                const box = boxes.find(b => b.id === selectedBox);
-                if (!box) return null;
-                const Icon = box.icon;
-                
-                return (
-                  <>
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 ${box.bgColor} ${box.borderColor} border-2 rounded-lg`}>
-                          <Icon className={`w-6 h-6 ${box.textColor}`} />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-800">Box {box.id} - {box.title}</h3>
-                          <p className="text-sm text-gray-600">{box.summary}</p>
-                        </div>
+      {/* Side Information */}
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 h-fit">
+        {selectedBox ? (
+          <>
+            {(() => {
+              const box = boxes.find(b => b.id === selectedBox);
+              if (!box) return null;
+              
+              return (
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className={`bg-gradient-to-r ${box.gradient} rounded-xl p-4 text-white`}>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                        <box.icon className="w-8 h-8 text-white" />
                       </div>
-                      <button
-                        onClick={() => setSelectedBox(null)}
-                        className="p-1 hover:bg-gray-100 rounded transition-colors"
-                      >
-                        <X className="w-4 h-4 text-gray-400" />
-                      </button>
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold">Box {box.id}</h3>
+                        <p className="text-white/90 font-medium">{box.title}</p>
+                        <p className="text-white/75 text-sm">{box.subtitle}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                    {/* Quick Info */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className={`${box.bgColor} ${box.borderColor} border rounded-lg p-3`}>
+                        <p className="text-xs text-gray-600 mb-1">Desempenho</p>
+                        <p className={`font-semibold capitalize ${box.textColor}`}>{box.performance}</p>
+                      </div>
+                      <div className={`${box.bgColor} ${box.borderColor} border rounded-lg p-3`}>
+                        <p className="text-xs text-gray-600 mb-1">Potencial</p>
+                        <p className={`font-semibold capitalize ${box.textColor}`}>{box.potential}</p>
+                      </div>
                     </div>
 
-                    <div className={`${box.bgLight} ${box.borderColor} border rounded-lg p-4 mb-4`}>
-                      <p className="text-sm text-gray-700">{box.description}</p>
+                    {/* Description */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-800 mb-2">Descrição</h4>
+                      <p className="text-sm text-gray-600">{box.details.descricao}</p>
                     </div>
 
+                    {/* Action Items */}
                     <div className="space-y-3">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-700 mb-1">Recompensa:</h4>
-                        <p className="text-sm text-gray-600">{box.details.recompensa}</p>
+                      <div className="flex items-start gap-3">
+                        <Briefcase className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <h5 className="text-sm font-medium text-gray-700">Atribuições</h5>
+                          <p className="text-xs text-gray-600 mt-0.5">{box.details.atribuicoes}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-700 mb-1">Engajamento:</h4>
-                        <p className="text-sm text-gray-600">{box.details.engajamento}</p>
+
+                      <div className="flex items-start gap-3">
+                        <UserCheck className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <h5 className="text-sm font-medium text-gray-700">Mentoria</h5>
+                          <p className="text-xs text-gray-600 mt-0.5">{box.details.mentoria}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <GraduationCap className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <h5 className="text-sm font-medium text-gray-700">Desenvolvimento</h5>
+                          <p className="text-xs text-gray-600 mt-0.5">{box.details.desenvolvimento}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <DollarSign className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <h5 className="text-sm font-medium text-gray-700">Recompensa</h5>
+                          <p className="text-xs text-gray-600 mt-0.5">{box.details.recompensa}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Target className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <h5 className="text-sm font-medium text-gray-700">Engajamento</h5>
+                          <p className="text-xs text-gray-600 mt-0.5">{box.details.engajamento}</p>
+                        </div>
                       </div>
                     </div>
-                  </>
+                  </div>
                 );
               })()}
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400">
-              <Info className="w-12 h-12 mb-3" />
-              <p className="text-center">Selecione um box na matriz para ver os detalhes</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Detailed Information for Selected Box */}
-      {selectedBox && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          {(() => {
-            const box = boxes.find(b => b.id === selectedBox);
-            if (!box) return null;
-            
-            return (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Briefcase className="w-5 h-5 text-blue-600" />
-                    <h3 className="font-medium text-gray-800">Atribuições</h3>
-                  </div>
-                  <p className="text-sm text-gray-700">{box.details.atribuicoes}</p>
-                </div>
-
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <UserCheck className="w-5 h-5 text-purple-600" />
-                    <h3 className="font-medium text-gray-800">Mentoria</h3>
-                  </div>
-                  <p className="text-sm text-gray-700">{box.details.mentoria}</p>
-                </div>
-
-                <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <GraduationCap className="w-5 h-5 text-teal-600" />
-                    <h3 className="font-medium text-gray-800">Desenvolvimento</h3>
-                  </div>
-                  <p className="text-sm text-gray-700">{box.details.desenvolvimento}</p>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-      )}
-
-      {/* Summary Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 overflow-x-auto">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Award className="w-5 h-5 text-teal-500" />
-          Visão Geral dos Boxes
-        </h2>
-        
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Box</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Título</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Desempenho</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Potencial</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Característica</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {boxes.map((box) => {
-                const Icon = box.icon;
-                return (
-                  <tr 
-                    key={box.id} 
-                    onClick={() => setSelectedBox(box.id)}
-                    className="hover:bg-gray-50 cursor-pointer transition-colors"
-                  >
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <div className={`p-1.5 ${box.bgColor} ${box.borderColor} border rounded`}>
-                          <Icon className={`w-4 h-4 ${box.textColor}`} />
-                        </div>
-                        <span className="font-medium text-gray-800">{box.id}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`font-medium ${box.textColor}`}>{box.title}</span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`
-                        px-2 py-1 text-xs font-medium rounded-full
-                        ${box.performance === 'alto' ? 'bg-green-100 text-green-700' : 
-                          box.performance === 'médio' ? 'bg-yellow-100 text-yellow-700' : 
-                          'bg-red-100 text-red-700'}
-                      `}>
-                        {box.performance.charAt(0).toUpperCase() + box.performance.slice(1)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`
-                        px-2 py-1 text-xs font-medium rounded-full
-                        ${box.potential === 'alto' ? 'bg-green-100 text-green-700' : 
-                          box.potential === 'médio' ? 'bg-yellow-100 text-yellow-700' : 
-                          'bg-red-100 text-red-700'}
-                      `}>
-                        {box.potential.charAt(0).toUpperCase() + box.potential.slice(1)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm text-gray-600">{box.summary}</p>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Strategic Analysis */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Brain className="w-5 h-5 text-teal-500" />
-          Análise Estratégica
-        </h2>
-        
-        <div className="space-y-4">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
-              <Star className="w-4 h-4 text-yellow-500" />
-              Alto Potencial
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <p className="text-sm"><span className="font-medium text-red-600">Baixo Desempenho:</span> Verificar causa e investir no desenvolvimento</p>
-              </div>
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <p className="text-sm"><span className="font-medium text-yellow-600">Médio Desempenho:</span> Focar no curto prazo e avaliar oportunidades</p>
-              </div>
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <p className="text-sm"><span className="font-medium text-green-600">Alto Desempenho:</span> Preparar para função maior - futuro líder!</p>
-              </div>
-            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <Info className="w-12 h-12 mb-3" />
+            <p className="text-center font-medium">Selecione um box na matriz</p>
+            <p className="text-center text-sm mt-1">Clique em qualquer posição para ver os detalhes</p>
           </div>
-
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
-              <Target className="w-4 h-4 text-blue-500" />
-              Médio Potencial
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <p className="text-sm"><span className="font-medium text-red-600">Baixo Desempenho:</span> Avaliar adequação à área</p>
-              </div>
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <p className="text-sm"><span className="font-medium text-yellow-600">Médio Desempenho:</span> Investir para manter na função</p>
-              </div>
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <p className="text-sm"><span className="font-medium text-green-600">Alto Desempenho:</span> Considerar promoção na área</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-gray-500" />
-              Baixo Potencial
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <p className="text-sm"><span className="font-medium text-red-600">Baixo Desempenho:</span> Avaliar movimentação ou desligamento</p>
-              </div>
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <p className="text-sm"><span className="font-medium text-yellow-600">Médio Desempenho:</span> Considerar movimentação horizontal</p>
-              </div>
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <p className="text-sm"><span className="font-medium text-green-600">Alto Desempenho:</span> Manter e revisar remuneração</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
-</div>
-)};
+  );
+
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8"
+      >
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 sm:mb-6 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3 sm:space-x-4 w-full lg:w-auto">
+            <div className="flex-1 lg:flex-none">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
+                <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-accent-500 mr-2 sm:mr-3" />
+                <span className="break-words">Guia Nine-Box</span>
+              </h1>
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600 mt-1">
+                Compreenda o funcionamento da Matriz de avaliação de potencial e desempenho
+              </p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Matrix View */}
+      <MatrixView />
+
+      {/* Legend */}
+      <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6"
+        >
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
+            Legenda de Interpretação
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-700 text-sm">Alto Potencial</h4>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 bg-red-400 rounded"></div>
+                  <span>Baixo Desempenho: Investir no desenvolvimento</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 bg-yellow-400 rounded"></div>
+                  <span>Médio Desempenho: Focar no curto prazo</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 bg-green-400 rounded"></div>
+                  <span>Alto Desempenho: Preparar para função maior</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-700 text-sm">Médio Potencial</h4>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 bg-red-400 rounded"></div>
+                  <span>Baixo Desempenho: Avaliar adequação</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 bg-yellow-400 rounded"></div>
+                  <span>Médio Desempenho: Investir para manter</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 bg-green-400 rounded"></div>
+                  <span>Alto Desempenho: Considerar promoção</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-700 text-sm">Baixo Potencial</h4>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 bg-red-400 rounded"></div>
+                  <span>Baixo Desempenho: Avaliar movimentação</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 bg-yellow-400 rounded"></div>
+                  <span>Médio Desempenho: Movimentação horizontal</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 bg-green-400 rounded"></div>
+                  <span>Alto Desempenho: Manter e revisar remuneração</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+  );
+};
 
 export default NineBoxGuide;

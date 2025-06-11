@@ -43,7 +43,8 @@ export default {
           700: '#96824d',
           800: '#84703a',
           900: '#725e27',
-        }
+        },
+        'dark-navy': '#1b2433',
       },
       boxShadow: {
         'primary-500/20': '0 10px 15px -3px rgba(18, 176, 160, 0.2), 0 4px 6px -2px rgba(18, 176, 160, 0.1)',
