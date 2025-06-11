@@ -40,7 +40,7 @@ export default function Header() {
       id: 1, 
       type: 'evaluation',
       icon: FileText,
-      color: 'text-blue-600 bg-blue-100',
+      color: 'text-secondary-600 bg-secondary-100',
       title: 'Nova avaliação pendente', 
       description: 'Você tem uma nova avaliação de desempenho para completar referente ao Q4 2024.',
       fullText: 'Você tem uma nova avaliação de desempenho para completar referente ao Q4 2024. O prazo para conclusão é até 15/12/2024. Acesse a seção de avaliações para iniciar.',
@@ -52,7 +52,7 @@ export default function Header() {
       id: 2, 
       type: 'deadline',
       icon: Clock,
-      color: 'text-amber-600 bg-amber-100',
+      color: 'text-primary-600 bg-primary-100',
       title: 'Prazo de avaliação se aproximando', 
       description: 'Faltam apenas 3 dias para finalizar a avaliação de Maria Silva.',
       fullText: 'Faltam apenas 3 dias para finalizar a avaliação de Maria Silva. Certifique-se de completar todas as competências e adicionar comentários construtivos antes do prazo final.',
@@ -64,7 +64,7 @@ export default function Header() {
       id: 3, 
       type: 'feedback',
       icon: TrendingUp,
-      color: 'text-teal-600 bg-teal-100',
+      color: 'text-accent-600 bg-accent-100',
       title: 'Feedback recebido', 
       description: 'João Santos adicionou um feedback sobre seu desempenho.',
       fullText: 'João Santos adicionou um feedback sobre seu desempenho no projeto Alpha. O feedback foi positivo e destaca suas habilidades de liderança e comunicação.',
@@ -159,7 +159,7 @@ export default function Header() {
             <p className="text-sm text-gray-500 flex items-center">
               <Calendar className="w-3 h-3 mr-1" />
               {new Date().toLocaleDateString('pt-BR', { 
-                weekday: 'long', 
+                weekday: 'long',
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric' 
