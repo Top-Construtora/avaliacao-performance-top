@@ -231,21 +231,26 @@ const NineBoxGuide = () => {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="p-2 bg-teal-500 rounded-lg">
-            <Sparkles className="w-6 h-6 text-white" />
+      <div className="space-y-4 sm:space-y-6">
+        {/* Header */}
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 sm:mb-6 space-y-4 lg:space-y-0">
+            <div className="flex items-center space-x-3 sm:space-x-4 w-full lg:w-auto">
+              <div className="flex-1 lg:flex-none">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
+                  <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-teal-500 mr-2 sm:mr-3" />
+                  <span className="break-words">Guia Nine Box (9-Box)</span>
+                </h1>
+                <p className="text-xs sm:text-sm lg:text-base text-gray-600 mt-1">
+                  Matriz de talentos para avaliação e desenvolvimento de colaboradores
+                </p>
+              </div>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">Guia Nine Box (9-Box)</h1>
         </div>
-        <p className="text-gray-600 ml-11">
-          Matriz de talentos para avaliação e desenvolvimento de colaboradores
-        </p>
-      </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Matrix Section */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -296,6 +301,26 @@ const NineBoxGuide = () => {
               {/* X-axis label */}
               <div className="text-center mt-2">
                 <span className="text-xs font-medium text-gray-600">DESEMPENHO →</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="mt-6 space-y-3">
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Níveis de Desempenho:</h3>
+              <div className="flex gap-2 text-xs">
+                <span className="px-2 py-1 bg-red-100 text-red-700 rounded">Baixo</span>
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Médio</span>
+                <span className="px-2 py-1 bg-green-100 text-green-700 rounded">Alto</span>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Níveis de Potencial:</h3>
+              <div className="flex gap-2 text-xs">
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded">Baixo</span>
+                <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded">Médio</span>
+                <span className="px-2 py-1 bg-gray-300 text-gray-700 rounded">Alto</span>
               </div>
             </div>
           </div>
@@ -359,7 +384,7 @@ const NineBoxGuide = () => {
 
       {/* Detailed Information for Selected Box */}
       {selectedBox && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           {(() => {
             const box = boxes.find(b => b.id === selectedBox);
             if (!box) return null;
@@ -396,7 +421,7 @@ const NineBoxGuide = () => {
       )}
 
       {/* Summary Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6 overflow-x-auto">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 overflow-x-auto">
         <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <Award className="w-5 h-5 text-teal-500" />
           Visão Geral dos Boxes
@@ -528,7 +553,7 @@ const NineBoxGuide = () => {
         </div>
       </div>
     </div>
-  );
-};
+</div>
+)};
 
 export default NineBoxGuide;
