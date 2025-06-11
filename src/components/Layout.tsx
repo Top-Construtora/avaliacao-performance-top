@@ -98,10 +98,10 @@ export default function Layout() {
           </motion.div>
         </main>
 
-        {/* Footer (opcional) */}
+        {/* Footer */}
         <footer className="bg-white border-t border-gray-200 py-4 px-6">
           <div className="max-w-7xl mx-auto flex items-center justify-between text-sm text-gray-500">
-            <p>&copy; 2024 Sistema de Avaliação de Desempenho</p>
+            <p>&copy; 2025 GIO - Sistema de Avaliação de Desempenho</p>
             <p>Versão 1.0.0</p>
           </div>
         </footer>
