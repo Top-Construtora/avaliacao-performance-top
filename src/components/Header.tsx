@@ -335,6 +335,8 @@ export default function Header() {
             </AnimatePresence>
           </div>
 
+          <div className="h-6 w-px bg-gray-300"></div>
+    
           {/* Menu do usuário */}
           <div className="relative" ref={userMenuRef}>
             <button
