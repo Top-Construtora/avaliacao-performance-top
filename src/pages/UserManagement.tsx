@@ -1080,7 +1080,11 @@ const UserManagement = () => {
                   exit={{ opacity: 0 }}
                   className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
                 >
-                  {filteredUsers.map(user => renderUserCard(user))}
+                  {filteredUsers.map(user => (
+                    <div key={user.id}>
+                      {renderUserCard(user)}
+                    </div>
+                  ))}
                 </motion.div>
               )}
 
@@ -1093,7 +1097,11 @@ const UserManagement = () => {
                   exit={{ opacity: 0 }}
                   className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
                 >
-                  {filteredTeams.map(team => renderTeamCard(team))}
+                  {filteredTeams.map(team => (
+                    <div key={team.id}>
+                      {renderTeamCard(team)}
+                    </div>
+                  ))}
                 </motion.div>
               )}
 
@@ -1106,7 +1114,11 @@ const UserManagement = () => {
                   exit={{ opacity: 0 }}
                   className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
                 >
-                  {filteredDepartments.map(dept => renderDepartmentCard(dept))}
+                  {filteredDepartments.map(dept => (
+                    <div key={dept.id}>
+                      {renderDepartmentCard(dept)}
+                    </div>
+                  ))}
                 </motion.div>
               )}
             </AnimatePresence>
