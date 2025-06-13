@@ -169,9 +169,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
     try {
       await signOut();
       navigate('/login');
-      toast.success('Logout realizado com sucesso');
     } catch (error) {
-      toast.error('Erro ao fazer logout');
     }
   };
 

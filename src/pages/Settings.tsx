@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { useUserRole } from '../context/AuthContext';
+import { UserProfile } from '../context/AuthContext';
 import { 
   ArrowLeft,
   Save,
@@ -47,17 +48,6 @@ import {
   UserCheck,
   Loader2
 } from 'lucide-react';
-
-interface UserProfile {
-  name: string;
-  email: string;
-  phone: string;
-  position: string;
-  department: string;
-  location: string;
-  avatar?: string;
-  biography?: string;
-}
 
 interface NotificationSettings {
   email: boolean;
@@ -105,7 +95,12 @@ const Settings = () => {
     position: profile?.position || '',
     department: profile?.department || '',
     location: profile?.location || 'São Paulo, SP - Brasil',
-    biography: profile?.biography || ''
+    biography: profile?.biography || '',
+    id: profile?.id || '',
+    is_leader: profile?.is_leader || false,
+    is_director: profile?.is_director || false,
+    join_date: profile?.join_date || new Date().toISOString().split('T')[0],
+    active: profile?.active || true,
   });
 
   const [notifications, setNotifications] = useState<NotificationSettings>({
@@ -269,7 +264,7 @@ const Settings = () => {
   };
 
   const updateProfileField = (field: keyof UserProfile, value: string) => {
-    setUserProfile(prev => ({ ...prev, [field]: value }));
+    setUserProfile((prev: UserProfile) => ({ ...prev, [field]: value }));
     setUnsavedChanges(true);
   };
 
@@ -289,7 +284,7 @@ const Settings = () => {
         <div className="flex justify-center lg:justify-start">
           <div className="relative">
             <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-primary-500 to-secondary-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold shadow-xl">
-              {userProfile.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              {userProfile.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
             </div>
             <button className="absolute -bottom-2 -right-2 p-3 bg-white rounded-xl shadow-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200 group">
               <Edit className="h-4 w-4 text-gray-600 group-hover:text-primary-600" />
