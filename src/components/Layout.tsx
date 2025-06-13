@@ -82,7 +82,10 @@ export default function Layout() {
         isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'
       }`}>
         {/* Header */}
-        <Header />
+        <Header 
+          isMobileMenuOpen={isMobileMenuOpen}
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+        />
 
         {/* Page Content */}
         <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
@@ -99,8 +102,8 @@ export default function Layout() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-white border-t border-gray-200 py-4 px-6">
-          <div className="max-w-7xl mx-auto flex items-center justify-between text-sm text-gray-500">
+        <footer className="bg-white border-t border-gray-200 py-4 px-4 sm:px-6">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-gray-500 space-y-2 sm:space-y-0">
             <p>&copy; 2025 GIO - Sistema de Avaliação de Desempenho</p>
             <p>Versão 1.0.0</p>
           </div>

@@ -17,6 +17,9 @@ interface UserProfile {
   active: boolean;
   reports_to?: string;
   profile_image?: string;
+  department?: string;
+  location?: string;
+  biography?: string;
 }
 
 interface AuthContextType {
