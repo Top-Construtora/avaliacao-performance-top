@@ -329,12 +329,12 @@ const UserRegistration = () => {
               label: 'Diretor',
               description: 'Acesso completo ao sistema',
               icon: Sparkles,
-              bgColor: 'bg-gradient-to-br from-purple-50 to-purple-100',
-              borderColor: 'border-purple-200',
-              selectedBg: 'bg-gradient-to-br from-purple-100 to-purple-200',
-              selectedBorder: 'border-purple-400',
-              iconColor: 'text-purple-600',
-              selectedIcon: 'bg-purple-500'
+              bgColor: 'bg-gradient-to-br from-gray-50 to-gray-100',
+              borderColor: 'border-gray-400',
+              selectedBg: 'bg-gradient-to-br from-gray-200 to-gray-300',
+              selectedBorder: 'border-gray-600',
+              iconColor: 'text-gray-600',
+              selectedIcon: 'bg-gray-800'
             }
           ].map((type) => (
             <label 
@@ -848,7 +848,7 @@ const UserRegistration = () => {
     >
       <motion.div variants={itemVariants}>
         <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-          <Building className="h-5 w-5 mr-2 text-purple-500" />
+          <Building className="h-5 w-5 mr-2 text-accent-500" />
           Informações do Departamento
         </h3>
         <div className="space-y-6">
@@ -998,7 +998,7 @@ const UserRegistration = () => {
                 {[
                   { id: 'user', label: 'Novo Usuário', icon: UserPlus, color: 'primary' },
                   { id: 'team', label: 'Novo Time', icon: Users, color: 'secondary' },
-                  { id: 'department', label: 'Novo Departamento', icon: Building2, color: 'purple' }
+                  { id: 'department', label: 'Novo Departamento', icon: Building2, color: 'accent' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -1009,7 +1009,7 @@ const UserRegistration = () => {
                           ? 'bg-primary-100 text-primary-700 border-l-4 border-primary-500'
                           : tab.color === 'secondary'
                           ? 'bg-secondary-100 text-secondary-700 border-l-4 border-secondary-500'
-                          : 'bg-purple-100 text-purple-700 border-l-4 border-purple-500'
+                          : 'bg-accent-100 text-accent-700 border-l-4 border-accent-500'
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
