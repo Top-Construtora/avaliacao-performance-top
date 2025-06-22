@@ -520,7 +520,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                   <div className="py-1">
                     <button
                       onClick={() => {
-                        navigate('/profile');
+                        navigate('/settings');
                         setShowUserMenu(false);
                       }}
                       className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors"
