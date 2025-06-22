@@ -28,6 +28,12 @@
       min-width: 44px;
     }
   }
+
+  /* ADICIONADO PARA DARK MODE - Transições suaves */
+  * {
+    transition-property: background-color, border-color, color;
+    transition-duration: 200ms;
+  }
 }
 
 @layer utilities {
@@ -113,7 +119,7 @@
     user-select: none;
   }
 
-  /* Custom scrollbar for webkit browsers */
+  /* ATUALIZADO PARA DARK MODE - Custom scrollbar */
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgb(209 213 219) transparent;
@@ -125,16 +131,15 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+    @apply bg-transparent dark:bg-transparent;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgb(209 213 219);
-    border-radius: 3px;
+    @apply bg-gray-300 dark:bg-gray-600 rounded;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(156 163 175);
+    @apply bg-gray-400 dark:bg-gray-500;
   }
 
   /* Safe area utilities for mobile devices with notches */
@@ -153,6 +158,23 @@
   .pr-safe {
     padding-right: env(safe-area-inset-right);
   }
+}
+
+/* ADICIONADO PARA DARK MODE - Scrollbar global */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-400 dark:bg-gray-600 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500 dark:bg-gray-500;
 }
 
 /* Custom media queries for specific responsive needs */

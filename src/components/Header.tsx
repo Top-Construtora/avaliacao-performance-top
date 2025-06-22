@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ThemeToggle } from './ThemeToggle';
 import { 
   Bell, 
   Calendar,
@@ -55,38 +56,38 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
   // Configuração dos tipos de notificação com a paleta de cores do sistema
   const notificationTypeConfig = {
     success: {
-      bgColor: 'bg-primary-50',
-      iconBg: 'bg-primary-100',
-      iconColor: 'text-primary-600',
-      borderColor: 'border-primary-200',
+      bgColor: 'bg-primary-50 dark:bg-primary-900/20',
+      iconBg: 'bg-primary-100 dark:bg-primary-800/30',
+      iconColor: 'text-primary-600 dark:text-primary-400',
+      borderColor: 'border-primary-200 dark:border-primary-700',
       dotColor: 'bg-primary-500'
     },
     info: {
-      bgColor: 'bg-secondary-50',
-      iconBg: 'bg-secondary-100',
-      iconColor: 'text-secondary-600',
-      borderColor: 'border-secondary-200',
+      bgColor: 'bg-secondary-50 dark:bg-secondary-900/20',
+      iconBg: 'bg-secondary-100 dark:bg-secondary-800/30',
+      iconColor: 'text-secondary-600 dark:text-secondary-400',
+      borderColor: 'border-secondary-200 dark:border-secondary-700',
       dotColor: 'bg-secondary-500'
     },
     warning: {
-      bgColor: 'bg-accent-50',
-      iconBg: 'bg-accent-100',
-      iconColor: 'text-accent-600',
-      borderColor: 'border-accent-200',
+      bgColor: 'bg-accent-50 dark:bg-accent-900/20',
+      iconBg: 'bg-accent-100 dark:bg-accent-800/30',
+      iconColor: 'text-accent-600 dark:text-accent-400',
+      borderColor: 'border-accent-200 dark:border-accent-700',
       dotColor: 'bg-accent-500'
     },
     alert: {
-      bgColor: 'bg-red-50',
-      iconBg: 'bg-red-100',
-      iconColor: 'text-red-600',
-      borderColor: 'border-red-200',
+      bgColor: 'bg-red-50 dark:bg-red-900/20',
+      iconBg: 'bg-red-100 dark:bg-red-800/30',
+      iconColor: 'text-red-600 dark:text-red-400',
+      borderColor: 'border-red-200 dark:border-red-700',
       dotColor: 'bg-red-500'
     },
     achievement: {
-      bgColor: 'bg-gradient-to-r from-primary-50 to-secondary-50',
-      iconBg: 'bg-gradient-to-br from-primary-100 to-secondary-100',
-      iconColor: 'text-primary-600',
-      borderColor: 'border-primary-200',
+      bgColor: 'bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20',
+      iconBg: 'bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-800/30 dark:to-secondary-800/30',
+      iconColor: 'text-primary-600 dark:text-primary-400',
+      borderColor: 'border-primary-200 dark:border-primary-700',
       dotColor: 'bg-gradient-to-r from-primary-500 to-secondary-500'
     }
   };
@@ -186,9 +187,9 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
   };
 
   const getRoleBadgeColor = () => {
-    if (isDirector) return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border-gray-300';
-    if (isLeader) return 'bg-gradient-to-r from-primary-50 to-primary-100 text-primary-700 border-primary-200';
-    return 'bg-gradient-to-r from-secondary-50 to-secondary-100 text-secondary-700 border-secondary-200';
+    if (isDirector) return 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600';
+    if (isLeader) return 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 text-primary-700 dark:text-primary-300 border-primary-200 dark:border-primary-700';
+    return 'bg-gradient-to-r from-secondary-50 to-secondary-100 dark:from-secondary-900/20 dark:to-secondary-800/20 text-secondary-700 dark:text-secondary-300 border-secondary-200 dark:border-secondary-700';
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -240,25 +241,25 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
+    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
       <div className="flex items-center justify-between h-16 px-3 sm:px-4 md:px-6">
         {/* Lado esquerdo - Menu mobile e Título */}
         <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-1 min-w-0">
           {/* Botão menu mobile */}
           <button
             onClick={() => setIsMobileMenuOpen?.(!isMobileMenuOpen)}
-            className="md:hidden p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+            className="md:hidden p-1.5 sm:p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
             aria-label="Menu"
           >
             <Menu className="h-5 w-5" />
           </button>
 
           <div className="min-w-0 flex-1">
-            <h1 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 truncate">
+            <h1 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
               <span className="hidden sm:inline">Sistema de Avaliação de Desempenho</span>
               <span className="sm:hidden">Avaliação de Desempenho</span>
             </h1>
-            <p className="text-xs sm:text-sm text-gray-500 flex items-center">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center">
               <Calendar className="w-3 h-3 mr-1 flex-shrink-0" />
               <span className="hidden md:inline">
                 {new Date().toLocaleDateString('pt-BR', { 
@@ -285,7 +286,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
           <div className="static sm:relative" ref={notificationsRef}>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200"
+              className="relative p-1.5 sm:p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-all duration-200"
               aria-label="Notificações"
             >
               <Bell className="h-5 w-5" />
@@ -315,18 +316,18 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[72px] sm:top-auto sm:mt-2 w-auto sm:w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50"
+                    className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[72px] sm:top-auto sm:mt-2 w-auto sm:w-80 md:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50"
                     style={{ 
                       maxHeight: 'calc(100vh - 88px)',
                     }}
                   >
                   {/* Header do dropdown */}
-                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-primary-50 to-secondary-50 border-b border-gray-100 flex items-center justify-between sticky top-0 z-10">
+                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-gray-700 dark:to-gray-700 border-b border-gray-100 dark:border-gray-600 flex items-center justify-between sticky top-0 z-10">
                     <div className="flex items-center space-x-2">
-                      <Bell className="h-4 w-4 text-primary-600" />
-                      <h3 className="text-sm font-semibold text-gray-800">Notificações</h3>
+                      <Bell className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                      <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">Notificações</h3>
                       {unreadCount > 0 && (
-                        <span className="text-xs px-2 py-0.5 bg-accent-100 text-accent-700 rounded-full font-medium">
+                        <span className="text-xs px-2 py-0.5 bg-accent-100 dark:bg-accent-800/30 text-accent-700 dark:text-accent-300 rounded-full font-medium">
                           {unreadCount} nova{unreadCount > 1 ? 's' : ''}
                         </span>
                       )}
@@ -335,14 +336,14 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                       {unreadCount > 0 && (
                         <button 
                           onClick={markAllAsRead}
-                          className="text-[11px] sm:text-xs text-primary-600 hover:text-primary-700 font-medium hover:underline"
+                          className="text-[11px] sm:text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium hover:underline"
                         >
                           Marcar todas como lidas
                         </button>
                       )}
                       <button
                         onClick={() => setShowNotifications(false)}
-                        className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded p-0.5 transition-colors"
+                        className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-0.5 transition-colors"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -353,11 +354,11 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                   <div className="max-h-[calc(100vh-200px)] sm:max-h-96 overflow-y-auto custom-scrollbar">
                     {notifications.length === 0 ? (
                       <div className="px-4 py-12 text-center">
-                        <div className="inline-flex p-4 rounded-full bg-gray-50 mb-3">
-                          <Bell className="h-8 w-8 text-gray-300" />
+                        <div className="inline-flex p-4 rounded-full bg-gray-50 dark:bg-gray-700 mb-3">
+                          <Bell className="h-8 w-8 text-gray-300 dark:text-gray-600" />
                         </div>
-                        <p className="text-sm text-gray-500 font-medium">Nenhuma notificação</p>
-                        <p className="text-xs text-gray-400 mt-1">Você está em dia com tudo!</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Nenhuma notificação</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Você está em dia com tudo!</p>
                       </div>
                     ) : (
                       notifications.map((notification) => {
@@ -366,7 +367,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                           <div
                             key={notification.id}
                             className={`relative transition-all duration-200 ${
-                              !notification.read ? config.bgColor : 'hover:bg-gray-50'
+                              !notification.read ? config.bgColor : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
                             }`}
                           >
                             {/* Indicador de não lida */}
@@ -374,7 +375,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                               <div className={`absolute left-0 top-0 bottom-0 w-1 ${config.dotColor}`} />
                             )}
                             
-                            <div className="px-3 sm:px-4 py-3 sm:py-4 cursor-pointer border-b border-gray-50 last:border-0">
+                            <div className="px-3 sm:px-4 py-3 sm:py-4 cursor-pointer border-b border-gray-50 dark:border-gray-700 last:border-0">
                               <div className="flex items-start space-x-2 sm:space-x-3">
                                 <div className={`p-2 rounded-lg ${config.iconBg} flex-shrink-0 shadow-sm`}>
                                   <notification.icon className={`h-4 w-4 ${config.iconColor}`} />
@@ -383,10 +384,10 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-start justify-between gap-2">
                                     <div className="flex-1">
-                                      <p className="text-sm font-semibold text-gray-900 mb-0.5">
+                                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-0.5">
                                         {notification.title}
                                       </p>
-                                      <p className="text-xs text-gray-600 leading-relaxed">
+                                      <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
                                         {expandedNotifications[notification.id] 
                                           ? notification.fullText 
                                           : notification.description}
@@ -397,12 +398,12 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                                             e.stopPropagation();
                                             toggleNotificationExpanded(notification.id);
                                           }}
-                                          className="text-[11px] text-primary-600 hover:text-primary-700 font-medium mt-1 hover:underline"
+                                          className="text-[11px] text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium mt-1 hover:underline"
                                         >
                                           {expandedNotifications[notification.id] ? 'Ver menos' : 'Ver mais'}
                                         </button>
                                       )}
-                                      <p className="text-[10px] text-gray-400 mt-1.5 flex items-center">
+                                      <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5 flex items-center">
                                         <Clock className="h-3 w-3 mr-0.5" />
                                         {notification.time}
                                       </p>
@@ -414,7 +415,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                                           e.stopPropagation();
                                           markAsRead(notification.id);
                                         }}
-                                        className="text-[11px] text-primary-600 hover:text-primary-700 font-medium whitespace-nowrap hover:underline"
+                                        className="text-[11px] text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium whitespace-nowrap hover:underline"
                                       >
                                         Marcar lida
                                       </button>
@@ -431,7 +432,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                                             e.stopPropagation();
                                             handleNotificationAction(action);
                                           }}
-                                          className="text-xs px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-sm hover:shadow font-medium"
+                                          className="text-xs px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 dark:hover:from-primary-700 dark:hover:to-primary-800 transition-all duration-200 shadow-sm hover:shadow font-medium"
                                         >
                                           {action}
                                         </button>
@@ -449,13 +450,13 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
 
                   {/* Footer do dropdown */}
                   {notifications.length > 0 && (
-                    <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border-t border-gray-100 sticky bottom-0">
+                    <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-100 dark:border-gray-600 sticky bottom-0">
                       <button 
                         onClick={() => {
                           setShowNotifications(false);
                           navigate('/notifications');
                         }}
-                        className="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center justify-center w-full py-1.5 hover:underline"
+                        className="text-xs sm:text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium flex items-center justify-center w-full py-1.5 hover:underline"
                       >
                         Ver histórico completo
                         <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
@@ -468,17 +469,20 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
             </AnimatePresence>
           </div>
 
-          <div className="h-5 sm:h-6 w-px bg-gray-200 hidden xs:block"></div>
+          {/* Theme Toggle - ADICIONADO AQUI */}
+          <ThemeToggle />
+
+          <div className="h-5 sm:h-6 w-px bg-gray-200 dark:bg-gray-600 hidden xs:block"></div>
     
           {/* Menu do usuário */}
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-1.5 sm:space-x-2 md:space-x-3 p-1 sm:p-1.5 md:p-2 hover:bg-gray-50 rounded-lg transition-all duration-200"
+              className="flex items-center space-x-1.5 sm:space-x-2 md:space-x-3 p-1 sm:p-1.5 md:p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-all duration-200"
               aria-label="Menu do usuário"
             >
               <div className="text-right hidden lg:block">
-                <p className="text-sm font-medium text-gray-900 truncate max-w-[150px]">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-[150px]">
                   {profile?.name || user?.email}
                 </p>
                 <div className="flex items-center justify-end space-x-1">
@@ -491,7 +495,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
               <div className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0 shadow-md">
                 {profile?.name ? profile.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
               </div>
-              <ChevronDown className={`h-3 w-3 sm:h-4 sm:w-4 text-gray-600 transition-transform hidden sm:block ${showUserMenu ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-3 w-3 sm:h-4 sm:w-4 text-gray-600 dark:text-gray-400 transition-transform hidden sm:block ${showUserMenu ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Dropdown do menu do usuário */}
@@ -502,11 +506,11 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden"
+                  className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden"
                 >
                   {/* Mobile/Tablet: Mostrar informações do usuário */}
-                  <div className="lg:hidden px-4 py-3 bg-gradient-to-r from-primary-50 to-secondary-50 border-b border-gray-100">
-                    <p className="text-sm font-semibold text-gray-900 truncate">
+                  <div className="lg:hidden px-4 py-3 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-gray-700 dark:to-gray-700 border-b border-gray-100 dark:border-gray-600">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                       {profile?.name || user?.email}
                     </p>
                     <div className="flex items-center mt-1.5">
@@ -523,9 +527,9 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                         navigate('/settings');
                         setShowUserMenu(false);
                       }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
                     >
-                      <User className="h-4 w-4 text-gray-500" />
+                      <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                       <span>Meu Perfil</span>
                     </button>
                     
@@ -534,17 +538,17 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                         navigate('/settings');
                         setShowUserMenu(false);
                       }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
                     >
-                      <Settings className="h-4 w-4 text-gray-500" />
+                      <Settings className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                       <span>Configurações</span>
                     </button>
                   </div>
                   
-                  <div className="border-t border-gray-100 py-1">
+                  <div className="border-t border-gray-100 dark:border-gray-600 py-1">
                     <button
                       onClick={handleLogout}
-                      className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-3 transition-colors"
                     >
                       <LogOut className="h-4 w-4" />
                       <span className="font-medium">Sair</span>
