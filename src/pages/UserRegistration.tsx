@@ -294,8 +294,8 @@ const UserRegistration = () => {
     >
       {/* Profile Type Selection */}
       <motion.div variants={itemVariants}>
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center">
-          <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500" />
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
+          <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500 dark:text-primary-400" />
           Tipo de Perfil
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -305,44 +305,44 @@ const UserRegistration = () => {
               label: 'Colaborador',
               description: 'Membro da equipe com acesso padrão',
               icon: UserCheck,
-              bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100',
-              borderColor: 'border-secondary-200',
-              selectedBg: 'bg-gradient-to-br from-secondary-100 to-secondary-200',
-              selectedBorder: 'border-secondary-400',
-              iconColor: 'text-secondary-600',
-              selectedIcon: 'bg-secondary-500'
+              bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/20 dark:to-secondary-800/20',
+              borderColor: 'border-secondary-200 dark:border-secondary-700',
+              selectedBg: 'bg-gradient-to-br from-secondary-100 to-secondary-200 dark:from-secondary-800/30 dark:to-secondary-700/30',
+              selectedBorder: 'border-secondary-400 dark:border-secondary-500',
+              iconColor: 'text-secondary-600 dark:text-secondary-400',
+              selectedIcon: 'bg-secondary-500 dark:bg-secondary-600'
             },
             {
               value: 'leader',
               label: 'Líder',
               description: 'Gerencia equipes e avaliações',
               icon: Crown,
-              bgColor: 'bg-gradient-to-br from-primary-50 to-primary-100',
-              borderColor: 'border-primary-200',
-              selectedBg: 'bg-gradient-to-br from-primary-100 to-primary-200',
-              selectedBorder: 'border-primary-400',
-              iconColor: 'text-primary-600',
-              selectedIcon: 'bg-primary-500'
+              bgColor: 'bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20',
+              borderColor: 'border-primary-200 dark:border-primary-700',
+              selectedBg: 'bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-800/30 dark:to-primary-700/30',
+              selectedBorder: 'border-primary-400 dark:border-primary-500',
+              iconColor: 'text-primary-600 dark:text-primary-400',
+              selectedIcon: 'bg-primary-500 dark:bg-primary-600'
             },
             {
               value: 'director',
               label: 'Diretor',
               description: 'Acesso completo ao sistema',
               icon: Sparkles,
-              bgColor: 'bg-gradient-to-br from-gray-50 to-gray-100',
-              borderColor: 'border-gray-400',
-              selectedBg: 'bg-gradient-to-br from-gray-200 to-gray-300',
-              selectedBorder: 'border-gray-600',
-              iconColor: 'text-gray-600',
-              selectedIcon: 'bg-gray-800'
+              bgColor: 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/20 dark:to-gray-600/20',
+              borderColor: 'border-gray-400 dark:border-gray-600',
+              selectedBg: 'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600/30 dark:to-gray-500/30',
+              selectedBorder: 'border-gray-600 dark:border-gray-500',
+              iconColor: 'text-gray-600 dark:text-gray-400',
+              selectedIcon: 'bg-gray-800 dark:bg-gray-700'
             }
           ].map((type) => (
             <label 
               key={type.value}
               className={`relative flex flex-col p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border-2 cursor-pointer transition-all transform hover:scale-[1.02] ${
                 formData.profileType === type.value 
-                  ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
-                  : `${type.bgColor} ${type.borderColor} hover:shadow-md`
+                  ? `${type.selectedBg} ${type.selectedBorder} shadow-lg dark:shadow-xl`
+                  : `${type.bgColor} ${type.borderColor} hover:shadow-md dark:hover:shadow-lg`
               }`}
             >
               <input
@@ -359,21 +359,21 @@ const UserRegistration = () => {
                 className="sr-only"
               />
               <div className="flex items-start justify-between mb-2 sm:mb-3">
-                <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${formData.profileType === type.value ? type.selectedIcon : 'bg-white'}`}>
+                <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${formData.profileType === type.value ? type.selectedIcon : 'bg-white dark:bg-gray-700'}`}>
                   <type.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${formData.profileType === type.value ? 'text-white' : type.iconColor}`} />
                 </div>
                 {formData.profileType === type.value && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="h-6 w-6 sm:h-7 sm:w-7 bg-white rounded-full flex items-center justify-center shadow-md"
+                    className="h-6 w-6 sm:h-7 sm:w-7 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center shadow-md dark:shadow-lg"
                   >
-                    <Check className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+                    <Check className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 dark:text-green-400" />
                   </motion.div>
                 )}
               </div>
-              <h4 className="font-semibold text-gray-900 text-base sm:text-lg mb-1">{type.label}</h4>
-              <p className="text-xs sm:text-sm text-gray-600">{type.description}</p>
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-base sm:text-lg mb-1">{type.label}</h4>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{type.description}</p>
             </label>
           ))}
         </div>
@@ -381,22 +381,22 @@ const UserRegistration = () => {
 
       {/* Profile Image */}
       <motion.div variants={itemVariants}>
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center">
-          <Camera className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500" />
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
+          <Camera className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500 dark:text-primary-400" />
           Foto do Perfil
         </h3>
         <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
           <div className="relative">
             <div 
-              className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden cursor-pointer group shadow-md hover:shadow-lg transition-shadow"
+              className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center overflow-hidden cursor-pointer group shadow-md dark:shadow-lg hover:shadow-lg dark:hover:shadow-xl transition-shadow"
               onClick={() => fileInputRef.current?.click()}
             >
               {formData.profileImage ? (
                 <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 <div className="text-center p-2">
-                  <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 mx-auto mb-1 sm:mb-2" />
-                  <span className="text-xs text-gray-500 font-medium">Clique aqui</span>
+                  <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 dark:text-gray-500 mx-auto mb-1 sm:mb-2" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Clique aqui</span>
                 </div>
               )}
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center rounded-2xl">
@@ -411,7 +411,7 @@ const UserRegistration = () => {
               className="hidden"
             />
           </div>
-          <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center sm:text-left">
             <p className="font-medium mb-1">Formato: JPG, PNG ou GIF</p>
             <p>Tamanho máximo: 5MB</p>
           </div>
@@ -420,28 +420,28 @@ const UserRegistration = () => {
 
       {/* Basic Information */}
       <motion.div variants={itemVariants}>
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center">
-          <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500" />
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
+          <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500 dark:text-primary-400" />
           Informações Pessoais
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Nome completo *
             </label>
             <input
               type="text"
-              className={`w-full px-4 py-3 text-base rounded-xl border-2 transition-all ${
+              className={`w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                 formErrors.name 
-                  ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500' 
-                  : 'border-gray-200 hover:border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                  ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
               }`}
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Digite o nome completo"
             />
             {formErrors.name && (
-              <p className="text-sm text-red-600 mt-2 flex items-center">
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.name}
               </p>
@@ -449,17 +449,17 @@ const UserRegistration = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Email corporativo *
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+              <Mail className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="email"
-                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all ${
+                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                   formErrors.email 
-                    ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500' 
-                    : 'border-gray-200 hover:border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -467,7 +467,7 @@ const UserRegistration = () => {
               />
             </div>
             {formErrors.email && (
-              <p className="text-xs sm:text-sm text-red-600 mt-1 sm:mt-2 flex items-center">
+              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
                 <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 {formErrors.email}
               </p>
@@ -475,16 +475,16 @@ const UserRegistration = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Senha temporária *
             </label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
-                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all pr-10 sm:pr-12 ${
+                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all pr-10 sm:pr-12 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                   formErrors.password 
-                    ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500' 
-                    : 'border-gray-200 hover:border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -492,14 +492,14 @@ const UserRegistration = () => {
               />
               <button
                 type="button"
-                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors p-1"
+                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors p-1"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
               </button>
             </div>
             {formErrors.password && (
-              <p className="text-xs sm:text-sm text-red-600 mt-1 sm:mt-2 flex items-center">
+              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
                 <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 {formErrors.password}
               </p>
@@ -507,17 +507,17 @@ const UserRegistration = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Cargo *
             </label>
             <div className="relative">
-              <Briefcase className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+              <Briefcase className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
-                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all ${
+                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                   formErrors.position 
-                    ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500' 
-                    : 'border-gray-200 hover:border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.position}
                 onChange={(e) => setFormData({ ...formData, position: e.target.value })}
@@ -525,7 +525,7 @@ const UserRegistration = () => {
               />
             </div>
             {formErrors.position && (
-              <p className="text-xs sm:text-sm text-red-600 mt-1 sm:mt-2 flex items-center">
+              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
                 <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 {formErrors.position}
               </p>
@@ -533,17 +533,17 @@ const UserRegistration = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Telefone
             </label>
             <div className="relative">
-              <Phone className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+              <Phone className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="tel"
-                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all ${
+                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                   formErrors.phone 
-                    ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500' 
-                    : 'border-gray-200 hover:border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
@@ -551,7 +551,7 @@ const UserRegistration = () => {
               />
             </div>
             {formErrors.phone && (
-              <p className="text-xs sm:text-sm text-red-600 mt-1 sm:mt-2 flex items-center">
+              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
                 <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 {formErrors.phone}
               </p>
@@ -559,24 +559,24 @@ const UserRegistration = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Data de nascimento
             </label>
             <div className="relative">
-              <CalendarDays className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+              <CalendarDays className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="date"
-                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all ${
+                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                   formErrors.birthDate 
-                    ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500' 
-                    : 'border-gray-200 hover:border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.birthDate}
                 onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
               />
             </div>
             {formErrors.birthDate && (
-              <p className="text-xs sm:text-sm text-red-600 mt-1 sm:mt-2 flex items-center">
+              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
                 <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 {formErrors.birthDate}
               </p>
@@ -588,21 +588,21 @@ const UserRegistration = () => {
       {/* Team Selection (not for directors) */}
       {formData.profileType !== 'director' && (
         <motion.div variants={itemVariants}>
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center">
-            <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500" />
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
+            <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500 dark:text-primary-400" />
             Alocação em Times *
           </h3>
-          <div className="bg-gray-50 rounded-xl p-2 max-h-48 sm:max-h-64 overflow-y-auto">
+          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-2 max-h-48 sm:max-h-64 overflow-y-auto">
             <div className="space-y-2">
               {teams.map(team => (
                 <label key={team.id} className={`flex items-center p-3 sm:p-4 rounded-lg cursor-pointer transition-all ${
                   formData.teamIds.includes(team.id)
-                    ? 'bg-primary-100 border-2 border-primary-400'
-                    : 'bg-white border-2 border-gray-200 hover:border-gray-300'
+                    ? 'bg-primary-100 dark:bg-primary-900/30 border-2 border-primary-400 dark:border-primary-500'
+                    : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                 }`}>
                   <input
                     type="checkbox"
-                    className="w-4 h-4 sm:w-5 sm:h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className="w-4 h-4 sm:w-5 sm:h-5 rounded border-gray-300 dark:border-gray-600 text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400"
                     checked={formData.teamIds.includes(team.id)}
                     onChange={(e) => {
                       if (e.target.checked) {
@@ -613,20 +613,20 @@ const UserRegistration = () => {
                     }}
                   />
                   <span className="ml-3 sm:ml-4 flex-1">
-                    <span className="font-medium text-gray-900 block text-sm sm:text-base">{team.name}</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100 block text-sm sm:text-base">{team.name}</span>
                     {team.department && (
-                      <span className="text-xs sm:text-sm text-gray-500">Depto: {team.department.name}</span>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Depto: {team.department.name}</span>
                     )}
                   </span>
                   {formData.teamIds.includes(team.id) && (
-                    <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 ml-2" />
+                    <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 dark:text-primary-400 ml-2" />
                   )}
                 </label>
               ))}
             </div>
           </div>
           {formErrors.teams && (
-            <p className="text-xs sm:text-sm text-red-600 mt-1 sm:mt-2 flex items-center">
+            <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
               <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               {formErrors.teams}
             </p>
@@ -637,21 +637,21 @@ const UserRegistration = () => {
       {/* Leader Selection (for regular collaborators) */}
       {formData.profileType === 'regular' && (
         <motion.div variants={itemVariants}>
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center">
-            <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500" />
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
+            <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500 dark:text-primary-400" />
             Hierarquia
           </h3>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Reporta para *
             </label>
             <div className="relative">
-              <ChevronDown className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
               <select
-                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all appearance-none ${
+                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                   formErrors.reportsTo 
-                    ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500' 
-                    : 'border-gray-200 hover:border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.reportsTo}
                 onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
@@ -667,7 +667,7 @@ const UserRegistration = () => {
               </select>
             </div>
             {formErrors.reportsTo && (
-              <p className="text-xs sm:text-sm text-red-600 mt-1 sm:mt-2 flex items-center">
+              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
                 <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 {formErrors.reportsTo}
               </p>
@@ -686,28 +686,28 @@ const UserRegistration = () => {
       animate="visible"
     >
       <motion.div variants={itemVariants}>
-        <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-          <Users className="h-5 w-5 mr-2 text-secondary-500" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+          <Users className="h-5 w-5 mr-2 text-secondary-500 dark:text-secondary-400" />
           Informações do Time
         </h3>
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Nome do Time *
             </label>
             <input
               type="text"
-              className={`w-full px-4 py-3 text-base rounded-xl border-2 transition-all ${
+              className={`w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                 formErrors.teamName 
-                  ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500' 
-                  : 'border-gray-200 hover:border-gray-300 focus:border-secondary-500 focus:ring-secondary-500'
+                  ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400'
               }`}
               value={formData.teamName}
               onChange={(e) => setFormData({ ...formData, teamName: e.target.value })}
               placeholder="Ex: Time de Vendas Norte"
             />
             {formErrors.teamName && (
-              <p className="text-sm text-red-600 mt-2 flex items-center">
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.teamName}
               </p>
@@ -715,17 +715,17 @@ const UserRegistration = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Departamento *
             </label>
             <div className="relative">
-              <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+              <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
               <select
-                className={`w-full pl-12 pr-10 py-3 text-base rounded-xl border-2 transition-all appearance-none ${
+                className={`w-full pl-12 pr-10 py-3 text-base rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                   formErrors.department 
-                    ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500' 
-                    : 'border-gray-200 hover:border-gray-300 focus:border-secondary-500 focus:ring-secondary-500'
+                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400'
                 }`}
                 value={formData.teamDepartmentId}
                 onChange={(e) => setFormData({ ...formData, teamDepartmentId: e.target.value })}
@@ -737,7 +737,7 @@ const UserRegistration = () => {
               </select>
             </div>
             {formErrors.department && (
-              <p className="text-sm text-red-600 mt-2 flex items-center">
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.department}
               </p>
@@ -745,17 +745,17 @@ const UserRegistration = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Responsável pelo Time *
             </label>
             <div className="relative">
-              <Crown className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+              <Crown className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
               <select
-                className={`w-full pl-12 pr-10 py-3 text-base rounded-xl border-2 transition-all appearance-none ${
+                className={`w-full pl-12 pr-10 py-3 text-base rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                   formErrors.responsible 
-                    ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500' 
-                    : 'border-gray-200 hover:border-gray-300 focus:border-secondary-500 focus:ring-secondary-500'
+                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400'
                 }`}
                 value={formData.teamResponsibleId}
                 onChange={(e) => setFormData({ ...formData, teamResponsibleId: e.target.value })}
@@ -771,7 +771,7 @@ const UserRegistration = () => {
               </select>
             </div>
             {formErrors.responsible && (
-              <p className="text-sm text-red-600 mt-2 flex items-center">
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.responsible}
               </p>
@@ -781,21 +781,21 @@ const UserRegistration = () => {
       </motion.div>
 
       <motion.div variants={itemVariants}>
-        <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-          <UserCheck className="h-5 w-5 mr-2 text-secondary-500" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+          <UserCheck className="h-5 w-5 mr-2 text-secondary-500 dark:text-secondary-400" />
           Membros do Time *
         </h3>
-        <div className="bg-gray-50 rounded-xl p-2 max-h-80 overflow-y-auto">
+        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-2 max-h-80 overflow-y-auto">
           <div className="space-y-2">
             {users.map(user => (
               <label key={user.id} className={`flex items-center p-4 rounded-lg cursor-pointer transition-all ${
                 formData.teamMemberIds.includes(user.id)
-                  ? 'bg-secondary-100 border-2 border-secondary-400'
-                  : 'bg-white border-2 border-gray-200 hover:border-gray-300'
+                  ? 'bg-secondary-100 dark:bg-secondary-900/30 border-2 border-secondary-400 dark:border-secondary-500'
+                  : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
               }`}>
                 <input
                   type="checkbox"
-                  className="w-5 h-5 rounded border-gray-300 text-secondary-600 focus:ring-secondary-500"
+                  className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 dark:text-secondary-500 focus:ring-secondary-500 dark:focus:ring-secondary-400"
                   checked={formData.teamMemberIds.includes(user.id)}
                   onChange={(e) => {
                     if (e.target.checked) {
@@ -806,18 +806,18 @@ const UserRegistration = () => {
                   }}
                 />
                 <div className="ml-4 flex-1">
-                  <span className="font-medium text-gray-900 block">{user.name}</span>
-                  <span className="text-sm text-gray-500">{user.position}</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100 block">{user.name}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">{user.position}</span>
                 </div>
                 {formData.teamMemberIds.includes(user.id) && (
-                  <CheckCircle2 className="h-5 w-5 text-secondary-600 ml-2" />
+                  <CheckCircle2 className="h-5 w-5 text-secondary-600 dark:text-secondary-400 ml-2" />
                 )}
               </label>
             ))}
           </div>
         </div>
         {formErrors.members && (
-          <p className="text-sm text-red-600 mt-2 flex items-center">
+          <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
             <AlertCircle className="h-4 w-4 mr-1" />
             {formErrors.members}
           </p>
@@ -825,11 +825,11 @@ const UserRegistration = () => {
       </motion.div>
 
       <motion.div variants={itemVariants}>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Descrição do Time
         </label>
         <textarea
-          className="w-full px-4 py-3 text-base rounded-xl border-2 transition-all border-gray-200 hover:border-gray-300 focus:border-secondary-500 focus:ring-secondary-500"
+          className="w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400"
           rows={4}
           value={formData.teamDescription}
           onChange={(e) => setFormData({ ...formData, teamDescription: e.target.value })}
@@ -847,28 +847,28 @@ const UserRegistration = () => {
       animate="visible"
     >
       <motion.div variants={itemVariants}>
-        <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-          <Building className="h-5 w-5 mr-2 text-accent-500" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+          <Building className="h-5 w-5 mr-2 text-accent-500 dark:text-accent-400" />
           Informações do Departamento
         </h3>
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Nome do Departamento *
             </label>
             <input
               type="text"
-              className={`w-full px-4 py-3 text-base rounded-xl border-2 transition-all ${
+              className={`w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                 formErrors.departmentName 
-                  ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500' 
-                  : 'border-gray-200 hover:border-gray-300 focus:border-purple-500 focus:ring-purple-500'
+                  ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500 dark:focus:ring-purple-400'
               }`}
               value={formData.departmentName}
               onChange={(e) => setFormData({ ...formData, departmentName: e.target.value })}
               placeholder="Ex: Vendas"
             />
             {formErrors.departmentName && (
-              <p className="text-sm text-red-600 mt-2 flex items-center">
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.departmentName}
               </p>
@@ -876,17 +876,17 @@ const UserRegistration = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Responsável pelo Departamento *
             </label>
             <div className="relative">
-              <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+              <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
               <select
-                className={`w-full pl-12 pr-10 py-3 text-base rounded-xl border-2 transition-all appearance-none ${
+                className={`w-full pl-12 pr-10 py-3 text-base rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                   formErrors.responsible 
-                    ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500' 
-                    : 'border-gray-200 hover:border-gray-300 focus:border-purple-500 focus:ring-purple-500'
+                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500 dark:focus:ring-purple-400'
                 }`}
                 value={formData.departmentResponsibleId}
                 onChange={(e) => setFormData({ ...formData, departmentResponsibleId: e.target.value })}
@@ -902,7 +902,7 @@ const UserRegistration = () => {
               </select>
             </div>
             {formErrors.responsible && (
-              <p className="text-sm text-red-600 mt-2 flex items-center">
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.responsible}
               </p>
@@ -912,11 +912,11 @@ const UserRegistration = () => {
       </motion.div>
 
       <motion.div variants={itemVariants}>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Descrição do Departamento
         </label>
         <textarea
-          className="w-full px-4 py-3 text-base rounded-xl border-2 transition-all border-gray-200 hover:border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+          className="w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500 dark:focus:ring-purple-400"
           rows={4}
           value={formData.departmentDescription}
           onChange={(e) => setFormData({ ...formData, departmentDescription: e.target.value })}
@@ -925,11 +925,11 @@ const UserRegistration = () => {
       </motion.div>
 
       <motion.div variants={itemVariants}>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Metas e Objetivos
         </label>
         <textarea
-          className="w-full px-4 py-3 text-base rounded-xl border-2 transition-all border-gray-200 hover:border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+          className="w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500 dark:focus:ring-purple-400"
           rows={4}
           value={formData.departmentGoals}
           onChange={(e) => setFormData({ ...formData, departmentGoals: e.target.value })}
@@ -942,17 +942,17 @@ const UserRegistration = () => {
   // Loading state
   if (usersLoading || teamsLoading || depsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary-500 mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Carregando dados...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-primary-500 dark:text-primary-400 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400 text-lg">Carregando dados...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div
@@ -962,21 +962,21 @@ const UserRegistration = () => {
         >
           <button
             onClick={() => navigate('/users')}
-            className="group flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-6"
+            className="group flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors mb-6"
           >
             <ArrowLeft className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
             <span className="font-medium">Voltar</span>
           </button>
           
           <div className="flex flex-col sm:flex-row sm:items-center">
-            <div className="h-12 w-12 sm:h-14 sm:w-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mb-4 sm:mb-0 sm:mr-5 shadow-lg">
+            <div className="h-12 w-12 sm:h-14 sm:w-14 bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-0 sm:mr-5 shadow-lg dark:shadow-xl">
               <Plus className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100">
                 Novo Cadastro
               </h1>
-              <p className="text-gray-600 mt-1 text-base sm:text-lg">
+              <p className="text-gray-600 dark:text-gray-400 mt-1 text-base sm:text-lg">
                 Adicione novos membros, times ou departamentos ao sistema
               </p>
             </div>
@@ -992,8 +992,8 @@ const UserRegistration = () => {
             transition={{ delay: 0.1 }}
             className="lg:col-span-1"
           >
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
-              <h3 className="font-semibold text-gray-900 mb-4 text-sm sm:text-base">Tipo de Cadastro</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 text-sm sm:text-base">Tipo de Cadastro</h3>
               <nav className="space-y-2">
                 {[
                   { id: 'user', label: 'Novo Usuário', icon: UserPlus, color: 'primary' },
@@ -1006,11 +1006,11 @@ const UserRegistration = () => {
                     className={`w-full flex items-center px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium transition-all ${
                       activeTab === tab.id
                         ? tab.color === 'primary' 
-                          ? 'bg-primary-100 text-primary-700 border-l-4 border-primary-500'
+                          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-l-4 border-primary-500 dark:border-primary-400'
                           : tab.color === 'secondary'
-                          ? 'bg-secondary-100 text-secondary-700 border-l-4 border-secondary-500'
-                          : 'bg-accent-100 text-accent-700 border-l-4 border-accent-500'
-                        : 'text-gray-600 hover:bg-gray-50'
+                          ? 'bg-secondary-100 dark:bg-secondary-900/30 text-secondary-700 dark:text-secondary-300 border-l-4 border-secondary-500 dark:border-secondary-400'
+                          : 'bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-300 border-l-4 border-accent-500 dark:border-accent-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                     }`}
                   >
                     <tab.icon className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 flex-shrink-0" />
@@ -1019,9 +1019,9 @@ const UserRegistration = () => {
                 ))}
               </nav>
 
-              <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-blue-50 rounded-xl">
-                <Info className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mb-2" />
-                <p className="text-xs sm:text-sm text-blue-800">
+              <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+                <Info className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400 mb-2" />
+                <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-300">
                   {activeTab === 'user' && 'Adicione novos colaboradores e defina suas permissões.'}
                   {activeTab === 'team' && 'Crie times e atribua membros e responsáveis.'}
                   {activeTab === 'department' && 'Organize a estrutura da empresa em departamentos.'}
@@ -1037,7 +1037,7 @@ const UserRegistration = () => {
             transition={{ delay: 0.2 }}
             className="lg:col-span-3"
           >
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
               <AnimatePresence mode="wait">
                 {activeTab === 'user' && renderUserForm()}
                 {activeTab === 'team' && renderTeamForm()}
@@ -1046,7 +1046,7 @@ const UserRegistration = () => {
 
               {/* Action Buttons */}
               <motion.div 
-                className="mt-8 sm:mt-10 flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-gray-200"
+                className="mt-8 sm:mt-10 flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}

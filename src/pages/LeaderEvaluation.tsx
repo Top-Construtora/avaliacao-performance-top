@@ -31,8 +31,11 @@ interface Section {
   expanded: boolean;
   icon: React.ElementType;
   gradient: string;
+  darkGradient: string;
   bgColor: string;
+  darkBgColor: string;
   borderColor: string;
+  darkBorderColor: string;
 }
 
 interface CompetencyItem {
@@ -70,8 +73,11 @@ const LeaderEvaluation = () => {
       expanded: true,
       icon: Target,
       gradient: 'from-primary-500 to-primary-600',
+      darkGradient: 'dark:from-primary-600 dark:to-primary-700',
       bgColor: 'bg-primary-50',
+      darkBgColor: 'dark:bg-primary-900/20',
       borderColor: 'border-primary-200',
+      darkBorderColor: 'dark:border-primary-700',
       items: [
         { 
           id: 'tech1', 
@@ -106,8 +112,11 @@ const LeaderEvaluation = () => {
       expanded: false,
       icon: Users,
       gradient: 'from-secondary-500 to-secondary-600',
+      darkGradient: 'dark:from-secondary-600 dark:to-secondary-700',
       bgColor: 'bg-secondary-50',
+      darkBgColor: 'dark:bg-secondary-900/20',
       borderColor: 'border-secondary-200',
+      darkBorderColor: 'dark:border-secondary-700',
       items: [
         { 
           id: 'beh1', 
@@ -142,8 +151,11 @@ const LeaderEvaluation = () => {
       expanded: false,
       icon: Briefcase,
       gradient: 'from-accent-500 to-accent-600',
+      darkGradient: 'dark:from-accent-600 dark:to-accent-700',
       bgColor: 'bg-accent-50',
+      darkBgColor: 'dark:bg-accent-900/20',
       borderColor: 'border-accent-200',
+      darkBorderColor: 'dark:border-accent-700',
       items: [
         { 
           id: 'org1', 
@@ -174,10 +186,10 @@ const LeaderEvaluation = () => {
   ]);
 
   const ratingLabels = {
-    1: { label: 'Insatisfatório', color: 'bg-red-500' },
-    2: { label: 'Em Desenvolvimento', color: 'bg-yellow-500' },
-    3: { label: 'Satisfatório', color: 'bg-primary-500' },
-    4: { label: 'Excepcional', color: 'bg-green-500' }
+    1: { label: 'Insatisfatório', color: 'bg-red-500', darkColor: 'dark:bg-red-600' },
+    2: { label: 'Em Desenvolvimento', color: 'bg-yellow-500', darkColor: 'dark:bg-yellow-600' },
+    3: { label: 'Satisfatório', color: 'bg-primary-500', darkColor: 'dark:bg-primary-600' },
+    4: { label: 'Excepcional', color: 'bg-green-500', darkColor: 'dark:bg-green-600' }
   };
 
   // Calculate scores whenever ratings change
@@ -342,24 +354,24 @@ const LeaderEvaluation = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8"
+        className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
-          <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
+          <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
-                <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 mr-2 sm:mr-3 flex-shrink-0" />
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+                <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3 flex-shrink-0" />
                 <span className="truncate">Avaliação do Líder</span>
               </h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">Avalie o desempenho dos seus colaboradores</p>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">Avalie o desempenho dos seus colaboradores</p>
             </div>
           </div>
 
           {/* Progress Indicator */}
           <div className="flex items-center space-x-3 flex-shrink-0">
             <div className="text-right">
-              <p className="text-xs sm:text-sm text-gray-500">Progresso</p>
-              <p className="text-lg font-bold text-gray-800">{Math.round(progress)}%</p>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Progresso</p>
+              <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{Math.round(progress)}%</p>
             </div>
             <div className="relative">
               <svg className="w-12 h-12 sm:w-16 sm:h-16 transform -rotate-90">
@@ -370,7 +382,7 @@ const LeaderEvaluation = () => {
                   stroke="#e5e7eb"
                   strokeWidth="3"
                   fill="none"
-                  className="sm:hidden"
+                  className="sm:hidden dark:stroke-gray-700"
                 />
                 <circle
                   cx="32"
@@ -379,7 +391,7 @@ const LeaderEvaluation = () => {
                   stroke="#e5e7eb"
                   strokeWidth="4"
                   fill="none"
-                  className="hidden sm:block"
+                  className="hidden sm:block dark:stroke-gray-700"
                 />
                 <circle
                   cx="24"
@@ -417,11 +429,11 @@ const LeaderEvaluation = () => {
         {/* Employee Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Selecione o Colaborador
             </label>
             <select
-              className="w-full rounded-xl border-gray-200 shadow-sm focus:border-secondary-500 focus:ring-secondary-500 text-gray-700"
+              className="w-full rounded-xl border-gray-200 dark:border-gray-600 shadow-sm focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700"
               value={selectedEmployeeId}
               onChange={(e) => setSelectedEmployeeId(e.target.value)}
             >
@@ -437,21 +449,21 @@ const LeaderEvaluation = () => {
           {selectedEmployee && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Briefcase className="inline h-4 w-4 mr-1" />
                   Cargo
                 </label>
-                <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700 text-sm">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-200 text-sm">
                   {selectedEmployee.position}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Calendar className="inline h-4 w-4 mr-1" />
                   Data
                 </label>
-                <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700 text-sm">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-200 text-sm">
                   {new Date().toLocaleDateString('pt-BR')}
                 </div>
               </div>
@@ -475,40 +487,40 @@ const LeaderEvaluation = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: sectionIndex * 0.1 }}
-                  className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                  className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
                 >
                   <button
                     onClick={() => toggleSection(section.id)}
-                    className={`w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${section.bgColor} border-b ${section.borderColor} flex items-center justify-between hover:opacity-90 transition-all duration-200`}
+                    className={`w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${section.bgColor} ${section.darkBgColor} border-b ${section.borderColor} ${section.darkBorderColor} flex items-center justify-between hover:opacity-90 transition-all duration-200`}
                   >
                     <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
-                      <div className={`p-2 sm:p-3 rounded-xl bg-gradient-to-br ${section.gradient} shadow-md flex-shrink-0`}>
+                      <div className={`p-2 sm:p-3 rounded-xl bg-gradient-to-br ${section.gradient} ${section.darkGradient} shadow-md dark:shadow-lg flex-shrink-0`}>
                         <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                       </div>
                       <div className="text-left min-w-0 flex-1">
-                        <h2 className="text-lg sm:text-xl font-bold text-gray-800 flex flex-col sm:flex-row sm:items-center">
+                        <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex flex-col sm:flex-row sm:items-center">
                           <span className="truncate">{section.title}</span>
-                          <span className={`mt-1 sm:mt-0 sm:ml-3 text-xs font-medium px-2 py-1 rounded-full ${section.bgColor} text-gray-700 flex-shrink-0`}>
+                          <span className={`mt-1 sm:mt-0 sm:ml-3 text-xs font-medium px-2 py-1 rounded-full ${section.bgColor} ${section.darkBgColor} text-gray-700 dark:text-gray-200 flex-shrink-0`}>
                             Peso {section.weight}%
                           </span>
                         </h2>
-                        <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                           {section.items.filter(item => item.score !== undefined).length} de {section.items.length} competências avaliadas
                         </p>
                       </div>
                     </div>
                     
                     <div className="flex items-center space-x-3 sm:space-x-4 flex-shrink-0">
-                      <div className="w-16 sm:w-32 bg-gray-200 rounded-full h-2">
+                      <div className="w-16 sm:w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div 
-                          className={`h-2 rounded-full bg-gradient-to-r ${section.gradient} transition-all duration-300`}
+                          className={`h-2 rounded-full bg-gradient-to-r ${section.gradient} ${section.darkGradient} transition-all duration-300`}
                           style={{ width: `${sectionProgress}%` }}
                         />
                       </div>
                       {section.expanded ? (
-                        <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                        <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" />
                       ) : (
-                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" />
                       )}
                     </div>
                   </button>
@@ -532,12 +544,12 @@ const LeaderEvaluation = () => {
                           >
                             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
                               <div className="flex-1 sm:mr-4">
-                                <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-1">{item.name}</h4>
-                                <p className="text-sm text-gray-600">{item.description}</p>
+                                <h4 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">{item.name}</h4>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{item.description}</p>
                               </div>
                               {item.score && (
                                 <div className="text-center sm:text-right flex-shrink-0">
-                                  <div className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${ratingLabels[item.score as keyof typeof ratingLabels].color} text-white`}>
+                                  <div className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${ratingLabels[item.score as keyof typeof ratingLabels].color} ${ratingLabels[item.score as keyof typeof ratingLabels].darkColor} text-white`}>
                                     {ratingLabels[item.score as keyof typeof ratingLabels].label}
                                   </div>
                                 </div>
@@ -553,8 +565,8 @@ const LeaderEvaluation = () => {
                                     onClick={() => handleScoreChange(section.id, item.id, rating)}
                                     className={`py-3 sm:py-4 px-2 sm:px-4 rounded-xl border-2 transition-all duration-200 ${
                                       item.score === rating
-                                        ? `${ratingInfo.color} text-white border-transparent shadow-lg transform scale-105`
-                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 bg-white'
+                                        ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
+                                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800'
                                     }`}
                                   >
                                     <div className="text-center">
@@ -581,53 +593,53 @@ const LeaderEvaluation = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 rounded-xl sm:rounded-2xl shadow-sm border border-primary-100 p-4 sm:p-6 lg:p-8"
+              className="bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-primary-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
             >
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center">
-                <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary-600" />
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
+                <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary-600 dark:text-primary-400" />
                 Resumo das Notas
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white p-4 sm:p-6 rounded-xl border border-primary-200">
-                  <h4 className="text-sm font-medium text-gray-600 mb-1">Técnicas</h4>
-                  <p className="text-2xl sm:text-3xl font-bold text-primary-600">{scores.technical.toFixed(1)}</p>
-                  <p className="text-xs text-gray-500 mt-1">Peso 50%</p>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+                <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-primary-200 dark:border-primary-700">
+                  <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Técnicas</h4>
+                  <p className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">{scores.technical.toFixed(1)}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 50%</p>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
                     <div 
-                      className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${(scores.technical / 4) * 100}%` }}
                     />
                   </div>
                 </div>
                 
-                <div className="bg-white p-4 sm:p-6 rounded-xl border border-secondary-200">
-                  <h4 className="text-sm font-medium text-gray-600 mb-1">Comportamentais</h4>
-                  <p className="text-2xl sm:text-3xl font-bold text-secondary-600">{scores.behavioral.toFixed(1)}</p>
-                  <p className="text-xs text-gray-500 mt-1">Peso 30%</p>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+                <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-secondary-200 dark:border-secondary-700">
+                  <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Comportamentais</h4>
+                  <p className="text-2xl sm:text-3xl font-bold text-secondary-600 dark:text-secondary-400">{scores.behavioral.toFixed(1)}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 30%</p>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
                     <div 
-                      className="bg-gradient-to-r from-secondary-500 to-secondary-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-gradient-to-r from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${(scores.behavioral / 4) * 100}%` }}
                     />
                   </div>
                 </div>
                 
-                <div className="bg-white p-4 sm:p-6 rounded-xl border border-accent-200">
-                  <h4 className="text-sm font-medium text-gray-600 mb-1">Organizacionais</h4>
-                  <p className="text-2xl sm:text-3xl font-bold text-accent-600">{scores.organizational.toFixed(1)}</p>
-                  <p className="text-xs text-gray-500 mt-1">Peso 20%</p>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+                <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-accent-200 dark:border-accent-700">
+                  <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Organizacionais</h4>
+                  <p className="text-2xl sm:text-3xl font-bold text-accent-600 dark:text-accent-400">{scores.organizational.toFixed(1)}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 20%</p>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
                     <div 
-                      className="bg-gradient-to-r from-accent-500 to-accent-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-gradient-to-r from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${(scores.organizational / 4) * 100}%` }}
                     />
                   </div>
                 </div>
                 
-                <div className="bg-gradient-to-br from-primary-500 to-secondary-600 p-4 sm:p-6 rounded-xl text-white">
-                  <h4 className="text-sm font-medium text-primary-100 mb-1">Nota Final</h4>
+                <div className="bg-gradient-to-br from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700 p-4 sm:p-6 rounded-xl text-white">
+                  <h4 className="text-sm font-medium text-primary-100 dark:text-primary-200 mb-1">Nota Final</h4>
                   <p className="text-2xl sm:text-3xl font-bold">{scores.final.toFixed(1)}</p>
-                  <p className="text-xs text-primary-100 mt-1">Média Ponderada</p>
+                  <p className="text-xs text-primary-100 dark:text-primary-200 mt-1">Média Ponderada</p>
                   <div className="flex items-center mt-3">
                     <Award className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     <span className="text-sm font-medium">
@@ -648,15 +660,15 @@ const LeaderEvaluation = () => {
               <div className="flex items-center space-x-2 text-sm">
                 {progress < 100 ? (
                   <>
-                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 flex-shrink-0" />
-                    <span className="text-gray-600">
+                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 dark:text-amber-400 flex-shrink-0" />
+                    <span className="text-gray-600 dark:text-gray-400">
                       Complete todas as avaliações para enviar
                     </span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />
-                    <span className="text-green-600 font-medium">
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 dark:text-green-400 flex-shrink-0" />
+                    <span className="text-green-600 dark:text-green-400 font-medium">
                       Todas as competências foram avaliadas!
                     </span>
                   </>
@@ -695,16 +707,16 @@ const LeaderEvaluation = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-16 text-center"
+          className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-8 sm:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-secondary-100 to-primary-100 mb-4 sm:mb-6">
-              <User className="h-8 w-8 sm:h-10 sm:w-10 text-secondary-600" />
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-secondary-100 to-primary-100 dark:from-secondary-900/20 dark:to-primary-900/20 mb-4 sm:mb-6">
+              <User className="h-8 w-8 sm:h-10 sm:w-10 text-secondary-600 dark:text-secondary-400" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Nenhum colaborador selecionado
             </h3>
-            <p className="text-sm sm:text-base text-gray-500">
+            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
               Selecione um colaborador acima para iniciar a avaliação de desempenho
             </p>
           </div>
@@ -718,24 +730,24 @@ const LeaderEvaluation = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 text-center"
+              className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 text-center shadow-xl dark:shadow-2xl"
             >
-              <div className="mx-auto flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-green-100 mb-4">
-                <CheckCircle className="h-6 w-6 sm:h-10 sm:w-10 text-green-600" />
+              <div className="mx-auto flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-green-100 dark:bg-green-900/20 mb-4">
+                <CheckCircle className="h-6 w-6 sm:h-10 sm:w-10 text-green-600 dark:text-green-400" />
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 Avaliação Enviada!
               </h2>
-              <p className="text-sm sm:text-base text-gray-600 mb-6">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
                 A avaliação foi registrada com sucesso no sistema.
               </p>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
                 Redirecionando...
               </div>
             </motion.div>
