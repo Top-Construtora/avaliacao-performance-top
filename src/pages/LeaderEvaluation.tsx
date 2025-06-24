@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEvaluation } from '../context/EvaluationContext';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import Button from '../components/Button';
 import { 
   ChevronDown,
@@ -75,13 +77,79 @@ interface PotentialScores {
   final: number;
 }
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  position: string;
+  department?: string;
+  is_leader: boolean;
+  is_director: boolean;
+  active: boolean;
+  reports_to?: string;
+}
+
 const LeaderEvaluation = () => {
   const navigate = useNavigate();
-  const { employees, saveEvaluation } = useEvaluation();
+  const { saveEvaluation } = useEvaluation();
+  const { profile } = useAuth();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [currentStep, setCurrentStep] = useState(1); // 1: Competências, 2: Potencial
+  const [subordinates, setSubordinates] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Buscar subordinados do Supabase
+  useEffect(() => {
+    const fetchSubordinates = async () => {
+      if (!profile?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        
+        let query = supabase.from('users').select('*');
+        
+        if (profile.is_director) {
+          // Diretores veem todos os usuários ativos (exceto eles mesmos e outros diretores)
+          query = query
+            .eq('active', true)
+            .eq('is_director', false)
+            .neq('id', profile.id);
+        } else if (profile.is_leader) {
+          // Líderes veem apenas seus subordinados diretos
+          query = query
+            .eq('active', true)
+            .eq('reports_to', profile.id);
+        } else {
+          // Colaboradores não veem ninguém
+          setSubordinates([]);
+          setLoading(false);
+          return;
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error('Erro ao buscar subordinados:', error);
+          toast.error('Erro ao carregar subordinados');
+        } else {
+          console.log('Subordinados encontrados:', data);
+          setSubordinates(data || []);
+        }
+      } catch (error) {
+        console.error('Erro:', error);
+        toast.error('Erro ao carregar dados');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSubordinates();
+  }, [profile]);
   
   const [scores, setScores] = useState<Scores>({
     technical: 0,
@@ -389,7 +457,7 @@ const LeaderEvaluation = () => {
     const evaluation = {
       id: `leader-eval-${Date.now()}`,
       employeeId: selectedEmployeeId,
-      evaluatorId: 'admin',
+      evaluatorId: profile?.id || 'unknown',
       date: new Date().toISOString().split('T')[0],
       status: 'in-progress' as const,
       criteria: allCriteria,
@@ -450,7 +518,7 @@ const LeaderEvaluation = () => {
     const evaluation = {
       id: `leader-eval-${Date.now()}`,
       employeeId: selectedEmployeeId,
-      evaluatorId: 'admin',
+      evaluatorId: profile?.id || 'unknown',
       date: new Date().toISOString().split('T')[0],
       status: 'completed' as const,
       criteria: allCriteria,
@@ -483,7 +551,7 @@ const LeaderEvaluation = () => {
     }, 2000);
   };
 
-  const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
+  const selectedEmployee = subordinates.find(emp => emp.id === selectedEmployeeId);
   const progress = getProgress();
 
   return (
@@ -572,18 +640,35 @@ const LeaderEvaluation = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Selecione o Colaborador
             </label>
-            <select
-              className="w-full rounded-xl border-gray-200 dark:border-gray-600 shadow-sm focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700"
-              value={selectedEmployeeId}
-              onChange={(e) => setSelectedEmployeeId(e.target.value)}
-            >
-              <option value="">Escolha um colaborador...</option>
-              {employees.map((employee) => (
-                <option key={employee.id} value={employee.id}>
-                  {employee.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedEmployeeId}
+                onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                className="w-full px-4 py-3 pl-12 pr-10 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 text-sm sm:text-base appearance-none text-gray-700 dark:text-gray-200"
+              >
+                <option value="">Escolha um colaborador...</option>
+                {loading ? (
+                  <option value="" disabled>Carregando...</option>
+                ) : subordinates.length === 0 ? (
+                  <option value="" disabled>Nenhum colaborador subordinado</option>
+                ) : (
+                  subordinates.map(employee => (
+                    <option key={employee.id} value={employee.id}>
+                      {employee.name} - {employee.position}
+                    </option>
+                  ))
+                )}
+              </select>
+              <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+            </div>
+            {subordinates.length === 0 && !loading && (
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                {profile?.is_leader && !profile?.is_director 
+                  ? "Você não possui colaboradores subordinados para avaliar."
+                  : "Entre em contato com o RH para verificar suas permissões."}
+              </p>
+            )}
           </div>
 
           {selectedEmployee && (
@@ -598,6 +683,15 @@ const LeaderEvaluation = () => {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <Building className="inline h-4 w-4 mr-1" />
+                  Departamento
+                </label>
+                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-200 text-sm">
+                  {selectedEmployee.department || 'Não definido'}
+                </div>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Calendar className="inline h-4 w-4 mr-1" />
@@ -733,8 +827,8 @@ const LeaderEvaluation = () => {
                                     }`}
                                   >
                                     <div className="text-center">
-                                      <div className="text-xl sm:text-2xl font-bold mb-1 text-gray-800 dark:text-gray-100">{rating}</div>
-                                      <div className="text-xs text-gray-700 dark:text-gray-300">
+                                      <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
+                                      <div className="text-xs">
                                         {ratingInfo.label}
                                       </div>
                                     </div>
@@ -969,8 +1063,8 @@ const LeaderEvaluation = () => {
                               }`}
                             >
                               <div className="text-center">
-                                <div className="text-xl sm:text-2xl font-bold mb-1 text-gray-800 dark:text-gray-100">{rating}</div>
-                                <div className="text-xs text-gray-700 dark:text-gray-300">
+                                <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
+                                <div className="text-xs">
                                   {ratingInfo.label}
                                 </div>
                               </div>
@@ -1103,10 +1197,14 @@ const LeaderEvaluation = () => {
               <User className="h-8 w-8 sm:h-10 sm:w-10 text-secondary-600 dark:text-secondary-400" />
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              Nenhum colaborador selecionado
+              {subordinates.length === 0 && !loading ? 'Nenhum subordinado disponível' : 'Nenhum colaborador selecionado'}
             </h3>
             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
-              Selecione um colaborador acima para iniciar a avaliação de desempenho
+              {subordinates.length === 0 && !loading
+                ? profile?.is_leader && !profile?.is_director 
+                  ? 'Você não possui colaboradores subordinados para avaliar.'
+                  : 'Entre em contato com o RH para verificar suas permissões.'
+                : 'Selecione um colaborador acima para iniciar a avaliação de desempenho'}
             </p>
           </div>
         </motion.div>

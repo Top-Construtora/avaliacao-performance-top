@@ -11,6 +11,7 @@ export interface Employee {
   position: string;
   department: string;
   joinDate: string;
+  reportsTo?: string;
 }
 
 export interface Criterion {

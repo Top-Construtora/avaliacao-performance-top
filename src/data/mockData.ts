@@ -8,6 +8,7 @@ export const employees: Employee[] = [
     position: 'Tech Lead',
     department: 'Engineering',
     joinDate: '2020-03-15',
+    reportsTo: undefined,
   },
   {
     id: '2',
@@ -15,6 +16,7 @@ export const employees: Employee[] = [
     position: 'UX Designer',
     department: 'Design',
     joinDate: '2021-06-10',
+    reportsTo: '3', // Pedro Oliveira is her leader
   },
   {
     id: '3',
@@ -22,6 +24,7 @@ export const employees: Employee[] = [
     position: 'Project Manager',
     department: 'Project Management',
     joinDate: '2019-11-05',
+    reportsTo: undefined,
   },
   {
     id: '4',
@@ -29,6 +32,7 @@ export const employees: Employee[] = [
     position: 'Software Developer',
     department: 'Engineering',
     joinDate: '2022-01-20',
+    reportsTo: '1', // João Silva is her leader
   },
   {
     id: '5',
@@ -36,6 +40,7 @@ export const employees: Employee[] = [
     position: 'HR Specialist',
     department: 'People & Management',
     joinDate: '2021-04-12',
+    reportsTo: undefined,
   },
 ];
 
