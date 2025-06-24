@@ -140,16 +140,16 @@ const Settings = () => {
       className="space-y-6"
     >
       <div>
-        <h2 className="text-xl font-bold text-gray-800 mb-6">Informações do Perfil</h2>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Informações do Perfil</h2>
         
         {/* Avatar e Nome */}
         <div className="flex items-center space-x-4 mb-8">
-          <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center text-2xl font-bold text-primary-600">
+          <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-2xl font-bold text-primary-600 dark:text-primary-400">
             {profile?.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'US'}
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">{profile?.name || 'Usuário'}</h3>
-            <p className="text-gray-600">{profile?.position || 'Cargo não informado'}</p>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{profile?.name || 'Usuário'}</h3>
+            <p className="text-gray-600 dark:text-gray-400">{profile?.position || 'Cargo não informado'}</p>
           </div>
         </div>
 
@@ -157,48 +157,48 @@ const Settings = () => {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <div className="flex items-center space-x-2 text-gray-600">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                 <Mail className="h-4 w-4" />
                 <span>{user?.email || 'email@exemplo.com'}</span>
               </div>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-              <div className="flex items-center space-x-2 text-gray-600">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Telefone</label>
+              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                 <Phone className="h-4 w-4" />
                 <span>{profile?.phone || 'Não informado'}</span>
               </div>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
-              <div className="flex items-center space-x-2 text-gray-600">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Departamento</label>
+              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                 <Building className="h-4 w-4" />
                 <span>{profile?.department || 'Não informado'}</span>
               </div>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Localização</label>
-              <div className="flex items-center space-x-2 text-gray-600">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Localização</label>
+              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                 <MapPin className="h-4 w-4" />
                 <span>{profile?.location || 'São Paulo, SP'}</span>
               </div>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
-              <div className="flex items-center space-x-2 text-gray-600">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cargo</label>
+              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                 <Briefcase className="h-4 w-4" />
                 <span>{profile?.position || 'Não informado'}</span>
               </div>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Data de Admissão</label>
-              <div className="flex items-center space-x-2 text-gray-600">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data de Admissão</label>
+              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                 <Calendar className="h-4 w-4" />
                 <span>{profile?.join_date ? new Date(profile.join_date).toLocaleDateString('pt-BR') : 'Não informado'}</span>
               </div>
@@ -215,10 +215,10 @@ const Settings = () => {
       className="space-y-6"
     >
       <div>
-        <h2 className="text-xl font-bold text-gray-800 mb-6">Aparência</h2>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Aparência</h2>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
             Tema do Sistema
           </label>
           
@@ -233,15 +233,15 @@ const Settings = () => {
                 onClick={() => handleThemeChange(theme.value)}
                 className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${
                   preferences.theme === theme.value
-                    ? 'border-primary-500 bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-primary-500 dark:border-primary-400 bg-primary-50 dark:bg-primary-900/20'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                 }`}
               >
                 <theme.icon className={`h-6 w-6 mb-2 ${
-                  preferences.theme === theme.value ? 'text-primary-600' : 'text-gray-600'
+                  preferences.theme === theme.value ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400'
                 }`} />
                 <span className={`text-sm font-medium ${
-                  preferences.theme === theme.value ? 'text-primary-700' : 'text-gray-700'
+                  preferences.theme === theme.value ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'
                 }`}>
                   {theme.label}
                 </span>
@@ -259,16 +259,16 @@ const Settings = () => {
       className="space-y-6"
     >
       <div>
-        <h2 className="text-xl font-bold text-gray-800 mb-6">Segurança</h2>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Segurança</h2>
         
-        <div className="bg-gray-50 rounded-lg p-6">
-          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">
+        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-4">
             Alterar Senha
           </h3>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Senha Atual
               </label>
               <div className="relative">
@@ -276,13 +276,13 @@ const Settings = () => {
                   type={showPassword ? "text" : "password"}
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400"
                   placeholder="Digite sua senha atual"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-2.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -290,7 +290,7 @@ const Settings = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Nova Senha
               </label>
               <div className="relative">
@@ -298,22 +298,22 @@ const Settings = () => {
                   type={showNewPassword ? "text" : "password"}
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400"
                   placeholder="Digite sua nova senha"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-2.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                 >
                   {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-gray-500">Mínimo de 6 caracteres</p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Mínimo de 6 caracteres</p>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Confirmar Nova Senha
               </label>
               <div className="relative">
@@ -321,13 +321,13 @@ const Settings = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400"
                   placeholder="Confirme sua nova senha"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-2.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                 >
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -336,7 +336,7 @@ const Settings = () => {
           </div>
           
           <div className="mt-6 flex items-center justify-between">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               Última alteração: 15/01/2024
             </span>
             <Button 
@@ -364,15 +364,15 @@ const Settings = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8"
+        className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 md:p-8"
       >
         <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-start md:space-y-0 mb-6">
           <div className="flex-1">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center flex-wrap">
-              <SettingsIcon className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-500 mr-2 sm:mr-3 flex-shrink-0" />
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center flex-wrap">
+              <SettingsIcon className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-500 dark:text-primary-400 mr-2 sm:mr-3 flex-shrink-0" />
               <span className="break-words">Configurações</span>
             </h1>
-            <p className="text-sm md:text-base text-gray-600 mt-1">Gerencie suas informações e preferências</p>
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">Gerencie suas informações e preferências</p>
           </div>
         </div>
       </motion.div>
@@ -384,7 +384,7 @@ const Settings = () => {
           variants={itemVariants}
           className="lg:col-span-1"
         >
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4">
             <nav className="space-y-1">
               {settingSections.map((section) => (
                 <button
@@ -392,16 +392,16 @@ const Settings = () => {
                   onClick={() => setActiveSection(section.id)}
                   className={`w-full flex items-center px-3 py-2.5 rounded-lg transition-all ${
                     activeSection === section.id
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
                   <section.icon className={`h-5 w-5 mr-3 ${
-                    activeSection === section.id ? 'text-primary-600' : 'text-gray-400'
+                    activeSection === section.id ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500'
                   }`} />
                   <div className="text-left">
                     <p className="font-medium text-sm">{section.label}</p>
-                    <p className="text-xs text-gray-500">{section.description}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{section.description}</p>
                   </div>
                 </button>
               ))}
@@ -414,7 +414,7 @@ const Settings = () => {
           variants={itemVariants}
           className="lg:col-span-3"
         >
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-6 sm:p-8">
             <AnimatePresence mode="wait">
               {activeSection === 'profile' && renderProfileSection()}
               {activeSection === 'preferences' && renderPreferencesSection()}

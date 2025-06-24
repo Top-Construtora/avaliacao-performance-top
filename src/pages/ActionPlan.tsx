@@ -352,7 +352,7 @@ const ActionPlan = () => {
           </ol>
           <button 
             onClick={() => toast.dismiss(t.id)}
-            className="mt-3 text-xs text-gray-500 hover:text-gray-700"
+            className="mt-3 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
             Fechar
           </button>
@@ -407,10 +407,10 @@ const ActionPlan = () => {
       title: 'Curto Prazo',
       subtitle: '0-6 meses',
       icon: BookOpen,
-      gradient: 'from-primary-500 to-primary-600',
-      bgColor: 'bg-primary-50',
-      borderColor: 'border-primary-200',
-      iconBg: 'bg-gradient-to-br from-primary-500 to-primary-600',
+      gradient: 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
+      bgColor: 'bg-primary-50 dark:bg-primary-900/20',
+      borderColor: 'border-primary-200 dark:border-primary-700',
+      iconBg: 'bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
       description: 'Ações imediatas e de rápido impacto'
     },
     {
@@ -418,10 +418,10 @@ const ActionPlan = () => {
       title: 'Médio Prazo',
       subtitle: '6-12 meses',
       icon: Target,
-      gradient: 'from-secondary-500 to-secondary-600',
-      bgColor: 'bg-secondary-50',
-      borderColor: 'border-secondary-200',
-      iconBg: 'bg-gradient-to-br from-secondary-500 to-secondary-600',
+      gradient: 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
+      bgColor: 'bg-secondary-50 dark:bg-secondary-900/20',
+      borderColor: 'border-secondary-200 dark:border-secondary-700',
+      iconBg: 'bg-gradient-to-br from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
       description: 'Desenvolvimento contínuo e estruturado'
     },
     {
@@ -429,20 +429,20 @@ const ActionPlan = () => {
       title: 'Longo Prazo',
       subtitle: '12-24 meses',
       icon: Rocket,
-      gradient: 'from-accent-500 to-accent-600',
-      bgColor: 'bg-accent-50',
-      borderColor: 'border-accent-200',
-      iconBg: 'bg-gradient-to-br from-accent-500 to-accent-600',
+      gradient: 'from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700',
+      bgColor: 'bg-accent-50 dark:bg-accent-900/20',
+      borderColor: 'border-accent-200 dark:border-accent-700',
+      iconBg: 'bg-gradient-to-br from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700',
       description: 'Visão estratégica e crescimento sustentável'
     }
   ];
 
   const statusOptions = [
-    { value: '1', label: 'Não iniciado', color: 'bg-gray-100 text-gray-700 border-gray-300' },
-    { value: '2', label: 'Iniciado', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-    { value: '3', label: 'Em andamento', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-    { value: '4', label: 'Quase concluído', color: 'bg-orange-100 text-orange-700 border-orange-300' },
-    { value: '5', label: 'Concluído', color: 'bg-green-100 text-green-700 border-green-300' }
+    { value: '1', label: 'Não iniciado', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600' },
+    { value: '2', label: 'Iniciado', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700' },
+    { value: '3', label: 'Em andamento', color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700' },
+    { value: '4', label: 'Quase concluído', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' },
+    { value: '5', label: 'Concluído', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700' }
   ];
 
   const getProgress = () => {
@@ -462,7 +462,7 @@ const ActionPlan = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+        className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
       >
         <button
           onClick={() => toggleSection(category)}
@@ -474,20 +474,20 @@ const ActionPlan = () => {
                 <categoryData.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div className="text-left">
-                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800">{categoryData.title}</h3>
-                <p className="text-xs sm:text-sm text-gray-600 mt-0.5 hidden sm:block">{categoryData.subtitle} • {categoryData.description}</p>
-                <p className="text-xs text-gray-600 mt-0.5 sm:hidden">{categoryData.subtitle}</p>
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 dark:text-gray-100">{categoryData.title}</h3>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5 hidden sm:block">{categoryData.subtitle} • {categoryData.description}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 sm:hidden">{categoryData.subtitle}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="text-right">
-                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">{items.length}</p>
-                <p className="text-xs text-gray-600">itens</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-100">{items.length}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">itens</p>
               </div>
               {isExpanded ? (
-                <ChevronUp className="h-5 w-5 text-gray-600" />
+                <ChevronUp className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               ) : (
-                <ChevronDown className="h-5 w-5 text-gray-600" />
+                <ChevronDown className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               )}
             </div>
           </div>
@@ -505,10 +505,10 @@ const ActionPlan = () => {
               <div className="space-y-4 sm:space-y-6">
                 {items.length === 0 ? (
                   <div className="text-center py-8 sm:py-12">
-                    <div className="mx-auto flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-gray-100 mb-4">
-                      <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
+                    <div className="mx-auto flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
+                      <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 dark:text-gray-500" />
                     </div>
-                    <p className="text-gray-500 mb-4 text-sm sm:text-base">Nenhum item de desenvolvimento adicionado</p>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm sm:text-base">Nenhum item de desenvolvimento adicionado</p>
                     <Button
                       variant="outline"
                       onClick={() => addActionItem(category)}
@@ -526,7 +526,7 @@ const ActionPlan = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: itemIndex * 0.1 }}
-                        className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-200"
+                        className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-200 dark:border-gray-600"
                       >
                         {/* Header do Item */}
                         <div className="flex items-start justify-between mb-4 sm:mb-6">
@@ -535,7 +535,7 @@ const ActionPlan = () => {
                               {itemIndex + 1}
                             </div>
                             <div>
-                              <h4 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-800">
+                              <h4 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-800 dark:text-gray-100">
                                 Item de Desenvolvimento
                               </h4>
                               <span className={`inline-flex mt-1 px-2 py-1 rounded-full text-xs font-medium border ${statusOptions.find(s => s.value === item.status)?.color}`}>
@@ -545,7 +545,7 @@ const ActionPlan = () => {
                           </div>
                           <button
                             onClick={() => removeActionItem(category, item.id)}
-                            className="p-1.5 sm:p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+                            className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
                           >
                             <X size={16} className="sm:hidden" />
                             <X size={20} className="hidden sm:block" />
@@ -555,13 +555,13 @@ const ActionPlan = () => {
                         <div className="space-y-4 sm:space-y-6">
                           {/* Competência a desenvolver */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                              <Award className="h-4 w-4 mr-2 text-primary-600" />
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                              <Award className="h-4 w-4 mr-2 text-primary-600 dark:text-primary-400" />
                               Competência a desenvolver
                             </label>
                             <input
                               type="text"
-                              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200 text-sm sm:text-base"
+                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
                               placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
                               value={item.competencia}
                               onChange={(e) => updateActionItem(category, item.id, 'competencia', e.target.value)}
@@ -570,13 +570,13 @@ const ActionPlan = () => {
 
                           {/* Calendarização */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                              <Calendar className="h-4 w-4 mr-2 text-secondary-600" />
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                              <Calendar className="h-4 w-4 mr-2 text-secondary-600 dark:text-secondary-400" />
                               Calendarização
                             </label>
                             <input
                               type="month"
-                              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-secondary-500 focus:ring-secondary-500 transition-all duration-200 text-sm sm:text-base"
+                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
                               value={item.calendarizacao}
                               onChange={(e) => updateActionItem(category, item.id, 'calendarizacao', e.target.value)}
                             />
@@ -584,12 +584,12 @@ const ActionPlan = () => {
 
                           {/* Como desenvolver as competências */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                              <Lightbulb className="h-4 w-4 mr-2 text-accent-600" />
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                              <Lightbulb className="h-4 w-4 mr-2 text-accent-600 dark:text-accent-400" />
                               Como desenvolver as competências
                             </label>
                             <textarea
-                              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-accent-500 focus:ring-accent-500 transition-all duration-200 text-sm sm:text-base"
+                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-accent-500 dark:focus:border-accent-400 focus:ring-accent-500 dark:focus:ring-accent-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
                               rows={3}
                               placeholder="Descreva as ações e métodos para desenvolver esta competência..."
                               value={item.comoDesenvolver}
@@ -599,12 +599,12 @@ const ActionPlan = () => {
 
                           {/* Resultados Esperados */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                              <Target className="h-4 w-4 mr-2 text-primary-600" />
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                              <Target className="h-4 w-4 mr-2 text-primary-600 dark:text-primary-400" />
                               Resultados Esperados
                             </label>
                             <textarea
-                              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200 text-sm sm:text-base"
+                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
                               rows={3}
                               placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
                               value={item.resultadosEsperados}
@@ -612,15 +612,15 @@ const ActionPlan = () => {
                             />
                           </div>
 
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-gray-200">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-600">
                             {/* Status */}
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                                <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                                <CheckCircle className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
                                 Status
                               </label>
                               <select
-                                className="w-full rounded-lg border-gray-200 shadow-sm focus:border-green-500 focus:ring-green-500 transition-all duration-200 text-sm sm:text-base"
+                                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-500 dark:focus:border-green-400 focus:ring-green-500 dark:focus:ring-green-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
                                 value={item.status}
                                 onChange={(e) => updateActionItem(category, item.id, 'status', e.target.value as any)}
                               >
@@ -634,12 +634,12 @@ const ActionPlan = () => {
 
                             {/* Observação */}
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                                <MessageSquare className="h-4 w-4 mr-2 text-secondary-600" />
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                                <MessageSquare className="h-4 w-4 mr-2 text-secondary-600 dark:text-secondary-400" />
                                 Observação
                               </label>
                               <textarea
-                                className="w-full rounded-lg border-gray-200 shadow-sm focus:border-secondary-500 focus:ring-secondary-500 transition-all duration-200 text-sm sm:text-base"
+                                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
                                 rows={2}
                                 placeholder="Observações adicionais..."
                                 value={item.observacao}
@@ -680,29 +680,29 @@ const ActionPlan = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8"
+        className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
           <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-0">
             <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center flex-wrap">
-                <FileText className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-accent-500 mr-2 sm:mr-3" />
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center flex-wrap">
+                <FileText className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-accent-500 dark:text-accent-400 mr-2 sm:mr-3" />
                 <span className="break-words">Plano de Desenvolvimento Individual</span>
               </h1>
-              <p className="text-gray-600 mt-1 text-sm sm:text-base">Estruture o crescimento e desenvolvimento do colaborador</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">Estruture o crescimento e desenvolvimento do colaborador</p>
             </div>
           </div>
 
           {/* Progress Indicator */}
           <div className="flex items-center justify-center sm:justify-end space-x-3">
             <div className="text-center sm:text-right">
-              <p className="text-sm text-gray-500">Progresso Geral</p>
-              <p className="text-lg font-bold text-gray-800">{Math.round(progress)}%</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Progresso Geral</p>
+              <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{Math.round(progress)}%</p>
             </div>
             <div className="relative">
               <svg className="w-12 h-12 sm:w-16 sm:h-16 transform -rotate-90">
-                <circle cx="24" cy="24" r="20" stroke="#e5e7eb" strokeWidth="3" fill="none" className="sm:hidden" />
-                <circle cx="32" cy="32" r="28" stroke="#e5e7eb" strokeWidth="4" fill="none" className="hidden sm:block" />
+                <circle cx="24" cy="24" r="20" stroke="#e5e7eb" strokeWidth="3" fill="none" className="sm:hidden dark:stroke-gray-700" />
+                <circle cx="32" cy="32" r="28" stroke="#e5e7eb" strokeWidth="4" fill="none" className="hidden sm:block dark:stroke-gray-700" />
                 <circle
                   cx="24" cy="24" r="20"
                   stroke="url(#progressGradient)"
@@ -736,11 +736,11 @@ const ActionPlan = () => {
         {/* Seleção do colaborador */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="sm:col-span-2 lg:col-span-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Colaborador
             </label>
             <select
-              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200 text-sm sm:text-base"
+              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
               value={selectedEmployeeId}
               onChange={(e) => setSelectedEmployeeId(e.target.value)}
             >
@@ -756,33 +756,33 @@ const ActionPlan = () => {
           {selectedEmployee && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <Briefcase className="h-4 w-4 mr-1 text-gray-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                  <Briefcase className="h-4 w-4 mr-1 text-gray-500 dark:text-gray-400" />
                   Cargo
                 </label>
-                <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 sm:px-4 py-2 sm:py-2.5 text-gray-700 text-sm sm:text-base">
+                <div className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 px-3 sm:px-4 py-2 sm:py-2.5 text-gray-700 dark:text-gray-300 text-sm sm:text-base">
                   {planData.cargo}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <Users className="h-4 w-4 mr-1 text-gray-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                  <Users className="h-4 w-4 mr-1 text-gray-500 dark:text-gray-400" />
                   Departamento
                 </label>
-                <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 sm:px-4 py-2 sm:py-2.5 text-gray-700 text-sm sm:text-base break-words">
+                <div className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 px-3 sm:px-4 py-2 sm:py-2.5 text-gray-700 dark:text-gray-300 text-sm sm:text-base break-words">
                   {planData.departamento}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <Calendar className="h-4 w-4 mr-1 text-gray-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                  <Calendar className="h-4 w-4 mr-1 text-gray-500 dark:text-gray-400" />
                   Período
                 </label>
                 <input
                   type="text"
-                  className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all duration-200 text-sm sm:text-base"
+                  className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
                   value={planData.periodo}
                   onChange={(e) => setPlanData(prev => ({ ...prev, periodo: e.target.value }))}
                   placeholder="Ex: 2024-2025"
@@ -817,15 +817,15 @@ const ActionPlan = () => {
             <div className="flex items-center space-x-2 text-sm order-2 sm:order-1">
               {planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length === 0 ? (
                 <>
-                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 flex-shrink-0" />
-                  <span className="text-gray-600">
+                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 dark:text-amber-400 flex-shrink-0" />
+                  <span className="text-gray-600 dark:text-gray-400">
                     Adicione pelo menos um item de desenvolvimento
                   </span>
                 </>
               ) : (
                 <>
-                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />
-                  <span className="text-green-600 font-medium">
+                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 dark:text-green-400 flex-shrink-0" />
+                  <span className="text-green-600 dark:text-green-400 font-medium">
                     PDI pronto para ser salvo!
                   </span>
                 </>
@@ -851,7 +851,7 @@ const ActionPlan = () => {
                       onClick={exportToPDF}
                       icon={<FileDown size={16} />}
                       size="sm"
-                      className="border-red-200 text-red-700 hover:bg-red-50 flex-1 xs:flex-none"
+                      className="border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 flex-1 xs:flex-none"
                     >
                       <span className="hidden xs:inline">PDF</span>
                       <span className="xs:hidden">PDF</span>
@@ -861,7 +861,7 @@ const ActionPlan = () => {
                       onClick={exportToExcel}
                       icon={<FileSpreadsheet size={16} />}
                       size="sm"
-                      className="border-green-200 text-green-700 hover:bg-green-50 flex-1 xs:flex-none"
+                      className="border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 flex-1 xs:flex-none"
                     >
                       <span className="hidden xs:inline">Excel</span>
                       <span className="xs:hidden">Excel</span>
@@ -871,7 +871,7 @@ const ActionPlan = () => {
                       onClick={exportToNotion}
                       icon={<StickyNote size={16} />}
                       size="sm"
-                      className="border-gray-300 text-gray-700 hover:bg-gray-100 flex-1 xs:flex-none"
+                      className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-1 xs:flex-none"
                     >
                       <span className="hidden sm:inline">Notion</span>
                       <span className="sm:hidden">Notion</span>
@@ -886,7 +886,7 @@ const ActionPlan = () => {
                 icon={<Save size={18} />}
                 size="md"
                 disabled={planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length === 0}
-                className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 w-full sm:w-auto"
+                className="bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 hover:from-primary-600 hover:to-primary-700 dark:hover:from-primary-700 dark:hover:to-primary-800 w-full sm:w-auto"
               >
                 Salvar PDI
               </Button>
@@ -900,16 +900,16 @@ const ActionPlan = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-12 lg:p-16 text-center"
+          className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-8 sm:p-12 lg:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 mb-4 sm:mb-6">
-              <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600" />
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-900/30 dark:to-secondary-900/30 mb-4 sm:mb-6">
+              <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600 dark:text-primary-400" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Nenhum colaborador selecionado
             </h3>
-            <p className="text-gray-500 text-sm sm:text-base">
+            <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
               Selecione um colaborador acima para criar seu Plano de Desenvolvimento Individual
             </p>
           </div>

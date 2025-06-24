@@ -17,76 +17,76 @@ interface MatrixConfig {
 // Configuração da matriz com cores do sistema
 const matrixConfig: Record<string, MatrixConfig> = {
   '1,1': { 
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
-    textColor: 'text-red-700',
+    bgColor: 'bg-red-50 dark:bg-red-900/20',
+    borderColor: 'border-red-200 dark:border-red-700',
+    textColor: 'text-red-700 dark:text-red-300',
     description: 'Avaliar possibilidade de movimentação para função menor ou demissão',
-    activeBorderColor: 'border-red-500',
-    gradient: 'from-red-100 to-red-50',
+    activeBorderColor: 'border-red-500 dark:border-red-400',
+    gradient: 'from-red-100 to-red-50 dark:from-red-900/30 dark:to-red-900/20',
   },
   '1,2': { 
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-200',
-    textColor: 'text-amber-700',
+    bgColor: 'bg-amber-50 dark:bg-amber-900/20',
+    borderColor: 'border-amber-200 dark:border-amber-700',
+    textColor: 'text-amber-700 dark:text-amber-300',
     description: 'Avaliar possibilidade de movimentação horizontal',
-    activeBorderColor: 'border-amber-500',
-    gradient: 'from-amber-100 to-amber-50',
+    activeBorderColor: 'border-amber-500 dark:border-amber-400',
+    gradient: 'from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-900/20',
   },
   '1,3': { 
-    bgColor: 'bg-emerald-50',
-    borderColor: 'border-emerald-200',
-    textColor: 'text-emerald-700',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
+    borderColor: 'border-emerald-200 dark:border-emerald-700',
+    textColor: 'text-emerald-700 dark:text-emerald-300',
     description: 'Está no lugar certo. Manter na posição e rever remuneração',
-    activeBorderColor: 'border-emerald-500',
-    gradient: 'from-emerald-100 to-emerald-50',
+    activeBorderColor: 'border-emerald-500 dark:border-emerald-400',
+    gradient: 'from-emerald-100 to-emerald-50 dark:from-emerald-900/30 dark:to-emerald-900/20',
   },
   '2,1': { 
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200',
-    textColor: 'text-orange-700',
+    bgColor: 'bg-orange-50 dark:bg-orange-900/20',
+    borderColor: 'border-orange-200 dark:border-orange-700',
+    textColor: 'text-orange-700 dark:text-orange-300',
     description: 'Avaliar se está na área certa. Rever atribuições',
-    activeBorderColor: 'border-orange-500',
-    gradient: 'from-orange-100 to-orange-50',
+    activeBorderColor: 'border-orange-500 dark:border-orange-400',
+    gradient: 'from-orange-100 to-orange-50 dark:from-orange-900/30 dark:to-orange-900/20',
   },
   '2,2': { 
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    textColor: 'text-blue-700',
+    bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+    borderColor: 'border-blue-200 dark:border-blue-700',
+    textColor: 'text-blue-700 dark:text-blue-300',
     description: 'Investir no potencial e desempenho para manter na atual função',
-    activeBorderColor: 'border-blue-500',
-    gradient: 'from-blue-100 to-blue-50',
+    activeBorderColor: 'border-blue-500 dark:border-blue-400',
+    gradient: 'from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/20',
   },
   '2,3': { 
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200',
-    textColor: 'text-green-700',
+    bgColor: 'bg-green-50 dark:bg-green-900/20',
+    borderColor: 'border-green-200 dark:border-green-700',
+    textColor: 'text-green-700 dark:text-green-300',
     description: 'Avaliar a possibilidade de promoção na própria área',
-    activeBorderColor: 'border-green-500',
-    gradient: 'from-green-100 to-green-50',
+    activeBorderColor: 'border-green-500 dark:border-green-400',
+    gradient: 'from-green-100 to-green-50 dark:from-green-900/30 dark:to-green-900/20',
   },
   '3,1': { 
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200',
-    textColor: 'text-purple-700',
+    bgColor: 'bg-purple-50 dark:bg-purple-900/20',
+    borderColor: 'border-purple-200 dark:border-purple-700',
+    textColor: 'text-purple-700 dark:text-purple-300',
     description: 'Verificar a causa: Local ou Chefe errado? Investir no desenvolvimento',
-    activeBorderColor: 'border-purple-500',
-    gradient: 'from-purple-100 to-purple-50',
+    activeBorderColor: 'border-purple-500 dark:border-purple-400',
+    gradient: 'from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-900/20',
   },
   '3,2': { 
-    bgColor: 'bg-indigo-50',
-    borderColor: 'border-indigo-200',
-    textColor: 'text-indigo-700',
+    bgColor: 'bg-indigo-50 dark:bg-indigo-900/20',
+    borderColor: 'border-indigo-200 dark:border-indigo-700',
+    textColor: 'text-indigo-700 dark:text-indigo-300',
     description: 'Concentrar-se no desempenho de curto prazo. Avaliar oportunidades a longo prazo',
-    activeBorderColor: 'border-indigo-500',
-    gradient: 'from-indigo-100 to-indigo-50',
+    activeBorderColor: 'border-indigo-500 dark:border-indigo-400',
+    gradient: 'from-indigo-100 to-indigo-50 dark:from-indigo-900/30 dark:to-indigo-900/20',
   },
   '3,3': { 
-    bgColor: 'bg-gradient-to-br from-primary-500 to-secondary-600',
-    borderColor: 'border-primary-500',
+    bgColor: 'bg-gradient-to-br from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700',
+    borderColor: 'border-primary-500 dark:border-primary-400',
     textColor: 'text-white',
     description: 'Dar mais atribuições. Preparar para função maior. Líder do futuro!',
-    activeBorderColor: 'border-primary-700',
-    gradient: 'from-primary-500 to-secondary-600',
+    activeBorderColor: 'border-primary-700 dark:border-primary-500',
+    gradient: 'from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700',
   }
 };
 
@@ -191,16 +191,16 @@ const NineBoxMatrix = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8"
+        className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 sm:mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-3 sm:space-x-4">
             <div className="flex-1">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
-                <Grid3x3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 mr-2 sm:mr-3" />
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+                <Grid3x3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3" />
                 <span className="break-words">Matriz 9-Box</span>
               </h1>
-              <p className="text-xs sm:text-sm lg:text-base text-gray-600 mt-1">
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
                 Análise de Performance vs Potencial
               </p>
             </div>
@@ -218,19 +218,19 @@ const NineBoxMatrix = () => {
         </div>
 
         {/* Seleção de Colaborador */}
-        <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
-            <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600" />
+        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 sm:mb-4 flex items-center">
+            <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600 dark:text-gray-400" />
             Selecionar Colaborador
           </h3>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Colaborador
               </label>
               <select
-                className="w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-700 text-sm sm:text-base"
+                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-700 dark:text-gray-300 text-sm sm:text-base"
                 value={selectedEmployee}
                 onChange={(e) => setSelectedEmployee(e.target.value)}
               >
@@ -246,21 +246,21 @@ const NineBoxMatrix = () => {
             {selectedEmp && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <Briefcase className="inline h-4 w-4 mr-1" />
                     Cargo
                   </label>
-                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white rounded-lg sm:rounded-xl text-gray-700 text-sm sm:text-base border border-gray-200">
+                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white dark:bg-gray-700 rounded-lg sm:rounded-xl text-gray-700 dark:text-gray-300 text-sm sm:text-base border border-gray-200 dark:border-gray-600">
                     {selectedEmp.position}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <Award className="inline h-4 w-4 mr-1" />
                     Departamento
                   </label>
-                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white rounded-lg sm:rounded-xl text-gray-700 text-sm sm:text-base border border-gray-200">
+                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white dark:bg-gray-700 rounded-lg sm:rounded-xl text-gray-700 dark:text-gray-300 text-sm sm:text-base border border-gray-200 dark:border-gray-600">
                     {selectedEmp.department}
                   </div>
                 </div>
@@ -281,39 +281,39 @@ const NineBoxMatrix = () => {
           {/* Coluna Esquerda - Scores e Info */}
           <div className="space-y-4">
             {/* Card de Scores */}
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
                 Avaliação de {selectedEmp?.name}
               </h3>
               
               <div className="space-y-4">
-                <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg sm:rounded-xl p-4 border border-primary-200">
+                <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-900/20 rounded-lg sm:rounded-xl p-4 border border-primary-200 dark:border-primary-700">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-gray-700">Performance</p>
-                    <TrendingUp className="h-4 w-4 text-primary-600" />
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Performance</p>
+                    <TrendingUp className="h-4 w-4 text-primary-600 dark:text-primary-400" />
                   </div>
-                  <p className="text-2xl sm:text-3xl font-bold text-primary-600">
+                  <p className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">
                     {selectedEvaluation.consensusScore.toFixed(1)}
                   </p>
-                  <div className="mt-2 bg-primary-200 rounded-full h-2">
+                  <div className="mt-2 bg-primary-200 dark:bg-primary-900/50 rounded-full h-2">
                     <div 
-                      className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-primary-600 dark:bg-primary-400 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${(selectedEvaluation.consensusScore / 4) * 100}%` }}
                     />
                   </div>
                 </div>
                 
-                <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-lg sm:rounded-xl p-4 border border-secondary-200">
+                <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/30 dark:to-secondary-900/20 rounded-lg sm:rounded-xl p-4 border border-secondary-200 dark:border-secondary-700">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-gray-700">Potencial</p>
-                    <Target className="h-4 w-4 text-secondary-600" />
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Potencial</p>
+                    <Target className="h-4 w-4 text-secondary-600 dark:text-secondary-400" />
                   </div>
-                  <p className="text-2xl sm:text-3xl font-bold text-secondary-600">
+                  <p className="text-2xl sm:text-3xl font-bold text-secondary-600 dark:text-secondary-400">
                     {selectedEvaluation.potentialScore.toFixed(1)}
                   </p>
-                  <div className="mt-2 bg-secondary-200 rounded-full h-2">
+                  <div className="mt-2 bg-secondary-200 dark:bg-secondary-900/50 rounded-full h-2">
                     <div 
-                      className="bg-secondary-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-secondary-600 dark:bg-secondary-400 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${(selectedEvaluation.potentialScore / 4) * 100}%` }}
                     />
                   </div>
@@ -336,9 +336,9 @@ const NineBoxMatrix = () => {
 
           {/* Coluna Central e Direita - Matriz */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8">
-              <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-4 sm:mb-6 flex items-center">
-                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600" />
+            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
+              <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
+                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600 dark:text-gray-400" />
                 Posicionamento na Matriz
               </h2>
 
@@ -348,16 +348,16 @@ const NineBoxMatrix = () => {
                   
                   {/* Título do eixo Y (Potencial) */}
                   <div className="absolute -left-12 sm:-left-40 top-1/2 transform -translate-y-1/2 -rotate-90">
-                    <span className="text-sm sm:text-base font-bold text-gray-700 uppercase tracking-widest">
+                    <span className="text-sm sm:text-base font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest">
                       POTENCIAL
                     </span>
                   </div>
                   
                   {/* Labels do eixo Y */}
                   <div className="absolute -left-10 sm:-left-12 flex flex-col justify-between h-72 sm:h-[420px]">
-                    <span className="text-xs sm:text-sm font-semibold text-gray-600">Alto</span>
-                    <span className="text-xs sm:text-sm font-semibold text-gray-600">Médio</span>
-                    <span className="text-xs sm:text-sm font-semibold text-gray-600">Baixo</span>
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400">Alto</span>
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400">Médio</span>
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400">Baixo</span>
                   </div>
 
                   {/* Container da Matriz */}
@@ -380,13 +380,13 @@ const NineBoxMatrix = () => {
                               className={`
                                 relative flex flex-col items-center justify-center p-3 sm:p-5
                                 ${config.bgColor} ${config.textColor}
-                                border-2 ${isActive ? `${config.activeBorderColor} shadow-xl z-10` : config.borderColor}
+                                border-2 ${isActive ? `${config.activeBorderColor} shadow-xl dark:shadow-2xl z-10` : config.borderColor}
                                 transition-all duration-300 cursor-pointer
-                                ${isHovered && !isActive ? 'shadow-lg z-5' : ''}
+                                ${isHovered && !isActive ? 'shadow-lg dark:shadow-xl z-5' : ''}
                               `}
                             >
                               <div className="text-center">
-                                <div className="text-[10px] sm:text-xs opacity-80 leading-tight">
+                                <div className="text-[10px] sm:text-xs opacity-80 dark:opacity-90 leading-tight">
                                   {config.description}
                                 </div>
                               </div>
@@ -402,7 +402,7 @@ const NineBoxMatrix = () => {
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                        className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-full shadow-lg z-20 ring-4 ring-white"
+                        className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700 rounded-full shadow-lg dark:shadow-xl z-20 ring-4 ring-white dark:ring-gray-800"
                         style={{
                           left: `${getPointPosition(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore).x}%`,
                           top: `${getPointPosition(selectedEvaluation.consensusScore, selectedEvaluation.potentialScore).y}%`,
@@ -414,14 +414,14 @@ const NineBoxMatrix = () => {
 
                   {/* Labels do eixo X */}
                   <div className="flex justify-between w-72 sm:w-[420px] mt-4 sm:mt-6">
-                    <span className="text-xs sm:text-sm font-semibold text-gray-600">Baixo</span>
-                    <span className="text-xs sm:text-sm font-semibold text-gray-600">Médio</span>
-                    <span className="text-xs sm:text-sm font-semibold text-gray-600">Alto</span>
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400">Baixo</span>
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400">Médio</span>
+                    <span className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400">Alto</span>
                   </div>
 
                   {/* Título do eixo X */}
                   <div className="flex justify-center w-72 sm:w-[420px] mt-3">
-                    <span className="text-sm sm:text-base font-bold text-gray-700 uppercase tracking-widest">
+                    <span className="text-sm sm:text-base font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest">
                       DESEMPENHO
                     </span>
                   </div>
@@ -429,9 +429,9 @@ const NineBoxMatrix = () => {
               </div>
 
               {/* Info Box */}
-              <div className="mt-6 sm:mt-8 p-4 bg-blue-50 rounded-lg sm:rounded-xl border border-blue-200 flex items-start">
-                <Info className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-700">
+              <div className="mt-6 sm:mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg sm:rounded-xl border border-blue-200 dark:border-blue-700 flex items-start">
+                <Info className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400 mr-3 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-700 dark:text-blue-300">
                   <p className="font-semibold mb-1">Como interpretar a matriz:</p>
                   <p className="opacity-90">
                     A posição do colaborador é determinada pela combinação de sua performance (eixo horizontal) 
@@ -449,16 +449,16 @@ const NineBoxMatrix = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-16 text-center"
+          className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-8 sm:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 mb-4 sm:mb-6">
-              <Grid3x3 className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600" />
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-900/30 dark:to-secondary-900/30 mb-4 sm:mb-6">
+              <Grid3x3 className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600 dark:text-primary-400" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Nenhum colaborador selecionado
             </h3>
-            <p className="text-sm sm:text-base text-gray-500">
+            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
               Selecione um colaborador acima para visualizar sua posição na Matriz 9-Box
             </p>
           </div>
