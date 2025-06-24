@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { 
   Settings as SettingsIcon,
   User,
@@ -17,31 +18,23 @@ import {
   Briefcase,
   Moon,
   Sun,
-  Monitor,
   Save,
   Loader2,
   Calendar,
   Shield
 } from 'lucide-react';
 
-interface SystemPreferences {
-  theme: 'light' | 'dark' | 'system';
-}
-
 type SettingSection = 'profile' | 'preferences' | 'security';
 
 const Settings = () => {
   const { user, profile } = useAuth();
+  const { theme, setTheme } = useTheme();
   
   const [activeSection, setActiveSection] = useState<SettingSection>('profile');
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const [preferences, setPreferences] = useState<SystemPreferences>({
-    theme: 'light'
-  });
 
   // Estados para senha
   const [passwordForm, setPasswordForm] = useState({
@@ -128,9 +121,8 @@ const Settings = () => {
     }
   };
 
-  const handleThemeChange = async (theme: 'light' | 'dark' | 'system') => {
-    setPreferences({ theme });
-    toast.success(`Tema ${theme === 'light' ? 'claro' : theme === 'dark' ? 'escuro' : 'do sistema'} aplicado!`);
+  const handleThemeChange = (newTheme: 'light' | 'dark') => {
+    setTheme(newTheme);
   };
 
   // Renderização das seções
@@ -144,7 +136,7 @@ const Settings = () => {
         
         {/* Avatar e Nome */}
         <div className="flex items-center space-x-4 mb-8">
-          <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-2xl font-bold text-primary-600 dark:text-primary-400">
+          <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/20 flex items-center justify-center text-2xl font-bold text-primary-600 dark:text-primary-400">
             {profile?.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'US'}
           </div>
           <div>
@@ -222,28 +214,31 @@ const Settings = () => {
             Tema do Sistema
           </label>
           
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {[
               { value: 'light' as const, icon: Sun, label: 'Claro' },
-              { value: 'dark' as const, icon: Moon, label: 'Escuro' },
-              { value: 'system' as const, icon: Monitor, label: 'Sistema' }
-            ].map((theme) => (
+              { value: 'dark' as const, icon: Moon, label: 'Escuro' }
+            ].map((themeOption) => (
               <button
-                key={theme.value}
-                onClick={() => handleThemeChange(theme.value)}
+                key={themeOption.value}
+                onClick={() => handleThemeChange(themeOption.value)}
                 className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${
-                  preferences.theme === theme.value
+                  theme === themeOption.value
                     ? 'border-primary-500 dark:border-primary-400 bg-primary-50 dark:bg-primary-900/20'
-                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800'
                 }`}
               >
-                <theme.icon className={`h-6 w-6 mb-2 ${
-                  preferences.theme === theme.value ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400'
+                <themeOption.icon className={`h-6 w-6 mb-2 ${
+                  theme === themeOption.value 
+                    ? 'text-primary-600 dark:text-primary-400' 
+                    : 'text-gray-600 dark:text-gray-400'
                 }`} />
                 <span className={`text-sm font-medium ${
-                  preferences.theme === theme.value ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'
+                  theme === themeOption.value 
+                    ? 'text-primary-700 dark:text-primary-300' 
+                    : 'text-gray-700 dark:text-gray-300'
                 }`}>
-                  {theme.label}
+                  {themeOption.label}
                 </span>
               </button>
             ))}
@@ -261,7 +256,7 @@ const Settings = () => {
       <div>
         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Segurança</h2>
         
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
+        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6">
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-4">
             Alterar Senha
           </h3>
@@ -276,13 +271,13 @@ const Settings = () => {
                   type={showPassword ? "text" : "password"}
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="Digite sua senha atual"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+                  className="absolute right-3 top-2.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -298,18 +293,20 @@ const Settings = () => {
                   type={showNewPassword ? "text" : "password"}
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="Digite sua nova senha"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-2.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+                  className="absolute right-3 top-2.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Mínimo de 6 caracteres</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Mínimo de 6 caracteres
+              </p>
             </div>
             
             <div>
@@ -321,13 +318,13 @@ const Settings = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="Confirme sua nova senha"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-2.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+                  className="absolute right-3 top-2.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -335,14 +332,12 @@ const Settings = () => {
             </div>
           </div>
           
-          <div className="mt-6 flex items-center justify-between">
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              Última alteração: 15/01/2024
-            </span>
-            <Button 
+          <div className="mt-6">
+            <Button
               variant="primary"
               onClick={handlePasswordChange}
               disabled={isLoading || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword}
+              size="lg"
               icon={isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock size={16} />}
             >
               {isLoading ? 'Alterando...' : 'Alterar Senha'}
@@ -397,7 +392,9 @@ const Settings = () => {
                   }`}
                 >
                   <section.icon className={`h-5 w-5 mr-3 ${
-                    activeSection === section.id ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500'
+                    activeSection === section.id 
+                      ? 'text-primary-600 dark:text-primary-400' 
+                      : 'text-gray-400 dark:text-gray-500'
                   }`} />
                   <div className="text-left">
                     <p className="font-medium text-sm">{section.label}</p>
