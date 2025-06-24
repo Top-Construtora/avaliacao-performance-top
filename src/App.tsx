@@ -11,7 +11,6 @@ import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import SelfEvaluation from './pages/SelfEvaluation';
 import LeaderEvaluation from './pages/LeaderEvaluation';
-import PotentialEvaluation from './pages/PotentialEvaluation';
 import NineBoxGuide from './pages/NineBoxGuide';
 import UserRegistration from './pages/UserRegistration';
 import Consensus from './pages/Consensus';
@@ -83,7 +82,6 @@ function App() {
                   <Route index element={<Dashboard />} />
                   <Route path="self-evaluation" element={<SelfEvaluation />} />
                   <Route path="leader-evaluation" element={<LeaderEvaluation />} />
-                  <Route path="potential-evaluation" element={<PotentialEvaluation />} />
                   <Route path="consensus" element={<Consensus />} />
                   <Route path="nine-box" element={<NineBoxMatrix />} />
                   <Route path="action-plan" element={<ActionPlan />} />
@@ -189,16 +187,6 @@ function App() {
                     element={
                       <ProtectedRoute allowedRoles={['leader', 'director']}>
                         <LeaderEvaluation />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Avaliação de Potencial - Líderes e Diretores */}
-                  <Route 
-                    path="potential-evaluation" 
-                    element={
-                      <ProtectedRoute allowedRoles={['leader', 'director']}>
-                        <PotentialEvaluation />
                       </ProtectedRoute>
                     } 
                   />

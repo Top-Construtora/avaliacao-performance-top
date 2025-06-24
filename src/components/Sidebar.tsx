@@ -83,12 +83,6 @@ export default function Sidebar({
       allowedRoles: ['leader', 'director'],
     },
     {
-      label: 'Avaliação de Potencial',
-      icon: TrendingUp,
-      path: '/potential-evaluation',
-      allowedRoles: ['leader', 'director'],
-    },
-    {
       label: 'Consenso',
       icon: Handshake,
       path: '/consensus',

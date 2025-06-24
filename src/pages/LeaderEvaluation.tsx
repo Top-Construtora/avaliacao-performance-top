@@ -20,7 +20,16 @@ import {
   BarChart3,
   Briefcase,
   Calendar,
-  User
+  User,
+  ArrowRight,
+  Zap,
+  Lightbulb,
+  HeartHandshake,
+  Info,
+  Rocket,
+  BookOpen,
+  Building,
+  Eye
 } from 'lucide-react';
 
 interface Section {
@@ -45,10 +54,24 @@ interface CompetencyItem {
   score?: number;
 }
 
+interface PotentialItem {
+  id: string;
+  name: string;
+  description: string;
+  score?: number;
+}
+
 interface Scores {
   technical: number;
   behavioral: number;
   organizational: number;
+  final: number;
+}
+
+interface PotentialScores {
+  results: number;
+  agility: number;
+  relationships: number;
   final: number;
 }
 
@@ -58,10 +81,19 @@ const LeaderEvaluation = () => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [currentStep, setCurrentStep] = useState(1); // 1: Competências, 2: Potencial
+  
   const [scores, setScores] = useState<Scores>({
     technical: 0,
     behavioral: 0,
     organizational: 0,
+    final: 0
+  });
+
+  const [potentialScores, setPotentialScores] = useState<PotentialScores>({
+    results: 0,
+    agility: 0,
+    relationships: 0,
     final: 0
   });
   
@@ -185,6 +217,33 @@ const LeaderEvaluation = () => {
     }
   ]);
 
+  const [potentialItems, setPotentialItems] = useState<PotentialItem[]>([
+    {
+      id: 'pot1',
+      name: 'Potencial para função subsequente',
+      description: 'O que você enxerga como potencial máximo deste parceiro do negócio: você acredita que ele consegue assumir uma função subsequente no prazo de 1 ano, dado o desempenho e a motivação sustentados até hoje?',
+      score: undefined
+    },
+    {
+      id: 'pot2',
+      name: 'Aprendizado contínuo',
+      description: 'Sobre o aprendizado contínuo: percebo que este busca o desenvolvimento pessoal, profissional e o aprimoramento de seus conhecimentos técnicos e acadêmicos.',
+      score: undefined
+    },
+    {
+      id: 'pot3',
+      name: 'Alinhamento com Código Cultural',
+      description: 'O parceiro de negócio possui alinhamento com o Código Cultural da TOP Construtora e Incorporadora.',
+      score: undefined
+    },
+    {
+      id: 'pot4',
+      name: 'Visão sistêmica',
+      description: 'O parceiro de negócio possui uma visão sistêmica da empresa.',
+      score: undefined
+    }
+  ]);
+
   const ratingLabels = {
     1: { label: 'Insatisfatório', color: 'bg-red-500', darkColor: 'dark:bg-red-600' },
     2: { label: 'Em Desenvolvimento', color: 'bg-yellow-500', darkColor: 'dark:bg-yellow-600' },
@@ -192,10 +251,21 @@ const LeaderEvaluation = () => {
     4: { label: 'Excepcional', color: 'bg-green-500', darkColor: 'dark:bg-green-600' }
   };
 
+  const potentialRatingLabels = {
+    1: { label: 'Não atende o esperado', color: 'bg-red-500', darkColor: 'dark:bg-red-600' },
+    2: { label: 'Em desenvolvimento', color: 'bg-yellow-500', darkColor: 'dark:bg-yellow-600' },
+    3: { label: 'Atende ao esperado', color: 'bg-primary-500', darkColor: 'dark:bg-primary-600' },
+    4: { label: 'Supera', color: 'bg-green-500', darkColor: 'dark:bg-green-600' }
+  };
+
   // Calculate scores whenever ratings change
   useEffect(() => {
     calculateScores();
   }, [sections]);
+
+  useEffect(() => {
+    calculatePotentialScores();
+  }, [potentialItems]);
 
   const calculateScores = () => {
     const newScores: Scores = { technical: 0, behavioral: 0, organizational: 0, final: 0 };
@@ -221,6 +291,23 @@ const LeaderEvaluation = () => {
     setScores(newScores);
   };
 
+  const calculatePotentialScores = () => {
+    const scores = potentialItems.filter(item => item.score !== undefined).map(item => item.score || 0);
+    
+    if (scores.length > 0) {
+      const average = scores.reduce((a, b) => a + b, 0) / scores.length;
+      
+      const newScores: PotentialScores = {
+        results: potentialItems[0]?.score || 0, // Potencial para função subsequente
+        agility: potentialItems[1]?.score || 0, // Aprendizado contínuo
+        relationships: ((potentialItems[2]?.score || 0) + (potentialItems[3]?.score || 0)) / 2, // Média de Alinhamento Cultural e Visão Sistêmica
+        final: average
+      };
+      
+      setPotentialScores(newScores);
+    }
+  };
+
   const toggleSection = (sectionId: string) => {
     setSections(prev => prev.map(section => 
       section.id === sectionId ? { ...section, expanded: !section.expanded } : section
@@ -240,13 +327,44 @@ const LeaderEvaluation = () => {
     ));
   };
 
+  const handlePotentialScoreChange = (itemId: string, score: number) => {
+    setPotentialItems(prev => prev.map(item => 
+      item.id === itemId ? { ...item, score } : item
+    ));
+  };
+
   const getProgress = () => {
-    const totalItems = sections.reduce((acc, section) => acc + section.items.length, 0);
-    const scoredItems = sections.reduce(
-      (acc, section) => acc + section.items.filter(item => item.score !== undefined).length, 
-      0
+    if (currentStep === 1) {
+      const totalItems = sections.reduce((acc, section) => acc + section.items.length, 0);
+      const scoredItems = sections.reduce(
+        (acc, section) => acc + section.items.filter(item => item.score !== undefined).length, 
+        0
+      );
+      return totalItems > 0 ? (scoredItems / totalItems) * 100 : 0;
+    } else {
+      const scoredItems = potentialItems.filter(item => item.score !== undefined).length;
+      return potentialItems.length > 0 ? (scoredItems / potentialItems.length) * 100 : 0;
+    }
+  };
+
+  const canProceedToStep2 = () => {
+    return sections.every(section =>
+      section.items.every(item => item.score !== undefined)
     );
-    return totalItems > 0 ? (scoredItems / totalItems) * 100 : 0;
+  };
+
+  const handleNextStep = () => {
+    if (currentStep === 1 && canProceedToStep2()) {
+      setCurrentStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handlePreviousStep = () => {
+    if (currentStep === 2) {
+      setCurrentStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleSave = () => {
@@ -285,7 +403,16 @@ const LeaderEvaluation = () => {
       deliveriesScore: scores.organizational,
       finalScore: scores.final,
       lastUpdated: new Date().toISOString().split('T')[0],
-      isDraft: true
+      isDraft: true,
+      // Adicionar dados de potencial se estiverem preenchidos
+      potential: {
+        items: potentialItems.filter(item => item.score !== undefined).map(item => ({
+          id: item.id,
+          name: item.name,
+          score: item.score!
+        })),
+        scores: potentialScores
+      }
     };
 
     saveEvaluation(evaluation);
@@ -298,12 +425,14 @@ const LeaderEvaluation = () => {
       return;
     }
     
-    const allScored = sections.every(section =>
+    const allCompetenciesScored = sections.every(section =>
       section.items.every(item => item.score !== undefined)
     );
 
-    if (!allScored) {
-      toast.error('Avalie todas as competências antes de enviar');
+    const allPotentialScored = potentialItems.every(item => item.score !== undefined);
+
+    if (!allCompetenciesScored || !allPotentialScored) {
+      toast.error('Complete todas as avaliações antes de enviar');
       return;
     }
 
@@ -335,7 +464,16 @@ const LeaderEvaluation = () => {
       deliveriesScore: scores.organizational,
       finalScore: scores.final,
       lastUpdated: new Date().toISOString().split('T')[0],
-      isDraft: false
+      isDraft: false,
+      // Dados de potencial completos
+      potential: {
+        items: potentialItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          score: item.score!
+        })),
+        scores: potentialScores
+      }
     };
 
     saveEvaluation(evaluation);
@@ -363,7 +501,9 @@ const LeaderEvaluation = () => {
                 <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3 flex-shrink-0" />
                 <span className="truncate">Avaliação do Líder</span>
               </h1>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">Avalie o desempenho dos seus colaboradores</p>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
+                {currentStep === 1 ? 'Etapa 1: Avalie as competências' : 'Etapa 2: Avalie o potencial'}
+              </p>
             </div>
           </div>
 
@@ -470,11 +610,34 @@ const LeaderEvaluation = () => {
             </>
           )}
         </div>
+
+        {/* Step Indicators */}
+        {selectedEmployeeId && (
+          <div className="mt-6 flex items-center justify-center space-x-2">
+            <div className={`flex items-center ${currentStep >= 1 ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-600'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                currentStep >= 1 ? 'bg-primary-600 dark:bg-primary-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+              }`}>
+                1
+              </div>
+              <span className="ml-2 text-sm font-medium">Competências</span>
+            </div>
+            <div className={`w-16 h-0.5 ${currentStep >= 2 ? 'bg-primary-600 dark:bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+            <div className={`flex items-center ${currentStep >= 2 ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-600'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                currentStep >= 2 ? 'bg-primary-600 dark:bg-primary-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+              }`}>
+                2
+              </div>
+              <span className="ml-2 text-sm font-medium">Potencial</span>
+            </div>
+          </div>
+        )}
       </motion.div>
 
-      {/* Evaluation Sections */}
-      <AnimatePresence>
-        {selectedEmployeeId && (
+      {/* Step 1: Competencies Evaluation */}
+      <AnimatePresence mode="wait">
+        {selectedEmployeeId && currentStep === 1 && (
           <>
             {sections.map((section, sectionIndex) => {
               const IconComponent = section.icon;
@@ -570,8 +733,8 @@ const LeaderEvaluation = () => {
                                     }`}
                                   >
                                     <div className="text-center">
-                                      <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
-                                      <div className="text-xs">
+                                      <div className="text-xl sm:text-2xl font-bold mb-1 text-gray-800 dark:text-gray-100">{rating}</div>
+                                      <div className="text-xs text-gray-700 dark:text-gray-300">
                                         {ratingInfo.label}
                                       </div>
                                     </div>
@@ -597,7 +760,7 @@ const LeaderEvaluation = () => {
             >
               <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
                 <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary-600 dark:text-primary-400" />
-                Resumo das Notas
+                Resumo das Notas - Competências
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-primary-200 dark:border-primary-700">
@@ -650,7 +813,7 @@ const LeaderEvaluation = () => {
               </div>
             </motion.div>
 
-            {/* Action Buttons */}
+            {/* Step 1 Action Buttons */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -658,18 +821,18 @@ const LeaderEvaluation = () => {
               className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0"
             >
               <div className="flex items-center space-x-2 text-sm">
-                {progress < 100 ? (
+                {!canProceedToStep2() ? (
                   <>
                     <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 dark:text-amber-400 flex-shrink-0" />
                     <span className="text-gray-600 dark:text-gray-400">
-                      Complete todas as avaliações para enviar
+                      Complete todas as competências para prosseguir
                     </span>
                   </>
                 ) : (
                   <>
                     <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 dark:text-green-400 flex-shrink-0" />
                     <span className="text-green-600 dark:text-green-400 font-medium">
-                      Todas as competências foram avaliadas!
+                      Competências avaliadas! Prossiga para avaliar o potencial.
                     </span>
                   </>
                 )}
@@ -688,10 +851,236 @@ const LeaderEvaluation = () => {
                 </Button>
                 <Button
                   variant="primary"
+                  onClick={handleNextStep}
+                  icon={<ArrowRight size={18} />}
+                  size="lg"
+                  disabled={!canProceedToStep2()}
+                  className="w-full sm:w-auto"
+                >
+                  Próxima Etapa
+                </Button>
+              </div>
+            </motion.div>
+          </>
+        )}
+
+        {/* Step 2: Potential Evaluation */}
+        {selectedEmployeeId && currentStep === 2 && (
+          <>
+            {/* Evaluation Criteria */}
+            <div className="space-y-4 sm:space-y-6">
+              {potentialItems.map((item, index) => {
+                const iconMap: { [key: string]: React.ElementType } = {
+                  'pot1': Rocket,
+                  'pot2': BookOpen,
+                  'pot3': Building,
+                  'pot4': Eye
+                };
+                const IconComponent = iconMap[item.id];
+                
+                // Define cores para cada item de potencial
+                const colorMap: { [key: string]: any } = {
+                  'pot1': {
+                    gradient: 'from-primary-500 to-primary-600',
+                    darkGradient: 'dark:from-primary-600 dark:to-primary-700',
+                    bgColor: 'bg-primary-50',
+                    darkBgColor: 'dark:bg-primary-900/20',
+                    borderColor: 'border-primary-200',
+                    darkBorderColor: 'dark:border-primary-700'
+                  },
+                  'pot2': {
+                    gradient: 'from-secondary-500 to-secondary-600',
+                    darkGradient: 'dark:from-secondary-600 dark:to-secondary-700',
+                    bgColor: 'bg-secondary-50',
+                    darkBgColor: 'dark:bg-secondary-900/20',
+                    borderColor: 'border-secondary-200',
+                    darkBorderColor: 'dark:border-secondary-700'
+                  },
+                  'pot3': {
+                    gradient: 'from-accent-500 to-accent-600',
+                    darkGradient: 'dark:from-accent-600 dark:to-accent-700',
+                    bgColor: 'bg-accent-50',
+                    darkBgColor: 'dark:bg-accent-900/20',
+                    borderColor: 'border-accent-200',
+                    darkBorderColor: 'dark:border-accent-700'
+                  },
+                  'pot4': {
+                    gradient: 'from-gray-500 to-gray-600',
+                    darkGradient: 'dark:from-gray-600 dark:to-gray-700',
+                    bgColor: 'bg-gray-50',
+                    darkBgColor: 'dark:bg-gray-900/20',
+                    borderColor: 'border-gray-200',
+                    darkBorderColor: 'dark:border-gray-700'
+                  }
+                };
+                
+                const colors = colorMap[item.id];
+                
+                const legend = [
+                  { value: 1, color: 'bg-red-500', darkColor: 'dark:bg-red-600', bgColor: 'bg-red-50', darkBgColor: 'dark:bg-red-900/20', borderColor: 'border-red-200', darkBorderColor: 'dark:border-red-700' },
+                  { value: 2, color: 'bg-yellow-500', darkColor: 'dark:bg-yellow-600', bgColor: 'bg-yellow-50', darkBgColor: 'dark:bg-yellow-900/20', borderColor: 'border-yellow-200', darkBorderColor: 'dark:border-yellow-700' },
+                  { value: 3, color: 'bg-primary-500', darkColor: 'dark:bg-primary-600', bgColor: 'bg-primary-50', darkBgColor: 'dark:bg-primary-900/20', borderColor: 'border-primary-200', darkBorderColor: 'dark:border-primary-700' },
+                  { value: 4, color: 'bg-green-500', darkColor: 'dark:bg-green-600', bgColor: 'bg-green-50', darkBgColor: 'dark:bg-green-900/20', borderColor: 'border-green-200', darkBorderColor: 'dark:border-green-700' }
+                ];
+                
+                return (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + index * 0.1 }}
+                    className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
+                  >
+                    <div className={`p-4 sm:p-6 ${colors.bgColor} ${colors.darkBgColor} border-b ${colors.borderColor} ${colors.darkBorderColor}`}>
+                      <div className="flex flex-col sm:flex-row sm:items-start space-y-3 sm:space-y-0 sm:space-x-4">
+                        <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-br ${colors.gradient} ${colors.darkGradient} shadow-md dark:shadow-lg flex-shrink-0 self-start`}>
+                          <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                            <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 break-words">
+                              {index + 1}. {item.name}
+                            </h3>
+                            {item.score && (
+                              <span className={`inline-flex px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${potentialRatingLabels[item.score as keyof typeof potentialRatingLabels].color} ${potentialRatingLabels[item.score as keyof typeof potentialRatingLabels].darkColor} text-white self-start sm:self-auto`}>
+                                {potentialRatingLabels[item.score as keyof typeof potentialRatingLabels].label}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-2">
+                            {item.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 sm:p-6">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                        {[1, 2, 3, 4].map((rating) => {
+                          const ratingInfo = potentialRatingLabels[rating as keyof typeof potentialRatingLabels];
+                          return (
+                            <button
+                              key={rating}
+                              onClick={() => handlePotentialScoreChange(item.id, rating)}
+                              className={`py-3 sm:py-4 px-2 sm:px-4 rounded-xl border-2 transition-all duration-200 ${
+                                item.score === rating
+                                  ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
+                                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800'
+                              }`}
+                            >
+                              <div className="text-center">
+                                <div className="text-xl sm:text-2xl font-bold mb-1 text-gray-800 dark:text-gray-100">{rating}</div>
+                                <div className="text-xs text-gray-700 dark:text-gray-300">
+                                  {ratingInfo.label}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Potential Score Summary */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-gradient-to-br from-accent-50 to-primary-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-accent-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
+            >
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
+                <Star className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-accent-600 dark:text-accent-400" />
+                Análise de Potencial
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-accent-200 dark:border-accent-700">
+                  <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Média Geral</h4>
+                  <p className="text-2xl sm:text-3xl font-bold text-accent-600 dark:text-accent-400">{potentialScores.final.toFixed(1)}</p>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
+                    <div 
+                      className="bg-gradient-to-r from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(potentialScores.final / 4) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-primary-200 dark:border-primary-700">
+                  <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Critérios Avaliados</h4>
+                  <p className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">{potentialItems.filter(c => c.score).length}/{potentialItems.length}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    {potentialItems.filter(c => c.score).length === potentialItems.length ? 'Avaliação completa' : 'Em andamento'}
+                  </p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-accent-500 to-primary-600 dark:from-accent-600 dark:to-primary-700 p-4 sm:p-6 rounded-lg sm:rounded-xl text-white sm:col-span-2 lg:col-span-1">
+                  <h4 className="text-sm font-medium text-accent-100 dark:text-accent-200 mb-2">Classificação</h4>
+                  <p className="text-xl sm:text-2xl font-bold break-words">
+                    {potentialScores.final >= 3.5 ? 'Alto Potencial' : 
+                     potentialScores.final >= 2.5 ? 'Potencial Médio' : 
+                     potentialScores.final >= 1.5 ? 'Potencial em Desenvolvimento' : 
+                     'Necessita Desenvolvimento'}
+                  </p>
+                  <p className="text-xs text-accent-100 dark:text-accent-200 mt-2">
+                    Baseado na média das avaliações
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Step 2 Action Buttons */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0"
+            >
+              <div className="flex items-center space-x-2 text-sm">
+                {potentialItems.some(item => item.score === undefined) ? (
+                  <>
+                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 dark:text-amber-400 flex-shrink-0" />
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Complete todas as avaliações de potencial para enviar
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 dark:text-green-400 flex-shrink-0" />
+                    <span className="text-green-600 dark:text-green-400 font-medium">
+                      Avaliação completa! Pronto para enviar.
+                    </span>
+                  </>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                <Button
+                  variant="outline"
+                  onClick={handlePreviousStep}
+                  icon={<ArrowLeft size={18} />}
+                  size="lg"
+                  className="w-full sm:w-auto"
+                >
+                  Voltar
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleSave}
+                  icon={<Save size={18} />}
+                  size="lg"
+                  className="w-full sm:w-auto"
+                >
+                  Salvar Rascunho
+                </Button>
+                <Button
+                  variant="primary"
                   onClick={handleSubmit}
                   icon={<Send size={18} />}
                   size="lg"
-                  disabled={progress < 100}
+                  disabled={potentialItems.some(item => item.score === undefined)}
                   className="w-full sm:w-auto"
                 >
                   Enviar Avaliação
