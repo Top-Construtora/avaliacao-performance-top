@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { supabase } from '../lib/supabase';
 import { 
   Settings as SettingsIcon,
   User,
@@ -27,7 +28,7 @@ import {
 type SettingSection = 'profile' | 'preferences' | 'security';
 
 const Settings = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, updatePassword } = useAuth();
   const { theme, setTheme } = useTheme();
   
   const [activeSection, setActiveSection] = useState<SettingSection>('profile');
@@ -107,15 +108,30 @@ const Settings = () => {
 
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toast.success('Senha alterada com sucesso!');
+      // Primeiro, verifica a senha atual fazendo um re-login
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || '',
+        password: passwordForm.currentPassword
+      });
+
+      if (signInError) {
+        toast.error('Senha atual incorreta');
+        setIsLoading(false);
+        return;
+      }
+
+      // Se a senha atual está correta, atualiza para a nova senha
+      await updatePassword(passwordForm.newPassword);
+      
+      // Limpa o formulário
       setPasswordForm({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
-    } catch (error) {
-      toast.error('Erro ao alterar senha');
+    } catch (error: any) {
+      console.error('Erro ao alterar senha:', error);
+      toast.error(error.message || 'Erro ao alterar senha');
     } finally {
       setIsLoading(false);
     }
@@ -123,6 +139,7 @@ const Settings = () => {
 
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
     setTheme(newTheme);
+    toast.success(`Tema ${newTheme === 'light' ? 'claro' : 'escuro'} aplicado!`);
   };
 
   // Renderização das seções
@@ -329,14 +346,25 @@ const Settings = () => {
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
+              {passwordForm.newPassword && passwordForm.confirmPassword && (
+                <p className={`text-xs mt-1 ${
+                  passwordForm.newPassword === passwordForm.confirmPassword 
+                    ? 'text-green-600 dark:text-green-400' 
+                    : 'text-red-600 dark:text-red-400'
+                }`}>
+                  {passwordForm.newPassword === passwordForm.confirmPassword 
+                    ? '✓ As senhas coincidem' 
+                    : '✗ As senhas não coincidem'}
+                </p>
+              )}
             </div>
           </div>
           
-          <div className="mt-6">
+          <div className="mt-6 flex items-center justify-between">
             <Button
               variant="primary"
               onClick={handlePasswordChange}
-              disabled={isLoading || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword}
+              disabled={isLoading || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword || passwordForm.newPassword.length < 6}
               size="lg"
               icon={isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock size={16} />}
             >
