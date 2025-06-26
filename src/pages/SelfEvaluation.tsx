@@ -71,9 +71,9 @@ const SelfEvaluation = () => {
       id: 'competencias-tecnicas',
       title: 'Competências Técnicas',
       icon: Target,
-      gradient: 'from-primary-500 to-primary-600',
-      bgColor: 'bg-primary-50',
-      borderColor: 'border-primary-200',
+      gradient: 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
+      bgColor: 'bg-primary-50 dark:bg-primary-900/20',
+      borderColor: 'border-primary-200 dark:border-primary-700',
       items: [
         { id: 'gestao-conhecimento', name: 'GESTÃO DO CONHECIMENTO', description: 'Capacidade de adquirir, compartilhar e aplicar conhecimentos técnicos relevantes' },
         { id: 'orientacao-resultados', name: 'ORIENTAÇÃO A RESULTADOS COM SEGURANÇA', description: 'Foco em resultados com segurança e qualidade' },
@@ -85,9 +85,9 @@ const SelfEvaluation = () => {
       id: 'competencias-comportamentais',
       title: 'Competências Comportamentais',
       icon: Users,
-      gradient: 'from-secondary-500 to-secondary-600',
-      bgColor: 'bg-secondary-50',
-      borderColor: 'border-secondary-200',
+      gradient: 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
+      bgColor: 'bg-secondary-50 dark:bg-secondary-900/20',
+      borderColor: 'border-secondary-200 dark:border-secondary-700',
       items: [
         { id: 'comunicacao', name: 'COMUNICAÇÃO', description: 'Capacidade de se comunicar de forma clara e eficaz' },
         { id: 'inteligencia-emocional', name: 'INTELIGÊNCIA EMOCIONAL', description: 'Capacidade de reconhecer e gerenciar emoções próprias e dos outros' },
@@ -99,9 +99,9 @@ const SelfEvaluation = () => {
       id: 'competencias-organizacionais',
       title: 'Competências Organizacionais',
       icon: Building,
-      gradient: 'from-accent-500 to-accent-600',
-      bgColor: 'bg-accent-50',
-      borderColor: 'border-accent-200',
+      gradient: 'from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700',
+      bgColor: 'bg-accent-50 dark:bg-accent-900/20',
+      borderColor: 'border-accent-200 dark:border-accent-700',
       items: [
         { id: 'meritocracia-missao', name: 'MERITOCRACIA E MISSÃO COMPARTILHADA', description: 'Comprometimento com meritocracia e missão da empresa' },
         { id: 'espiral-passos', name: 'ESPIRAL DE PASSOS', description: 'Desenvolvimento contínuo e progressão estruturada' },
@@ -209,10 +209,10 @@ const SelfEvaluation = () => {
       title: 'Conhecimentos',
       subtitle: 'Sei falar sobre:',
       icon: Brain,
-      gradient: 'from-primary-500 to-primary-600',
-      bgColor: 'bg-primary-50',
-      borderColor: 'border-primary-200',
-      iconBg: 'bg-gradient-to-br from-primary-500 to-primary-600',
+      gradient: 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
+      bgColor: 'bg-primary-50 dark:bg-primary-900/20',
+      borderColor: 'border-primary-200 dark:border-primary-700',
+      iconBg: 'bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
       items: formData.conhecimentos
     },
     {
@@ -220,10 +220,10 @@ const SelfEvaluation = () => {
       title: 'Ferramentas',
       subtitle: 'Sei usar:',
       icon: Wrench,
-      gradient: 'from-secondary-500 to-secondary-600',
-      bgColor: 'bg-secondary-50',
-      borderColor: 'border-secondary-200',
-      iconBg: 'bg-gradient-to-br from-secondary-500 to-secondary-600',
+      gradient: 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
+      bgColor: 'bg-secondary-50 dark:bg-secondary-900/20',
+      borderColor: 'border-secondary-200 dark:border-secondary-700',
+      iconBg: 'bg-gradient-to-br from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
       items: formData.ferramentas
     },
     {
@@ -231,10 +231,10 @@ const SelfEvaluation = () => {
       title: 'Forças Internas',
       subtitle: 'Me sustentam:',
       icon: Shield,
-      gradient: 'from-accent-500 to-accent-600',
-      bgColor: 'bg-accent-50',
-      borderColor: 'border-accent-200',
-      iconBg: 'bg-gradient-to-br from-accent-500 to-accent-600',
+      gradient: 'from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700',
+      bgColor: 'bg-accent-50 dark:bg-accent-900/20',
+      borderColor: 'border-accent-200 dark:border-accent-700',
+      iconBg: 'bg-gradient-to-br from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700',
       items: formData.forcasInternas
     },
     {
@@ -242,10 +242,10 @@ const SelfEvaluation = () => {
       title: 'Qualidades',
       subtitle: 'Tenho para oferecer:',
       icon: Award,
-      gradient: 'from-primary-600 to-secondary-600',
-      bgColor: 'bg-gradient-to-br from-primary-50 to-secondary-50',
-      borderColor: 'border-primary-200',
-      iconBg: 'bg-gradient-to-br from-primary-600 to-secondary-600',
+      gradient: 'from-primary-600 to-secondary-600 dark:from-primary-700 dark:to-secondary-700',
+      bgColor: 'bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20',
+      borderColor: 'border-primary-200 dark:border-primary-700',
+      iconBg: 'bg-gradient-to-br from-primary-600 to-secondary-600 dark:from-primary-700 dark:to-secondary-700',
       items: formData.qualidades
     }
   ];
@@ -292,22 +292,22 @@ const SelfEvaluation = () => {
             <motion.div
               key={section.id}
               variants={itemVariants}
-              className={`bg-white rounded-xl sm:rounded-2xl shadow-sm border ${isCompleted ? section.borderColor : 'border-gray-100'} overflow-hidden transition-all duration-300`}
+              className={`bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border ${isCompleted ? section.borderColor : 'border-gray-100 dark:border-gray-700'} overflow-hidden transition-all duration-300`}
             >
               {/* Section Header */}
-              <div className={`px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${isCompleted ? section.bgColor : 'bg-gray-50'} border-b border-gray-100`}>
+              <div className={`px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${isCompleted ? section.bgColor : 'bg-gray-50 dark:bg-gray-700/50'} border-b border-gray-100 dark:border-gray-700`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3 sm:space-x-4">
                     <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${section.iconBg} shadow-md`}>
                       <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-lg sm:text-xl font-bold text-gray-800">{section.title}</h2>
-                      <p className="text-xs sm:text-sm text-gray-600">{section.subtitle}</p>
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100">{section.title}</h2>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{section.subtitle}</p>
                     </div>
                   </div>
                   {isCompleted && (
-                    <div className="flex items-center space-x-1 sm:space-x-2 text-green-600 bg-green-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                    <div className="flex items-center space-x-1 sm:space-x-2 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
                       <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span className="text-xs sm:text-sm font-medium hidden sm:inline">Completo</span>
                     </div>
@@ -331,7 +331,7 @@ const SelfEvaluation = () => {
                           type="text"
                           value={item}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField(section.id, index, e.target.value)}
-                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
                           placeholder={`Digite ${section.title.toLowerCase()} ${index + 1}...`}
                         />
                         {item.trim() && (
@@ -340,14 +340,14 @@ const SelfEvaluation = () => {
                             animate={{ scale: 1 }}
                             className="absolute right-2 sm:right-3 top-2 sm:top-3.5"
                           >
-                            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+                            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 dark:text-green-400" />
                           </motion.div>
                         )}
                       </div>
                       {section.items.length > 1 && (
                         <button
                           onClick={() => removeField(section.id, index)}
-                          className="p-1.5 sm:p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                          className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
                         >
                           <X className="h-4 w-4 sm:h-5 sm:w-5" />
                         </button>
@@ -359,7 +359,7 @@ const SelfEvaluation = () => {
                 {/* Add More Button */}
                 <button
                   onClick={() => addField(section.id)}
-                  className={`mt-3 sm:mt-4 flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl border-2 border-dashed ${isCompleted ? section.borderColor : 'border-gray-300'} text-gray-600 hover:text-gray-800 hover:border-gray-400 transition-all duration-200 group`}
+                  className={`mt-3 sm:mt-4 flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl border-2 border-dashed ${isCompleted ? section.borderColor : 'border-gray-300 dark:border-gray-600'} text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 group`}
                 >
                   <Plus className="h-3 w-3 sm:h-4 sm:w-4 group-hover:rotate-90 transition-transform duration-200" />
                   <span className="text-xs sm:text-sm font-medium">Adicionar mais</span>
@@ -372,25 +372,25 @@ const SelfEvaluation = () => {
         {/* Tips Section */}
         <motion.div
           variants={itemVariants}
-          className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-primary-100"
+          className="bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-primary-100 dark:border-primary-800"
         >
           <div className="flex items-start space-x-3">
-            <div className="p-2 bg-white rounded-lg shadow-sm">
-              <Info className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600" />
+            <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <Info className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 dark:text-primary-400" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base">Dicas para uma boa autoavaliação</h3>
-              <ul className="space-y-1 text-xs sm:text-sm text-gray-600">
+              <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-2 text-sm sm:text-base">Dicas para uma boa autoavaliação</h3>
+              <ul className="space-y-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 <li className="flex items-start">
-                  <span className="text-primary-500 mr-2">•</span>
+                  <span className="text-primary-500 dark:text-primary-400 mr-2">•</span>
                   <span>Seja específico e honesto sobre suas competências</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-primary-500 mr-2">•</span>
+                  <span className="text-primary-500 dark:text-primary-400 mr-2">•</span>
                   <span>Inclua tanto habilidades técnicas quanto comportamentais</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-primary-500 mr-2">•</span>
+                  <span className="text-primary-500 dark:text-primary-400 mr-2">•</span>
                   <span>Pense em situações reais onde aplicou essas habilidades</span>
                 </li>
               </ul>
@@ -415,12 +415,12 @@ const SelfEvaluation = () => {
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 order-1 sm:order-2">
             <span className="text-xs sm:text-sm text-center">
               {completedSections.size === sections.length ? (
-                <span className="flex items-center text-green-600">
+                <span className="flex items-center text-green-600 dark:text-green-400">
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Todas as seções completas!
                 </span>
               ) : (
-                `${sections.length - completedSections.size} seções pendentes`
+                <span className="text-gray-600 dark:text-gray-400">{sections.length - completedSections.size} seções pendentes</span>
               )}
             </span>
             <Button
@@ -429,7 +429,7 @@ const SelfEvaluation = () => {
               icon={<ArrowRight size={18} />}
               size="lg"
               disabled={completedSections.size !== sections.length}
-              className="bg-gradient-to-r from-primary-500 to-primary-600 w-full sm:w-auto"
+              className="bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 w-full sm:w-auto"
             >
               Próxima Etapa
             </Button>
@@ -457,7 +457,7 @@ const SelfEvaluation = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: categoryIndex * 0.1 }}
-            className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
           >
             <button
               onClick={() => toggleSection(category.id)}
@@ -469,24 +469,24 @@ const SelfEvaluation = () => {
                     <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div className="text-left">
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-800">{category.title}</h2>
-                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                    <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100">{category.title}</h2>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                       {category.items.filter(item => competencyScores[item.id] !== undefined).length} de {category.items.length} competências avaliadas
                     </p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-2 sm:space-x-4">
-                  <div className="w-16 sm:w-32 bg-gray-200 rounded-full h-2">
+                  <div className="w-16 sm:w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div 
                       className={`h-2 rounded-full bg-gradient-to-r ${category.gradient} transition-all duration-300`}
                       style={{ width: `${categoryProgress}%` }}
                     />
                   </div>
                   {isExpanded ? (
-                    <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                    <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" />
                   ) : (
-                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" />
                   )}
                 </div>
               </div>
@@ -511,16 +511,16 @@ const SelfEvaluation = () => {
                     >
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between space-y-2 sm:space-y-0">
                         <div className="flex-1 sm:mr-4">
-                          <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-1">{item.name}</h4>
-                          <p className="text-xs sm:text-sm text-gray-600">{item.description}</p>
+                          <h4 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">{item.name}</h4>
+                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{item.description}</p>
                         </div>
                         {competencyScores[item.id] && (
                           <div className="text-center">
                             <div className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
-                              competencyScores[item.id] >= 4 ? 'bg-green-100 text-green-800' :
-                              competencyScores[item.id] >= 3 ? 'bg-primary-100 text-primary-800' :
-                              competencyScores[item.id] >= 2 ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
+                              competencyScores[item.id] >= 4 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' :
+                              competencyScores[item.id] >= 3 ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300' :
+                              competencyScores[item.id] >= 2 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' :
+                              'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                             }`}>
                               Nota: {competencyScores[item.id]}
                             </div>
@@ -535,13 +535,13 @@ const SelfEvaluation = () => {
                             onClick={() => handleCompetencyScore(item.id, rating)}
                             className={`flex-1 py-3 sm:py-4 px-2 sm:px-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200 ${
                               competencyScores[item.id] === rating
-                                ? `${rating === 4 ? 'bg-green-500' : rating === 3 ? 'bg-primary-500' : rating === 2 ? 'bg-yellow-500' : 'bg-red-500'} text-white border-transparent shadow-lg transform scale-105`
-                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 bg-white'
+                                ? `${rating === 4 ? 'bg-green-500 dark:bg-green-600' : rating === 3 ? 'bg-primary-500 dark:bg-primary-600' : rating === 2 ? 'bg-yellow-500 dark:bg-yellow-600' : 'bg-red-500 dark:bg-red-600'} text-white border-transparent shadow-lg transform scale-105`
+                                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800'
                             }`}
                           >
                             <div className="text-center">
-                              <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
-                              <div className="text-xs">
+                              <div className={`text-xl sm:text-2xl font-bold mb-1 ${competencyScores[item.id] === rating ? 'text-white' : 'text-gray-800 dark:text-gray-100'}`}>{rating}</div>
+                              <div className={`text-xs ${competencyScores[item.id] === rating ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>
                                 {rating === 4 ? 'Excepcional' : rating === 3 ? 'Satisfatório' : rating === 2 ? 'Em Desenvolvimento' : 'Insatisfatório'}
                               </div>
                             </div>
@@ -577,12 +577,12 @@ const SelfEvaluation = () => {
         <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 order-1 sm:order-2">
           <span className="text-xs sm:text-sm text-center">
             {competencyProgress === 100 ? (
-              <span className="flex items-center text-green-600">
+              <span className="flex items-center text-green-600 dark:text-green-400">
                 <CheckCircle className="h-4 w-4 mr-1" />
                 Todas as competências avaliadas!
               </span>
             ) : (
-              `${Math.round(competencyProgress)}% completo`
+              <span className="text-gray-600 dark:text-gray-400">{Math.round(competencyProgress)}% completo</span>
             )}
           </span>
           <Button
@@ -591,7 +591,7 @@ const SelfEvaluation = () => {
             icon={<Save size={18} />}
             size="lg"
             disabled={competencyProgress < 100}
-            className="bg-gradient-to-r from-primary-500 to-primary-600 w-full sm:w-auto"
+            className="bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 w-full sm:w-auto"
           >
             Salvar Autoavaliação
           </Button>
@@ -606,25 +606,25 @@ const SelfEvaluation = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8"
+        className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
       >
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 sm:mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-3 sm:space-x-4 w-full lg:w-auto">
             <div className="flex-1 lg:flex-none">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
                 {currentStep === 'toolkit' ? (
                   <>
-                    <Pen className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-accent-500 mr-2 sm:mr-3" />
+                    <Pen className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-accent-500 dark:text-accent-400 mr-2 sm:mr-3" />
                     <span className="break-words">Meu Toolkit Profissional</span>
                   </>
                 ) : (
                   <>
-                    <Zap className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 mr-2 sm:mr-3" />
+                    <Zap className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3" />
                     <span className="break-words">Autoavaliação de Competências</span>
                   </>
                 )}
               </h1>
-              <p className="text-xs sm:text-sm lg:text-base text-gray-600 mt-1">
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
                 {currentStep === 'toolkit' 
                   ? 'Construa seu perfil de competências e habilidades'
                   : 'Avalie suas competências técnicas, comportamentais e organizacionais'
@@ -635,8 +635,8 @@ const SelfEvaluation = () => {
           
           <div className="flex items-center space-x-3 w-full lg:w-auto justify-end">
             <div className="text-right">
-              <p className="text-xs sm:text-sm text-gray-500">Progresso</p>
-              <p className="text-base sm:text-lg font-bold text-gray-800">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Progresso</p>
+              <p className="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-100">
                 {Math.round(currentStep === 'toolkit' ? toolkitProgress : competencyProgress)}%
               </p>
             </div>
@@ -649,6 +649,7 @@ const SelfEvaluation = () => {
                   stroke="#e5e7eb"
                   strokeWidth="4"
                   fill="none"
+                  className="dark:stroke-gray-700"
                 />
                 <circle
                   cx="50%"
@@ -673,19 +674,19 @@ const SelfEvaluation = () => {
 
         {/* Step Indicator */}
         <div className="flex items-center justify-center space-x-2 sm:space-x-4">
-          <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${currentStep === 'toolkit' ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-500'}`}>
-            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'toolkit' ? 'bg-primary-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+          <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${currentStep === 'toolkit' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'toolkit' ? 'bg-primary-500 dark:bg-primary-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>
               1
             </div>
             <span className="font-medium text-xs sm:text-sm hidden sm:inline">Toolkit Profissional</span>
           </div>
           
-          <div className="w-8 sm:w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
-            <div className={`h-full transition-all duration-500 ${currentStep === 'competencies' ? 'w-full bg-primary-500' : 'w-0'}`} />
+          <div className="w-8 sm:w-16 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className={`h-full transition-all duration-500 ${currentStep === 'competencies' ? 'w-full bg-primary-500 dark:bg-primary-600' : 'w-0'}`} />
           </div>
           
-          <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${currentStep === 'competencies' ? 'bg-secondary-100 text-secondary-700' : 'bg-gray-100 text-gray-500'}`}>
-            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'competencies' ? 'bg-secondary-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+          <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${currentStep === 'competencies' ? 'bg-secondary-100 dark:bg-secondary-900/30 text-secondary-700 dark:text-secondary-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'competencies' ? 'bg-secondary-500 dark:bg-secondary-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>
               2
             </div>
             <span className="font-medium text-xs sm:text-sm hidden sm:inline">Competências</span>
@@ -702,14 +703,14 @@ const SelfEvaluation = () => {
               return (
                 <div 
                   key={section.id} 
-                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border ${isCompleted ? section.borderColor : 'border-gray-200'} ${isCompleted ? section.bgColor : 'bg-gray-50'} transition-all duration-300`}
+                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border ${isCompleted ? section.borderColor : 'border-gray-200 dark:border-gray-600'} ${isCompleted ? section.bgColor : 'bg-gray-50 dark:bg-gray-700/50'} transition-all duration-300`}
                 >
                   <div className="flex items-center justify-between">
-                    <section.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${isCompleted ? 'text-gray-700' : 'text-gray-400'}`} />
-                    {isCompleted && <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />}
+                    <section.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${isCompleted ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`} />
+                    {isCompleted && <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 dark:text-green-400" />}
                   </div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-700 mt-1 sm:mt-2 break-words">{section.title}</p>
-                  <p className="text-xs text-gray-500">{filledItems} itens</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mt-1 sm:mt-2 break-words">{section.title}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{filledItems} itens</p>
                 </div>
               );
             })}
