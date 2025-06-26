@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -25,9 +25,14 @@ import {
   ChevronRight,
   FileText,
   Zap,
-  Pen
+  Pen,
+  AlertCircle
 } from 'lucide-react';
 import Button from '../components/Button';
+import { useEvaluation } from '../hooks/useEvaluation';
+import { useAuth } from '../context/AuthContext';
+import { EVALUATION_COMPETENCIES } from '../types/evaluation.types';
+import type { WrittenFeedback } from '../types/evaluation.types';
 
 interface SelfEvaluationData {
   conhecimentos: string[];
@@ -54,6 +59,9 @@ interface Section {
 
 const SelfEvaluation = () => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
+  const { currentCycle, saveSelfEvaluation, checkExistingEvaluation, loading } = useEvaluation();
+  
   const [currentStep, setCurrentStep] = useState<'toolkit' | 'competencies'>('toolkit');
   const [formData, setFormData] = useState<SelfEvaluationData>({
     conhecimentos: [''],
@@ -64,8 +72,21 @@ const SelfEvaluation = () => {
   const [competencyScores, setCompetencyScores] = useState<CompetencyScore>({});
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['competencias-tecnicas']));
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
+  const [hasExistingEvaluation, setHasExistingEvaluation] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Competency evaluation data structure
+  // Check for existing evaluation
+  useEffect(() => {
+    const checkExisting = async () => {
+      if (currentCycle && user) {
+        const exists = await checkExistingEvaluation(currentCycle.id, user.id, 'self');
+        setHasExistingEvaluation(exists);
+      }
+    };
+    checkExisting();
+  }, [currentCycle, user, checkExistingEvaluation]);
+
+  // Updated competency categories to match the new system
   const competencyCategories = [
     {
       id: 'competencias-tecnicas',
@@ -74,12 +95,11 @@ const SelfEvaluation = () => {
       gradient: 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
       bgColor: 'bg-primary-50 dark:bg-primary-900/20',
       borderColor: 'border-primary-200 dark:border-primary-700',
-      items: [
-        { id: 'gestao-conhecimento', name: 'GESTÃO DO CONHECIMENTO', description: 'Capacidade de adquirir, compartilhar e aplicar conhecimentos técnicos relevantes' },
-        { id: 'orientacao-resultados', name: 'ORIENTAÇÃO A RESULTADOS COM SEGURANÇA', description: 'Foco em resultados com segurança e qualidade' },
-        { id: 'pensamento-critico', name: 'PENSAMENTO CRÍTICO', description: 'Capacidade de analisar criticamente situações e propor soluções' },
-        { id: 'assertiva-provedora', name: 'ASSERTIVA E PROVEDORA', description: 'Comunicação assertiva e capacidade de prover soluções' }
-      ]
+      items: EVALUATION_COMPETENCIES.technical.map(comp => ({
+        id: comp.name.toLowerCase().replace(/\s+/g, '-'),
+        name: comp.name,
+        description: comp.description
+      }))
     },
     {
       id: 'competencias-comportamentais',
@@ -88,12 +108,11 @@ const SelfEvaluation = () => {
       gradient: 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
       bgColor: 'bg-secondary-50 dark:bg-secondary-900/20',
       borderColor: 'border-secondary-200 dark:border-secondary-700',
-      items: [
-        { id: 'comunicacao', name: 'COMUNICAÇÃO', description: 'Capacidade de se comunicar de forma clara e eficaz' },
-        { id: 'inteligencia-emocional', name: 'INTELIGÊNCIA EMOCIONAL', description: 'Capacidade de reconhecer e gerenciar emoções próprias e dos outros' },
-        { id: 'delegacao', name: 'DELEGAÇÃO', description: 'Habilidade de delegar tarefas de forma eficaz' },
-        { id: 'patrimonialista', name: 'PATRIMONIALISTA', description: 'Cuidado e responsabilidade com os recursos da empresa' }
-      ]
+      items: EVALUATION_COMPETENCIES.behavioral.map(comp => ({
+        id: comp.name.toLowerCase().replace(/\s+/g, '-'),
+        name: comp.name,
+        description: comp.description
+      }))
     },
     {
       id: 'competencias-organizacionais',
@@ -102,12 +121,11 @@ const SelfEvaluation = () => {
       gradient: 'from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700',
       bgColor: 'bg-accent-50 dark:bg-accent-900/20',
       borderColor: 'border-accent-200 dark:border-accent-700',
-      items: [
-        { id: 'meritocracia-missao', name: 'MERITOCRACIA E MISSÃO COMPARTILHADA', description: 'Comprometimento com meritocracia e missão da empresa' },
-        { id: 'espiral-passos', name: 'ESPIRAL DE PASSOS', description: 'Desenvolvimento contínuo e progressão estruturada' },
-        { id: 'planilhas-prazos', name: 'PLANILHAS E PRAZOS', description: 'Organização e cumprimento de prazos' },
-        { id: 'relacoes-construtivas', name: 'RELAÇÕES CONSTRUTIVAS', description: 'Construção de relacionamentos positivos e produtivos' }
-      ]
+      items: EVALUATION_COMPETENCIES.deliveries.map(comp => ({
+        id: comp.name.toLowerCase().replace(/\s+/g, '-'),
+        name: comp.name,
+        description: comp.description
+      }))
     }
   ];
 
@@ -179,7 +197,12 @@ const SelfEvaluation = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSave = (): void => {
+  const handleSave = async (): Promise<void> => {
+    if (!currentCycle || !user) {
+      toast.error('Ciclo de avaliação não encontrado');
+      return;
+    }
+
     // Check if all competencies are evaluated
     const totalCompetencies = competencyCategories.reduce((sum, category) => sum + category.items.length, 0);
     const evaluatedCompetencies = Object.keys(competencyScores).length;
@@ -194,14 +217,159 @@ const SelfEvaluation = () => {
       return acc;
     }, {} as SelfEvaluationData);
 
-    console.log('Autoavaliação completa:', {
-      toolkit: cleanedData,
-      competencies: competencyScores
-    });
-    
-    toast.success('Autoavaliação completa salva com sucesso!');
-    navigate('/');
+    // Prepare competencies for the new system
+    const competencies = competencyCategories.flatMap(category => 
+      category.items.map(item => {
+        const competency = EVALUATION_COMPETENCIES[
+          category.id === 'competencias-tecnicas' ? 'technical' : 
+          category.id === 'competencias-comportamentais' ? 'behavioral' : 'deliveries'
+        ].find(c => c.name === item.name);
+
+        return {
+          name: item.name,
+          description: item.description,
+          category: competency?.category || 'technical',
+          score: competencyScores[item.id] || 0,
+          written_response: ''
+        };
+      })
+    );
+
+    // Prepare written feedback from toolkit data
+    const writtenFeedback: WrittenFeedback = {
+      achievements: `Conhecimentos: ${cleanedData.conhecimentos.join(', ')}`,
+      challenges: `Ferramentas: ${cleanedData.ferramentas.join(', ')}`,
+      goals: `Forças Internas: ${cleanedData.forcasInternas.join(', ')}`,
+      development_areas: `Qualidades: ${cleanedData.qualidades.join(', ')}`,
+      additional_comments: ''
+    };
+
+    setIsSaving(true);
+    try {
+      await saveSelfEvaluation({
+        cycleId: currentCycle.id,
+        employeeId: user.id,
+        competencies,
+        writtenFeedback
+      });
+      
+      toast.success('Autoavaliação completa salva com sucesso!');
+      navigate('/');
+    } catch (error) {
+      toast.error('Erro ao salvar autoavaliação');
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  // Check if cycle is within valid dates
+  const isCycleInValidPeriod = () => {
+    if (!currentCycle) return false;
+    
+    const today = new Date();
+    const startDate = new Date(currentCycle.start_date);
+    const endDate = new Date(currentCycle.end_date);
+    
+    return today >= startDate && today <= endDate;
+  };
+
+  const getCyclePeriodMessage = () => {
+    if (!currentCycle) return null;
+    
+    const today = new Date();
+    const startDate = new Date(currentCycle.start_date);
+    const endDate = new Date(currentCycle.end_date);
+    
+    if (today < startDate) {
+      return {
+        type: 'warning',
+        message: `O período de avaliação iniciará em ${startDate.toLocaleDateString('pt-BR')}`
+      };
+    }
+    
+    if (today > endDate) {
+      return {
+        type: 'error',
+        message: `O período de avaliação encerrou em ${endDate.toLocaleDateString('pt-BR')}`
+      };
+    }
+    
+    const daysRemaining = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysRemaining <= 7) {
+      return {
+        type: 'warning',
+        message: `Atenção: ${daysRemaining} dias restantes para completar a avaliação`
+      };
+    }
+    
+    return null;
+  };
+
+  // Check if there's no active cycle or cycle is out of period
+  if (!currentCycle || !isCycleInValidPeriod()) {
+    const periodMessage = getCyclePeriodMessage();
+    
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 text-center">
+        <AlertCircle className="h-12 w-12 text-primary-500 dark:text-primary-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          {!currentCycle ? 'Nenhum ciclo de avaliação ativo' : 'Período de avaliação indisponível'}
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          {periodMessage?.message || 'Aguarde a abertura de um novo ciclo de avaliação.'}
+        </p>
+        {currentCycle && (
+          <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Ciclo:</strong> {currentCycle.title}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Período: {new Date(currentCycle.start_date).toLocaleDateString('pt-BR')} - {new Date(currentCycle.end_date).toLocaleDateString('pt-BR')}
+            </p>
+          </div>
+        )}
+        {profile?.is_director && (
+          <button
+            onClick={() => window.location.href = '/cycle-management'}
+            className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+          >
+            Gerenciar Ciclos
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Check if already evaluated
+  if (hasExistingEvaluation) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 text-center">
+        <CheckCircle className="h-12 w-12 text-green-500 dark:text-green-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          Autoavaliação já realizada
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          Você já completou sua autoavaliação para o ciclo: <strong>{currentCycle?.title}</strong>
+        </p>
+        <div className="space-y-2">
+          <button
+            onClick={() => window.location.href = '/'}
+            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors w-full sm:w-auto"
+          >
+            Voltar ao início
+          </button>
+          {profile?.is_leader && (
+            <button
+              onClick={() => window.location.href = '/leader-evaluation'}
+              className="px-4 py-2 bg-secondary-500 text-white rounded-lg hover:bg-secondary-600 transition-colors w-full sm:w-auto ml-0 sm:ml-2"
+            >
+              Avaliar Colaboradores
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const sections: Section[] = [
     {
@@ -590,10 +758,10 @@ const SelfEvaluation = () => {
             onClick={handleSave}
             icon={<Save size={18} />}
             size="lg"
-            disabled={competencyProgress < 100}
+            disabled={competencyProgress < 100 || isSaving || loading}
             className="bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 w-full sm:w-auto"
           >
-            Salvar Autoavaliação
+            {isSaving ? 'Salvando...' : 'Salvar Autoavaliação'}
           </Button>
         </div>
       </motion.div>
@@ -630,8 +798,25 @@ const SelfEvaluation = () => {
                   : 'Avalie suas competências técnicas, comportamentais e organizacionais'
                 }
               </p>
+              {currentCycle && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Ciclo: {currentCycle.title} | Prazo: {new Date(currentCycle.end_date).toLocaleDateString('pt-BR')}
+                </p>
+              )}
             </div>
           </div>
+          
+          {/* Period Alert */}
+          {getCyclePeriodMessage() && (
+            <div className={`mt-4 p-3 rounded-lg flex items-start space-x-2 ${
+              getCyclePeriodMessage()?.type === 'error' 
+                ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300' 
+                : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300'
+            }`}>
+              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <p className="text-sm">{getCyclePeriodMessage()?.message}</p>
+            </div>
+          )}
           
           <div className="flex items-center space-x-3 w-full lg:w-auto justify-end">
             <div className="text-right">

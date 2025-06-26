@@ -10,6 +10,7 @@ import {
   PieChart,
   Settings,
   LogOut,
+  RotateCcw,
   ChevronLeft,
   ChevronRight,
   UserCheck,
@@ -68,6 +69,12 @@ export default function Sidebar({
       label: 'Gerenciar Usuários',
       icon: Users,
       path: 'users',
+      allowedRoles: ['director'],
+    },
+    {
+      label: 'Gerenciar Ciclos',
+      icon: RotateCcw,
+      path: 'cycle',
       allowedRoles: ['director'],
     },
     {

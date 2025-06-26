@@ -21,6 +21,8 @@ import NotFound from './pages/NotFound';
 import NineBoxMatrix from './pages/NineBox';
 import NotificationHistory from './pages/NotificationHistory';
 import UserManagement from './pages/UserManagement';
+import EvaluationDashboard from './pages/EvaluationDashboard';
+import CycleManagement from './pages/CycleManagement';
 
 const USE_SUPABASE_AUTH = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
 
@@ -199,6 +201,24 @@ function App() {
                         <Consensus />
                       </ProtectedRoute>
                     } 
+                  />
+
+                  <Route 
+                    path="evaluation-dashboard/:cycleId"
+                    element={
+                      <ProtectedRoute allowedRoles={['director']}>
+                        <EvaluationDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  
+                  <Route 
+                    path="cycle"
+                    element={
+                      <ProtectedRoute allowedRoles={['director']}>
+                        <CycleManagement />
+                      </ProtectedRoute>
+                    }
                   />
                   
                   {/* Matriz 9-Box - Apenas Diretores */}

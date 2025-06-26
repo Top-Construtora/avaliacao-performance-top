@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEvaluation } from '../context/EvaluationContext';
+import { useEvaluation } from '../hooks/useEvaluation';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import Button from '../components/Button';
@@ -33,6 +33,8 @@ import {
   Building,
   Eye
 } from 'lucide-react';
+import { EVALUATION_COMPETENCIES } from '../types/evaluation.types';
+import type { WrittenFeedback } from '../types/evaluation.types';
 
 interface Section {
   id: string;
@@ -91,65 +93,40 @@ interface User {
 
 const LeaderEvaluation = () => {
   const navigate = useNavigate();
-  const { saveEvaluation } = useEvaluation();
+  const { currentCycle, saveLeaderEvaluation, checkExistingEvaluation, loadSubordinates, subordinates } = useEvaluation();
   const { profile } = useAuth();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [currentStep, setCurrentStep] = useState(1); // 1: Competências, 2: Potencial
-  const [subordinates, setSubordinates] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasExistingEvaluation, setHasExistingEvaluation] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
-  // Buscar subordinados do Supabase
+  // Load subordinates on mount
   useEffect(() => {
-    const fetchSubordinates = async () => {
-      if (!profile?.id) {
-        setLoading(false);
-        return;
-      }
+    const loadData = async () => {
+      setLoading(true);
+      await loadSubordinates();
+      setLoading(false);
+    };
+    loadData();
+  }, [loadSubordinates]);
 
-      try {
-        setLoading(true);
-        
-        let query = supabase.from('users').select('*');
-        
-        if (profile.is_director) {
-          // Diretores veem todos os usuários ativos (exceto eles mesmos e outros diretores)
-          query = query
-            .eq('active', true)
-            .eq('is_director', false)
-            .neq('id', profile.id);
-        } else if (profile.is_leader) {
-          // Líderes veem apenas seus subordinados diretos
-          query = query
-            .eq('active', true)
-            .eq('reports_to', profile.id);
-        } else {
-          // Colaboradores não veem ninguém
-          setSubordinates([]);
-          setLoading(false);
-          return;
+  // Check for existing evaluation when employee is selected
+  useEffect(() => {
+    const checkExisting = async () => {
+      if (currentCycle && selectedEmployeeId) {
+        const exists = await checkExistingEvaluation(currentCycle.id, selectedEmployeeId, 'leader');
+        setHasExistingEvaluation(exists);
+        if (exists) {
+          toast.error('Já existe uma avaliação para este colaborador neste ciclo');
+          setSelectedEmployeeId('');
         }
-        
-        const { data, error } = await query;
-        
-        if (error) {
-          console.error('Erro ao buscar subordinados:', error);
-          toast.error('Erro ao carregar subordinados');
-        } else {
-          console.log('Subordinados encontrados:', data);
-          setSubordinates(data || []);
-        }
-      } catch (error) {
-        console.error('Erro:', error);
-        toast.error('Erro ao carregar dados');
-      } finally {
-        setLoading(false);
       }
     };
-
-    fetchSubordinates();
-  }, [profile]);
+    checkExisting();
+  }, [currentCycle, selectedEmployeeId, checkExistingEvaluation]);
   
   const [scores, setScores] = useState<Scores>({
     technical: 0,
@@ -178,32 +155,12 @@ const LeaderEvaluation = () => {
       darkBgColor: 'dark:bg-primary-900/20',
       borderColor: 'border-primary-200',
       darkBorderColor: 'dark:border-primary-700',
-      items: [
-        { 
-          id: 'tech1', 
-          name: 'Gestão de Conhecimento',
-          description: 'Capacidade de adquirir, compartilhar e aplicar conhecimentos técnicos relevantes',
-          score: undefined 
-        },
-        { 
-          id: 'tech2', 
-          name: 'Segurança e Resultados',
-          description: 'Foco em segurança do trabalho e entrega de resultados com qualidade',
-          score: undefined 
-        },
-        { 
-          id: 'tech3', 
-          name: 'Pensamento Crítico',
-          description: 'Habilidade de analisar situações e tomar decisões fundamentadas',
-          score: undefined 
-        },
-        { 
-          id: 'tech4', 
-          name: 'Assertiva e Provedora',
-          description: 'Comunicação clara e capacidade de prover soluções efetivas',
-          score: undefined 
-        }
-      ]
+      items: EVALUATION_COMPETENCIES.technical.map(comp => ({
+        id: comp.name.toLowerCase().replace(/\s+/g, '-'),
+        name: comp.name,
+        description: comp.description,
+        score: undefined
+      }))
     },
     {
       id: 'behavioral',
@@ -217,32 +174,12 @@ const LeaderEvaluation = () => {
       darkBgColor: 'dark:bg-secondary-900/20',
       borderColor: 'border-secondary-200',
       darkBorderColor: 'dark:border-secondary-700',
-      items: [
-        { 
-          id: 'beh1', 
-          name: 'Comunicação',
-          description: 'Capacidade de transmitir informações de forma clara e eficaz',
-          score: undefined 
-        },
-        { 
-          id: 'beh2', 
-          name: 'Inteligência Emocional',
-          description: 'Habilidade de gerenciar emoções próprias e compreender as dos outros',
-          score: undefined 
-        },
-        { 
-          id: 'beh3', 
-          name: 'Delegação',
-          description: 'Capacidade de distribuir tarefas adequadamente e empoderar a equipe',
-          score: undefined 
-        },
-        { 
-          id: 'beh4', 
-          name: 'Patrimonialista',
-          description: 'Cuidado e responsabilidade com os recursos da empresa',
-          score: undefined 
-        }
-      ]
+      items: EVALUATION_COMPETENCIES.behavioral.map(comp => ({
+        id: comp.name.toLowerCase().replace(/\s+/g, '-'),
+        name: comp.name,
+        description: comp.description,
+        score: undefined
+      }))
     },
     {
       id: 'organizational',
@@ -256,32 +193,12 @@ const LeaderEvaluation = () => {
       darkBgColor: 'dark:bg-accent-900/20',
       borderColor: 'border-accent-200',
       darkBorderColor: 'dark:border-accent-700',
-      items: [
-        { 
-          id: 'org1', 
-          name: 'Meritocracia e Missão Compartilhada',
-          description: 'Reconhecimento por mérito e alinhamento com os valores da empresa',
-          score: undefined 
-        },
-        { 
-          id: 'org2', 
-          name: 'Espiral de Passos',
-          description: 'Desenvolvimento contínuo e progressão estruturada',
-          score: undefined 
-        },
-        { 
-          id: 'org3', 
-          name: 'Planilhas e Prazos',
-          description: 'Organização, controle e cumprimento de prazos estabelecidos',
-          score: undefined 
-        },
-        { 
-          id: 'org4', 
-          name: 'Relações Construtivas',
-          description: 'Construção de relacionamentos positivos e produtivos',
-          score: undefined 
-        }
-      ]
+      items: EVALUATION_COMPETENCIES.deliveries.map(comp => ({
+        id: comp.name.toLowerCase().replace(/\s+/g, '-'),
+        name: comp.name,
+        description: comp.description,
+        score: undefined
+      }))
     }
   ]);
 
@@ -435,61 +352,67 @@ const LeaderEvaluation = () => {
     }
   };
 
-  const handleSave = () => {
-    if (!selectedEmployeeId) {
-      toast.error('Selecione um colaborador para continuar');
+  const handleSave = async () => {
+    if (!currentCycle || !selectedEmployeeId || !profile?.id) {
+      toast.error('Dados incompletos para salvar');
       return;
     }
 
-    const allCriteria = sections.flatMap(section => 
+    // Save as draft - only save what's been filled so far
+    const competencies = sections.flatMap(section => 
       section.items
         .filter(item => item.score !== undefined)
-        .map(item => ({
-          id: item.id,
-          name: item.name,
-          description: item.description,
-          category: (section.id === 'technical' ? 'technical' : 
-                    section.id === 'behavioral' ? 'behavioral' : 'deliveries') as 'technical' | 'behavioral' | 'deliveries',
-          score: item.score!
-        }))
+        .map(item => {
+          const originalComp = EVALUATION_COMPETENCIES[
+            section.id === 'technical' ? 'technical' : 
+            section.id === 'behavioral' ? 'behavioral' : 'deliveries'
+          ].find(c => c.name === item.name);
+          
+          return {
+            name: item.name,
+            description: item.description,
+            category: originalComp?.category || 'technical',
+            score: item.score!
+          };
+        })
     );
 
-    const evaluation = {
-      id: `leader-eval-${Date.now()}`,
-      employeeId: selectedEmployeeId,
-      evaluatorId: profile?.id || 'unknown',
-      date: new Date().toISOString().split('T')[0],
-      status: 'in-progress' as const,
-      criteria: allCriteria,
-      feedback: {
-        strengths: '',
-        improvements: '',
-        observations: ''
-      },
-      technicalScore: scores.technical,
-      behavioralScore: scores.behavioral,
-      deliveriesScore: scores.organizational,
-      finalScore: scores.final,
-      lastUpdated: new Date().toISOString().split('T')[0],
-      isDraft: true,
-      // Adicionar dados de potencial se estiverem preenchidos
-      potential: {
-        items: potentialItems.filter(item => item.score !== undefined).map(item => ({
-          id: item.id,
-          name: item.name,
-          score: item.score!
-        })),
-        scores: potentialScores
-      }
-    };
+    if (competencies.length === 0) {
+      toast.error('Avalie pelo menos uma competência antes de salvar');
+      return;
+    }
 
-    saveEvaluation(evaluation);
-    toast.success('Avaliação salva como rascunho');
+    // Calculate potential score if we have any potential items scored
+    const potentialScore = potentialItems.some(item => item.score !== undefined) 
+      ? potentialScores.final 
+      : undefined;
+
+    setIsSaving(true);
+    try {
+      await saveLeaderEvaluation({
+        cycleId: currentCycle.id,
+        employeeId: selectedEmployeeId,
+        evaluatorId: profile.id,
+        competencies,
+        potentialScore: potentialScore || 0,
+        feedback: {
+          strengths: '',
+          improvements: '',
+          observations: 'Avaliação salva como rascunho'
+        }
+      });
+      
+      toast.success('Avaliação salva como rascunho');
+    } catch (error) {
+      toast.error('Erro ao salvar avaliação');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleSubmit = () => {
-    if (!selectedEmployeeId) {
-      toast.error('Selecione um colaborador para continuar');
+  const handleSubmit = async () => {
+    if (!currentCycle || !selectedEmployeeId || !profile?.id) {
+      toast.error('Dados incompletos para enviar');
       return;
     }
     
@@ -504,55 +427,129 @@ const LeaderEvaluation = () => {
       return;
     }
 
-    const allCriteria = sections.flatMap(section => 
-      section.items.map(item => ({
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        category: (section.id === 'technical' ? 'technical' : 
-                  section.id === 'behavioral' ? 'behavioral' : 'deliveries') as 'technical' | 'behavioral' | 'deliveries',
-        score: item.score!
-      }))
+    // Prepare competencies for the new system
+    const competencies = sections.flatMap(section => 
+      section.items.map(item => {
+        const originalComp = EVALUATION_COMPETENCIES[
+          section.id === 'technical' ? 'technical' : 
+          section.id === 'behavioral' ? 'behavioral' : 'deliveries'
+        ].find(c => c.name === item.name);
+        
+        return {
+          name: item.name,
+          description: item.description,
+          category: originalComp?.category || 'technical',
+          score: item.score!
+        };
+      })
     );
 
-    const evaluation = {
-      id: `leader-eval-${Date.now()}`,
-      employeeId: selectedEmployeeId,
-      evaluatorId: profile?.id || 'unknown',
-      date: new Date().toISOString().split('T')[0],
-      status: 'completed' as const,
-      criteria: allCriteria,
-      feedback: {
-        strengths: '',
-        improvements: '',
-        observations: ''
-      },
-      technicalScore: scores.technical,
-      behavioralScore: scores.behavioral,
-      deliveriesScore: scores.organizational,
-      finalScore: scores.final,
-      lastUpdated: new Date().toISOString().split('T')[0],
-      isDraft: false,
-      // Dados de potencial completos
-      potential: {
-        items: potentialItems.map(item => ({
-          id: item.id,
-          name: item.name,
-          score: item.score!
-        })),
-        scores: potentialScores
-      }
-    };
-
-    saveEvaluation(evaluation);
-    setShowSuccess(true);
-    setTimeout(() => {
-      navigate('/');
-    }, 2000);
+    setIsSaving(true);
+    try {
+      await saveLeaderEvaluation({
+        cycleId: currentCycle.id,
+        employeeId: selectedEmployeeId,
+        evaluatorId: profile.id,
+        competencies,
+        potentialScore: potentialScores.final,
+        feedback: {
+          strengths: 'Avaliação completa',
+          improvements: '',
+          observations: `Potencial: ${potentialItems.map(item => `${item.name}: ${item.score}`).join(', ')}`
+        }
+      });
+      
+      setShowSuccess(true);
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+    } catch (error) {
+      toast.error('Erro ao enviar avaliação');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const selectedEmployee = subordinates.find(emp => emp.id === selectedEmployeeId);
   const progress = getProgress();
+
+  // Check if cycle is within valid dates
+  const isCycleInValidPeriod = () => {
+    if (!currentCycle) return false;
+    
+    const today = new Date();
+    const startDate = new Date(currentCycle.start_date);
+    const endDate = new Date(currentCycle.end_date);
+    
+    return today >= startDate && today <= endDate;
+  };
+
+  const getCyclePeriodMessage = () => {
+    if (!currentCycle) return null;
+    
+    const today = new Date();
+    const startDate = new Date(currentCycle.start_date);
+    const endDate = new Date(currentCycle.end_date);
+    
+    if (today < startDate) {
+      return {
+        type: 'warning',
+        message: `O período de avaliação iniciará em ${startDate.toLocaleDateString('pt-BR')}`
+      };
+    }
+    
+    if (today > endDate) {
+      return {
+        type: 'error',
+        message: `O período de avaliação encerrou em ${endDate.toLocaleDateString('pt-BR')}`
+      };
+    }
+    
+    const daysRemaining = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysRemaining <= 7) {
+      return {
+        type: 'warning',
+        message: `Atenção: ${daysRemaining} dias restantes para completar as avaliações`
+      };
+    }
+    
+    return null;
+  };
+
+  // Check if there's no active cycle or cycle is out of period
+  if (!currentCycle || !isCycleInValidPeriod()) {
+    const periodMessage = getCyclePeriodMessage();
+    
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 text-center">
+        <AlertCircle className="h-12 w-12 text-primary-500 dark:text-primary-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          {!currentCycle ? 'Nenhum ciclo de avaliação ativo' : 'Período de avaliação indisponível'}
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          {periodMessage?.message || 'Aguarde a abertura de um novo ciclo de avaliação.'}
+        </p>
+        {currentCycle && (
+          <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Ciclo:</strong> {currentCycle.title}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Período: {new Date(currentCycle.start_date).toLocaleDateString('pt-BR')} - {new Date(currentCycle.end_date).toLocaleDateString('pt-BR')}
+            </p>
+          </div>
+        )}
+        {profile?.is_director && (
+          <button
+            onClick={() => window.location.href = '/cycle-management'}
+            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+          >
+            Gerenciar Ciclos
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -572,8 +569,25 @@ const LeaderEvaluation = () => {
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
                 {currentStep === 1 ? 'Etapa 1: Avalie as competências' : 'Etapa 2: Avalie o potencial'}
               </p>
+              {currentCycle && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Ciclo: {currentCycle.title} | Prazo: {new Date(currentCycle.end_date).toLocaleDateString('pt-BR')}
+                </p>
+              )}
             </div>
           </div>
+
+          {/* Period Alert */}
+          {getCyclePeriodMessage() && (
+            <div className={`mt-4 p-3 rounded-lg flex items-start space-x-2 ${
+              getCyclePeriodMessage()?.type === 'error' 
+                ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300' 
+                : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300'
+            }`}>
+              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <p className="text-sm">{getCyclePeriodMessage()?.message}</p>
+            </div>
+          )}
 
           {/* Progress Indicator */}
           <div className="flex items-center space-x-3 flex-shrink-0">
@@ -645,6 +659,7 @@ const LeaderEvaluation = () => {
                 value={selectedEmployeeId}
                 onChange={(e) => setSelectedEmployeeId(e.target.value)}
                 className="w-full px-4 py-3 pl-12 pr-10 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 text-sm sm:text-base appearance-none text-gray-700 dark:text-gray-200"
+                disabled={loading}
               >
                 <option value="">Escolha um colaborador...</option>
                 {loading ? (
@@ -689,7 +704,11 @@ const LeaderEvaluation = () => {
                   Departamento
                 </label>
                 <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-200 text-sm">
-                  {selectedEmployee.department || 'Não definido'}
+                  {Array.isArray(selectedEmployee.departments)
+                    ? selectedEmployee.departments.length > 0
+                      ? selectedEmployee.departments.map(dep => dep.name).join(', ')
+                      : 'Não definido'
+                    : selectedEmployee.departments || 'Não definido'}
                 </div>
               </div>
               <div>
@@ -938,10 +957,10 @@ const LeaderEvaluation = () => {
                   onClick={handleSave}
                   icon={<Save size={18} />}
                   size="lg"
-                  disabled={progress === 0}
+                  disabled={progress === 0 || isSaving || loading}
                   className="w-full sm:w-auto"
                 >
-                  Salvar Rascunho
+                  {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
                 </Button>
                 <Button
                   variant="primary"
@@ -1165,19 +1184,20 @@ const LeaderEvaluation = () => {
                   onClick={handleSave}
                   icon={<Save size={18} />}
                   size="lg"
+                  disabled={isSaving || loading}
                   className="w-full sm:w-auto"
                 >
-                  Salvar Rascunho
+                  {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
                 </Button>
                 <Button
                   variant="primary"
                   onClick={handleSubmit}
                   icon={<Send size={18} />}
                   size="lg"
-                  disabled={potentialItems.some(item => item.score === undefined)}
+                  disabled={potentialItems.some(item => item.score === undefined) || isSaving || loading}
                   className="w-full sm:w-auto"
                 >
-                  Enviar Avaliação
+                  {isSaving ? 'Enviando...' : 'Enviar Avaliação'}
                 </Button>
               </div>
             </motion.div>
