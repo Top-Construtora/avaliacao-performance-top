@@ -14,7 +14,7 @@ import LeaderEvaluation from './pages/LeaderEvaluation';
 import NineBoxGuide from './pages/NineBoxGuide';
 import UserRegistration from './pages/UserRegistration';
 import Consensus from './pages/Consensus';
-import ActionPlan from './pages/ActionPlan';
+import ActionPlan, { PDIList } from './pages/ActionPlan';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
@@ -89,7 +89,7 @@ function App() {
                   <Route path="action-plan" element={<ActionPlan />} />
                   <Route path="reports" element={<Reports />} />
                   <Route path="settings" element={<Settings />} />
-                  <Route path="users" element={<UserManagement />} /> 
+                  <Route path="users" element={<UserManagement />} />
                   <Route path="/notifications" element={<NotificationHistory />} />
                   <Route path="users/new" element={<UserRegistration />} />
                   <Route path="*" element={<NotFound />} />
@@ -202,7 +202,15 @@ function App() {
                       </ProtectedRoute>
                     } 
                   />
-
+                  <Route
+                    path='pdis'
+                    element={
+                      <ProtectedRoute allowedRoles={['director']}>
+                        <PDIList/>
+                      </ProtectedRoute>
+                    }
+                  />
+                  
                   <Route 
                     path="evaluation-dashboard/:cycleId"
                     element={
@@ -210,8 +218,8 @@ function App() {
                         <EvaluationDashboard />
                       </ProtectedRoute>
                     }
-                  />
-                  
+                    />
+                    
                   <Route 
                     path="cycle"
                     element={
