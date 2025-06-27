@@ -31,7 +31,14 @@ import {
   Download,
   FileSpreadsheet,
   StickyNote,
-  FileDown
+  FileDown,
+  Grid3x3,
+  Star,
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  Trash2
 } from 'lucide-react';
 
 interface ActionItem {
@@ -45,21 +52,29 @@ interface ActionItem {
 }
 
 interface ActionPlanData {
+  id?: string;
+  colaboradorId: string;
   colaborador: string;
   cargo: string;
   departamento: string;
   periodo: string;
+  nineBoxQuadrante?: string;
+  nineBoxDescricao?: string;
   curtosPrazos: ActionItem[];
   mediosPrazos: ActionItem[];
   longosPrazos: ActionItem[];
+  dataCriacao?: string;
+  dataAtualizacao?: string;
 }
 
+// Componente principal do PDI
 const ActionPlan = () => {
   const navigate = useNavigate();
-  const { employees } = useEvaluation();
+  const { employees, getNineBoxByEmployeeId, savePDI } = useEvaluation();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['curtosPrazos']));
   const [planData, setPlanData] = useState<ActionPlanData>({
+    colaboradorId: '',
     colaborador: '',
     cargo: '',
     departamento: '',
@@ -70,18 +85,55 @@ const ActionPlan = () => {
   });
 
   const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
+  const employeeNineBox = getNineBoxByEmployeeId(selectedEmployeeId);
 
   useEffect(() => {
     if (selectedEmployee) {
       setPlanData(prev => ({
         ...prev,
+        colaboradorId: selectedEmployee.id,
         colaborador: selectedEmployee.name,
         cargo: selectedEmployee.position,
         departamento: selectedEmployee.department,
-        periodo: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`
+        periodo: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
+        nineBoxQuadrante: employeeNineBox?.quadrant,
+        nineBoxDescricao: getQuadrantDescription(employeeNineBox?.quadrant)
       }));
     }
-  }, [selectedEmployee]);
+  }, [selectedEmployee, employeeNineBox]);
+
+  const getQuadrantDescription = (quadrant?: string) => {
+    const descriptions: Record<string, string> = {
+      'A1': 'Alto Potencial - Alto Desempenho',
+      'A2': 'Alto Potencial - Médio Desempenho',
+      'A3': 'Alto Potencial - Baixo Desempenho',
+      'B1': 'Médio Potencial - Alto Desempenho',
+      'B2': 'Médio Potencial - Médio Desempenho',
+      'B3': 'Médio Potencial - Baixo Desempenho',
+      'C1': 'Baixo Potencial - Alto Desempenho',
+      'C2': 'Baixo Potencial - Médio Desempenho',
+      'C3': 'Baixo Potencial - Baixo Desempenho'
+    };
+    return quadrant ? descriptions[quadrant] || 'Não avaliado' : 'Não avaliado';
+  };
+
+  const getQuadrantColor = (quadrant?: string) => {
+    if (!quadrant) return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+    
+    const colors: Record<string, string> = {
+      'A1': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+      'A2': 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400',
+      'A3': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+      'B1': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+      'B2': 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
+      'B3': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+      'C1': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+      'C2': 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400',
+      'C3': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+    };
+    
+    return colors[quadrant] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+  };
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => {
@@ -145,260 +197,16 @@ const ActionPlan = () => {
       return;
     }
 
-    toast.success('Plano de Desenvolvimento salvo com sucesso!');
-    navigate('/reports');
-  };
-
-  const exportToPDF = () => {
-    if (!selectedEmployeeId || (planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length) === 0) {
-      toast.error('Adicione itens ao PDI antes de exportar');
-      return;
-    }
-
-    // Criar conteúdo HTML para o PDF
-    const pdfContent = `
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { color: #1e6076; }
-            h2 { color: #12b0a0; margin-top: 30px; }
-            h3 { color: #333; margin-top: 20px; }
-            .header { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
-            .item { background: #f9f9f9; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #12b0a0; }
-            .field { margin: 10px 0; }
-            .label { font-weight: bold; color: #555; }
-            .status { display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 12px; }
-            .status-1 { background: #f3f4f6; color: #374151; }
-            .status-2 { background: #dbeafe; color: #1e40af; }
-            .status-3 { background: #fef3c7; color: #92400e; }
-            .status-4 { background: #fed7aa; color: #c2410c; }
-            .status-5 { background: #d1fae5; color: #065f46; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>Plano de Desenvolvimento Individual - ${planData.colaborador}</h1>
-            <p><strong>Cargo:</strong> ${planData.cargo}</p>
-            <p><strong>Departamento:</strong> ${planData.departamento}</p>
-            <p><strong>Período:</strong> ${planData.periodo}</p>
-          </div>
-          
-          ${planData.curtosPrazos.length > 0 ? `
-            <h2>📚 Curto Prazo (0-6 meses)</h2>
-            ${planData.curtosPrazos.map((item, index) => `
-              <div class="item">
-                <h3>${index + 1}. ${item.competencia || 'Competência não definida'}</h3>
-                <div class="field"><span class="label">Calendarização:</span> ${item.calendarizacao || 'A definir'}</div>
-                <div class="field"><span class="label">Como desenvolver:</span> ${item.comoDesenvolver || 'A definir'}</div>
-                <div class="field"><span class="label">Resultados Esperados:</span> ${item.resultadosEsperados || 'A definir'}</div>
-                <div class="field">
-                  <span class="label">Status:</span> 
-                  <span class="status status-${item.status}">${statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado'}</span>
-                </div>
-                ${item.observacao ? `<div class="field"><span class="label">Observações:</span> ${item.observacao}</div>` : ''}
-              </div>
-            `).join('')}
-          ` : ''}
-          
-          ${planData.mediosPrazos.length > 0 ? `
-            <h2>🎯 Médio Prazo (6-12 meses)</h2>
-            ${planData.mediosPrazos.map((item, index) => `
-              <div class="item">
-                <h3>${index + 1}. ${item.competencia || 'Competência não definida'}</h3>
-                <div class="field"><span class="label">Calendarização:</span> ${item.calendarizacao || 'A definir'}</div>
-                <div class="field"><span class="label">Como desenvolver:</span> ${item.comoDesenvolver || 'A definir'}</div>
-                <div class="field"><span class="label">Resultados Esperados:</span> ${item.resultadosEsperados || 'A definir'}</div>
-                <div class="field">
-                  <span class="label">Status:</span> 
-                  <span class="status status-${item.status}">${statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado'}</span>
-                </div>
-                ${item.observacao ? `<div class="field"><span class="label">Observações:</span> ${item.observacao}</div>` : ''}
-              </div>
-            `).join('')}
-          ` : ''}
-          
-          ${planData.longosPrazos.length > 0 ? `
-            <h2>🚀 Longo Prazo (12-24 meses)</h2>
-            ${planData.longosPrazos.map((item, index) => `
-              <div class="item">
-                <h3>${index + 1}. ${item.competencia || 'Competência não definida'}</h3>
-                <div class="field"><span class="label">Calendarização:</span> ${item.calendarizacao || 'A definir'}</div>
-                <div class="field"><span class="label">Como desenvolver:</span> ${item.comoDesenvolver || 'A definir'}</div>
-                <div class="field"><span class="label">Resultados Esperados:</span> ${item.resultadosEsperados || 'A definir'}</div>
-                <div class="field">
-                  <span class="label">Status:</span> 
-                  <span class="status status-${item.status}">${statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado'}</span>
-                </div>
-                ${item.observacao ? `<div class="field"><span class="label">Observações:</span> ${item.observacao}</div>` : ''}
-              </div>
-            `).join('')}
-          ` : ''}
-        </body>
-      </html>
-    `;
-
-    // Criar blob e download
-    const blob = new Blob([pdfContent], { type: 'text/html' });
-    const url = window.URL.createObjectURL(blob);
-    const printWindow = window.open(url, '_blank');
-    
-    if (printWindow) {
-      printWindow.onload = () => {
-        printWindow.print();
-        window.URL.revokeObjectURL(url);
-      };
-    }
-    
-    toast.success('PDI preparado para impressão/PDF!');
-  };
-
-  const exportToExcel = () => {
-    if (!selectedEmployeeId || (planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length) === 0) {
-      toast.error('Adicione itens ao PDI antes de exportar');
-      return;
-    }
-
-    // Preparar dados para CSV
-    const csvHeaders = ['Prazo', 'Competência', 'Calendarização', 'Como Desenvolver', 'Resultados Esperados', 'Status', 'Observações'];
-    const csvRows = [];
-
-    // Adicionar informações do colaborador
-    csvRows.push(['PDI - ' + planData.colaborador]);
-    csvRows.push(['Cargo: ' + planData.cargo]);
-    csvRows.push(['Departamento: ' + planData.departamento]);
-    csvRows.push(['Período: ' + planData.periodo]);
-    csvRows.push([]); // linha vazia
-    csvRows.push(csvHeaders);
-
-    // Adicionar dados de curto prazo
-    planData.curtosPrazos.forEach(item => {
-      csvRows.push([
-        'Curto Prazo (0-6 meses)',
-        item.competencia || 'A definir',
-        item.calendarizacao || 'A definir',
-        item.comoDesenvolver || 'A definir',
-        item.resultadosEsperados || 'A definir',
-        statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado',
-        item.observacao || ''
-      ]);
-    });
-
-    // Adicionar dados de médio prazo
-    planData.mediosPrazos.forEach(item => {
-      csvRows.push([
-        'Médio Prazo (6-12 meses)',
-        item.competencia || 'A definir',
-        item.calendarizacao || 'A definir',
-        item.comoDesenvolver || 'A definir',
-        item.resultadosEsperados || 'A definir',
-        statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado',
-        item.observacao || ''
-      ]);
-    });
-
-    // Adicionar dados de longo prazo
-    planData.longosPrazos.forEach(item => {
-      csvRows.push([
-        'Longo Prazo (12-24 meses)',
-        item.competencia || 'A definir',
-        item.calendarizacao || 'A definir',
-        item.comoDesenvolver || 'A definir',
-        item.resultadosEsperados || 'A definir',
-        statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado',
-        item.observacao || ''
-      ]);
-    });
-
-    // Converter para CSV
-    const csvContent = csvRows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-    const BOM = '\uFEFF';
-    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-    
-    // Criar link de download
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `PDI_${planData.colaborador.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast.success('PDI exportado para Excel com sucesso!');
-  };
-
-  const exportToNotion = () => {
-    if (!selectedEmployeeId || (planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length) === 0) {
-      toast.error('Adicione itens ao PDI antes de exportar');
-      return;
-    }
-
-    const notionFormat = generateNotionFormat();
-    
-    // Copia o formato Notion para a área de transferência
-    navigator.clipboard.writeText(notionFormat).then(() => {
-      toast.success('PDI copiado! Cole no Notion usando Ctrl+V (ou Cmd+V)');
-      
-      // Mostrar instruções adicionais
-      toast((t) => (
-        <div>
-          <p className="font-medium mb-2">Instruções para colar no Notion:</p>
-          <ol className="text-sm space-y-1">
-            <li>1. Abra o Notion</li>
-            <li>2. Crie uma nova página ou abra uma existente</li>
-            <li>3. Cole o conteúdo (Ctrl+V ou Cmd+V)</li>
-            <li>4. O Notion formatará automaticamente!</li>
-          </ol>
-          <button 
-            onClick={() => toast.dismiss(t.id)}
-            className="mt-3 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >
-            Fechar
-          </button>
-        </div>
-      ), {
-        duration: 10000,
-        position: 'top-center',
-      });
-    }).catch(() => {
-      toast.error('Erro ao copiar para a área de transferência');
-    });
-  };
-
-  const generateNotionFormat = () => {
-    let notionText = `# PDI - ${planData.colaborador}\n\n`;
-    notionText += `**Cargo:** ${planData.cargo}\n`;
-    notionText += `**Departamento:** ${planData.departamento}\n`;
-    notionText += `**Período:** ${planData.periodo}\n\n`;
-
-    const formatCategory = (title: string, items: ActionItem[]) => {
-      let text = `## ${title}\n\n`;
-      items.forEach((item, index) => {
-        text += `### ${index + 1}. ${item.competencia}\n`;
-        text += `**Calendarização:** ${item.calendarizacao || 'A definir'}\n`;
-        text += `**Como desenvolver:** ${item.comoDesenvolver || 'A definir'}\n`;
-        text += `**Resultados Esperados:** ${item.resultadosEsperados || 'A definir'}\n`;
-        text += `**Status:** ${statusOptions.find(s => s.value === item.status)?.label || 'Não iniciado'}\n`;
-        if (item.observacao) {
-          text += `**Observações:** ${item.observacao}\n`;
-        }
-        text += '\n';
-      });
-      return text;
+    const pdiToSave = {
+      ...planData,
+      id: planData.id || Date.now().toString(),
+      dataCriacao: planData.dataCriacao || new Date().toISOString(),
+      dataAtualizacao: new Date().toISOString()
     };
 
-    if (planData.curtosPrazos.length > 0) {
-      notionText += formatCategory('📚 Curto Prazo (0-6 meses)', planData.curtosPrazos);
-    }
-    if (planData.mediosPrazos.length > 0) {
-      notionText += formatCategory('🎯 Médio Prazo (6-12 meses)', planData.mediosPrazos);
-    }
-    if (planData.longosPrazos.length > 0) {
-      notionText += formatCategory('🚀 Longo Prazo (12-24 meses)', planData.longosPrazos);
-    }
-
-    return notionText;
+    savePDI(pdiToSave);
+    toast.success('Plano de Desenvolvimento salvo com sucesso!');
+    navigate('/pdis');
   };
 
   const categories = [
@@ -791,7 +599,27 @@ const ActionPlan = () => {
             </>
           )}
         </div>
-      </motion.div>      
+
+        {/* Nine Box Result */}
+        {selectedEmployee && employeeNineBox && (
+          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+            <div className="flex items-center space-x-3">
+              <Grid3x3 className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+              <div>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Resultado Nine Box</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getQuadrantColor(planData.nineBoxQuadrante)}`}>
+                    {planData.nineBoxQuadrante}
+                  </span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {planData.nineBoxDescricao}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </motion.div>
 
       {/* Itens de Desenvolvimento */}
       {selectedEmployeeId && (
@@ -833,52 +661,14 @@ const ActionPlan = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 order-1 sm:order-2">
-              <div className="flex flex-col xs:flex-row space-y-2 xs:space-y-0 xs:space-x-2 sm:space-x-4">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/reports')}
-                  size="md"
-                  className="w-full xs:w-auto"
-                >
-                  Cancelar
-                </Button>
-                
-                {/* Botões de Exportação */}
-                {planData.curtosPrazos.length + planData.mediosPrazos.length + planData.longosPrazos.length > 0 && (
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      onClick={exportToPDF}
-                      icon={<FileDown size={16} />}
-                      size="sm"
-                      className="border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 flex-1 xs:flex-none"
-                    >
-                      <span className="hidden xs:inline">PDF</span>
-                      <span className="xs:hidden">PDF</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={exportToExcel}
-                      icon={<FileSpreadsheet size={16} />}
-                      size="sm"
-                      className="border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 flex-1 xs:flex-none"
-                    >
-                      <span className="hidden xs:inline">Excel</span>
-                      <span className="xs:hidden">Excel</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={exportToNotion}
-                      icon={<StickyNote size={16} />}
-                      size="sm"
-                      className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-1 xs:flex-none"
-                    >
-                      <span className="hidden sm:inline">Notion</span>
-                      <span className="sm:hidden">Notion</span>
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/pdis')}
+                size="md"
+                className="w-full sm:w-auto"
+              >
+                Cancelar
+              </Button>
               
               <Button
                 variant="primary"
@@ -917,6 +707,496 @@ const ActionPlan = () => {
       )}
     </div>
   );
+};
+
+// Página de listagem de PDIs
+export const PDIList = () => {
+  const navigate = useNavigate();
+  const { employees, pdis, deletePDI } = useEvaluation();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedPDI, setSelectedPDI] = useState<ActionPlanData | null>(null);
+
+  const getEmployeeInfo = (employeeId: string) => {
+    return employees.find(emp => emp.id === employeeId);
+  };
+
+  const calculateProgress = (pdi: ActionPlanData) => {
+    const allItems = [...pdi.curtosPrazos, ...pdi.mediosPrazos, ...pdi.longosPrazos];
+    if (allItems.length === 0) return 0;
+    
+    const completedItems = allItems.filter(item => item.status === '5').length;
+    return Math.round((completedItems / allItems.length) * 100);
+  };
+
+  const getStatusSummary = (pdi: ActionPlanData) => {
+    const allItems = [...pdi.curtosPrazos, ...pdi.mediosPrazos, ...pdi.longosPrazos];
+    const statusCounts = {
+      '1': 0,
+      '2': 0,
+      '3': 0,
+      '4': 0,
+      '5': 0
+    };
+    
+    allItems.forEach(item => {
+      statusCounts[item.status]++;
+    });
+    
+    return statusCounts;
+  };
+
+  const filteredPDIs = pdis.filter(pdi => {
+    const employee = getEmployeeInfo(pdi.colaboradorId);
+    const matchesSearch = pdi.colaborador.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         pdi.departamento.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         pdi.cargo.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const progress = calculateProgress(pdi);
+    const matchesFilter = filterStatus === 'all' ||
+                         (filterStatus === 'completed' && progress === 100) ||
+                         (filterStatus === 'in-progress' && progress > 0 && progress < 100) ||
+                         (filterStatus === 'not-started' && progress === 0);
+    
+    return matchesSearch && matchesFilter;
+  });
+
+  const handleDelete = (pdiId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este PDI?')) {
+      deletePDI(pdiId);
+      toast.success('PDI excluído com sucesso!');
+    }
+  };
+
+  const handleView = (pdi: ActionPlanData) => {
+    setSelectedPDI(pdi);
+  };
+
+  const statusOptions = [
+    { value: '1', label: 'Não iniciado', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300' },
+    { value: '2', label: 'Iniciado', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
+    { value: '3', label: 'Em andamento', color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' },
+    { value: '4', label: 'Quase concluído', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' },
+    { value: '5', label: 'Concluído', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-6"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+              <FileText className="h-7 w-7 text-accent-500 dark:text-accent-400 mr-3" />
+              Planos de Desenvolvimento Individual
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Gerencie todos os PDIs dos colaboradores
+            </p>
+          </div>
+          <Button
+            variant="primary"
+            onClick={() => navigate('/action-plan')}
+            icon={<Plus size={18} />}
+          >
+            Novo PDI
+          </Button>
+        </div>
+
+        {/* Filtros */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Buscar
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar por nome, cargo ou departamento..."
+                className="w-full pl-10 pr-4 py-2 rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-700 dark:text-gray-300"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Status
+            </label>
+            <select
+              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-700 dark:text-gray-300"
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <option value="all">Todos</option>
+              <option value="not-started">Não iniciado</option>
+              <option value="in-progress">Em progresso</option>
+              <option value="completed">Concluído</option>
+            </select>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Lista de PDIs */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {filteredPDIs.map((pdi, index) => {
+          const progress = calculateProgress(pdi);
+          const statusSummary = getStatusSummary(pdi);
+          const totalItems = pdi.curtosPrazos.length + pdi.mediosPrazos.length + pdi.longosPrazos.length;
+
+          return (
+            <motion.div
+              key={pdi.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-md dark:hover:shadow-xl transition-shadow duration-200"
+            >
+              <div className="p-6">
+                {/* Header do Card */}
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                      {pdi.colaborador}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {pdi.cargo}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
+                      {pdi.departamento}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleView(pdi)}
+                      className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200"
+                    >
+                      <Eye size={18} />
+                    </button>
+                    <button
+                      onClick={() => navigate(`/action-plan/${pdi.id}`)}
+                      className="p-2 text-gray-400 hover:text-secondary-600 dark:hover:text-secondary-400 hover:bg-secondary-50 dark:hover:bg-secondary-900/20 rounded-lg transition-all duration-200"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(pdi.id!)}
+                      className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Nine Box */}
+                {pdi.nineBoxQuadrante && (
+                  <div className="mb-4">
+                    <div className="flex items-center space-x-2">
+                      <Grid3x3 className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Nine Box:</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getQuadrantColor(pdi.nineBoxQuadrante)}`}>
+                        {pdi.nineBoxQuadrante}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Período */}
+                <div className="mb-4">
+                  <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                    <Calendar className="h-4 w-4" />
+                    <span>Período: {pdi.periodo}</span>
+                  </div>
+                </div>
+
+                {/* Progress */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Progresso Geral
+                    </span>
+                    <span className="text-sm font-bold text-gray-800 dark:text-gray-100">
+                      {progress}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-primary-500 to-secondary-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Estatísticas */}
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <div className="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Curto</p>
+                    <p className="text-lg font-bold text-primary-600 dark:text-primary-400">
+                      {pdi.curtosPrazos.length}
+                    </p>
+                  </div>
+                  <div className="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Médio</p>
+                    <p className="text-lg font-bold text-secondary-600 dark:text-secondary-400">
+                      {pdi.mediosPrazos.length}
+                    </p>
+                  </div>
+                  <div className="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Longo</p>
+                    <p className="text-lg font-bold text-accent-600 dark:text-accent-400">
+                      {pdi.longosPrazos.length}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Status Summary */}
+                <div className="space-y-1">
+                  {Object.entries(statusSummary).map(([status, count]) => {
+                    if (count === 0) return null;
+                    const statusInfo = statusOptions.find(s => s.value === status);
+                    return (
+                      <div key={status} className="flex items-center justify-between">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${statusInfo?.color}`}>
+                          {statusInfo?.label}
+                        </span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">
+                          {count} {count === 1 ? 'item' : 'itens'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Data de criação */}
+                {pdi.dataCriacao && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      Criado em: {new Date(pdi.dataCriacao).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Empty State */}
+      {filteredPDIs.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-12 text-center"
+        >
+          <div className="max-w-md mx-auto">
+            <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gray-100 dark:bg-gray-700 mb-6">
+              <FileText className="h-10 w-10 text-gray-400 dark:text-gray-500" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              {searchTerm || filterStatus !== 'all' ? 'Nenhum PDI encontrado' : 'Nenhum PDI cadastrado'}
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              {searchTerm || filterStatus !== 'all' 
+                ? 'Tente ajustar os filtros de busca'
+                : 'Crie o primeiro Plano de Desenvolvimento Individual'}
+            </p>
+            {!searchTerm && filterStatus === 'all' && (
+              <Button
+                variant="primary"
+                onClick={() => navigate('/action-plan')}
+                icon={<Plus size={18} />}
+              >
+                Criar Primeiro PDI
+              </Button>
+            )}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Modal de Visualização */}
+      <AnimatePresence>
+        {selectedPDI && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedPDI(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 z-10">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                    PDI - {selectedPDI.colaborador}
+                  </h2>
+                  <button
+                    onClick={() => setSelectedPDI(null)}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Informações do Colaborador */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Cargo</p>
+                    <p className="font-medium text-gray-800 dark:text-gray-100">{selectedPDI.cargo}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Departamento</p>
+                    <p className="font-medium text-gray-800 dark:text-gray-100">{selectedPDI.departamento}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Período</p>
+                    <p className="font-medium text-gray-800 dark:text-gray-100">{selectedPDI.periodo}</p>
+                  </div>
+                  {selectedPDI.nineBoxQuadrante && (
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Nine Box</p>
+                      <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${getQuadrantColor(selectedPDI.nineBoxQuadrante)}`}>
+                        {selectedPDI.nineBoxQuadrante} - {selectedPDI.nineBoxDescricao}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Itens de Desenvolvimento */}
+                {selectedPDI.curtosPrazos.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center">
+                      <BookOpen className="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
+                      Curto Prazo (0-6 meses)
+                    </h3>
+                    <div className="space-y-3">
+                      {selectedPDI.curtosPrazos.map((item, index) => (
+                        <div key={item.id} className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                          <h4 className="font-medium text-gray-800 dark:text-gray-100 mb-2">
+                            {index + 1}. {item.competencia || 'Competência não definida'}
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <p><span className="font-medium text-gray-600 dark:text-gray-400">Calendarização:</span> {item.calendarizacao || 'A definir'}</p>
+                            <p><span className="font-medium text-gray-600 dark:text-gray-400">Como desenvolver:</span> {item.comoDesenvolver || 'A definir'}</p>
+                            <p><span className="font-medium text-gray-600 dark:text-gray-400">Resultados esperados:</span> {item.resultadosEsperados || 'A definir'}</p>
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-gray-600 dark:text-gray-400">Status:</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusOptions.find(s => s.value === item.status)?.color}`}>
+                                {statusOptions.find(s => s.value === item.status)?.label}
+                              </span>
+                            </div>
+                            {item.observacao && (
+                              <p><span className="font-medium text-gray-600 dark:text-gray-400">Observações:</span> {item.observacao}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedPDI.mediosPrazos.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center">
+                      <Target className="h-5 w-5 mr-2 text-secondary-600 dark:text-secondary-400" />
+                      Médio Prazo (6-12 meses)
+                    </h3>
+                    <div className="space-y-3">
+                      {selectedPDI.mediosPrazos.map((item, index) => (
+                        <div key={item.id} className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                          <h4 className="font-medium text-gray-800 dark:text-gray-100 mb-2">
+                            {index + 1}. {item.competencia || 'Competência não definida'}
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <p><span className="font-medium text-gray-600 dark:text-gray-400">Calendarização:</span> {item.calendarizacao || 'A definir'}</p>
+                            <p><span className="font-medium text-gray-600 dark:text-gray-400">Como desenvolver:</span> {item.comoDesenvolver || 'A definir'}</p>
+                            <p><span className="font-medium text-gray-600 dark:text-gray-400">Resultados esperados:</span> {item.resultadosEsperados || 'A definir'}</p>
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-gray-600 dark:text-gray-400">Status:</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusOptions.find(s => s.value === item.status)?.color}`}>
+                                {statusOptions.find(s => s.value === item.status)?.label}
+                              </span>
+                            </div>
+                            {item.observacao && (
+                              <p><span className="font-medium text-gray-600 dark:text-gray-400">Observações:</span> {item.observacao}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedPDI.longosPrazos.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center">
+                      <Rocket className="h-5 w-5 mr-2 text-accent-600 dark:text-accent-400" />
+                      Longo Prazo (12-24 meses)
+                    </h3>
+                    <div className="space-y-3">
+                      {selectedPDI.longosPrazos.map((item, index) => (
+                        <div key={item.id} className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                          <h4 className="font-medium text-gray-800 dark:text-gray-100 mb-2">
+                            {index + 1}. {item.competencia || 'Competência não definida'}
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <p><span className="font-medium text-gray-600 dark:text-gray-400">Calendarização:</span> {item.calendarizacao || 'A definir'}</p>
+                            <p><span className="font-medium text-gray-600 dark:text-gray-400">Como desenvolver:</span> {item.comoDesenvolver || 'A definir'}</p>
+                            <p><span className="font-medium text-gray-600 dark:text-gray-400">Resultados esperados:</span> {item.resultadosEsperados || 'A definir'}</p>
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-gray-600 dark:text-gray-400">Status:</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusOptions.find(s => s.value === item.status)?.color}`}>
+                                {statusOptions.find(s => s.value === item.status)?.label}
+                              </span>
+                            </div>
+                            {item.observacao && (
+                              <p><span className="font-medium text-gray-600 dark:text-gray-400">Observações:</span> {item.observacao}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Função auxiliar para obter a cor do quadrante
+const getQuadrantColor = (quadrant?: string) => {
+  if (!quadrant) return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+  
+  const colors: Record<string, string> = {
+    'A1': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    'A2': 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400',
+    'A3': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+    'B1': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+    'B2': 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
+    'B3': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+    'C1': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+    'C2': 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400',
+    'C3': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+  };
+  
+  return colors[quadrant] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
 };
 
 export default ActionPlan;

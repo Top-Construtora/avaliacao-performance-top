@@ -2,7 +2,44 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Employee, Evaluation, Status, EvaluationStats, Criterion } from '../types';
 import { employees, evaluations as initialEvaluations, technicalCriteria, behavioralCriteria, deliveriesCriteria } from '../data/mockData';
 
+// Interfaces para PDI
+interface ActionItem {
+  id: string;
+  competencia: string;
+  calendarizacao: string;
+  comoDesenvolver: string;
+  resultadosEsperados: string;
+  status: '1' | '2' | '3' | '4' | '5';
+  observacao: string;
+}
+
+interface ActionPlanData {
+  id?: string;
+  colaboradorId: string;
+  colaborador: string;
+  cargo: string;
+  departamento: string;
+  periodo: string;
+  nineBoxQuadrante?: string;
+  nineBoxDescricao?: string;
+  curtosPrazos: ActionItem[];
+  mediosPrazos: ActionItem[];
+  longosPrazos: ActionItem[];
+  dataCriacao?: string;
+  dataAtualizacao?: string;
+}
+
+// Interface para Nine Box
+interface NineBoxResult {
+  employeeId: string;
+  quadrant: string;
+  performance: number;
+  potential: number;
+  date: string;
+}
+
 interface EvaluationContextType {
+  // Existentes
   employees: Employee[];
   evaluations: Evaluation[];
   stats: EvaluationStats;
@@ -15,6 +52,18 @@ interface EvaluationContextType {
   technicalCriteria: Criterion[];
   behavioralCriteria: Criterion[];
   deliveriesCriteria: Criterion[];
+  
+  // Novos para PDI
+  pdis: ActionPlanData[];
+  savePDI: (pdi: ActionPlanData) => void;
+  updatePDI: (pdiId: string, pdi: ActionPlanData) => void;
+  deletePDI: (pdiId: string) => void;
+  getPDIById: (pdiId: string) => ActionPlanData | undefined;
+  
+  // Novos para Nine Box
+  nineBoxResults: NineBoxResult[];
+  saveNineBoxResult: (result: NineBoxResult) => void;
+  getNineBoxByEmployeeId: (employeeId: string) => NineBoxResult | undefined;
 }
 
 const EvaluationContext = createContext<EvaluationContextType | undefined>(undefined);
@@ -26,6 +75,18 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     inProgress: 0,
     completed: 0,
     total: 0,
+  });
+  
+  // Estado para PDIs
+  const [pdis, setPdis] = useState<ActionPlanData[]>(() => {
+    const saved = localStorage.getItem('pdis');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  // Estado para Nine Box
+  const [nineBoxResults, setNineBoxResults] = useState<NineBoxResult[]>(() => {
+    const saved = localStorage.getItem('nineBoxResults');
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Update stats whenever evaluations change
@@ -41,6 +102,16 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
       total: evaluations.length,
     });
   }, [evaluations]);
+  
+  // Salvar PDIs no localStorage
+  useEffect(() => {
+    localStorage.setItem('pdis', JSON.stringify(pdis));
+  }, [pdis]);
+  
+  // Salvar Nine Box no localStorage
+  useEffect(() => {
+    localStorage.setItem('nineBoxResults', JSON.stringify(nineBoxResults));
+  }, [nineBoxResults]);
 
   // Get employee by ID
   const getEmployeeById = (id: string) => {
@@ -93,8 +164,73 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     const weightedScore = (technical * 0.4) + (behavioral * 0.3) + (deliveries * 0.3);
     return parseFloat(weightedScore.toFixed(2));
   };
+  
+  // Funções para PDI
+  const savePDI = (pdi: ActionPlanData) => {
+    setPdis(prev => {
+      const existingIndex = prev.findIndex(p => p.id === pdi.id);
+      if (existingIndex >= 0) {
+        // Atualizar PDI existente
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...pdi,
+          dataAtualizacao: new Date().toISOString()
+        };
+        return updated;
+      } else {
+        // Adicionar novo PDI
+        return [...prev, { 
+          ...pdi, 
+          id: pdi.id || Date.now().toString(),
+          dataCriacao: new Date().toISOString(),
+          dataAtualizacao: new Date().toISOString()
+        }];
+      }
+    });
+  };
+
+  const updatePDI = (pdiId: string, pdi: ActionPlanData) => {
+    setPdis(prev => prev.map(p => 
+      p.id === pdiId 
+        ? { ...pdi, id: pdiId, dataAtualizacao: new Date().toISOString() } 
+        : p
+    ));
+  };
+
+  const deletePDI = (pdiId: string) => {
+    setPdis(prev => prev.filter(p => p.id !== pdiId));
+  };
+
+  const getPDIById = (pdiId: string) => {
+    return pdis.find(p => p.id === pdiId);
+  };
+  
+  // Funções para Nine Box
+  const saveNineBoxResult = (result: NineBoxResult) => {
+    setNineBoxResults(prev => {
+      const existingIndex = prev.findIndex(r => r.employeeId === result.employeeId);
+      if (existingIndex >= 0) {
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...result,
+          date: new Date().toISOString()
+        };
+        return updated;
+      } else {
+        return [...prev, {
+          ...result,
+          date: new Date().toISOString()
+        }];
+      }
+    });
+  };
+  
+  const getNineBoxByEmployeeId = (employeeId: string) => {
+    return nineBoxResults.find(r => r.employeeId === employeeId);
+  };
 
   const value = {
+    // Existentes
     employees,
     evaluations,
     stats,
@@ -107,6 +243,18 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     technicalCriteria,
     behavioralCriteria,
     deliveriesCriteria,
+    
+    // Novos para PDI
+    pdis,
+    savePDI,
+    updatePDI,
+    deletePDI,
+    getPDIById,
+    
+    // Novos para Nine Box
+    nineBoxResults,
+    saveNineBoxResult,
+    getNineBoxByEmployeeId,
   };
 
   return (
@@ -124,3 +272,6 @@ export const useEvaluation = () => {
   }
   return context;
 };
+
+// Exportar tipos para uso em outros componentes
+export type { ActionItem, ActionPlanData, NineBoxResult };
