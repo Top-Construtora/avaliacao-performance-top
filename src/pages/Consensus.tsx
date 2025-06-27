@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEvaluation } from '../context/EvaluationContext';
+import { supabase } from '../lib/supabase';
 import Button from '../components/Button';
 import { 
   ArrowLeft,
@@ -25,10 +25,6 @@ interface ScoreMap {
   [key: string]: number;
 }
 
-interface EvaluationData {
-  scores: ScoreMap;
-}
-
 interface Criterion {
   id: string;
   name: string;
@@ -37,16 +33,44 @@ interface Criterion {
   icon: React.ElementType;
 }
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  position: string;
+  is_leader: boolean;
+  is_director: boolean;
+  reports_to: string | null;
+  active: boolean;
+}
+
+interface ConsensusEvaluation {
+  id: string;
+  employee_id: string;
+  self_evaluation_id?: string;
+  leader_evaluation_id?: string;
+  consensus_score?: number;
+  potential_score?: number;
+  nine_box_position?: string;
+  notes?: string;
+  evaluation_date?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const Consensus = () => {
   const navigate = useNavigate();
-  const { employees, evaluations, saveEvaluation } = useEvaluation();
   
+  const [leaders, setLeaders] = useState<User[]>([]);
+  const [employees, setEmployees] = useState<User[]>([]);
+  const [selectedLeaderId, setSelectedLeaderId] = useState<string>('');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [consensusScores, setConsensusScores] = useState<ScoreMap>({});
   const [consensusObservations, setConsensusObservations] = useState<Record<string, string>>({});
   const [selfScores, setSelfScores] = useState<ScoreMap>({});
   const [leaderScores, setLeaderScores] = useState<ScoreMap>({});
   const [showMatrix, setShowMatrix] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const criteria: Criterion[] = [
     { 
@@ -156,42 +180,175 @@ const Consensus = () => {
     }
   };
 
-  // Initialize scores when employee is selected
-  const initializeScores = () => {
-    const initialScores: ScoreMap = {};
-    criteria.forEach(criterion => {
-      initialScores[criterion.id] = 3; // Default score
-    });
-    setSelfScores(initialScores);
-    setLeaderScores({ ...initialScores, ...criteria.reduce((acc, c) => ({ ...acc, [c.id]: 4 }), {}) });
-  };
+  // Fetch leaders on component mount
+  useEffect(() => {
+    fetchLeaders();
+  }, []);
 
-  const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
+  // Fetch employees when leader is selected
+  useEffect(() => {
+    if (selectedLeaderId) {
+      fetchEmployeesByLeader(selectedLeaderId);
+      setSelectedEmployeeId('');
+    }
+  }, [selectedLeaderId]);
 
+  // Load evaluations when employee is selected
   useEffect(() => {
     if (selectedEmployeeId) {
-      setConsensusScores({});
-      setConsensusObservations({});
-      initializeScores();
+      loadEmployeeEvaluations();
     }
   }, [selectedEmployeeId]);
 
+  const fetchLeaders = async () => {
+    try {
+      // Busca todos os usuários que são líderes ou diretores
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('active', true)
+        .or('is_leader.eq.true,is_director.eq.true')
+        .order('name');
+
+      if (error) throw error;
+      
+      setLeaders(data || []);
+    } catch (error) {
+      console.error('Error fetching leaders:', error);
+      toast.error('Erro ao carregar líderes');
+    }
+  };
+
+  const fetchEmployeesByLeader = async (leaderId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('reports_to', leaderId)
+        .eq('active', true)
+        .order('name');
+
+      if (error) throw error;
+      
+      setEmployees(data || []);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+      toast.error('Erro ao carregar colaboradores');
+    }
+  };
+
+  const loadEmployeeEvaluations = async () => {
+    if (!selectedEmployeeId) return;
+
+    setLoading(true);
+    try {
+      // Buscar a autoavaliação mais recente
+      const { data: selfEval, error: selfError } = await supabase
+        .from('evaluations')
+        .select(`
+          *,
+          evaluation_competencies (*)
+        `)
+        .eq('employee_id', selectedEmployeeId)
+        .eq('evaluation_type', 'self')
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      // Buscar a avaliação do líder mais recente
+      const { data: leaderEval, error: leaderError } = await supabase
+        .from('evaluations')
+        .select(`
+          *,
+          evaluation_competencies (*)
+        `)
+        .eq('employee_id', selectedEmployeeId)
+        .eq('evaluation_type', 'leader')
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      console.log('Autoavaliação:', selfEval);
+      console.log('Avaliação do líder:', leaderEval);
+
+      // Inicializar scores com valores padrão
+      const selfScoresMap: ScoreMap = {};
+      const leaderScoresMap: ScoreMap = {};
+
+      // Mapear nomes dos critérios para IDs
+      const criterionNameToId: Record<string, string> = {
+        'GESTÃO DO CONHECIMENTO': 'gestao-conhecimento',
+        'ORIENTAÇÃO A RESULTADOS': 'orientacao-resultados',
+        'PENSAMENTO CRÍTICO': 'pensamento-critico',
+        'ADERÊNCIA A PROCESSOS': 'aderencia-processos',
+        'COMUNICAÇÃO': 'comunicacao',
+        'INTELIGÊNCIA EMOCIONAL': 'inteligencia-emocional',
+        'COLABORAÇÃO': 'colaboracao',
+        'FLEXIBILIDADE': 'flexibilidade',
+        'MISSÃO DADA É MISSÃO CUMPRIDA': 'missao-dada-cumprida',
+        'SENSO DE DONO': 'senso-dono',
+        'PLANEJAR É PREÇO': 'planejar-preco',
+        'MELHORIA CONTÍNUA': 'melhoria-continua'
+      };
+
+      // Processar scores da autoavaliação
+      if (selfEval && !selfError && selfEval.evaluation_competencies) {
+        selfEval.evaluation_competencies.forEach((comp: any) => {
+          const criterionId = criterionNameToId[comp.criterion_name.toUpperCase()];
+          if (criterionId) {
+            selfScoresMap[criterionId] = comp.score;
+          }
+        });
+      }
+
+      // Preencher com valores padrão para critérios sem score
+      criteria.forEach(criterion => {
+        if (!selfScoresMap[criterion.id]) {
+          selfScoresMap[criterion.id] = 3;
+        }
+      });
+
+      // Processar scores da avaliação do líder
+      if (leaderEval && !leaderError && leaderEval.evaluation_competencies) {
+        leaderEval.evaluation_competencies.forEach((comp: any) => {
+          const criterionId = criterionNameToId[comp.criterion_name.toUpperCase()];
+          if (criterionId) {
+            leaderScoresMap[criterionId] = comp.score;
+          }
+        });
+      }
+
+      // Preencher com valores padrão para critérios sem score
+      criteria.forEach(criterion => {
+        if (!leaderScoresMap[criterion.id]) {
+          leaderScoresMap[criterion.id] = 3;
+        }
+      });
+
+      setSelfScores(selfScoresMap);
+      setLeaderScores(leaderScoresMap);
+      setConsensusScores({});
+      setConsensusObservations({});
+
+      // Informar se não encontrou avaliações
+      if (selfError && selfError.code === 'PGRST116') {
+        console.log('Nenhuma autoavaliação encontrada');
+      }
+      if (leaderError && leaderError.code === 'PGRST116') {
+        console.log('Nenhuma avaliação do líder encontrada');
+      }
+    } catch (error) {
+      console.error('Error loading evaluations:', error);
+      toast.error('Erro ao carregar avaliações');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleConsensusChange = (criterionId: string, score: number): void => {
     setConsensusScores(prev => ({
-      ...prev,
-      [criterionId]: score
-    }));
-  };
-
-  const handleSelfScoreChange = (criterionId: string, score: number): void => {
-    setSelfScores(prev => ({
-      ...prev,
-      [criterionId]: score
-    }));
-  };
-
-  const handleLeaderScoreChange = (criterionId: string, score: number): void => {
-    setLeaderScores(prev => ({
       ...prev,
       [criterionId]: score
     }));
@@ -207,51 +364,6 @@ const Consensus = () => {
   const getProgress = () => {
     const scoredItems = Object.keys(consensusScores).filter(key => consensusScores[key] > 0).length;
     return (scoredItems / criteria.length) * 100;
-  };
-
-  const handleSaveConsensus = (): void => {
-    if (!selectedEmployeeId) {
-      toast.error('Selecione um colaborador');
-      return;
-    }
-
-    const hasUnratedCriteria = criteria.some(criterion => 
-      !consensusScores[criterion.id] || consensusScores[criterion.id] === 0
-    );
-
-    if (hasUnratedCriteria) {
-      toast.error('Todos os critérios precisam ter uma nota de consenso');
-      return;
-    }
-
-    const consensusEvaluation = {
-      id: `consensus-${selectedEmployeeId}-${Date.now()}`,
-      employeeId: selectedEmployeeId,
-      evaluatorId: 'consensus',
-      date: new Date().toISOString().split('T')[0],
-      status: 'completed' as const,
-      criteria: criteria.map(criterion => ({
-        id: criterion.id,
-        name: criterion.name,
-        description: `Consenso para ${criterion.name}`,
-        category: criterion.category.toLowerCase() as 'technical' | 'behavioral' | 'deliveries',
-        score: consensusScores[criterion.id]
-      })),
-      feedback: {
-        strengths: 'Avaliação definida por consenso',
-        improvements: 'Pontos definidos em reunião de consenso',
-        observations: JSON.stringify(consensusObservations)
-      },
-      technicalScore: calculateCategoryAverage('Técnica'),
-      behavioralScore: calculateCategoryAverage('Comportamental'),
-      deliveriesScore: calculateCategoryAverage('Organizacional'),
-      finalScore: calculateOverallAverage(),
-      lastUpdated: new Date().toISOString().split('T')[0],
-      isDraft: false
-    };
-
-    saveEvaluation(consensusEvaluation);
-    toast.success('Consenso salvo com sucesso!');
   };
 
   const calculateCategoryAverage = (category: 'Técnica' | 'Comportamental' | 'Organizacional'): number => {
@@ -272,6 +384,69 @@ const Consensus = () => {
     const organizational = calculateCategoryAverage('Organizacional');
     
     return (technical * 0.4) + (behavioral * 0.3) + (organizational * 0.3);
+  };
+
+  const handleSaveConsensus = async (): Promise<void> => {
+    if (!selectedEmployeeId) {
+      toast.error('Selecione um colaborador');
+      return;
+    }
+
+    const hasUnratedCriteria = criteria.some(criterion => 
+      !consensusScores[criterion.id] || consensusScores[criterion.id] === 0
+    );
+
+    if (hasUnratedCriteria) {
+      toast.error('Todos os critérios precisam ter uma nota de consenso');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Calculate final score
+      const finalScore = calculateOverallAverage();
+      
+      // Create notes with all observations and scores
+      const notesContent = {
+        criterionScores: consensusScores,
+        observations: consensusObservations,
+        technicalAverage: calculateCategoryAverage('Técnica'),
+        behavioralAverage: calculateCategoryAverage('Comportamental'),
+        organizationalAverage: calculateCategoryAverage('Organizacional'),
+        selfScores: selfScores,
+        leaderScores: leaderScores
+      };
+
+      // Prepare the consensus data matching your table structure
+      const consensusData = {
+        employee_id: selectedEmployeeId,
+        consensus_score: finalScore,
+        notes: JSON.stringify(notesContent),
+        evaluation_date: new Date().toISOString().split('T')[0]
+      };
+
+      // Insert consensus evaluation
+      const { data: evaluation, error: evalError } = await supabase
+        .from('consensus_evaluations')
+        .insert(consensusData)
+        .select()
+        .single();
+
+      if (evalError) throw evalError;
+
+      toast.success('Consenso salvo com sucesso!');
+      
+      // Reset form
+      setSelectedEmployeeId('');
+      setSelectedLeaderId('');
+      setConsensusScores({});
+      setConsensusObservations({});
+    } catch (error) {
+      console.error('Error saving consensus:', error);
+      toast.error('Erro ao salvar consenso');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const generateMatrix = (): void => {
@@ -298,33 +473,23 @@ const Consensus = () => {
     </button>
   );
 
-  const EditableScoreIndicator = ({ 
+  const ScoreIndicator = ({ 
     score, 
     type, 
-    onScoreChange, 
     criterionId 
   }: { 
     score: number; 
     type: 'self' | 'leader';
-    onScoreChange: (criterionId: string, score: number) => void;
     criterionId: string;
   }) => {
     const config = {
       self: { 
         bg: 'bg-gradient-to-br from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700', 
         label: 'Autoavaliação',
-        lightBg: 'bg-secondary-50 dark:bg-secondary-900/20',
-        hoverBg: 'hover:bg-secondary-100 dark:hover:bg-secondary-800/30',
-        borderColor: 'border-secondary-300 dark:border-secondary-600',
-        focusRing: 'focus:ring-secondary-500 dark:focus:ring-secondary-400'
       },
       leader: { 
         bg: 'bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700', 
         label: 'Avaliação do Líder',
-        lightBg: 'bg-primary-50 dark:bg-primary-900/20',
-        hoverBg: 'hover:bg-primary-100 dark:hover:bg-primary-800/30',
-        borderColor: 'border-primary-300 dark:border-primary-600',
-        focusRing: 'focus:ring-primary-500 dark:focus:ring-primary-400'
       }
     };
     
@@ -337,27 +502,13 @@ const Consensus = () => {
         >
           {score}
         </div>
-        <div className="flex items-center space-x-1 justify-center">
-          {[1, 2, 3, 4].map(scoreValue => (
-            <button
-              key={scoreValue}
-              onClick={() => onScoreChange(criterionId, scoreValue)}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 transform hover:scale-105 ${
-                score === scoreValue
-                  ? `${config[type].bg} text-white shadow-md ring-2 ring-offset-1 dark:ring-offset-gray-800 ${type === 'self' ? 'ring-secondary-300 dark:ring-secondary-600' : 'ring-primary-300 dark:ring-primary-600'}`
-                  : `bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 ${config[type].hoverBg} border border-gray-200 dark:border-gray-600 ${config[type].borderColor}`
-              }`}
-              title={`${config[type].label}: ${scoreValue}`}
-            >
-              {scoreValue}
-            </button>
-          ))}
-        </div>
       </div>
     );
   };
 
   const progress = getProgress();
+  const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
+  const selectedLeader = leaders.find(leader => leader.id === selectedLeaderId);
 
   // Group criteria by category
   const groupedCriteria = criteria.reduce((acc, criterion) => {
@@ -388,52 +539,95 @@ const Consensus = () => {
           </div>
 
           {/* Progress Indicator */}
-          <div className="flex items-center space-x-3">
-            <div className="text-right">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Progresso</p>
-              <p className="text-lg font-bold text-gray-800 dark:text-gray-200">{Math.round(progress)}%</p>
+          {selectedEmployeeId && (
+            <div className="flex items-center space-x-3">
+              <div className="text-right">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Progresso</p>
+                <p className="text-lg font-bold text-gray-800 dark:text-gray-200">{Math.round(progress)}%</p>
+              </div>
+              <div className="relative">
+                <svg className="w-16 h-16 transform -rotate-90">
+                  <circle cx="32" cy="32" r="28" stroke="#e5e7eb" strokeWidth="4" fill="none" className="dark:stroke-gray-700" />
+                  <circle
+                    cx="32" cy="32" r="28"
+                    stroke="url(#consensusGradient)"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeDasharray={`${progress * 1.76} 176`}
+                    strokeLinecap="round"
+                  />
+                  <defs>
+                    <linearGradient id="consensusGradient">
+                      <stop offset="0%" stopColor="#12b0a0" />
+                      <stop offset="50%" stopColor="#1e6076" />
+                      <stop offset="100%" stopColor="#baa673" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
             </div>
-            <div className="relative">
-              <svg className="w-16 h-16 transform -rotate-90">
-                <circle cx="32" cy="32" r="28" stroke="#e5e7eb" strokeWidth="4" fill="none" className="dark:stroke-gray-700" />
-                <circle
-                  cx="32" cy="32" r="28"
-                  stroke="url(#consensusGradient)"
-                  strokeWidth="4"
-                  fill="none"
-                  strokeDasharray={`${progress * 1.76} 176`}
-                  strokeLinecap="round"
-                />
-                <defs>
-                  <linearGradient id="consensusGradient">
-                    <stop offset="0%" stopColor="#12b0a0" />
-                    <stop offset="50%" stopColor="#1e6076" />
-                    <stop offset="100%" stopColor="#baa673" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Employee Selection */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Leader Selection */}
+          <div className="sm:col-span-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <Users className="inline h-4 w-4 mr-1" />
+              Selecione o Líder
+            </label>
+            <div className="relative">
+              <select
+                className="w-full pl-10 pr-10 py-3 rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 appearance-none cursor-pointer"
+                value={selectedLeaderId}
+                onChange={(e) => setSelectedLeaderId(e.target.value)}
+                disabled={loading}
+              >
+                <option value="">Escolha um líder...</option>
+                {leaders.map((leader) => (
+                  <option key={leader.id} value={leader.id}>
+                    {leader.name}
+                  </option>
+                ))}
+              </select>
+              <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Employee Selection */}
+          <div className="sm:col-span-1">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Selecione o Colaborador
             </label>
-            <select
-              className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
-              value={selectedEmployeeId}
-              onChange={(e) => setSelectedEmployeeId(e.target.value)}
-            >
-              <option value="">Escolha um colaborador...</option>
-              {employees.map((employee) => (
-                <option key={employee.id} value={employee.id}>
-                  {employee.name}
+            <div className="relative">
+              <select
+                className="w-full pl-10 pr-10 py-3 rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 appearance-none cursor-pointer"
+                value={selectedEmployeeId}
+                onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                disabled={!selectedLeaderId || loading}
+              >
+                <option value="">
+                  {selectedLeaderId ? 'Escolha um colaborador...' : 'Selecione um líder primeiro'}
                 </option>
-              ))}
-            </select>
+                {employees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.name}
+                  </option>
+                ))}
+              </select>
+              <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           {selectedEmployee && (
@@ -462,9 +656,16 @@ const Consensus = () => {
         </div>
       </motion.div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      )}
+
       {/* Criteria by Category */}
       <AnimatePresence>
-        {selectedEmployeeId && (
+        {selectedEmployeeId && !loading && (
           <>
             {Object.entries(groupedCriteria).map(([category, categoryCriteria], categoryIndex) => {
               const config = categoryConfig[category as keyof typeof categoryConfig];
@@ -534,17 +735,15 @@ const Consensus = () => {
                                     </h5>
                                   </div>
                                   <div className="flex items-start justify-center space-x-8">
-                                    <EditableScoreIndicator 
+                                    <ScoreIndicator 
                                       score={selfScore} 
                                       type="self" 
-                                      onScoreChange={handleSelfScoreChange}
                                       criterionId={criterion.id}
                                     />
-                                    <div className="h-24 w-px bg-gray-300 dark:bg-gray-600 mt-14"></div>
-                                    <EditableScoreIndicator 
+                                    <div className="h-14 w-px bg-gray-300 dark:bg-gray-600 mt-14"></div>
+                                    <ScoreIndicator 
                                       score={leaderScore} 
                                       type="leader" 
-                                      onScoreChange={handleLeaderScoreChange}
                                       criterionId={criterion.id}
                                     />
                                   </div>
@@ -672,7 +871,7 @@ const Consensus = () => {
                   onClick={handleSaveConsensus}
                   icon={<Save size={18} />}
                   size="lg"
-                  disabled={progress < 100}
+                  disabled={progress < 100 || loading}
                 >
                   Salvar Consenso
                 </Button>
@@ -681,7 +880,7 @@ const Consensus = () => {
                   onClick={generateMatrix}
                   icon={<BarChart3 size={18} />}
                   size="lg"
-                  disabled={progress < 100}
+                  disabled={progress < 100 || loading}
                 >
                   Gerar Matriz 9-Box
                 </Button>
@@ -692,7 +891,7 @@ const Consensus = () => {
       </AnimatePresence>
 
       {/* Empty State */}
-      {!selectedEmployeeId && (
+      {!selectedEmployeeId && !loading && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -706,7 +905,7 @@ const Consensus = () => {
               Nenhum colaborador selecionado
             </h3>
             <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
-              Selecione um colaborador acima para iniciar a reunião de consenso
+              Selecione primeiro um líder e depois um colaborador para iniciar a reunião de consenso
             </p>
           </div>
         </motion.div>
