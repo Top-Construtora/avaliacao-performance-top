@@ -1,4 +1,3 @@
-// src/services/auth.service.ts
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
 
@@ -11,6 +10,7 @@ interface CreateUserData {
   is_director: boolean;
   phone?: string;
   birth_date?: string;
+  join_date?: string; 
   profile_image?: string;
   reports_to?: string;
   team_ids?: string[];
@@ -63,7 +63,7 @@ export const authService = {
           is_director: userData.is_director,
           phone: userData.phone || null,
           birth_date: userData.birth_date || null,
-          join_date: new Date().toISOString().split('T')[0],
+          join_date: userData.join_date || new Date().toISOString().split('T')[0], // Usa a data fornecida ou a data atual
           active: true,
           reports_to: userData.reports_to || null,
           profile_image: userData.profile_image || null,

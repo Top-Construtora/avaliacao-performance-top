@@ -13,6 +13,7 @@ import SelfEvaluation from './pages/SelfEvaluation';
 import LeaderEvaluation from './pages/LeaderEvaluation';
 import NineBoxGuide from './pages/NineBoxGuide';
 import UserRegistration from './pages/UserRegistration';
+import UserEdit from './pages/UserEdit';
 import Consensus from './pages/Consensus';
 import ActionPlan, { PDIList } from './pages/ActionPlan';
 import Reports from './pages/Reports';
@@ -92,6 +93,7 @@ function App() {
                   <Route path="users" element={<UserManagement />} />
                   <Route path="/notifications" element={<NotificationHistory />} />
                   <Route path="users/new" element={<UserRegistration />} />
+                  <Route path="users/edit/:id" element={<UserEdit />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
@@ -209,6 +211,15 @@ function App() {
                         <PDIList/>
                       </ProtectedRoute>
                     }
+                  />
+
+                  <Route 
+                    path="/users/edit/:id" 
+                    element={
+                      <ProtectedRoute>
+                        <UserEdit />
+                      </ProtectedRoute>
+                    } 
                   />
                   
                   <Route 

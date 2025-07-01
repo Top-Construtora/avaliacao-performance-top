@@ -40,6 +40,7 @@ const UserRegistration = () => {
     profileType: 'regular' as 'regular' | 'leader' | 'director',
     phone: '',
     birthDate: '',
+    joinDate: new Date().toISOString().split('T')[0], // Data de admissão com valor padrão
     profileImage: null as string | null,
     reportsTo: '',
     
@@ -141,6 +142,29 @@ const UserRegistration = () => {
         if (age < 16) errors.birthDate = 'Idade mínima: 16 anos';
         if (age > 100) errors.birthDate = 'Data de nascimento inválida';
       }
+      
+      // Validação da data de admissão
+      if (!formData.joinDate) {
+        errors.joinDate = 'Data de admissão é obrigatória';
+      } else {
+        const joinDate = new Date(formData.joinDate);
+        const today = new Date();
+        
+        if (joinDate > today) {
+          errors.joinDate = 'Data de admissão não pode ser futura';
+        }
+        
+        if (formData.birthDate) {
+          const birthDate = new Date(formData.birthDate);
+          const minWorkAge = new Date(birthDate);
+          minWorkAge.setFullYear(minWorkAge.getFullYear() + 16);
+          
+          if (joinDate < minWorkAge) {
+            errors.joinDate = 'Data de admissão inválida (colaborador teria menos de 16 anos)';
+          }
+        }
+      }
+      
       if (formData.teamIds.length === 0 && formData.profileType !== 'director') {
         errors.teams = 'Selecione pelo menos um time';
       }
@@ -186,6 +210,7 @@ const UserRegistration = () => {
           is_director: formData.profileType === 'director',
           phone: formData.phone,
           birth_date: formData.birthDate,
+          join_date: formData.joinDate, 
           profile_image: formData.profileImage || undefined,
           reports_to: formData.reportsTo || undefined,
           team_ids: formData.profileType === 'director' ? [] : formData.teamIds,
@@ -212,6 +237,7 @@ const UserRegistration = () => {
           profileType: 'regular',
           phone: '',
           birthDate: '',
+          joinDate: new Date().toISOString().split('T')[0],
           profileImage: null,
           reportsTo: '',
           teamName: '',
@@ -579,6 +605,33 @@ const UserRegistration = () => {
               <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
                 <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 {formErrors.birthDate}
+              </p>
+            )}
+          </div>
+
+          {/* Campo de Data de Admissão */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Data de Admissão *
+            </label>
+            <div className="relative">
+              <Calendar className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+              <input
+                type="date"
+                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                  formErrors.joinDate 
+                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                }`}
+                value={formData.joinDate}
+                onChange={(e) => setFormData({ ...formData, joinDate: e.target.value })}
+                max={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+            {formErrors.joinDate && (
+              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
+                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                {formErrors.joinDate}
               </p>
             )}
           </div>

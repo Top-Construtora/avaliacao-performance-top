@@ -86,10 +86,15 @@ const UserManagement = () => {
   };
 
   const handleEdit = (type: 'user' | 'team' | 'department', item: any) => {
-    if (type === 'user' && !permissions.canEditUser(item.id)) {
-      toast.error('Você não tem permissão para editar este usuário');
+    if (type === 'user') {
+      if (!permissions.canEditUser(item.id)) {
+        toast.error('Você não tem permissão para editar este usuário');
+        return;
+      }
+      navigate(`/users/edit/${item.id}`);
       return;
     }
+    
     if (type === 'team' && !permissions.canEditTeam(item.id, item.responsible_id)) {
       toast.error('Você não tem permissão para editar este time');
       return;
