@@ -1,741 +1,830 @@
-import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-hot-toast';
-import { useEvaluation } from '../context/EvaluationContext';
-import { useUsers } from '../context/UserContext';
-import Button from '../components/Button';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { 
- FileDown, 
- Users, 
- Target, 
- AlertTriangle,
- CheckCircle,
- Clock,
- Search,
- Download,
- Printer,
- Share2,
- Award,
- Filter,
- ChevronUp,
- BarChart3,
- FileText,
- PieChart,
- Briefcase,
- Menu,
- X
+  BarChart3, 
+  FileDown, 
+  Download, 
+  Printer, 
+  Share2,
+  MoreVertical,
+  X,
+  Filter,
+  Search,
+  Users,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  Target
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import Button from '../components/Button';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { toast } from 'react-hot-toast';
+import { useEvaluation } from '../hooks/useEvaluation';
+import { evaluationService } from '../services/evaluation.service';
+import { departmentsService, usersService } from '../services/supabase.service';
+import type { Department, UserWithDetails } from '../types/supabase';
+import type { CycleDashboard, EvaluationCycle } from '../types/evaluation.types';
 
 declare module 'jspdf' {
- interface jsPDF {
-   autoTable: (options: any) => jsPDF;
- }
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
 }
 
 const Reports = () => {
- const [activeTab, setActiveTab] = useState('overview');
- const [searchTerm, setSearchTerm] = useState('');
- const [showFilters, setShowFilters] = useState(false);
- const [selectedDepartment, setSelectedDepartment] = useState('');
- const [selectedStatus, setSelectedStatus] = useState('');
- const [showMobileActions, setShowMobileActions] = useState(false);
- 
- const { evaluations, getEvaluationsByEmployeeId } = useEvaluation();
- const { users, teams, departments } = useUsers();
+  const { 
+    currentCycle, 
+    loadCurrentCycle, 
+    loading: evaluationLoading 
+  } = useEvaluation();
+  
+  const [activeTab, setActiveTab] = useState<'overview' | 'detailed'>('overview');
+  const [showMobileActions, setShowMobileActions] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [users, setUsers] = useState<UserWithDetails[]>([]);
+  const [dashboard, setDashboard] = useState<CycleDashboard[]>([]);
 
- const reportData = useMemo(() => {
-   return users.map(user => {
-     const userEvaluations = getEvaluationsByEmployeeId(user.id);
-     const selfEval = userEvaluations.find(e => e.evaluatorId === user.id);
-     const leaderEval = userEvaluations.find(e => e.evaluatorId !== user.id && e.evaluatorId !== 'consensus');
-     const consensusEval = userEvaluations.find(e => e.evaluatorId === 'consensus');
-     
-     const userDepts = user.departmentIds.map(id => departments.find(d => d.id === id)?.name).filter(Boolean);
-     
-     return {
-       id: user.id,
-       name: user.name,
-       department: userDepts.join(', ') || 'Sem departamento',
-       position: user.position,
-       selfEvaluation: selfEval ? 
-         (selfEval.status === 'completed' ? 'Completo' : 
-          selfEval.status === 'in-progress' ? 'Em Andamento' : 'Pendente') : 'Pendente',
-       leaderEvaluation: leaderEval ? 
-         (leaderEval.status === 'completed' ? 'Completo' : 
-          leaderEval.status === 'in-progress' ? 'Em Andamento' : 'Pendente') : 'Pendente',
-       consensus: consensusEval ? 'Completo' : 'Aguardando',
-       pdi: consensusEval ? 'Definido' : 'Aguardando',
-       finalScore: consensusEval ? consensusEval.finalScore : 0
-     };
-   });
- }, [users, departments, getEvaluationsByEmployeeId]);
+  // Estados para os cards de visão geral
+  const [summaryData, setSummaryData] = useState({
+    totalEmployees: 0,
+    completedEvaluations: 0,
+    inProgress: 0,
+    pending: 0,
+    completionRate: 0
+  });
 
- const reportSummary = useMemo(() => {
-   const completed = reportData.filter(r => 
-     r.selfEvaluation === 'Completo' && 
-     r.leaderEvaluation === 'Completo' && 
-     r.consensus === 'Completo'
-   ).length;
-   
-   const inProgress = reportData.filter(r => 
-     r.selfEvaluation === 'Em Andamento' || 
-     r.leaderEvaluation === 'Em Andamento'
-   ).length;
-   
-   const pending = reportData.filter(r => 
-     r.selfEvaluation === 'Pendente' || 
-     r.leaderEvaluation === 'Pendente'
-   ).length;
+  // Estados para o progresso por departamento
+  const [departmentProgress, setDepartmentProgress] = useState<Array<{
+    id: string;
+    name: string;
+    total: number;
+    completed: number;
+    inProgress: number;
+    pending: number;
+  }>>([]);
 
-   return {
-     totalCollaborators: users.length,
-     completedEvaluations: completed,
-     inProgress: inProgress,
-     pending: pending
-   };
- }, [reportData, users.length]);
+  // Carregar dados ao montar o componente
+  useEffect(() => {
+    loadInitialData();
+  }, []);
 
- const departmentData = useMemo(() => {
-   return departments.map(dept => {
-     const deptUsers = users.filter(u => u.departmentIds.includes(dept.id));
-     const deptReports = reportData.filter(r => r.department.includes(dept.name));
-     
-     const completed = deptReports.filter(r => 
-       r.selfEvaluation === 'Completo' && 
-       r.leaderEvaluation === 'Completo'
-     ).length;
-     
-     const inProgress = deptReports.filter(r => 
-       r.selfEvaluation === 'Em Andamento' || 
-       r.leaderEvaluation === 'Em Andamento'
-     ).length;
-     
-     const pending = deptReports.filter(r => 
-       r.selfEvaluation === 'Pendente' || 
-       r.leaderEvaluation === 'Pendente'
-     ).length;
-     
-     return {
-       name: dept.name,
-       completed,
-       pending,
-       inProgress,
-       total: deptUsers.length
-     };
-   });
- }, [departments, users, reportData]);
+  // Carregar dashboard quando o ciclo mudar
+  useEffect(() => {
+    if (currentCycle) {
+      loadDashboardData(currentCycle.id);
+    }
+  }, [currentCycle]);
 
- const filteredData = useMemo(() => {
-   return reportData.filter(employee => {
-     const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          employee.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          employee.position.toLowerCase().includes(searchTerm.toLowerCase());
-     
-     const matchesDepartment = !selectedDepartment || employee.department.includes(selectedDepartment);
-     const matchesStatus = !selectedStatus || 
-                          employee.selfEvaluation === selectedStatus || 
-                          employee.leaderEvaluation === selectedStatus ||
-                          employee.consensus === selectedStatus;
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
 
-     return matchesSearch && matchesDepartment && matchesStatus;
-   });
- }, [reportData, searchTerm, selectedDepartment, selectedStatus]);
+      // Carregar ciclo atual se não estiver carregado
+      if (!currentCycle) {
+        await loadCurrentCycle();
+      }
 
- const exportPDF = () => {
-   const doc = new jsPDF();
-   
-   doc.setFontSize(16);
-   doc.text('Relatório de Avaliações', 14, 15);
-   
-   doc.setFontSize(10);
-   doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 25);
-   
-   const tableData = filteredData.map(employee => [
-     employee.name,
-     employee.position,
-     employee.department,
-     employee.selfEvaluation,
-     employee.leaderEvaluation,
-     employee.consensus,
-     employee.finalScore > 0 ? employee.finalScore.toFixed(1) : '-'
-   ]);
-   
-   doc.autoTable({
-     head: [['Nome', 'Cargo', 'Departamento', 'Autoavaliação', 'Líder', 'Consenso', 'Nota']],
-     body: tableData,
-     startY: 35,
-     theme: 'grid',
-     styles: { fontSize: 8 },
-     headStyles: { fillColor: [18, 176, 160] }
-   });
-   
-   doc.save('relatorio_avaliacoes.pdf');
-   toast.success('Relatório PDF gerado com sucesso!');
- };
- 
- const exportExcel = () => {
-   const data = filteredData.map(employee => ({
-     'Nome': employee.name,
-     'Cargo': employee.position,
-     'Departamento': employee.department,
-     'Autoavaliação': employee.selfEvaluation,
-     'Avaliação do Líder': employee.leaderEvaluation,
-     'Consenso': employee.consensus,
-     'PDI': employee.pdi,
-     'Nota Final': employee.finalScore > 0 ? employee.finalScore : '-'
-   }));
-   
-   const ws = XLSX.utils.json_to_sheet(data);
-   const wb = XLSX.utils.book_new();
-   XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
-   
-   XLSX.writeFile(wb, 'relatorio_avaliacoes.xlsx');
-   toast.success('Relatório Excel gerado com sucesso!');
- };
+      // Carregar departamentos
+      const depts = await departmentsService.getAll();
+      setDepartments(depts);
 
- const printReport = () => {
-   window.print();
-   toast.success('Preparando impressão...');
- };
+      // Carregar usuários
+      const allUsers = await usersService.getAll();
+      setUsers(allUsers.filter(u => u.active));
 
- const shareReport = () => {
-   navigator.clipboard.writeText(window.location.href);
-   toast.success('Link do relatório copiado!');
- };
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      toast.error('Erro ao carregar dados do relatório');
+    } finally {
+      setLoading(false);
+    }
+  };
 
- const getStatusBadge = (status: string) => {
-   const statusConfig = {
-     'Completo': { 
-       bgColor: 'bg-primary-100 dark:bg-primary-900/30',
-       textColor: 'text-primary-700 dark:text-primary-300',
-       borderColor: 'border-primary-200 dark:border-primary-700',
-       icon: CheckCircle 
-     },
-     'Em Andamento': { 
-       bgColor: 'bg-secondary-100 dark:bg-secondary-900/30',
-       textColor: 'text-secondary-700 dark:text-secondary-300',
-       borderColor: 'border-secondary-200 dark:border-secondary-700',
-       icon: Clock 
-     },
-     'Pendente': { 
-       bgColor: 'bg-gray-100 dark:bg-gray-700',
-       textColor: 'text-gray-700 dark:text-gray-300',
-       borderColor: 'border-gray-300 dark:border-gray-600',
-       icon: AlertTriangle 
-     },
-     'Definido': { 
-       bgColor: 'bg-accent-100 dark:bg-accent-900/30',
-       textColor: 'text-accent-700 dark:text-accent-300',
-       borderColor: 'border-accent-200 dark:border-accent-700',
-       icon: Target 
-     },
-     'Aguardando': { 
-       bgColor: 'bg-gray-50 dark:bg-gray-700/50',
-       textColor: 'text-gray-600 dark:text-gray-400',
-       borderColor: 'border-gray-200 dark:border-gray-600',
-       icon: Clock 
-     }
-   };
+  const loadDashboardData = async (cycleId: string) => {
+    try {
+      const dashboardData = await evaluationService.getCycleDashboard(cycleId);
+      setDashboard(dashboardData);
+    } catch (error) {
+      console.error('Erro ao carregar dashboard:', error);
+      toast.error('Erro ao carregar dados do dashboard');
+    }
+  };
 
-   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig['Pendente'];
-   const Icon = config.icon;
+  // Calcular dados do resumo sempre que o dashboard mudar
+  useEffect(() => {
+    if (dashboard && dashboard.length > 0) {
+      const totalEmployees = dashboard.length;
+      
+      // Contar avaliações completas (self e leader)
+      const completedEvaluations = dashboard.filter(
+        (d: CycleDashboard) => d.self_evaluation_status === 'completed' && 
+            d.leader_evaluation_status === 'completed'
+      ).length;
+      
+      // Contar em andamento (pelo menos uma iniciada mas não ambas completas)
+      const inProgress = dashboard.filter(
+        (d: CycleDashboard) => (d.self_evaluation_status === 'in-progress' || 
+              d.leader_evaluation_status === 'in-progress') &&
+             !(d.self_evaluation_status === 'completed' && 
+               d.leader_evaluation_status === 'completed')
+      ).length;
+      
+      // Contar pendentes (nenhuma iniciada)
+      const pending = dashboard.filter(
+        (d: CycleDashboard) => d.self_evaluation_status === 'pending' && 
+             d.leader_evaluation_status === 'pending'
+      ).length;
 
-   return (
-     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.bgColor} ${config.textColor} border ${config.borderColor}`}>
-       <Icon size={10} className="mr-1 flex-shrink-0" />
-       <span className="truncate">{status}</span>
-     </span>
-   );
- };
+      const completionRate = totalEmployees > 0 
+        ? Math.round((completedEvaluations / totalEmployees) * 100) 
+        : 0;
 
- const getScoreBadge = (score: number) => {
-   if (score === 0) {
-     return (
-       <span className="text-sm text-gray-400 dark:text-gray-600">-</span>
-     );
-   }
+      setSummaryData({
+        totalEmployees,
+        completedEvaluations,
+        inProgress,
+        pending,
+        completionRate
+      });
+    }
+  }, [dashboard]);
 
-   const getScoreColor = () => {
-     if (score >= 3.5) return 'text-primary-600 dark:text-primary-400';
-     if (score >= 2.5) return 'text-secondary-600 dark:text-secondary-400';
-     return 'text-red-600 dark:text-red-400';
-   };
+  // Calcular progresso por departamento
+  useEffect(() => {
+    if (dashboard && departments.length > 0) {
+      const progressByDept = departments.map(dept => {
+        // Filtrar colaboradores do departamento
+        const deptEmployees = dashboard.filter((d: CycleDashboard) => 
+          users.find(u => u.id === d.employee_id)?.teams?.some(
+            t => t.department_id === dept.id
+          )
+        );
 
-   const getScoreBackground = () => {
-     if (score >= 3.5) return 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700';
-     if (score >= 2.5) return 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700';
-     return 'from-red-500 to-red-600 dark:from-red-600 dark:to-red-700';
-   };
+        const total = deptEmployees.length;
+        const completed = deptEmployees.filter(
+          (d: CycleDashboard) => d.self_evaluation_status === 'completed' && 
+               d.leader_evaluation_status === 'completed'
+        ).length;
+        const inProgress = deptEmployees.filter(
+          (d: CycleDashboard) => (d.self_evaluation_status === 'in-progress' || 
+                d.leader_evaluation_status === 'in-progress') &&
+               !(d.self_evaluation_status === 'completed' && 
+                 d.leader_evaluation_status === 'completed')
+        ).length;
+        const pending = total - completed - inProgress;
 
-   return (
-     <div className="flex items-center space-x-2">
-       <span className={`text-lg md:text-2xl font-bold ${getScoreColor()}`}>
-         {score.toFixed(1)}
-       </span>
-       <div className="w-8 md:w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-         <div 
-           className={`h-2 rounded-full bg-gradient-to-r ${getScoreBackground()} transition-all duration-500`}
-           style={{ width: `${(score / 4) * 100}%` }}
-         />
-       </div>
-     </div>
-   );
- };
+        return {
+          id: dept.id,
+          name: dept.name,
+          total,
+          completed,
+          inProgress,
+          pending
+        };
+      });
 
- const tabs = [
-   { id: 'overview', label: 'Visão Geral', icon: BarChart3 },
-   { id: 'detailed', label: 'Detalhado', icon: FileText }
- ];
+      setDepartmentProgress(progressByDept);
+    }
+  }, [dashboard, departments, users]);
 
- return (
-   <div className="space-y-4 md:space-y-6">
-     {/* Header */}
-     <motion.div
-       initial={{ opacity: 0, y: -20 }}
-       animate={{ opacity: 1, y: 0 }}
-       className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 md:p-8"
-     >
-       <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-start md:space-y-0 mb-6">
-         <div className="flex-1">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center flex-wrap">
-                <PieChart className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-500 dark:text-primary-400 mr-2 sm:mr-3 flex-shrink-0" />
-                <span className="break-words">Central de Relatórios</span>
+  // Filtrar dados para a visão detalhada
+  const filteredData = dashboard.filter((item: CycleDashboard) => {
+    const user = users.find(u => u.id === item.employee_id);
+    if (!user) return false;
+
+    const matchesSearch = !searchTerm || 
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.position.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesDepartment = !selectedDepartment || 
+      user.teams?.some(t => t.department_id === selectedDepartment);
+    
+    const matchesStatus = !selectedStatus || 
+      item.self_evaluation_status === selectedStatus || 
+      item.leader_evaluation_status === selectedStatus ||
+      item.consensus_status === selectedStatus;
+
+    return matchesSearch && matchesDepartment && matchesStatus;
+  });
+
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(16);
+    doc.text('Relatório de Avaliações', 14, 15);
+    
+    doc.setFontSize(10);
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 25);
+    if (currentCycle) {
+      doc.text(`Ciclo: ${currentCycle.title}`, 14, 32);
+    }
+    
+    const tableData = filteredData.map((item: CycleDashboard) => {
+      const user = users.find(u => u.id === item.employee_id);
+      const deptName = user?.teams && user.teams[0] ? 
+        departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-';
+      
+      return [
+        user?.name || '-',
+        user?.position || '-',
+        deptName,
+        getStatusLabel(item.self_evaluation_status),
+        getStatusLabel(item.leader_evaluation_status),
+        getStatusLabel(item.consensus_status),
+        item.consensus_performance_score ? item.consensus_performance_score.toFixed(1) : '-'
+      ];
+    });
+    
+    doc.autoTable({
+      head: [['Nome', 'Cargo', 'Departamento', 'Autoavaliação', 'Líder', 'Consenso', 'Nota']],
+      body: tableData,
+      startY: 40,
+      theme: 'grid',
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [18, 176, 160] }
+    });
+    
+    doc.save('relatorio_avaliacoes.pdf');
+    toast.success('Relatório PDF gerado com sucesso!');
+  };
+  
+  const exportExcel = () => {
+    const data = filteredData.map((item: CycleDashboard) => {
+      const user = users.find(u => u.id === item.employee_id);
+      const deptName = user?.teams && user.teams[0] ? 
+        departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-';
+      
+      return {
+        'Nome': user?.name || '-',
+        'Cargo': user?.position || '-',
+        'Departamento': deptName,
+        'Autoavaliação': getStatusLabel(item.self_evaluation_status),
+        'Avaliação do Líder': getStatusLabel(item.leader_evaluation_status),
+        'Consenso': getStatusLabel(item.consensus_status),
+        'PDI': item.ninebox_position ? 'Definido' : 'Pendente',
+        'Nota Final': item.consensus_performance_score || '-'
+      };
+    });
+    
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
+    
+    XLSX.writeFile(wb, 'relatorio_avaliacoes.xlsx');
+    toast.success('Relatório Excel gerado com sucesso!');
+  };
+
+  const printReport = () => {
+    window.print();
+    toast.success('Preparando impressão...');
+  };
+
+  const shareReport = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success('Link do relatório copiado!');
+  };
+
+  const getStatusLabel = (status: string | null | undefined): string => {
+    switch (status) {
+      case 'completed': return 'Completo';
+      case 'in-progress': return 'Em Andamento';
+      case 'pending': return 'Pendente';
+      default: return 'Aguardando';
+    }
+  };
+
+  const getStatusBadge = (status: string | null | undefined) => {
+    const label = getStatusLabel(status);
+    const statusConfig = {
+      'Completo': { 
+        bgColor: 'bg-primary-100 dark:bg-primary-900/30',
+        textColor: 'text-primary-700 dark:text-primary-300',
+        borderColor: 'border-primary-200 dark:border-primary-700',
+        icon: CheckCircle 
+      },
+      'Em Andamento': { 
+        bgColor: 'bg-secondary-100 dark:bg-secondary-900/30',
+        textColor: 'text-secondary-700 dark:text-secondary-300',
+        borderColor: 'border-secondary-200 dark:border-secondary-700',
+        icon: Clock 
+      },
+      'Pendente': { 
+        bgColor: 'bg-gray-100 dark:bg-gray-700',
+        textColor: 'text-gray-700 dark:text-gray-300',
+        borderColor: 'border-gray-300 dark:border-gray-600',
+        icon: AlertTriangle 
+      },
+      'Definido': { 
+        bgColor: 'bg-accent-100 dark:bg-accent-900/30',
+        textColor: 'text-accent-700 dark:text-accent-300',
+        borderColor: 'border-accent-200 dark:border-accent-700',
+        icon: Target 
+      },
+      'Aguardando': { 
+        bgColor: 'bg-gray-50 dark:bg-gray-700/50',
+        textColor: 'text-gray-600 dark:text-gray-400',
+        borderColor: 'border-gray-200 dark:border-gray-600',
+        icon: Clock 
+      }
+    };
+
+    const config = statusConfig[label as keyof typeof statusConfig] || statusConfig['Pendente'];
+    const Icon = config.icon;
+
+    return (
+      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.bgColor} ${config.textColor} border ${config.borderColor}`}>
+        <Icon size={10} className="mr-1 flex-shrink-0" />
+        <span className="truncate">{label}</span>
+      </span>
+    );
+  };
+
+  const getScoreBadge = (score: number | null | undefined) => {
+    if (!score) {
+      return (
+        <span className="text-sm text-gray-400 dark:text-gray-600">-</span>
+      );
+    }
+
+    const getScoreColor = () => {
+      if (score >= 9) return 'text-primary-600 dark:text-primary-400';
+      if (score >= 7) return 'text-secondary-600 dark:text-secondary-400';
+      if (score >= 5) return 'text-warning-600 dark:text-warning-400';
+      return 'text-error-600 dark:text-error-400';
+    };
+
+    return (
+      <span className={`text-lg font-bold ${getScoreColor()}`}>
+        {score.toFixed(1)}
+      </span>
+    );
+  };
+
+  if (loading || evaluationLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (!currentCycle) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <p className="text-gray-500 dark:text-gray-400">Nenhum ciclo de avaliação ativo</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 sm:space-y-6 animate-fadeIn">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center flex-wrap">
+              <BarChart3 className="text-primary-500 dark:text-primary-400 mr-2 sm:mr-3 flex-shrink-0" />
+              <span className="break-words">Central de Relatórios</span>
             </h1>
-           <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">Acompanhe o progresso das avaliações</p>
-         </div>
-         
-         <div className="hidden md:flex items-center space-x-3">
-           <button
-             onClick={printReport}
-             className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200"
-             title="Imprimir"
-           >
-             <Printer size={18} />
-           </button>
-           <button
-             onClick={shareReport}
-             className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200"
-             title="Compartilhar"
-           >
-             <Share2 size={18} />
-           </button>
-           <Button
-             variant="outline"
-             onClick={exportPDF}
-             icon={<FileDown size={16} />}
-             size="sm"
-           >
-             PDF
-           </Button>
-           <Button
-             variant="primary"
-             onClick={exportExcel}
-             icon={<Download size={16} />}
-             size="sm"
-           >
-             Excel
-           </Button>
-         </div>
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
+              Acompanhe o progresso das avaliações - {currentCycle.title}
+            </p>
+          </div>
+          
+          <div className="hidden md:flex items-center space-x-3">
+            <button
+              onClick={printReport}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200"
+              title="Imprimir"
+            >
+              <Printer size={18} />
+            </button>
+            <button
+              onClick={shareReport}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200"
+              title="Compartilhar"
+            >
+              <Share2 size={18} />
+            </button>
+            <Button
+              variant="outline"
+              onClick={exportPDF}
+              icon={<FileDown size={16} />}
+              size="sm"
+            >
+              PDF
+            </Button>
+            <Button
+              variant="primary"
+              onClick={exportExcel}
+              icon={<Download size={16} />}
+              size="sm"
+            >
+              Excel
+            </Button>
+          </div>
 
-         <div className="md:hidden">
-           <button
-             onClick={() => setShowMobileActions(!showMobileActions)}
-             className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200"
-           >
-             {showMobileActions ? <X size={20} /> : <Menu size={20} />}
-           </button>
-           
-           <AnimatePresence>
-             {showMobileActions && (
-               <motion.div
-                 initial={{ opacity: 0, scale: 0.95 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 exit={{ opacity: 0, scale: 0.95 }}
-                 className="absolute right-4 top-20 bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl border border-gray-200 dark:border-gray-700 p-2 z-10 min-w-[180px]"
-               >
-                 <button
-                   onClick={() => { printReport(); setShowMobileActions(false); }}
-                   className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
-                 >
-                   <Printer size={16} />
-                   <span>Imprimir</span>
-                 </button>
-                 <button
-                   onClick={() => { shareReport(); setShowMobileActions(false); }}
-                   className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
-                 >
-                   <Share2 size={16} />
-                   <span>Compartilhar</span>
-                 </button>
-                 <button
-                   onClick={() => { exportPDF(); setShowMobileActions(false); }}
-                   className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
-                 >
-                   <FileDown size={16} />
-                   <span>Exportar PDF</span>
-                 </button>
-                 <button
-                   onClick={() => { exportExcel(); setShowMobileActions(false); }}
-                   className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
-                 >
-                   <Download size={16} />
-                   <span>Exportar Excel</span>
-                 </button>
-               </motion.div>
-             )}
-           </AnimatePresence>
-         </div>
-       </div>
+          <div className="md:hidden">
+            <button
+              onClick={() => setShowMobileActions(!showMobileActions)}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200"
+            >
+              {showMobileActions ? <X size={20} /> : <MoreVertical size={20} />}
+            </button>
+          </div>
+        </div>
 
-       <div className="flex space-x-1 border-b border-gray-200 dark:border-gray-700 mt-4 md:mt-6 -mb-4 md:-mb-8 overflow-x-auto">
-         {tabs.map((tab) => {
-           const Icon = tab.icon;
-           return (
-             <button
-               key={tab.id}
-               onClick={() => setActiveTab(tab.id)}
-               className={`flex items-center space-x-1 md:space-x-2 px-3 md:px-4 py-2 md:py-3 border-b-2 transition-all duration-200 whitespace-nowrap ${
-                 activeTab === tab.id
-                   ? 'border-primary-500 dark:border-primary-400 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
-                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-               }`}
-             >
-               <Icon size={16} className="md:w-[18px] md:h-[18px]" />
-               <span className="text-sm md:text-base font-medium">{tab.label}</span>
-             </button>
-           );
-         })}
-       </div>
-     </motion.div>
+        {/* Mobile Actions Menu */}
+        {showMobileActions && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-wrap gap-2"
+          >
+            <Button
+              variant="outline"
+              onClick={printReport}
+              icon={<Printer size={16} />}
+              size="sm"
+            >
+              Imprimir
+            </Button>
+            <Button
+              variant="outline"
+              onClick={shareReport}
+              icon={<Share2 size={16} />}
+              size="sm"
+            >
+              Compartilhar
+            </Button>
+            <Button
+              variant="outline"
+              onClick={exportPDF}
+              icon={<FileDown size={16} />}
+              size="sm"
+            >
+              PDF
+            </Button>
+            <Button
+              variant="primary"
+              onClick={exportExcel}
+              icon={<Download size={16} />}
+              size="sm"
+            >
+              Excel
+            </Button>
+          </motion.div>
+        )}
+      </div>
 
-     {activeTab === 'overview' && (
-       <>
-         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-           <motion.div
-             className="bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 rounded-xl md:rounded-2xl shadow-lg dark:shadow-xl p-4 md:p-6 text-white"
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 0.1 }}
-           >
-             <div className="flex items-center justify-between mb-3 md:mb-4">
-               <div className="p-2 md:p-3 bg-white/20 dark:bg-white/10 rounded-lg md:rounded-xl backdrop-blur-sm">
-                 <Users size={20} className="md:w-6 md:h-6" />
-               </div>
-               <ChevronUp className="h-4 w-4 md:h-5 md:w-5" />
-             </div>
-             <p className="text-2xl md:text-3xl font-bold mb-1">{reportSummary.totalCollaborators}</p>
-             <p className="text-primary-100 dark:text-primary-200 text-xs md:text-sm">Total de Colaboradores</p>
-           </motion.div>
+      {/* Tabs */}
+      <div className="bg-white dark:bg-gray-800 p-1 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="flex space-x-1">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
+              activeTab === 'overview'
+                ? 'bg-primary-500 text-white'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <BarChart3 size={16} />
+            <span>Visão Geral</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('detailed')}
+            className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
+              activeTab === 'detailed'
+                ? 'bg-primary-500 text-white'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Users size={16} />
+            <span>Detalhado</span>
+          </button>
+        </div>
+      </div>
 
-           <motion.div
-             className="bg-gradient-to-br from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700 rounded-xl md:rounded-2xl shadow-lg dark:shadow-xl p-4 md:p-6 text-white"
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 0.2 }}
-           >
-             <div className="flex items-center justify-between mb-3 md:mb-4">
-               <div className="p-2 md:p-3 bg-white/20 dark:bg-white/10 rounded-lg md:rounded-xl backdrop-blur-sm">
-                 <CheckCircle size={20} className="md:w-6 md:h-6" />
-               </div>
-               <span className="text-xs bg-white/20 dark:bg-white/10 px-2 py-1 rounded-full">
-                 {reportSummary.totalCollaborators > 0 ? 
-                   Math.round((reportSummary.completedEvaluations / reportSummary.totalCollaborators) * 100) : 0}%
-               </span>
-             </div>
-             <p className="text-2xl md:text-3xl font-bold mb-1">{reportSummary.completedEvaluations}</p>
-             <p className="text-secondary-100 dark:text-secondary-200 text-xs md:text-sm">Avaliações Completas</p>
-           </motion.div>
+      {/* Content */}
+      {activeTab === 'overview' ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-gradient-to-br from-primary-500 to-primary-600 p-6 rounded-xl shadow-lg text-white"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <Users className="w-8 h-8 opacity-80" />
+                <span className="text-xs font-medium bg-white/20 px-2 py-1 rounded-full">
+                  {summaryData.completionRate}%
+                </span>
+              </div>
+              <h3 className="text-3xl font-bold mb-1">{summaryData.totalEmployees}</h3>
+              <p className="text-sm opacity-90">Total de Colaboradores</p>
+            </motion.div>
 
-           <motion.div
-             className="bg-gradient-to-br from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700 rounded-xl md:rounded-2xl shadow-lg dark:shadow-xl p-4 md:p-6 text-white"
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 0.3 }}
-           >
-             <div className="flex items-center justify-between mb-3 md:mb-4">
-               <div className="p-2 md:p-3 bg-white/20 dark:bg-white/10 rounded-lg md:rounded-xl backdrop-blur-sm">
-                 <Clock size={20} className="md:w-6 md:h-6" />
-               </div>
-               <span className="text-xs bg-white/20 dark:bg-white/10 px-2 py-1 rounded-full">
-                 {reportSummary.totalCollaborators > 0 ? 
-                   Math.round((reportSummary.inProgress / reportSummary.totalCollaborators) * 100) : 0}%
-               </span>
-             </div>
-             <p className="text-2xl md:text-3xl font-bold mb-1">{reportSummary.inProgress}</p>
-             <p className="text-accent-100 dark:text-accent-200 text-xs md:text-sm">Em Andamento</p>
-           </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <CheckCircle className="w-8 h-8 text-primary-500" />
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  0%
+                </span>
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+                {summaryData.completedEvaluations}
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Avaliações Completas</p>
+            </motion.div>
 
-           <motion.div
-             className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-lg dark:shadow-xl border border-gray-100 dark:border-gray-700 p-4 md:p-6"
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 0.4 }}
-           >
-             <div className="flex items-center justify-between mb-3 md:mb-4">
-               <div className="p-2 md:p-3 bg-red-50 dark:bg-red-900/20 rounded-lg md:rounded-xl">
-                 <AlertTriangle size={20} className="md:w-6 md:h-6 text-red-600 dark:text-red-400" />
-               </div>
-               <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-2 py-1 rounded-full">
-                 {reportSummary.totalCollaborators > 0 ? 
-                   Math.round((reportSummary.pending / reportSummary.totalCollaborators) * 100) : 0}%
-               </span>
-             </div>
-             <p className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-1">{reportSummary.pending}</p>
-             <p className="text-gray-600 dark:text-gray-400 text-xs md:text-sm">Pendentes</p>
-           </motion.div>
-         </div>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <Clock className="w-8 h-8 text-secondary-500" />
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  0%
+                </span>
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+                {summaryData.inProgress}
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Em Andamento</p>
+            </motion.div>
 
-         <motion.div
-           className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 md:p-8"
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ delay: 0.5 }}
-         >
-           <h2 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 md:mb-6 flex items-center">
-             <Briefcase className="h-5 w-5 md:h-6 md:w-6 mr-2 text-primary-600 dark:text-primary-400" />
-             Progresso por Departamento
-           </h2>
-           <div className="space-y-3 md:space-y-4">
-             {departmentData.map((dept, index) => (
-               <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg md:rounded-xl p-3 md:p-4">
-                 <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0 mb-3">
-                   <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm md:text-base">{dept.name}</h3>
-                   <div className="flex flex-wrap gap-2 md:gap-4 text-xs md:text-sm">
-                     <span className="flex items-center text-primary-600 dark:text-primary-400">
-                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                       {dept.completed} completos
-                     </span>
-                     <span className="flex items-center text-secondary-600 dark:text-secondary-400">
-                       <Clock className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                       {dept.inProgress} em andamento
-                     </span>
-                     <span className="flex items-center text-gray-600 dark:text-gray-400">
-                       <AlertTriangle className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                       {dept.pending} pendentes
-                     </span>
-                   </div>
-                 </div>
-                 <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 md:h-3 overflow-hidden">
-                   <div className="h-full flex">
-                     <div 
-                       className="bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 h-full transition-all duration-500"
-                       style={{ width: dept.total > 0 ? `${(dept.completed / dept.total) * 100}%` : '0%' }}
-                     />
-                     <div 
-                       className="bg-gradient-to-r from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700 h-full transition-all duration-500"
-                       style={{ width: dept.total > 0 ? `${(dept.inProgress / dept.total) * 100}%` : '0%' }}
-                     />
-                   </div>
-                 </div>
-               </div>
-             ))}
-           </div>
-         </motion.div>
-       </>
-     )}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-gradient-to-br from-error-500 to-error-600 p-6 rounded-xl shadow-lg text-white"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <AlertTriangle className="w-8 h-8 opacity-80" />
+                <span className="text-xs font-medium bg-white/20 px-2 py-1 rounded-full">
+                  100%
+                </span>
+              </div>
+              <h3 className="text-3xl font-bold mb-1">{summaryData.pending}</h3>
+              <p className="text-sm opacity-90">Pendentes</p>
+            </motion.div>
+          </div>
 
-     {activeTab === 'detailed' && (
-       <motion.div
-         className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
-         initial={{ opacity: 0, y: 20 }}
-         animate={{ opacity: 1, y: 0 }}
-       >
-         <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
-           <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
-             <div className="flex flex-col space-y-3 md:flex-row md:items-center md:space-x-4 md:space-y-0 flex-1">
-               <div className="relative flex-1 md:max-w-md">
-                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-gray-400 dark:text-gray-500" />
-                 <input
-                   type="text"
-                   placeholder="Buscar colaborador..."
-                   className="w-full pl-9 md:pl-10 pr-4 py-2 text-sm md:text-base rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
-                   value={searchTerm}
-                   onChange={(e) => setSearchTerm(e.target.value)}
-                 />
-               </div>
-               <button
-                 onClick={() => setShowFilters(!showFilters)}
-                 className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-lg border transition-all duration-200 ${
-                   showFilters ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-300 dark:border-primary-700 text-primary-700 dark:text-primary-300' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                 }`}
-               >
-                 <Filter size={16} className="md:w-[18px] md:h-[18px]" />
-                 <span className="text-sm md:text-base">Filtros</span>
-               </button>
-             </div>
-             <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 text-center md:text-right">
-               {filteredData.length} de {reportData.length} colaboradores
-             </div>
-           </div>
+          {/* Progress by Department */}
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+              <BarChart3 className="mr-2 text-primary-500" size={20} />
+              Progresso por Departamento
+            </h2>
+            
+            <div className="space-y-4">
+              {departmentProgress.map((dept, index) => {
+                const completionRate = dept.total > 0 
+                  ? Math.round((dept.completed / dept.total) * 100) 
+                  : 0;
+                
+                return (
+                  <motion.div
+                    key={dept.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                        {dept.name}
+                      </h3>
+                      <div className="flex items-center space-x-4 text-sm">
+                        <span className="flex items-center text-primary-600 dark:text-primary-400">
+                          <CheckCircle size={14} className="mr-1" />
+                          {dept.completed} completos
+                        </span>
+                        <span className="flex items-center text-secondary-600 dark:text-secondary-400">
+                          <Clock size={14} className="mr-1" />
+                          {dept.inProgress} em andamento
+                        </span>
+                        <span className="flex items-center text-gray-500 dark:text-gray-400">
+                          <AlertTriangle size={14} className="mr-1" />
+                          {dept.pending} pendentes
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${completionRate}%` }}
+                        transition={{ duration: 1, delay: index * 0.1 }}
+                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary-500 to-primary-600"
+                      />
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          {/* Filters */}
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Buscar colaborador..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                />
+              </div>
+              
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <select
+                  value={selectedDepartment}
+                  onChange={(e) => setSelectedDepartment(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 appearance-none"
+                >
+                  <option value="">Todos os departamentos</option>
+                  {departments.map(dept => (
+                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 appearance-none"
+                >
+                  <option value="">Todos os status</option>
+                  <option value="completed">Completo</option>
+                  <option value="in-progress">Em Andamento</option>
+                  <option value="pending">Pendente</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
-           <AnimatePresence>
-             {showFilters && (
-               <motion.div
-                 initial={{ height: 0, opacity: 0 }}
-                 animate={{ height: 'auto', opacity: 1 }}
-                 exit={{ height: 0, opacity: 0 }}
-                 transition={{ duration: 0.3 }}
-                 className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
-               >
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                   <select 
-                     className="rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
-                     value={selectedDepartment}
-                     onChange={(e) => setSelectedDepartment(e.target.value)}
-                   >
-                     <option value="">Todos os departamentos</option>
-                     {departments.map(dept => (
-                       <option key={dept.id} value={dept.name}>{dept.name}</option>
-                     ))}
-                   </select>
-                   <select 
-                     className="rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
-                     value={selectedStatus}
-                     onChange={(e) => setSelectedStatus(e.target.value)}
-                   >
-                     <option value="">Todos os status</option>
-                     <option value="Completo">Completo</option>
-                     <option value="Em Andamento">Em Andamento</option>
-                     <option value="Pendente">Pendente</option>
-                     <option value="Aguardando">Aguardando</option>
-                   </select>
-                 </div>
-               </motion.div>
-             )}
-           </AnimatePresence>
-         </div>
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Colaborador
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Departamento
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Autoavaliação
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Líder
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Consenso
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      PDI
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Nota Final
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredData.map((item: CycleDashboard) => {
+                    const user = users.find(u => u.id === item.employee_id);
+                    const deptName = user?.teams && user.teams[0] ? 
+                      departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-';
+                    
+                    return (
+                      <tr key={item.employee_id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {user?.name || '-'}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {user?.position || '-'}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {deptName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusBadge(item.self_evaluation_status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusBadge(item.leader_evaluation_status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusBadge(item.consensus_status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getStatusBadge(item.ninebox_position ? 'completed' : 'pending')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {getScoreBadge(item.consensus_performance_score)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-         <div className="hidden lg:block overflow-x-auto">
-           <table className="min-w-full">
-             <thead className="bg-gray-50 dark:bg-gray-700/50">
-               <tr>
-                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                   Colaborador
-                 </th>
-                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                   Autoavaliação
-                 </th>
-                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                   Avaliação Líder
-                 </th>
-                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                   Consenso
-                 </th>
-                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                   PDI
-                 </th>
-                 <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                   Nota Geral
-                 </th>
-               </tr>
-             </thead>
-             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-               {filteredData.map((employee, index) => (
-                 <motion.tr 
-                   key={employee.id} 
-                   className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150"
-                   initial={{ opacity: 0 }}
-                   animate={{ opacity: 1 }}
-                   transition={{ delay: index * 0.05 }}
-                 >
-                   <td className="px-6 py-4 whitespace-nowrap">
-                     <div className="flex items-center">
-                       <div className="h-10 w-10 flex-shrink-0">
-                         <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-400 to-secondary-600 dark:from-primary-500 dark:to-secondary-700 flex items-center justify-center text-white font-semibold">
-                           {employee.name.split(' ').map(n => n[0]).join('')}
-                         </div>
-                       </div>
-                       <div className="ml-4">
-                         <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                           {employee.name}
-                         </div>
-                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                           {employee.position} • {employee.department}
-                         </div>
-                       </div>
-                     </div>
-                   </td>
-                   <td className="px-6 py-4 whitespace-nowrap">
-                     {getStatusBadge(employee.selfEvaluation)}
-                   </td>
-                   <td className="px-6 py-4 whitespace-nowrap">
-                     {getStatusBadge(employee.leaderEvaluation)}
-                   </td>
-                   <td className="px-6 py-4 whitespace-nowrap">
-                     {getStatusBadge(employee.consensus)}
-                   </td>
-                   <td className="px-6 py-4 whitespace-nowrap">
-                     {getStatusBadge(employee.pdi)}
-                   </td>
-                   <td className="px-6 py-4 whitespace-nowrap text-center">
-                     {getScoreBadge(employee.finalScore)}
-                   </td>
-                 </motion.tr>
-               ))}
-             </tbody>
-           </table>
-         </div>
-
-         <div className="lg:hidden divide-y divide-gray-200 dark:divide-gray-700">
-           {filteredData.map((employee, index) => (
-             <motion.div 
-               key={employee.id}
-               className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150"
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               transition={{ delay: index * 0.05 }}
-             >
-               <div className="flex items-start space-x-3">
-                 <div className="h-12 w-12 flex-shrink-0">
-                   <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary-400 to-secondary-600 dark:from-primary-500 dark:to-secondary-700 flex items-center justify-center text-white font-semibold">
-                     {employee.name.split(' ').map(n => n[0]).join('')}
-                   </div>
-                 </div>
-                 <div className="flex-1 min-w-0">
-                   <div className="flex items-start justify-between">
-                     <div className="flex-1 min-w-0">
-                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                         {employee.name}
-                       </p>
-                       <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                         {employee.position} • {employee.department}
-                       </p>
-                     </div>
-                     <div className="ml-3 text-right">
-                       {getScoreBadge(employee.finalScore)}
-                     </div>
-                   </div>
-                   
-                   <div className="mt-3 grid grid-cols-2 gap-2">
-                     <div>
-                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Autoavaliação</p>
-                       {getStatusBadge(employee.selfEvaluation)}
-                     </div>
-                     <div>
-                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Líder</p>
-                       {getStatusBadge(employee.leaderEvaluation)}
-                     </div>
-                     <div>
-                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Consenso</p>
-                       {getStatusBadge(employee.consensus)}
-                     </div>
-                     <div>
-                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">PDI</p>
-                       {getStatusBadge(employee.pdi)}
-                     </div>
-                   </div>
-                 </div>
-               </div>
-             </motion.div>
-           ))}
-         </div>
-       </motion.div>
-     )}
-   </div>
- );
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {filteredData.map((item: CycleDashboard, index: number) => {
+              const user = users.find(u => u.id === item.employee_id);
+              const deptName = user?.teams && user.teams[0] ? 
+                departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-';
+              
+              return (
+                <motion.div
+                  key={item.employee_id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700"
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                        {user?.name?.charAt(0) || '?'}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                            {user?.name || '-'}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {user?.position || '-'} • {deptName}
+                          </p>
+                        </div>
+                        <div className="ml-3 text-right">
+                          {getScoreBadge(item.consensus_performance_score)}
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Autoavaliação</p>
+                          {getStatusBadge(item.self_evaluation_status)}
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Líder</p>
+                          {getStatusBadge(item.leader_evaluation_status)}
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Consenso</p>
+                          {getStatusBadge(item.consensus_status)}
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">PDI</p>
+                          {getStatusBadge(item.ninebox_position ? 'completed' : 'pending')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
 };
 
 export default Reports;
