@@ -10,7 +10,9 @@ import {
   X, Check, AlertCircle, Briefcase, UserCheck, 
   Sparkles, Crown, User, Phone, CalendarDays, Camera, Upload,
   ArrowLeft, Eye, EyeOff, Save, Loader2, Star, Award,
-  CheckCircle2, ChevronDown, Info, UserPlus, UsersIcon, Building2
+  CheckCircle2, ChevronDown, Info, UserPlus, UsersIcon, Building2,
+  Hash, FileText, Target, UserCog, GitBranch, Network,
+  Database, Trash2, Edit
 } from 'lucide-react';
 
 type TabType = 'user' | 'team' | 'department';
@@ -40,7 +42,7 @@ const UserRegistration = () => {
     profileType: 'regular' as 'regular' | 'leader' | 'director',
     phone: '',
     birthDate: '',
-    joinDate: new Date().toISOString().split('T')[0], // Data de admissão com valor padrão
+    joinDate: new Date().toISOString().split('T')[0],
     profileImage: null as string | null,
     reportsTo: '',
     
@@ -60,7 +62,6 @@ const UserRegistration = () => {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -143,7 +144,6 @@ const UserRegistration = () => {
         if (age > 100) errors.birthDate = 'Data de nascimento inválida';
       }
       
-      // Validação da data de admissão
       if (!formData.joinDate) {
         errors.joinDate = 'Data de admissão é obrigatória';
       } else {
@@ -171,6 +171,9 @@ const UserRegistration = () => {
       if (formData.profileType === 'regular' && !formData.reportsTo) {
         errors.reportsTo = 'Selecione um líder';
       }
+      if (formData.profileType === 'leader' && !formData.reportsTo) {
+        errors.reportsTo = 'Selecione um diretor';
+      }
     } else if (activeTab === 'team') {
       if (!formData.teamName.trim()) errors.teamName = 'Nome do time é obrigatório';
       if (!formData.teamDepartmentId) errors.department = 'Selecione um departamento';
@@ -192,7 +195,6 @@ const UserRegistration = () => {
 
     try {
       if (activeTab === 'user') {
-        // Verificar se email já existe
         const emailExists = await authService.checkEmailExists(formData.email);
         if (emailExists) {
           toast.error('Este email já está cadastrado');
@@ -200,7 +202,6 @@ const UserRegistration = () => {
           return;
         }
 
-        // Criar usuário no Supabase
         const { user, error } = await authService.createUser({
           email: formData.email.trim().toLowerCase(),
           password: formData.password,
@@ -222,10 +223,8 @@ const UserRegistration = () => {
           return;
         }
 
-        // Recarregar lista de usuários
         await reloadUsers();
 
-        // Limpar formulário após sucesso
         setFormData({
           name: '',
           email: '',
@@ -253,13 +252,11 @@ const UserRegistration = () => {
         
         toast.success('Usuário criado com sucesso!');
         
-        // Redirecionar após sucesso
         setTimeout(() => {
           navigate('/users');
         }, 1500);
         
       } else if (activeTab === 'team') {
-        // Garantir que o responsável está na lista de membros
         if (!formData.teamMemberIds.includes(formData.teamResponsibleId)) {
           formData.teamMemberIds.push(formData.teamResponsibleId);
         }
@@ -274,7 +271,6 @@ const UserRegistration = () => {
         await reloadTeams();
         toast.success('Time cadastrado com sucesso!');
         
-        // Limpar campos do time
         setFormData(prev => ({
           ...prev,
           teamName: '',
@@ -294,7 +290,6 @@ const UserRegistration = () => {
         await reloadDeps();
         toast.success('Departamento cadastrado com sucesso!');
         
-        // Limpar campos do departamento
         setFormData(prev => ({
           ...prev,
           departmentName: '',
@@ -313,62 +308,56 @@ const UserRegistration = () => {
 
   const renderUserForm = () => (
     <motion.div 
-      className="space-y-8"
+      className="space-y-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       {/* Profile Type Selection */}
-      <motion.div variants={itemVariants}>
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
-          <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500 dark:text-primary-400" />
+      <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+          <Shield className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
           Tipo de Perfil
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             {
               value: 'regular',
               label: 'Colaborador',
               description: 'Membro da equipe com acesso padrão',
               icon: UserCheck,
-              bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/20 dark:to-secondary-800/20',
-              borderColor: 'border-secondary-200 dark:border-secondary-700',
-              selectedBg: 'bg-gradient-to-br from-secondary-100 to-secondary-200 dark:from-secondary-800/30 dark:to-secondary-700/30',
-              selectedBorder: 'border-secondary-400 dark:border-secondary-500',
-              iconColor: 'text-secondary-600 dark:text-secondary-400',
-              selectedIcon: 'bg-secondary-500 dark:bg-secondary-600'
+              gradient: 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
+              selectedBg: 'bg-secondary-50 dark:bg-secondary-900/20',
+              selectedBorder: 'border-secondary-500 dark:border-secondary-400',
+              selectedText: 'text-secondary-700 dark:text-secondary-300'
             },
             {
               value: 'leader',
               label: 'Líder',
               description: 'Gerencia equipes e avaliações',
               icon: Crown,
-              bgColor: 'bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20',
-              borderColor: 'border-primary-200 dark:border-primary-700',
-              selectedBg: 'bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-800/30 dark:to-primary-700/30',
-              selectedBorder: 'border-primary-400 dark:border-primary-500',
-              iconColor: 'text-primary-600 dark:text-primary-400',
-              selectedIcon: 'bg-primary-500 dark:bg-primary-600'
+              gradient: 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
+              selectedBg: 'bg-primary-50 dark:bg-primary-900/20',
+              selectedBorder: 'border-primary-500 dark:border-primary-400',
+              selectedText: 'text-primary-700 dark:text-primary-300'
             },
             {
               value: 'director',
               label: 'Diretor',
               description: 'Acesso completo ao sistema',
               icon: Sparkles,
-              bgColor: 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/20 dark:to-gray-600/20',
-              borderColor: 'border-gray-400 dark:border-gray-600',
-              selectedBg: 'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600/30 dark:to-gray-500/30',
-              selectedBorder: 'border-gray-600 dark:border-gray-500',
-              iconColor: 'text-gray-600 dark:text-gray-400',
-              selectedIcon: 'bg-gray-800 dark:bg-gray-700'
+              gradient: 'from-gray-700 to-gray-800 dark:from-gray-600 dark:to-gray-700',
+              selectedBg: 'bg-gray-50 dark:bg-gray-900/20',
+              selectedBorder: 'border-gray-500 dark:border-gray-400',
+              selectedText: 'text-gray-700 dark:text-gray-300'
             }
           ].map((type) => (
             <label 
               key={type.value}
-              className={`relative flex flex-col p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border-2 cursor-pointer transition-all transform hover:scale-[1.02] ${
+              className={`relative flex flex-col p-6 rounded-xl border-2 cursor-pointer transition-all transform hover:scale-[1.02] ${
                 formData.profileType === type.value 
-                  ? `${type.selectedBg} ${type.selectedBorder} shadow-lg dark:shadow-xl`
-                  : `${type.bgColor} ${type.borderColor} hover:shadow-md dark:hover:shadow-lg`
+                  ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
+                  : 'bg-gray-50/50 dark:bg-gray-700/20 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
               }`}
             >
               <input
@@ -384,82 +373,89 @@ const UserRegistration = () => {
                 })}
                 className="sr-only"
               />
-              <div className="flex items-start justify-between mb-2 sm:mb-3">
-                <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${formData.profileType === type.value ? type.selectedIcon : 'bg-white dark:bg-gray-700'}`}>
-                  <type.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${formData.profileType === type.value ? 'text-white' : type.iconColor}`} />
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-3 rounded-xl bg-gradient-to-br ${type.gradient} shadow-md`}>
+                  <type.icon className="h-6 w-6 text-white" />
                 </div>
                 {formData.profileType === type.value && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="h-6 w-6 sm:h-7 sm:w-7 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center shadow-md dark:shadow-lg"
-                  >
-                    <Check className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 dark:text-green-400" />
-                  </motion.div>
+                  <div className="bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-md">
+                    <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  </div>
                 )}
               </div>
-              <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-base sm:text-lg mb-1">{type.label}</h4>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{type.description}</p>
+              <h4 className={`font-bold text-base mb-1 ${
+                formData.profileType === type.value ? type.selectedText : 'text-gray-900 dark:text-gray-100'
+              }`}>{type.label}</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{type.description}</p>
             </label>
           ))}
         </div>
       </motion.div>
 
-      {/* Profile Image */}
-      <motion.div variants={itemVariants}>
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
-          <Camera className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500 dark:text-primary-400" />
-          Foto do Perfil
+      {/* Basic Information */}
+      <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+          <User className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+          Informações Básicas
         </h3>
-        <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
-          <div className="relative">
-            <div 
-              className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center overflow-hidden cursor-pointer group shadow-md dark:shadow-lg hover:shadow-lg dark:hover:shadow-xl transition-shadow"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {formData.profileImage ? (
-                <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-center p-2">
-                  <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 dark:text-gray-500 mx-auto mb-1 sm:mb-2" />
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Clique aqui</span>
-                </div>
-              )}
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center rounded-2xl">
-                <Camera className="h-6 w-6 sm:h-8 sm:w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+        
+        {/* Profile Image */}
+        <div className="mb-6 pb-6 border-b border-gray-100 dark:border-gray-700">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+            Foto do Perfil
+          </label>
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <div 
+                className="h-24 w-24 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group border-2 border-dashed border-gray-300 dark:border-gray-600"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {formData.profileImage ? (
+                  <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-center">
+                    <Upload className="h-8 w-8 text-gray-400 dark:text-gray-500 mx-auto mb-1 group-hover:text-gray-600 dark:group-hover:text-gray-400" />
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Upload</span>
+                  </div>
+                )}
               </div>
+              {formData.profileImage && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFormData({ ...formData, profileImage: null });
+                  }}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-          </div>
-          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center sm:text-left">
-            <p className="font-medium mb-1">Formato: JPG, PNG ou GIF</p>
-            <p>Tamanho máximo: 5MB</p>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <p>Clique para fazer upload</p>
+              <p className="text-xs mt-1">JPG, PNG ou GIF (máx. 5MB)</p>
+            </div>
           </div>
         </div>
-      </motion.div>
 
-      {/* Basic Information */}
-      <motion.div variants={itemVariants}>
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
-          <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500 dark:text-primary-400" />
-          Informações Pessoais
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Nome completo *
             </label>
             <input
               type="text"
-              className={`w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+              className={`w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                 formErrors.name 
-                  ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                  ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
               }`}
               value={formData.name}
@@ -479,12 +475,12 @@ const UserRegistration = () => {
               Email corporativo *
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="email"
-                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+                className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                   formErrors.email 
-                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.email}
@@ -493,8 +489,8 @@ const UserRegistration = () => {
               />
             </div>
             {formErrors.email && (
-              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
-                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.email}
               </p>
             )}
@@ -507,9 +503,9 @@ const UserRegistration = () => {
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
-                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all pr-10 sm:pr-12 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+                className={`w-full px-4 py-3 pr-12 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                   formErrors.password 
-                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.password}
@@ -518,15 +514,15 @@ const UserRegistration = () => {
               />
               <button
                 type="button"
-                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors p-1"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
             {formErrors.password && (
-              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
-                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.password}
               </p>
             )}
@@ -537,12 +533,12 @@ const UserRegistration = () => {
               Cargo *
             </label>
             <div className="relative">
-              <Briefcase className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+              <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
-                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+                className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                   formErrors.position 
-                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.position}
@@ -551,8 +547,8 @@ const UserRegistration = () => {
               />
             </div>
             {formErrors.position && (
-              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
-                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.position}
               </p>
             )}
@@ -563,12 +559,12 @@ const UserRegistration = () => {
               Telefone
             </label>
             <div className="relative">
-              <Phone className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="tel"
-                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+                className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                   formErrors.phone 
-                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.phone}
@@ -577,8 +573,8 @@ const UserRegistration = () => {
               />
             </div>
             {formErrors.phone && (
-              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
-                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.phone}
               </p>
             )}
@@ -589,12 +585,12 @@ const UserRegistration = () => {
               Data de nascimento
             </label>
             <div className="relative">
-              <CalendarDays className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+              <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="date"
-                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                   formErrors.birthDate 
-                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.birthDate}
@@ -602,25 +598,24 @@ const UserRegistration = () => {
               />
             </div>
             {formErrors.birthDate && (
-              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
-                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.birthDate}
               </p>
             )}
           </div>
 
-          {/* Campo de Data de Admissão */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Data de Admissão *
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="date"
-                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                   formErrors.joinDate 
-                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.joinDate}
@@ -629,8 +624,8 @@ const UserRegistration = () => {
               />
             </div>
             {formErrors.joinDate && (
-              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
-                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.joinDate}
               </p>
             )}
@@ -638,60 +633,60 @@ const UserRegistration = () => {
         </div>
       </motion.div>
 
-      {/* Team Selection (not for directors) */}
+      {/* Team Allocation */}
       {formData.profileType !== 'director' && (
-        <motion.div variants={itemVariants}>
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
-            <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500 dark:text-primary-400" />
+        <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+            <Users className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
             Alocação em Times *
           </h3>
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-2 max-h-48 sm:max-h-64 overflow-y-auto">
-            <div className="space-y-2">
-              {teams.map(team => (
-                <label key={team.id} className={`flex items-center p-3 sm:p-4 rounded-lg cursor-pointer transition-all ${
-                  formData.teamIds.includes(team.id)
-                    ? 'bg-primary-100 dark:bg-primary-900/30 border-2 border-primary-400 dark:border-primary-500'
-                    : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-                }`}>
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 sm:w-5 sm:h-5 rounded border-gray-300 dark:border-gray-600 text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400"
-                    checked={formData.teamIds.includes(team.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setFormData({ ...formData, teamIds: [...formData.teamIds, team.id] });
-                      } else {
-                        setFormData({ ...formData, teamIds: formData.teamIds.filter(id => id !== team.id) });
-                      }
-                    }}
-                  />
-                  <span className="ml-3 sm:ml-4 flex-1">
-                    <span className="font-medium text-gray-900 dark:text-gray-100 block text-sm sm:text-base">{team.name}</span>
-                    {team.department && (
-                      <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Depto: {team.department.name}</span>
-                    )}
-                  </span>
-                  {formData.teamIds.includes(team.id) && (
-                    <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 dark:text-primary-400 ml-2" />
+          <div className="max-h-64 overflow-y-auto pr-2 space-y-2">
+            {teams.map(team => (
+              <label key={team.id} className={`flex items-center p-4 rounded-xl cursor-pointer transition-all group ${
+                formData.teamIds.includes(team.id)
+                  ? 'bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-500 dark:border-primary-400'
+                  : 'bg-gray-50 dark:bg-gray-700/30 border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+              }`}>
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400"
+                  checked={formData.teamIds.includes(team.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setFormData({ ...formData, teamIds: [...formData.teamIds, team.id] });
+                    } else {
+                      setFormData({ ...formData, teamIds: formData.teamIds.filter(id => id !== team.id) });
+                    }
+                  }}
+                />
+                <div className="ml-4 flex-1">
+                  <span className="font-medium text-gray-900 dark:text-gray-100 block">{team.name}</span>
+                  {team.department && (
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Depto: {team.department.name}
+                    </span>
                   )}
-                </label>
-              ))}
-            </div>
+                </div>
+                {formData.teamIds.includes(team.id) && (
+                  <CheckCircle2 className="h-5 w-5 text-primary-600 dark:text-primary-400 ml-2" />
+                )}
+              </label>
+            ))}
           </div>
           {formErrors.teams && (
-            <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
-              <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+              <AlertCircle className="h-4 w-4 mr-1" />
               {formErrors.teams}
             </p>
           )}
         </motion.div>
       )}
 
-      {/* Leader Selection (for regular collaborators) */}
-      {formData.profileType === 'regular' && (
-        <motion.div variants={itemVariants}>
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
-            <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary-500 dark:text-primary-400" />
+      {/* Hierarchy */}
+      {(formData.profileType === 'regular' || formData.profileType === 'leader') && (
+        <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+            <GitBranch className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
             Hierarquia
           </h3>
           <div>
@@ -699,30 +694,45 @@ const UserRegistration = () => {
               Reporta para *
             </label>
             <div className="relative">
-              <ChevronDown className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+              <UserCog className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
               <select
-                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                   formErrors.reportsTo 
-                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
                 }`}
                 value={formData.reportsTo}
                 onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
               >
-                <option value="">Selecione um líder</option>
+                <option value="">
+                  {formData.profileType === 'regular' ? 'Selecione um líder' : 'Selecione um diretor'}
+                </option>
                 {users
-                  .filter(u => u.is_leader || u.is_director)
-                  .map(leader => (
-                    <option key={leader.id} value={leader.id}>
-                      {leader.name} - {leader.position}
+                  .filter(u => {
+                    if (formData.profileType === 'regular') {
+                      return u.is_leader || u.is_director;
+                    }
+                    return u.is_director;
+                  })
+                  .map(superior => (
+                    <option key={superior.id} value={superior.id}>
+                      {superior.name} - {superior.position}
+                      {superior.is_director && ' (Diretor)'}
+                      {superior.is_leader && !superior.is_director && ' (Líder)'}
                     </option>
                   ))}
               </select>
             </div>
             {formErrors.reportsTo && (
-              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1 sm:mt-2 flex items-center">
-                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.reportsTo}
+              </p>
+            )}
+            {formData.profileType === 'leader' && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Líderes devem reportar para um diretor
               </p>
             )}
           </div>
@@ -733,26 +743,26 @@ const UserRegistration = () => {
 
   const renderTeamForm = () => (
     <motion.div 
-      className="space-y-8"
+      className="space-y-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <motion.div variants={itemVariants}>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+      <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
           <Users className="h-5 w-5 mr-2 text-secondary-500 dark:text-secondary-400" />
           Informações do Time
         </h3>
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Nome do Time *
             </label>
             <input
               type="text"
-              className={`w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+              className={`w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                 formErrors.teamName 
-                  ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                  ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400'
               }`}
               value={formData.teamName}
@@ -775,9 +785,9 @@ const UserRegistration = () => {
               <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
               <select
-                className={`w-full pl-12 pr-10 py-3 text-base rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                   formErrors.department 
-                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400'
                 }`}
                 value={formData.teamDepartmentId}
@@ -805,9 +815,9 @@ const UserRegistration = () => {
               <Crown className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
               <select
-                className={`w-full pl-12 pr-10 py-3 text-base rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                   formErrors.responsible 
-                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400'
                 }`}
                 value={formData.teamResponsibleId}
@@ -830,44 +840,55 @@ const UserRegistration = () => {
               </p>
             )}
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Descrição do Time
+            </label>
+            <textarea
+              className="w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400"
+              rows={4}
+              value={formData.teamDescription}
+              onChange={(e) => setFormData({ ...formData, teamDescription: e.target.value })}
+              placeholder="Descreva os objetivos e responsabilidades do time..."
+            />
+          </div>
         </div>
       </motion.div>
 
-      <motion.div variants={itemVariants}>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+      <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
           <UserCheck className="h-5 w-5 mr-2 text-secondary-500 dark:text-secondary-400" />
           Membros do Time *
         </h3>
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-2 max-h-80 overflow-y-auto">
-          <div className="space-y-2">
-            {users.map(user => (
-              <label key={user.id} className={`flex items-center p-4 rounded-lg cursor-pointer transition-all ${
-                formData.teamMemberIds.includes(user.id)
-                  ? 'bg-secondary-100 dark:bg-secondary-900/30 border-2 border-secondary-400 dark:border-secondary-500'
-                  : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-              }`}>
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 dark:text-secondary-500 focus:ring-secondary-500 dark:focus:ring-secondary-400"
-                  checked={formData.teamMemberIds.includes(user.id)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setFormData({ ...formData, teamMemberIds: [...formData.teamMemberIds, user.id] });
-                    } else {
-                      setFormData({ ...formData, teamMemberIds: formData.teamMemberIds.filter(id => id !== user.id) });
-                    }
-                  }}
-                />
-                <div className="ml-4 flex-1">
-                  <span className="font-medium text-gray-900 dark:text-gray-100 block">{user.name}</span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">{user.position}</span>
-                </div>
-                {formData.teamMemberIds.includes(user.id) && (
-                  <CheckCircle2 className="h-5 w-5 text-secondary-600 dark:text-secondary-400 ml-2" />
-                )}
-              </label>
-            ))}
-          </div>
+        <div className="max-h-64 overflow-y-auto pr-2 space-y-2">
+          {users.map(user => (
+            <label key={user.id} className={`flex items-center p-4 rounded-xl cursor-pointer transition-all group ${
+              formData.teamMemberIds.includes(user.id)
+                ? 'bg-secondary-50 dark:bg-secondary-900/20 border-2 border-secondary-500 dark:border-secondary-400'
+                : 'bg-gray-50 dark:bg-gray-700/30 border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+            }`}>
+              <input
+                type="checkbox"
+                className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 dark:text-secondary-500 focus:ring-secondary-500 dark:focus:ring-secondary-400"
+                checked={formData.teamMemberIds.includes(user.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setFormData({ ...formData, teamMemberIds: [...formData.teamMemberIds, user.id] });
+                  } else {
+                    setFormData({ ...formData, teamMemberIds: formData.teamMemberIds.filter(id => id !== user.id) });
+                  }
+                }}
+              />
+              <div className="ml-4 flex-1">
+                <span className="font-medium text-gray-900 dark:text-gray-100 block">{user.name}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">{user.position}</span>
+              </div>
+              {formData.teamMemberIds.includes(user.id) && (
+                <CheckCircle2 className="h-5 w-5 text-secondary-600 dark:text-secondary-400 ml-2" />
+              )}
+            </label>
+          ))}
         </div>
         {formErrors.members && (
           <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
@@ -876,44 +897,31 @@ const UserRegistration = () => {
           </p>
         )}
       </motion.div>
-
-      <motion.div variants={itemVariants}>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Descrição do Time
-        </label>
-        <textarea
-          className="w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400"
-          rows={4}
-          value={formData.teamDescription}
-          onChange={(e) => setFormData({ ...formData, teamDescription: e.target.value })}
-          placeholder="Descreva os objetivos e responsabilidades do time..."
-        />
-      </motion.div>
     </motion.div>
   );
 
   const renderDepartmentForm = () => (
     <motion.div 
-      className="space-y-8"
+      className="space-y-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <motion.div variants={itemVariants}>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+      <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
           <Building className="h-5 w-5 mr-2 text-accent-500 dark:text-accent-400" />
           Informações do Departamento
         </h3>
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Nome do Departamento *
             </label>
             <input
               type="text"
-              className={`w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+              className={`w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
                 formErrors.departmentName 
-                  ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                  ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500 dark:focus:ring-purple-400'
               }`}
               value={formData.departmentName}
@@ -936,9 +944,9 @@ const UserRegistration = () => {
               <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
               <select
-                className={`w-full pl-12 pr-10 py-3 text-base rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                   formErrors.responsible 
-                    ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-red-500' 
+                    ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500 dark:focus:ring-purple-400'
                 }`}
                 value={formData.departmentResponsibleId}
@@ -961,173 +969,161 @@ const UserRegistration = () => {
               </p>
             )}
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Descrição do Departamento
+            </label>
+            <textarea
+              className="w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500 dark:focus:ring-purple-400"
+              rows={4}
+              value={formData.departmentDescription}
+              onChange={(e) => setFormData({ ...formData, departmentDescription: e.target.value })}
+              placeholder="Descreva as responsabilidades e objetivos do departamento..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Metas e Objetivos
+            </label>
+            <textarea
+              className="w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500 dark:focus:ring-purple-400"
+              rows={4}
+              value={formData.departmentGoals}
+              onChange={(e) => setFormData({ ...formData, departmentGoals: e.target.value })}
+              placeholder="Liste as principais metas do departamento..."
+            />
+          </div>
         </div>
-      </motion.div>
-
-      <motion.div variants={itemVariants}>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Descrição do Departamento
-        </label>
-        <textarea
-          className="w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500 dark:focus:ring-purple-400"
-          rows={4}
-          value={formData.departmentDescription}
-          onChange={(e) => setFormData({ ...formData, departmentDescription: e.target.value })}
-          placeholder="Descreva as responsabilidades e objetivos do departamento..."
-        />
-      </motion.div>
-
-      <motion.div variants={itemVariants}>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Metas e Objetivos
-        </label>
-        <textarea
-          className="w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500 dark:focus:ring-purple-400"
-          rows={4}
-          value={formData.departmentGoals}
-          onChange={(e) => setFormData({ ...formData, departmentGoals: e.target.value })}
-          placeholder="Liste as principais metas do departamento..."
-        />
       </motion.div>
     </motion.div>
   );
 
-  // Loading state
   if (usersLoading || teamsLoading || depsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary-500 dark:text-primary-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400 text-lg">Carregando dados...</p>
+          <p className="text-gray-600 dark:text-gray-400">Carregando dados...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <button
-            onClick={() => navigate('/users')}
-            className="group flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors mb-6"
-          >
-            <ArrowLeft className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-medium">Voltar</span>
-          </button>
-          
-          <div className="flex flex-col sm:flex-row sm:items-center">
-            <div className="h-12 w-12 sm:h-14 sm:w-14 bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-0 sm:mr-5 shadow-lg dark:shadow-xl">
-              <Plus className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100">
-                Novo Cadastro
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1 text-base sm:text-lg">
-                Adicione novos membros, times ou departamentos ao sistema
-              </p>
-            </div>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-8"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
+          <div>            
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+              <Plus className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-500 dark:text-primary-400 mr-2 sm:mr-3 flex-shrink-0" />
+              Novo Cadastro
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
+              Adicione novos membros, times ou departamentos ao sistema
+            </p>
           </div>
-        </motion.div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
-          {/* Sidebar Navigation */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-1"
-          >
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 text-sm sm:text-base">Tipo de Cadastro</h3>
-              <nav className="space-y-2">
-                {[
-                  { id: 'user', label: 'Novo Usuário', icon: UserPlus, color: 'primary' },
-                  { id: 'team', label: 'Novo Time', icon: Users, color: 'secondary' },
-                  { id: 'department', label: 'Novo Departamento', icon: Building2, color: 'accent' }
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as TabType)}
-                    className={`w-full flex items-center px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium transition-all ${
-                      activeTab === tab.id
-                        ? tab.color === 'primary' 
-                          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-l-4 border-primary-500 dark:border-primary-400'
-                          : tab.color === 'secondary'
-                          ? 'bg-secondary-100 dark:bg-secondary-900/30 text-secondary-700 dark:text-secondary-300 border-l-4 border-secondary-500 dark:border-secondary-400'
-                          : 'bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-300 border-l-4 border-accent-500 dark:border-accent-400'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                    }`}
-                  >
-                    <tab.icon className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 flex-shrink-0" />
-                    <span className="truncate">{tab.label}</span>
-                  </button>
-                ))}
-              </nav>
-
-              <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
-                <Info className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400 mb-2" />
-                <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-300">
-                  {activeTab === 'user' && 'Adicione novos colaboradores e defina suas permissões.'}
-                  {activeTab === 'team' && 'Crie times e atribua membros e responsáveis.'}
-                  {activeTab === 'department' && 'Organize a estrutura da empresa em departamentos.'}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Form Content */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="lg:col-span-3"
-          >
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
-              <AnimatePresence mode="wait">
-                {activeTab === 'user' && renderUserForm()}
-                {activeTab === 'team' && renderTeamForm()}
-                {activeTab === 'department' && renderDepartmentForm()}
-              </AnimatePresence>
-
-              {/* Action Buttons */}
-              <motion.div 
-                className="mt-8 sm:mt-10 flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/users')}
-                  disabled={isLoading}
-                  size="lg"
-                  className="w-full sm:w-auto order-2 sm:order-1"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={handleSubmit}
-                  disabled={isLoading}
-                  size="lg"
-                  className="w-full sm:w-auto order-1 sm:order-2"
-                  icon={isLoading ? <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> : <Save className="h-4 w-4 sm:h-5 sm:w-5" />}
-                >
-                  {isLoading ? 'Salvando...' : 'Salvar Cadastro'}
-                </Button>
-              </motion.div>
-            </div>
-          </motion.div>
         </div>
-      </div>
+
+        {/* Tab Navigation */}
+        <div className="flex p-1.5 bg-gray-100/80 dark:bg-gray-700/50 backdrop-blur-sm rounded-2xl">
+          {[
+            { id: 'user', label: 'Novo Usuário', icon: UserPlus },
+            { id: 'team', label: 'Novo Time', icon: Users },
+            { id: 'department', label: 'Novo Departamento', icon: Building }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as TabType)}
+              className={`relative px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center space-x-2 flex-1 justify-center ${
+                activeTab === tab.id
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm dark:shadow-lg'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              <tab.icon className="h-4 w-4" />
+              <span>{tab.label}</span>
+              {activeTab === tab.id && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 bg-white dark:bg-gray-700 rounded-xl shadow-sm dark:shadow-lg -z-10"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Form Content */}
+      <AnimatePresence mode="wait">
+        {activeTab === 'user' && (
+          <motion.div
+            key="user"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            {renderUserForm()}
+          </motion.div>
+        )}
+        {activeTab === 'team' && (
+          <motion.div
+            key="team"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            {renderTeamForm()}
+          </motion.div>
+        )}
+        {activeTab === 'department' && (
+          <motion.div
+            key="department"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            {renderDepartmentForm()}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Action Buttons */}
+      <motion.div 
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        <div className="flex flex-col sm:flex-row justify-end gap-3">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/users')}
+            disabled={isLoading}
+            size="lg"
+            className="w-full sm:w-auto"
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            size="lg"
+            className="w-full sm:w-auto"
+            icon={isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+          >
+            {isLoading ? 'Salvando...' : 'Salvar Cadastro'}
+          </Button>
+        </div>
+      </motion.div>
     </div>
   );
 };
