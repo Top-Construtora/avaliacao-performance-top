@@ -1,9 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Employee, Evaluation, Status, EvaluationStats, Criterion } from '../types';
 import { mapCycleFromDB } from '../utils/fieldMapping';
-import { employees, evaluations as initialEvaluations, technicalCriteria, behavioralCriteria, deliveriesCriteria } from '../data/mockData';
-import { api } from '../config/api'; // 👈 Adicionado para chamadas API
-import { useAuth } from './AuthContext'; // 👈 Adicionado para checar autenticação
+import { api } from '../config/api'; 
+import { useAuth } from './AuthContext';
+import { supabase } from '../lib/supabase'; // Adicionar import do supabase
 
 // Interfaces para PDI
 interface ActionItem {
@@ -77,8 +77,15 @@ interface EvaluationContextType {
 
 const EvaluationContext = createContext<EvaluationContextType | undefined>(undefined);
 
+
+
 export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
-  const [evaluations, setEvaluations] = useState<Evaluation[]>(initialEvaluations);
+  // Estados principais
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  const [technicalCriteria, setTechnicalCriteria] = useState<Criterion[]>([]);
+  const [behavioralCriteria, setBehavioralCriteria] = useState<Criterion[]>([]);
+  const [deliveriesCriteria, setDeliveriesCriteria] = useState<Criterion[]>([]);
   const [stats, setStats] = useState<EvaluationStats>({
     pending: 0,
     inProgress: 0,
@@ -102,7 +109,102 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  // Update stats whenever evaluations change (mock)
+  // Carregar dados do Supabase
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Carregar competências do Supabase
+        const { data: competenciesData } = await supabase
+          .from('competencies')
+          .select('*')
+          .order('created_at');
+        
+        if (competenciesData) {
+          // Separar competências por categoria
+          const technical = competenciesData.filter((c: any) => c.category === 'technical');
+          const behavioral = competenciesData.filter((c: any) => c.category === 'behavioral');
+          const deliveries = competenciesData.filter((c: any) => c.category === 'deliveries');
+          
+          setTechnicalCriteria(technical);
+          setBehavioralCriteria(behavioral);
+          setDeliveriesCriteria(deliveries);
+        }
+
+        // Carregar employees do Supabase
+        const { data: usersData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('active', true);
+        
+        if (usersData) {
+          // Mapear para o formato Employee com tipagem correta
+          const mappedEmployees = usersData.map((user: any) => ({
+            id: user.id,
+            name: user.name,
+            position: user.position,
+            department: user.department || '',
+            joinDate: user.join_date,
+            reportsTo: user.reports_to
+          }));
+          setEmployees(mappedEmployees);
+        }
+
+        // Carregar evaluations do Supabase
+        const { data: evalData } = await supabase
+          .from('evaluations')
+          .select(`
+            *,
+            evaluation_competencies (
+              id,
+              competency_id,
+              score,
+              competencies (
+                id,
+                name,
+                description,
+                category
+              )
+            )
+          `);
+        
+        if (evalData) {
+          // Mapear os dados de avaliação com as competências avaliadas
+          const mappedEvaluations = evalData.map((evaluation: any) => ({
+            id: evaluation.id,
+            employeeId: evaluation.employee_id,
+            evaluatorId: evaluation.evaluator_id,
+            date: evaluation.created_at,
+            status: evaluation.status || 'pending',
+            criteria: evaluation.evaluation_competencies?.map((ec: any) => ({
+              id: ec.competencies.id,
+              name: ec.competencies.name,
+              description: ec.competencies.description,
+              category: ec.competencies.category,
+              score: ec.score
+            })) || [],
+            feedback: {
+              strengths: evaluation.strengths || '',
+              improvements: evaluation.improvements || '',
+              observations: evaluation.observations || ''
+            },
+            technicalScore: evaluation.technical_score || 0,
+            behavioralScore: evaluation.behavioral_score || 0,
+            deliveriesScore: evaluation.deliveries_score || 0,
+            finalScore: evaluation.final_score || 0,
+            lastUpdated: evaluation.updated_at,
+            isDraft: evaluation.status === 'draft'
+          }));
+          setEvaluations(mappedEvaluations);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // Update stats whenever evaluations change
   useEffect(() => {
     const pending = evaluations.filter(evaluation => evaluation.status === 'pending').length;
     const inProgress = evaluations.filter(evaluation => evaluation.status === 'in-progress').length;
@@ -239,7 +341,7 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     return nineBoxResults.find(r => r.employeeId === employeeId);
   };
 
-  // 🔥 Funções API (Claude)
+  // 🔥 Funções API
   const fetchCycles = async () => {
     if (!isAuthenticated) return;
     try {
