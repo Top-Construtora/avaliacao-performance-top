@@ -10,15 +10,20 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://avaliacao-desempenho-ynr9.onrender.com', // URL do seu frontend
+  'https://avaliacao-desempenho.vercel.app', // Se tiver domínio customizado
+];
+
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
 
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://avaliacao-desempenho-six.vercel.app',
-    process.env.FRONTEND_URL
-  ].filter(Boolean) as string[],
+  origin: allowedOrigins,
   credentials: true
 }));
 app.use(express.json());
