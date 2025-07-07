@@ -1,46 +1,33 @@
 {
-  "name": "employee-evaluation-app",
+  "name": "avaliacao-desempenho",
+  "version": "1.0.0",
   "private": true,
-  "version": "0.1.0",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@fontsource/space-grotesk": "^5.2.7",
-    "@supabase/supabase-js": "^2.50.0",
-    "chart.js": "^4.4.1",
-    "framer-motion": "^11.0.8",
-    "jspdf": "^3.0.1",
-    "jspdf-autotable": "^5.0.2",
-    "lucide-react": "^0.344.0",
-    "react": "^18.3.1",
-    "react-chartjs-2": "^5.2.0",
-    "react-dom": "^18.3.1",
-    "react-hot-toast": "^2.4.1",
-    "react-router-dom": "^6.22.3",
-    "react-table": "^7.8.0",
-    "xlsx": "^0.18.5"
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ..",
+    "clean": "rm -rf frontend/node_modules backend/node_modules node_modules",
+    "clean:install": "npm run clean && npm run install:all"
   },
   "devDependencies": {
-    "@eslint/js": "^9.9.1",
-    "@types/jspdf": "^1.3.3",
-    "@types/react": "^18.3.5",
-    "@types/react-dom": "^18.3.0",
-    "@types/react-table": "^7.7.19",
-    "@vitejs/plugin-react": "^4.3.1",
-    "autoprefixer": "^10.4.18",
-    "eslint": "^9.9.1",
-    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
-    "eslint-plugin-react-refresh": "^0.4.11",
-    "globals": "^15.9.0",
-    "postcss": "^8.4.35",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5.5.3",
-    "typescript-eslint": "^8.3.0",
-    "vite": "^5.4.2"
-  }
+    "concurrently": "^8.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Top-Construtora/avaliacao-desempenho.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Top-Construtora/avaliacao-desempenho/issues"
+  },
+  "homepage": "https://github.com/Top-Construtora/avaliacao-desempenho#readme",
+  "description": ""
 }
