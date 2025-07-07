@@ -150,51 +150,56 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
         }
 
         // Carregar evaluations do Supabase
-        const { data: evalData } = await supabase
+        const { data: evalData, error: evalError } = await supabase
           .from('evaluations')
-          .select(`
-            *,
-            evaluation_competencies (
-              id,
-              competency_id,
-              score,
-              competencies (
-                id,
-                name,
-                description,
-                category
-              )
-            )
-          `);
+          .select('*');
+        
+        if (evalError) {
+          console.error('Erro ao carregar evaluations:', evalError);
+        }
         
         if (evalData) {
-          // Mapear os dados de avaliação com as competências avaliadas
-          const mappedEvaluations = evalData.map((evaluation: any) => ({
-            id: evaluation.id,
-            employeeId: evaluation.employee_id,
-            evaluatorId: evaluation.evaluator_id,
-            date: evaluation.created_at,
-            status: evaluation.status || 'pending',
-            criteria: evaluation.evaluation_competencies?.map((ec: any) => ({
-              id: ec.competencies.id,
-              name: ec.competencies.name,
-              description: ec.competencies.description,
-              category: ec.competencies.category,
-              score: ec.score
-            })) || [],
-            feedback: {
-              strengths: evaluation.strengths || '',
-              improvements: evaluation.improvements || '',
-              observations: evaluation.observations || ''
-            },
-            technicalScore: evaluation.technical_score || 0,
-            behavioralScore: evaluation.behavioral_score || 0,
-            deliveriesScore: evaluation.deliveries_score || 0,
-            finalScore: evaluation.final_score || 0,
-            lastUpdated: evaluation.updated_at,
-            isDraft: evaluation.status === 'draft'
-          }));
-          setEvaluations(mappedEvaluations);
+          // Para cada avaliação, buscar as competências avaliadas
+          const evaluationsWithCompetencies = await Promise.all(
+            evalData.map(async (evaluation: any) => {
+              // Buscar as competências desta avaliação
+              const { data: evalCompetencies } = await supabase
+                .from('evaluation_competencies')
+                .select(`
+                  *,
+                  competency:competencies(*)
+                `)
+                .eq('evaluation_id', evaluation.id);
+              
+              return {
+                id: evaluation.id,
+                employeeId: evaluation.employee_id,
+                evaluatorId: evaluation.evaluator_id,
+                date: evaluation.created_at,
+                status: evaluation.status || 'pending',
+                criteria: evalCompetencies?.map((ec: any) => ({
+                  id: ec.competency?.id || ec.competency_id,
+                  name: ec.competency?.name || '',
+                  description: ec.competency?.description || '',
+                  category: ec.competency?.category || '',
+                  score: ec.score || 0
+                })) || [],
+                feedback: {
+                  strengths: evaluation.strengths || '',
+                  improvements: evaluation.improvements || '',
+                  observations: evaluation.observations || ''
+                },
+                technicalScore: evaluation.technical_score || 0,
+                behavioralScore: evaluation.behavioral_score || 0,
+                deliveriesScore: evaluation.deliveries_score || 0,
+                finalScore: evaluation.final_score || 0,
+                lastUpdated: evaluation.updated_at,
+                isDraft: evaluation.status === 'draft'
+              };
+            })
+          );
+          
+          setEvaluations(evaluationsWithCompetencies);
         }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
