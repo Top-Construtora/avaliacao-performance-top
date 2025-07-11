@@ -3,6 +3,7 @@ import authRoutes from './authRoutes';
 import evaluationRoutes from './evaluationRoutes';
 import userRoutes from './userRoutes';
 import salaryRoutes from './salaryRoutes';
+import departmentRoutes from './departmentRoutes';
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router.use('/auth', authRoutes);
 router.use('/evaluations', evaluationRoutes);
 router.use('/users', userRoutes);
 router.use('/salary', salaryRoutes);
+router.use('/departments', departmentRoutes);
 
 export default router;

@@ -25,6 +25,9 @@ import NotificationHistory from './pages/NotificationHistory';
 import UserManagement from './pages/UserManagement';
 import EvaluationDashboard from './pages/EvaluationDashboard';
 import CycleManagement from './pages/CycleManagement';
+import SalaryManagement from './pages/SalaryManagement';
+import SalaryAdminPage from './pages/SalaryAdminPage';
+import CareerTrackDetail from './pages/CareerTrackDetail';
 
 const USE_SUPABASE_AUTH = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
 
@@ -112,6 +115,39 @@ function App() {
                           </ProtectedRoute>
                         } 
                       />
+
+                    <Route
+                      path="/salary"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <SalaryManagement />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/salary/admin"
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <SalaryAdminPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/salary/tracks/:id"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <CareerTrackDetail />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/salary/reports"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <SalaryReports />
+                        </ProtectedRoute>
+                      }
+                    />
                       
                       <Route 
                         path="leader-evaluation" 

@@ -6,7 +6,7 @@ import {
   DollarSign, Edit, Trash2, Search, Filter, Building, Plus,
   TrendingUp, Users, Briefcase, ArrowUpRight, ArrowRight,
   Award, Target, Grid3x3, List, ChevronRight, Eye,
-  FileText, Download, Upload, AlertCircle, CheckCircle,
+  FileText, Download, Upload, AlertCircle, CheckCircle, Settings,
   Info, X, Layers, GitBranch, Zap, BarChart3
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -435,6 +435,33 @@ const SalaryManagement = () => {
         className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex gap-3">
+            <RoleGuard allowedRoles={['director']}>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/salary/admin')}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Administrar
+              </Button>
+            </RoleGuard>
+            <Button
+              variant="outline" 
+              onClick={() => navigate('/salary/reports')}
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Relatórios
+            </Button>
+            <RoleGuard allowedRoles={['director', 'leader']}>
+              <Button
+                variant="primary"
+                onClick={() => setShowCreateModal(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar
+              </Button>
+            </RoleGuard>
+          </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
               <DollarSign className="h-7 w-7 text-primary-500 mr-3" />

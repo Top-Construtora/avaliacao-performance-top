@@ -137,9 +137,9 @@ const SalaryReports = () => {
       {
         data: [30, 50, 20], // Exemplo
         backgroundColor: [
-          'rgba(59, 130, 246, 0.8)',
-          'rgba(16, 185, 129, 0.8)',
-          'rgba(249, 115, 22, 0.8)',
+          'rgba(18, 176, 160, 0.8)',
+          'rgba(30, 96, 118, 0.8)',
+          'rgba(186, 166, 115, 0.8)',
         ],
       },
     ],
@@ -216,7 +216,7 @@ const SalaryReports = () => {
                   className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <Users className="h-8 w-8 text-blue-500" />
+                    <Users className="h-8 w-8 text-primary-500" />
                     <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                       {overviewData.total_employees}
                     </span>
@@ -237,7 +237,7 @@ const SalaryReports = () => {
                   className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <DollarSign className="h-8 w-8 text-green-500" />
+                    <DollarSign className="h-8 w-8 text-green-700" />
                     <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                       {new Intl.NumberFormat('pt-BR', { 
                         style: 'currency', 
@@ -262,7 +262,7 @@ const SalaryReports = () => {
                   className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <TrendingUp className="h-8 w-8 text-purple-500" />
+                    <TrendingUp className="h-8 w-8 text-secondary-500" />
                     <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                       {overviewData.total_tracks}
                     </span>
@@ -282,7 +282,7 @@ const SalaryReports = () => {
                   className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <BarChart3 className="h-8 w-8 text-orange-500" />
+                    <BarChart3 className="h-8 w-8 text-accent-500" />
                     <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                       {new Intl.NumberFormat('pt-BR', { 
                         style: 'currency', 
@@ -548,14 +548,14 @@ const SalaryReports = () => {
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg p-4">
                       <div className="flex items-start gap-3">
-                        <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                        <Info className="h-5 w-5 text-primary-600 dark:text-primary-400 flex-shrink-0 mt-0.5" />
                         <div>
-                          <h5 className="font-medium text-blue-900 dark:text-blue-100">
+                          <h5 className="font-medium text-primary-900 dark:text-primary-100">
                             Detalhamento de Encargos
                           </h5>
-                          <ul className="mt-2 space-y-1 text-sm text-blue-800 dark:text-blue-200">
+                          <ul className="mt-2 space-y-1 text-sm text-primary-800 dark:text-primary-200">
                             <li>• INSS Patronal (20%): {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(budgetSimulation.breakdown?.inss || 0)}</li>
                             <li>• FGTS (8%): {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(budgetSimulation.breakdown?.fgts || 0)}</li>
                             <li>• Provisão Férias: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(budgetSimulation.breakdown?.ferias || 0)}</li>
@@ -601,13 +601,13 @@ const SalaryReports = () => {
 
                   {/* Estatísticas */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                    <div className="bg-primary-50 dark:bg-primary-900/20 rounded-lg p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-xs text-blue-600 dark:text-blue-400">Verticais</p>
-                          <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">12</p>
+                          <p className="text-xs text-primary-600 dark:text-primary-400">Verticais</p>
+                          <p className="text-2xl font-bold text-primary-900 dark:text-primary-100">12</p>
                         </div>
-                        <ArrowUp className="h-8 w-8 text-blue-500 opacity-50" />
+                        <ArrowUp className="h-8 w-8 text-primary-500 opacity-50" />
                       </div>
                     </div>
                     <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
@@ -616,27 +616,27 @@ const SalaryReports = () => {
                           <p className="text-xs text-green-600 dark:text-green-400">Horizontais</p>
                           <p className="text-2xl font-bold text-green-900 dark:text-green-100">28</p>
                         </div>
-                        <ArrowRight className="h-8 w-8 text-green-500 opacity-50" />
+                        <ArrowRight className="h-8 w-8 text-green-700 opacity-50" />
                       </div>
                     </div>
-                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+                    <div className="bg-secondary-50 dark:bg-secondary-900/20 rounded-lg p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-xs text-purple-600 dark:text-purple-400">Mérito</p>
-                          <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">8</p>
+                          <p className="text-xs text-secondary-600 dark:text-secondary-400">Mérito</p>
+                          <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">8</p>
                         </div>
-                        <Target className="h-8 w-8 text-purple-500 opacity-50" />
+                        <Target className="h-8 w-8 text-secondary-500 opacity-50" />
                       </div>
                     </div>
-                    <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
+                    <div className="bg-accent-50 dark:bg-accent-900/20 rounded-lg p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-xs text-orange-600 dark:text-orange-400">Investimento</p>
-                          <p className="text-lg font-bold text-orange-900 dark:text-orange-100">
+                          <p className="text-xs text-accent-600 dark:text-accent-400">Investimento</p>
+                          <p className="text-lg font-bold text-accent-900 dark:text-accent-100">
                             R$ 245K
                           </p>
                         </div>
-                        <DollarSign className="h-8 w-8 text-orange-500 opacity-50" />
+                        <DollarSign className="h-8 w-8 text-accent-500 opacity-50" />
                       </div>
                     </div>
                   </div>

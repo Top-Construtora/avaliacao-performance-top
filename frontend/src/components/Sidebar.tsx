@@ -74,6 +74,12 @@ export default function Sidebar({
       allowedRoles: ['director'],
     },
     {
+      label: 'Admin Salários',
+      icon: Settings,
+      path: '/salary/admin',
+      allowedRoles: ['director']
+    },
+    {
       label: 'Cargos e Salários',
       icon: DollarSign,
       path: '/salary',

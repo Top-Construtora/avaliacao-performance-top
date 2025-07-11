@@ -112,255 +112,250 @@ export interface UserSalaryInfo {
   class_code?: string;
   salary_level?: string;
   track_name?: string;
+  track_position_id?: string;
 }
 
-export interface SalaryCalculation {
-  baseSalary: number;
-  levelPercentage: number;
-  calculatedSalary: number;
-}
-
-export interface SalaryOverview {
-  total_employees: number;
-  total_clt: number;
-  total_pj: number;
-  avg_salary: number;
-  min_salary: number;
-  max_salary: number;
-  total_tracks: number;
-  total_positions: number;
-}
-
-export const salaryService = {
+class SalaryService {
   // ===== CLASSES SALARIAIS =====
   async getClasses(): Promise<SalaryClass[]> {
     const response = await api.get('/salary/classes');
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async getClassById(id: string): Promise<SalaryClass> {
     const response = await api.get(`/salary/classes/${id}`);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
-  async createClass(data: Omit<SalaryClass, 'id' | 'created_at' | 'updated_at'>): Promise<SalaryClass> {
+  async createClass(data: Partial<SalaryClass>): Promise<SalaryClass> {
     const response = await api.post('/salary/classes', data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async updateClass(id: string, data: Partial<SalaryClass>): Promise<SalaryClass> {
     const response = await api.put(`/salary/classes/${id}`, data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async deleteClass(id: string): Promise<void> {
     await api.delete(`/salary/classes/${id}`);
-  },
+  }
 
   // ===== CARGOS =====
   async getPositions(): Promise<JobPosition[]> {
     const response = await api.get('/salary/positions');
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async getPositionById(id: string): Promise<JobPosition> {
     const response = await api.get(`/salary/positions/${id}`);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
-  async createPosition(data: Omit<JobPosition, 'id' | 'created_at' | 'updated_at'>): Promise<JobPosition> {
+  async createPosition(data: Partial<JobPosition>): Promise<JobPosition> {
     const response = await api.post('/salary/positions', data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async updatePosition(id: string, data: Partial<JobPosition>): Promise<JobPosition> {
     const response = await api.put(`/salary/positions/${id}`, data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async deletePosition(id: string): Promise<void> {
     await api.delete(`/salary/positions/${id}`);
-  },
+  }
 
   // ===== INTERNÍVEIS =====
   async getLevels(): Promise<SalaryLevel[]> {
     const response = await api.get('/salary/levels');
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async getLevelById(id: string): Promise<SalaryLevel> {
     const response = await api.get(`/salary/levels/${id}`);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
-  async createLevel(data: Omit<SalaryLevel, 'id' | 'created_at' | 'updated_at'>): Promise<SalaryLevel> {
+  async createLevel(data: Partial<SalaryLevel>): Promise<SalaryLevel> {
     const response = await api.post('/salary/levels', data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async updateLevel(id: string, data: Partial<SalaryLevel>): Promise<SalaryLevel> {
     const response = await api.put(`/salary/levels/${id}`, data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async deleteLevel(id: string): Promise<void> {
     await api.delete(`/salary/levels/${id}`);
-  },
+  }
 
-  // ===== TRILHAS =====
+  // ===== TRILHAS DE CARREIRA =====
   async getTracks(): Promise<CareerTrack[]> {
     const response = await api.get('/salary/tracks');
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async getTrackById(id: string): Promise<CareerTrack> {
     const response = await api.get(`/salary/tracks/${id}`);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async getTracksByDepartment(departmentId: string): Promise<CareerTrack[]> {
     const response = await api.get(`/salary/tracks/department/${departmentId}`);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
-  async createTrack(data: Omit<CareerTrack, 'id' | 'created_at' | 'updated_at'>): Promise<CareerTrack> {
+  async createTrack(data: Partial<CareerTrack>): Promise<CareerTrack> {
     const response = await api.post('/salary/tracks', data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async updateTrack(id: string, data: Partial<CareerTrack>): Promise<CareerTrack> {
     const response = await api.put(`/salary/tracks/${id}`, data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async deleteTrack(id: string): Promise<void> {
     await api.delete(`/salary/tracks/${id}`);
-  },
+  }
 
   // ===== POSIÇÕES NAS TRILHAS =====
   async getTrackPositions(): Promise<TrackPosition[]> {
     const response = await api.get('/salary/track-positions');
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async getTrackPositionById(id: string): Promise<TrackPosition> {
     const response = await api.get(`/salary/track-positions/${id}`);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async getPositionsByTrack(trackId: string): Promise<TrackPosition[]> {
     const response = await api.get(`/salary/track-positions/track/${trackId}`);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
-  async createTrackPosition(data: Omit<TrackPosition, 'id' | 'created_at' | 'updated_at'>): Promise<TrackPosition> {
+  async createTrackPosition(data: Partial<TrackPosition>): Promise<TrackPosition> {
     const response = await api.post('/salary/track-positions', data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async updateTrackPosition(id: string, data: Partial<TrackPosition>): Promise<TrackPosition> {
     const response = await api.put(`/salary/track-positions/${id}`, data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async deleteTrackPosition(id: string): Promise<void> {
     await api.delete(`/salary/track-positions/${id}`);
-  },
+  }
 
   // ===== REGRAS DE PROGRESSÃO =====
   async getProgressionRules(): Promise<ProgressionRule[]> {
     const response = await api.get('/salary/progression-rules');
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async getProgressionRuleById(id: string): Promise<ProgressionRule> {
     const response = await api.get(`/salary/progression-rules/${id}`);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async getRulesByFromPosition(positionId: string): Promise<ProgressionRule[]> {
     const response = await api.get(`/salary/progression-rules/from/${positionId}`);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
-  async createProgressionRule(data: Omit<ProgressionRule, 'id' | 'created_at' | 'updated_at'>): Promise<ProgressionRule> {
+  async createProgressionRule(data: Partial<ProgressionRule>): Promise<ProgressionRule> {
     const response = await api.post('/salary/progression-rules', data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async updateProgressionRule(id: string, data: Partial<ProgressionRule>): Promise<ProgressionRule> {
     const response = await api.put(`/salary/progression-rules/${id}`, data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async deleteProgressionRule(id: string): Promise<void> {
     await api.delete(`/salary/progression-rules/${id}`);
-  },
+  }
 
-  // ===== GESTÃO DE USUÁRIOS =====
-  async assignUserToTrack(userId: string, trackPositionId: string, salaryLevelId: string): Promise<any> {
+  // ===== ATRIBUIÇÃO E PROGRESSÃO =====
+  async assignUserToTrack(
+    userId: string, 
+    trackPositionId: string, 
+    salaryLevelId: string
+  ): Promise<any> {
     const response = await api.put(`/salary/users/${userId}/assign-track`, {
-      trackPositionId,
-      salaryLevelId
+      track_position_id: trackPositionId,
+      salary_level_id: salaryLevelId
     });
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async updateUserSalaryLevel(userId: string, salaryLevelId: string): Promise<any> {
     const response = await api.put(`/salary/users/${userId}/update-level`, {
-      salaryLevelId
+      salary_level_id: salaryLevelId
     });
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async getUserSalaryInfo(userId: string): Promise<UserSalaryInfo> {
     const response = await api.get(`/salary/users/${userId}/salary-info`);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async getUserPossibleProgressions(userId: string): Promise<any[]> {
     const response = await api.get(`/salary/users/${userId}/possible-progressions`);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
-  // ===== PROGRESSÃO =====
   async progressUser(userId: string, data: {
     toTrackPositionId: string;
     toSalaryLevelId: string;
     progressionType: 'horizontal' | 'vertical' | 'merit';
     reason?: string;
-  }): Promise<any> {
+  }): Promise<ProgressionHistory> {
     const response = await api.post(`/salary/users/${userId}/progress`, data);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   async getUserProgressionHistory(userId: string): Promise<ProgressionHistory[]> {
     const response = await api.get(`/salary/users/${userId}/progression-history`);
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   // ===== RELATÓRIOS =====
-  async getSalaryOverview(): Promise<SalaryOverview> {
+  async getSalaryOverview(): Promise<any> {
     const response = await api.get('/salary/reports/overview');
-    return response.data;
-  },
+    return response.data.data;
+  }
 
-  async getSalaryByDepartment(): Promise<any[]> {
+  async getSalaryByDepartment(): Promise<any> {
     const response = await api.get('/salary/reports/by-department');
-    return response.data;
-  },
+    return response.data.data;
+  }
 
-  async getSalaryByPosition(): Promise<any[]> {
+  async getSalaryByPosition(): Promise<any> {
     const response = await api.get('/salary/reports/by-position');
-    return response.data;
-  },
+    return response.data.data;
+  }
 
   // ===== CÁLCULO =====
-  async calculateSalary(trackPositionId: string, salaryLevelId: string): Promise<SalaryCalculation> {
+  async calculateSalary(trackPositionId: string, salaryLevelId: string): Promise<{
+    baseSalary: number;
+    levelPercentage: number;
+    calculatedSalary: number;
+  }> {
     const response = await api.post('/salary/calculate', {
-      trackPositionId,
-      salaryLevelId
+      track_position_id: trackPositionId,
+      salary_level_id: salaryLevelId
     });
-    return response.data;
+    return response.data.data;
   }
-};
+
+
+}
+
+export const salaryService = new SalaryService();
