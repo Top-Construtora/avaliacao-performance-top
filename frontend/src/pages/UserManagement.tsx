@@ -19,7 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { useSupabaseData } from '../hooks/useSupabaseData';
 import type { UserWithDetails, TeamWithDetails, DepartmentWithDetails } from '../types/supabase';
-import { RoleGuard } from '../components/Roleguard';
+import { RoleGuard } from '../components/RoleGuard';
 import { usePermissions, useUIPermissions, useOperationValidator } from '../hooks/usePermissions';
 import type { User } from '../types/supabase';
 import jsPDF from 'jspdf';
