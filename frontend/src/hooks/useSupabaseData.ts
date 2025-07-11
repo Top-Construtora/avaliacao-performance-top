@@ -15,9 +15,6 @@ import type {
   TeamWithDetails,
 } from '../types/supabase';
 
-// Feature flag para usar Supabase ou mock data
-const USE_SUPABASE = import.meta.env.VITE_USE_SUPABASE_DATA === 'true';
-
 // ====================================
 // HOOK PARA DEPARTMENTS
 // ====================================
@@ -28,7 +25,6 @@ export function useSupabaseDepartments() {
 
   // Carregar departamentos
   const loadDepartments = useCallback(async () => {
-    if (!USE_SUPABASE) return;
     
     try {
       setLoading(true);
@@ -45,10 +41,6 @@ export function useSupabaseDepartments() {
 
   // Criar departamento
   const createDepartment = useCallback(async (department: Omit<Department, 'id' | 'created_at' | 'updated_at'>) => {
-    if (!USE_SUPABASE) {
-      toast('Usando mock data - departamento não será salvo');
-      return;
-    }
 
     try {
       const newDept = await departmentsService.create(department);
@@ -63,10 +55,6 @@ export function useSupabaseDepartments() {
 
   // Atualizar departamento
   const updateDepartment = useCallback(async (id: string, updates: Partial<Department>) => {
-    if (!USE_SUPABASE) {
-      toast('Usando mock data - alterações não serão salvas');
-      return;
-    }
 
     try {
       const updated = await departmentsService.update(id, updates);
@@ -81,10 +69,6 @@ export function useSupabaseDepartments() {
 
   // Deletar departamento
   const deleteDepartment = useCallback(async (id: string) => {
-    if (!USE_SUPABASE) {
-      toast('Usando mock data - departamento não será removido');
-      return;
-    }
 
     try {
       await departmentsService.delete(id);
@@ -122,7 +106,6 @@ export function useSupabaseUsers() {
 
   // Carregar usuários
   const loadUsers = useCallback(async () => {
-    if (!USE_SUPABASE) return;
     
     try {
       setLoading(true);
@@ -139,10 +122,6 @@ export function useSupabaseUsers() {
 
   // Atualizar usuário
   const updateUser = useCallback(async (id: string, updates: Partial<User>) => {
-    if (!USE_SUPABASE) {
-      toast('Usando mock data - alterações não serão salvas');
-      return;
-    }
 
     try {
       const updated = await usersService.update(id, updates);
@@ -157,10 +136,6 @@ export function useSupabaseUsers() {
 
   // Desativar usuário
   const deactivateUser = useCallback(async (id: string) => {
-    if (!USE_SUPABASE) {
-      toast('Usando mock data - usuário não será desativado');
-      return;
-    }
 
     try {
       await usersService.deactivate(id);
@@ -174,10 +149,6 @@ export function useSupabaseUsers() {
 
   // Ativar usuário
   const activateUser = useCallback(async (id: string) => {
-    if (!USE_SUPABASE) {
-      toast('Usando mock data - usuário não será ativado');
-      return;
-    }
 
     try {
       await usersService.activate(id);
@@ -215,7 +186,6 @@ export function useSupabaseTeams() {
 
   // Carregar times
   const loadTeams = useCallback(async () => {
-    if (!USE_SUPABASE) return;
     
     try {
       setLoading(true);
@@ -232,10 +202,6 @@ export function useSupabaseTeams() {
 
   // Criar time
   const createTeam = useCallback(async (team: Omit<Team, 'id' | 'created_at' | 'updated_at'>) => {
-    if (!USE_SUPABASE) {
-      toast('Usando mock data - time não será salvo');
-      return;
-    }
 
     try {
       const newTeam = await teamsService.create(team);
@@ -250,11 +216,6 @@ export function useSupabaseTeams() {
 
   // Atualizar time
   const updateTeam = useCallback(async (id: string, updates: Partial<Team>) => {
-    if (!USE_SUPABASE) {
-      toast('Usando mock data - alterações não serão salvas');
-      return;
-    }
-
     try {
       const updated = await teamsService.update(id, updates);
       await loadTeams(); // Recarregar lista
@@ -268,10 +229,6 @@ export function useSupabaseTeams() {
 
   // Deletar time
   const deleteTeam = useCallback(async (id: string) => {
-    if (!USE_SUPABASE) {
-      toast('Usando mock data - time não será removido');
-      return;
-    }
 
     try {
       await teamsService.delete(id);
@@ -285,10 +242,6 @@ export function useSupabaseTeams() {
 
   // Gerenciar membros
   const updateTeamMembers = useCallback(async (teamId: string, userIds: string[]) => {
-    if (!USE_SUPABASE) {
-      toast('Usando mock data - membros não serão atualizados');
-      return;
-    }
 
     try {
       await teamsService.replaceMembers(teamId, userIds);
@@ -356,15 +309,5 @@ export function useSupabaseData() {
       },
     },
     helpers: supabaseHelpers,
-  };
-}
-
-// ====================================
-// HOOK PARA MIGRAÇÃO PROGRESSIVA
-// ====================================
-export function useMigrationMode() {
-  return {
-    isSupabaseEnabled: USE_SUPABASE,
-    mode: USE_SUPABASE ? 'supabase' : 'mock',
   };
 }

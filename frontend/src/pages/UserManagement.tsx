@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../components/Button';
+import UserSalaryAssignment from '../components/UserSalaryAssignment';
 import { 
   Users, Edit, Trash2, Search, Filter, Building, UserPlus,
   Shield, Mail, Calendar, X, AlertCircle, Briefcase,
@@ -9,19 +10,21 @@ import {
   ArrowUpDown, Sparkles, Hash, Info, ChevronLeft, Zap,
   Crown, Target, Layers, Eye, EyeOff, Copy, Download,
   FolderPlus, UserCog, MapPin, FileText, BarChart,
-  User, Phone, CalendarDays, Camera, Upload, Link2,
+  UserRound, Phone, CalendarDays, Camera, Upload, Link2,
   GitBranch, Network, UserX, ArrowRight, ArrowLeft, Plus,
-  Grid3x3, List, CheckCircle, FileSpreadsheet, FileDown,
+  Grid3x3, List, CheckCircle, FileSpreadsheet, FileDown, DollarSign,
   Loader2, Database
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { useSupabaseData } from '../hooks/useSupabaseData';
 import type { UserWithDetails, TeamWithDetails, DepartmentWithDetails } from '../types/supabase';
-import { PermissionGuard, ActionGuard, UIGuard, OperationWarning } from '../components/PermissionGuard';
+import { RoleGuard } from '../components/Roleguard';
 import { usePermissions, useUIPermissions, useOperationValidator } from '../hooks/usePermissions';
+import type { User } from '../types/supabase';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { PermissionGuard, ActionGuard, UIGuard, OperationWarning } from '../components/PermissionGuard';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -54,6 +57,8 @@ const UserManagement = () => {
   const [editType, setEditType] = useState<'user' | 'team' | 'department'>('user');
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
+  const [showSalaryModal, setShowSalaryModal] = useState(false);
+  const [selectedUserForSalary, setSelectedUserForSalary] = useState<User | null>(null);
   const [pendingOperation, setPendingOperation] = useState<{
     type: string;
     data: any;
@@ -158,6 +163,12 @@ const UserManagement = () => {
     }
   };
 
+  const handleOpenSalaryModal = (user: User) => {
+    setSelectedUserForSalary(user);
+    setShowSalaryModal(true);
+  };
+
+  
   const handleQuickAction = (action: string) => {
     switch (action) {
       case 'import':
@@ -509,6 +520,19 @@ const UserManagement = () => {
                   <Edit className="h-4 w-4" />
                 </button>
               </ActionGuard>
+
+              <RoleGuard allowedRoles={['director', 'leader']}>
+                <span title="Gestão Salarial">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenSalaryModal(user)}
+                    className="text-primary-600 hover:text-primary-700"
+                  >
+                    <DollarSign className="h-4 w-4" />
+                  </Button>
+                </span>
+              </RoleGuard>
               
               <ActionGuard can={permissions.canDeactivateUser}>
                 <button
@@ -760,7 +784,7 @@ const UserManagement = () => {
                 <span className="font-medium">{deptTeams.length} {deptTeams.length === 1 ? 'time' : 'times'}</span>
               </div>
               <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                <User className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500" />
+                <UserRound className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500" />
                 <span className="font-medium">{deptUsers} {deptUsers === 1 ? 'pessoa' : 'pessoas'}</span>
               </div>
             </div>
@@ -1258,6 +1282,20 @@ const UserManagement = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {showSalaryModal && selectedUserForSalary && (
+      <UserSalaryAssignment
+        user={selectedUserForSalary}
+        isOpen={showSalaryModal}
+        onClose={() => {
+          setShowSalaryModal(false);
+          setSelectedUserForSalary(null);
+        }}
+        onUpdate={() => {
+          window.location.reload();
+        }}
+      />
+    )}
 
         {showWarning && pendingOperation && (
           <OperationWarning

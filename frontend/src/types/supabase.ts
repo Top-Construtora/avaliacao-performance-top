@@ -50,6 +50,12 @@ export interface Database {
           active: boolean
           reports_to: string | null
           profile_image: string | null
+          contract_type?: 'CLT' | 'PJ' | null
+          current_track_position_id?: string | null
+          current_salary_level_id?: string | null
+          current_salary?: number | null
+          admission_date?: string | null
+          position_start_date?: string | null
           created_at: string
           updated_at: string
         }
@@ -66,6 +72,12 @@ export interface Database {
           active?: boolean
           reports_to?: string | null
           profile_image?: string | null
+          contract_type?: 'CLT' | 'PJ' | null
+          current_track_position_id?: string | null
+          current_salary_level_id?: string | null
+          current_salary?: number | null
+          admission_date?: string | null
+          position_start_date?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -82,6 +94,12 @@ export interface Database {
           active?: boolean
           reports_to?: string | null
           profile_image?: string | null
+          contract_type?: 'CLT' | 'PJ' | null
+          current_track_position_id?: string | null
+          current_salary_level_id?: string | null
+          current_salary?: number | null
+          admission_date?: string | null
+          position_start_date?: string | null
           created_at?: string
           updated_at?: string
         }

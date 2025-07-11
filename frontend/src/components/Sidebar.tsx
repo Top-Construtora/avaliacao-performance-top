@@ -16,6 +16,7 @@ import {
   UserCheck,
   ClipboardCheck,
   Grid3X3,
+  DollarSign,
   Bell,
   UserPlus,
   X,
@@ -65,11 +66,18 @@ export default function Sidebar({
       path: '/users/new',
       allowedRoles: ['director'],
     },
+    
     {
       label: 'Gerenciar Usuários',
       icon: Users,
       path: 'users',
       allowedRoles: ['director'],
+    },
+    {
+      label: 'Cargos e Salários',
+      icon: DollarSign,
+      path: '/salary',
+      allowedRoles: ['director', 'leader']
     },
     {
       label: 'Gerenciar Ciclos',

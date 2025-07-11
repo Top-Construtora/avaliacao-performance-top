@@ -13,4 +13,5 @@ export interface User {
   profile_image?: string | null;
   created_at?: string;
   updated_at?: string;
+  position_start_date?: string;
 }

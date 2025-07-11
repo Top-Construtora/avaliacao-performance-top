@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import SalaryReports from './pages/SalaryReports';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import SelfEvaluation from './pages/SelfEvaluation';
@@ -204,6 +205,16 @@ function App() {
                           </ProtectedRoute>
                         } 
                       />
+
+                      <Route 
+                        path="salary" 
+                        element={
+                          <ProtectedRoute allowedRoles={['director']}>
+                            <SalaryReports />
+                          </ProtectedRoute>
+                        } 
+                      />
+
                       
                       <Route 
                         path="users/new" 
@@ -238,6 +249,7 @@ function App() {
                     <Route path="nine-box" element={<NineBoxMatrix />} />
                     <Route path="action-plan" element={<ActionPlan />} />
                     <Route path="reports" element={<Reports />} />
+                    <Route path="/salary/reports" element={<SalaryReports />} />
                     <Route path="settings" element={<Settings />} />
                     <Route path="users" element={<UserManagement />} />
                     <Route path="/notifications" element={<NotificationHistory />} />
