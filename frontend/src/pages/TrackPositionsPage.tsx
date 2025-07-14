@@ -434,7 +434,7 @@ const TrackPositionsPage = () => {
                                 {position?.name || 'Cargo não encontrado'}
                               </h3>
                               <span className="px-2 py-1 text-xs bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 rounded-full">
-                                {salaryClass?.code || 'Classe não encontrada'} - {salaryClass?.name}
+                                {salaryClass?.name}
                               </span>
                               {!trackPos.active && (
                                 <span className="px-2 py-1 text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded-full">
