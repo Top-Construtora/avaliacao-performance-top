@@ -570,7 +570,7 @@ const TrackPositionsPage = () => {
                             <option value="">Selecione um cargo existente</option>
                             {positions.map(pos => (
                               <option key={pos.id} value={pos.id}>
-                                {pos.name} {pos.code && `(${pos.code})`}
+                                {pos.name}
                               </option>
                             ))}
                           </select>
@@ -602,7 +602,7 @@ const TrackPositionsPage = () => {
                           <option value="">Selecione uma classe</option>
                           {classes.map(cls => (
                             <option key={cls.id} value={cls.id}>
-                              {cls.code} - {cls.name}
+                                {cls.name}
                             </option>
                           ))}
                         </select>
@@ -691,19 +691,6 @@ const TrackPositionsPage = () => {
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
                           placeholder="Ex: Analista de Sistemas"
                           autoFocus
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Código (opcional)
-                        </label>
-                        <input
-                          type="text"
-                          value={newPositionData.code}
-                          onChange={(e) => setNewPositionData({ ...newPositionData, code: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-                          placeholder="Ex: ANSIS (será gerado automaticamente se vazio)"
                         />
                       </div>
 
@@ -856,7 +843,6 @@ const TrackPositionsPage = () => {
                       {positions.find(p => p.id === selectedTrackPosition.position_id)?.name}
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Classe {classes.find(c => c.id === selectedTrackPosition.class_id)?.code} - 
                       {' '}{classes.find(c => c.id === selectedTrackPosition.class_id)?.name}
                     </p>
                   </div>

@@ -1,19 +1,24 @@
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
 
-interface CreateUserData {
+export interface CreateUserData {
   email: string;
   password: string;
   name: string;
   position: string;
-  is_leader: boolean;
-  is_director: boolean;
+  is_leader?: boolean;
+  is_director?: boolean;
   phone?: string;
   birth_date?: string;
-  join_date?: string; 
+  join_date?: string;
   profile_image?: string;
   reports_to?: string;
   team_ids?: string[];
+  department_id?: string;
+  track_id?: string;
+  position_id?: string;
+  intern_level?: string; // Mudando de number para string
+  contract_type?: 'CLT' | 'PJ';
 }
 
 export const authService = {
@@ -52,22 +57,31 @@ export const authService = {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // 3. Criar/atualizar registro na tabela public.users
+      const userRecord: any = {
+        id: authData.user.id,
+        email: userData.email,
+        name: userData.name,
+        position: userData.position,
+        is_leader: userData.is_leader || false,
+        is_director: userData.is_director || false,
+        phone: userData.phone || null,
+        birth_date: userData.birth_date || null,
+        join_date: userData.join_date || new Date().toISOString().split('T')[0],
+        active: true,
+        reports_to: userData.reports_to || null,
+        profile_image: userData.profile_image || null,
+      };
+
+      // Adicionar campos opcionais apenas se foram fornecidos
+      if (userData.department_id) userRecord.department_id = userData.department_id;
+      if (userData.track_id) userRecord.track_id = userData.track_id;
+      if (userData.position_id) userRecord.position_id = userData.position_id;
+      if (userData.intern_level) userRecord.intern_level = userData.intern_level;
+      if (userData.contract_type) userRecord.contract_type = userData.contract_type;
+
       const { error: dbError } = await supabase
         .from('users')
-        .upsert({
-          id: authData.user.id,
-          email: userData.email,
-          name: userData.name,
-          position: userData.position,
-          is_leader: userData.is_leader,
-          is_director: userData.is_director,
-          phone: userData.phone || null,
-          birth_date: userData.birth_date || null,
-          join_date: userData.join_date || new Date().toISOString().split('T')[0], // Usa a data fornecida ou a data atual
-          active: true,
-          reports_to: userData.reports_to || null,
-          profile_image: userData.profile_image || null,
-        }, {
+        .upsert(userRecord, {
           onConflict: 'id'
         });
 
