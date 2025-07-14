@@ -9,7 +9,7 @@ import {
   GitBranch, Briefcase, ArrowUpRight, Settings, Save
 } from 'lucide-react';
 import { salaryService, CareerTrack, TrackPosition } from '../services/salary.service';
-import { RoleGuard } from '../components/Roleguard';
+import { RoleGuard } from '../components/RoleGuard';
 
 interface PositionWithDetails extends Omit<TrackPosition, 'position' | 'class'> {
     position?: {
