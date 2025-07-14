@@ -116,169 +116,203 @@ export interface UserSalaryInfo {
 }
 
 class SalaryService {
+  // Método auxiliar para processar respostas da API
+  private processResponse<T>(response: any): T {
+    // Se a resposta tem data.data
+    if (response?.data?.data !== undefined) {
+      return response.data.data;
+    }
+    // Se a resposta tem apenas data
+    if (response?.data !== undefined) {
+      return response.data;
+    }
+    // Se a resposta é direta
+    return response;
+  }
+
+  // Método auxiliar para tratamento de erros
+  private async handleRequest<T>(request: Promise<any>): Promise<T> {
+    try {
+      const response = await request;
+      return this.processResponse<T>(response);
+    } catch (error: any) {
+      console.error('Erro na requisição:', error);
+      
+      // Se for erro de autenticação
+      if (error.response?.status === 401) {
+        // Redirecionar para login ou renovar token
+        window.location.href = '/login';
+      }
+      
+      throw error;
+    }
+  }
+
   // ===== CLASSES SALARIAIS =====
   async getClasses(): Promise<SalaryClass[]> {
-    const response = await api.get('/salary/classes');
-    return response.data.data;
+    return this.handleRequest<SalaryClass[]>(api.get('/salary/classes'));
   }
 
   async getClassById(id: string): Promise<SalaryClass> {
-    const response = await api.get(`/salary/classes/${id}`);
-    return response.data.data;
+    return this.handleRequest<SalaryClass>(api.get(`/salary/classes/${id}`));
   }
 
   async createClass(data: Partial<SalaryClass>): Promise<SalaryClass> {
-    const response = await api.post('/salary/classes', data);
-    return response.data.data;
+    return this.handleRequest<SalaryClass>(api.post('/salary/classes', data));
   }
 
   async updateClass(id: string, data: Partial<SalaryClass>): Promise<SalaryClass> {
-    const response = await api.put(`/salary/classes/${id}`, data);
-    return response.data.data;
+    return this.handleRequest<SalaryClass>(api.put(`/salary/classes/${id}`, data));
   }
 
   async deleteClass(id: string): Promise<void> {
-    await api.delete(`/salary/classes/${id}`);
+    return this.handleRequest<void>(api.delete(`/salary/classes/${id}`));
   }
 
   // ===== CARGOS =====
   async getPositions(): Promise<JobPosition[]> {
-    const response = await api.get('/salary/positions');
-    return response.data.data;
+    return this.handleRequest<JobPosition[]>(api.get('/salary/positions'));
   }
 
   async getPositionById(id: string): Promise<JobPosition> {
-    const response = await api.get(`/salary/positions/${id}`);
-    return response.data.data;
+    return this.handleRequest<JobPosition>(api.get(`/salary/positions/${id}`));
   }
 
   async createPosition(data: Partial<JobPosition>): Promise<JobPosition> {
-    const response = await api.post('/salary/positions', data);
-    return response.data.data;
+    return this.handleRequest<JobPosition>(api.post('/salary/positions', data));
   }
 
   async updatePosition(id: string, data: Partial<JobPosition>): Promise<JobPosition> {
-    const response = await api.put(`/salary/positions/${id}`, data);
-    return response.data.data;
+    return this.handleRequest<JobPosition>(api.put(`/salary/positions/${id}`, data));
   }
 
   async deletePosition(id: string): Promise<void> {
-    await api.delete(`/salary/positions/${id}`);
+    return this.handleRequest<void>(api.delete(`/salary/positions/${id}`));
   }
 
   // ===== INTERNÍVEIS =====
   async getLevels(): Promise<SalaryLevel[]> {
-    const response = await api.get('/salary/levels');
-    return response.data.data;
+    return this.handleRequest<SalaryLevel[]>(api.get('/salary/levels'));
   }
 
   async getLevelById(id: string): Promise<SalaryLevel> {
-    const response = await api.get(`/salary/levels/${id}`);
-    return response.data.data;
+    return this.handleRequest<SalaryLevel>(api.get(`/salary/levels/${id}`));
   }
 
   async createLevel(data: Partial<SalaryLevel>): Promise<SalaryLevel> {
-    const response = await api.post('/salary/levels', data);
-    return response.data.data;
+    return this.handleRequest<SalaryLevel>(api.post('/salary/levels', data));
   }
 
   async updateLevel(id: string, data: Partial<SalaryLevel>): Promise<SalaryLevel> {
-    const response = await api.put(`/salary/levels/${id}`, data);
-    return response.data.data;
+    return this.handleRequest<SalaryLevel>(api.put(`/salary/levels/${id}`, data));
   }
 
   async deleteLevel(id: string): Promise<void> {
-    await api.delete(`/salary/levels/${id}`);
+    return this.handleRequest<void>(api.delete(`/salary/levels/${id}`));
   }
 
   // ===== TRILHAS DE CARREIRA =====
   async getTracks(): Promise<CareerTrack[]> {
-    const response = await api.get('/salary/tracks');
-    return response.data.data;
+    try {
+      return await this.handleRequest<CareerTrack[]>(api.get('/salary/tracks'));
+    } catch (error: any) {
+      // Se for 404 ou 500, retornar array vazio
+      if (error.response?.status === 404 || error.response?.status === 500) {
+        console.warn('Sistema de trilhas pode não estar configurado ainda');
+        return [];
+      }
+      throw error;
+    }
   }
 
   async getTrackById(id: string): Promise<CareerTrack> {
-    const response = await api.get(`/salary/tracks/${id}`);
-    return response.data.data;
+    return this.handleRequest<CareerTrack>(api.get(`/salary/tracks/${id}`));
   }
 
   async getTracksByDepartment(departmentId: string): Promise<CareerTrack[]> {
-    const response = await api.get(`/salary/tracks/department/${departmentId}`);
-    return response.data.data;
+    return this.handleRequest<CareerTrack[]>(api.get(`/salary/tracks/department/${departmentId}`));
   }
 
   async createTrack(data: Partial<CareerTrack>): Promise<CareerTrack> {
-    const response = await api.post('/salary/tracks', data);
-    return response.data.data;
+    console.log('SalaryService.createTrack - Enviando dados:', data);
+    
+    try {
+      const response = await api.post('/salary/tracks', data);
+      console.log('SalaryService.createTrack - Resposta recebida:', response);
+      
+      return this.processResponse<CareerTrack>(response);
+    } catch (error: any) {
+      console.error('SalaryService.createTrack - Erro:', error);
+      
+      // Adicionar mais informações ao erro
+      if (error.response) {
+        console.error('Detalhes do erro:', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers
+        });
+      }
+      
+      throw error;
+    }
   }
 
   async updateTrack(id: string, data: Partial<CareerTrack>): Promise<CareerTrack> {
-    const response = await api.put(`/salary/tracks/${id}`, data);
-    return response.data.data;
+    return this.handleRequest<CareerTrack>(api.put(`/salary/tracks/${id}`, data));
   }
 
   async deleteTrack(id: string): Promise<void> {
-    await api.delete(`/salary/tracks/${id}`);
+    return this.handleRequest<void>(api.delete(`/salary/tracks/${id}`));
   }
 
   // ===== POSIÇÕES NAS TRILHAS =====
   async getTrackPositions(): Promise<TrackPosition[]> {
-    const response = await api.get('/salary/track-positions');
-    return response.data.data;
+    return this.handleRequest<TrackPosition[]>(api.get('/salary/track-positions'));
   }
 
   async getTrackPositionById(id: string): Promise<TrackPosition> {
-    const response = await api.get(`/salary/track-positions/${id}`);
-    return response.data.data;
+    return this.handleRequest<TrackPosition>(api.get(`/salary/track-positions/${id}`));
   }
 
   async getPositionsByTrack(trackId: string): Promise<TrackPosition[]> {
-    const response = await api.get(`/salary/track-positions/track/${trackId}`);
-    return response.data.data;
+    return this.handleRequest<TrackPosition[]>(api.get(`/salary/track-positions/track/${trackId}`));
   }
 
   async createTrackPosition(data: Partial<TrackPosition>): Promise<TrackPosition> {
-    const response = await api.post('/salary/track-positions', data);
-    return response.data.data;
+    return this.handleRequest<TrackPosition>(api.post('/salary/track-positions', data));
   }
 
   async updateTrackPosition(id: string, data: Partial<TrackPosition>): Promise<TrackPosition> {
-    const response = await api.put(`/salary/track-positions/${id}`, data);
-    return response.data.data;
+    return this.handleRequest<TrackPosition>(api.put(`/salary/track-positions/${id}`, data));
   }
 
   async deleteTrackPosition(id: string): Promise<void> {
-    await api.delete(`/salary/track-positions/${id}`);
+    return this.handleRequest<void>(api.delete(`/salary/track-positions/${id}`));
   }
 
   // ===== REGRAS DE PROGRESSÃO =====
   async getProgressionRules(): Promise<ProgressionRule[]> {
-    const response = await api.get('/salary/progression-rules');
-    return response.data.data;
+    return this.handleRequest<ProgressionRule[]>(api.get('/salary/progression-rules'));
   }
 
   async getProgressionRuleById(id: string): Promise<ProgressionRule> {
-    const response = await api.get(`/salary/progression-rules/${id}`);
-    return response.data.data;
+    return this.handleRequest<ProgressionRule>(api.get(`/salary/progression-rules/${id}`));
   }
 
   async getRulesByFromPosition(positionId: string): Promise<ProgressionRule[]> {
-    const response = await api.get(`/salary/progression-rules/from/${positionId}`);
-    return response.data.data;
+    return this.handleRequest<ProgressionRule[]>(api.get(`/salary/progression-rules/from/${positionId}`));
   }
 
   async createProgressionRule(data: Partial<ProgressionRule>): Promise<ProgressionRule> {
-    const response = await api.post('/salary/progression-rules', data);
-    return response.data.data;
+    return this.handleRequest<ProgressionRule>(api.post('/salary/progression-rules', data));
   }
 
   async updateProgressionRule(id: string, data: Partial<ProgressionRule>): Promise<ProgressionRule> {
-    const response = await api.put(`/salary/progression-rules/${id}`, data);
-    return response.data.data;
+    return this.handleRequest<ProgressionRule>(api.put(`/salary/progression-rules/${id}`, data));
   }
 
   async deleteProgressionRule(id: string): Promise<void> {
-    await api.delete(`/salary/progression-rules/${id}`);
+    return this.handleRequest<void>(api.delete(`/salary/progression-rules/${id}`));
   }
 
   // ===== ATRIBUIÇÃO E PROGRESSÃO =====
@@ -287,28 +321,28 @@ class SalaryService {
     trackPositionId: string, 
     salaryLevelId: string
   ): Promise<any> {
-    const response = await api.put(`/salary/users/${userId}/assign-track`, {
-      track_position_id: trackPositionId,
-      salary_level_id: salaryLevelId
-    });
-    return response.data.data;
+    return this.handleRequest<any>(
+      api.put(`/salary/users/${userId}/assign-track`, {
+        track_position_id: trackPositionId,
+        salary_level_id: salaryLevelId
+      })
+    );
   }
 
   async updateUserSalaryLevel(userId: string, salaryLevelId: string): Promise<any> {
-    const response = await api.put(`/salary/users/${userId}/update-level`, {
-      salary_level_id: salaryLevelId
-    });
-    return response.data.data;
+    return this.handleRequest<any>(
+      api.put(`/salary/users/${userId}/update-level`, {
+        salary_level_id: salaryLevelId
+      })
+    );
   }
 
   async getUserSalaryInfo(userId: string): Promise<UserSalaryInfo> {
-    const response = await api.get(`/salary/users/${userId}/salary-info`);
-    return response.data.data;
+    return this.handleRequest<UserSalaryInfo>(api.get(`/salary/users/${userId}/salary-info`));
   }
 
   async getUserPossibleProgressions(userId: string): Promise<any[]> {
-    const response = await api.get(`/salary/users/${userId}/possible-progressions`);
-    return response.data.data;
+    return this.handleRequest<any[]>(api.get(`/salary/users/${userId}/possible-progressions`));
   }
 
   async progressUser(userId: string, data: {
@@ -317,29 +351,31 @@ class SalaryService {
     progressionType: 'horizontal' | 'vertical' | 'merit';
     reason?: string;
   }): Promise<ProgressionHistory> {
-    const response = await api.post(`/salary/users/${userId}/progress`, data);
-    return response.data.data;
+    return this.handleRequest<ProgressionHistory>(
+      api.post(`/salary/users/${userId}/progress`, {
+        to_track_position_id: data.toTrackPositionId,
+        to_salary_level_id: data.toSalaryLevelId,
+        progression_type: data.progressionType,
+        reason: data.reason
+      })
+    );
   }
 
   async getUserProgressionHistory(userId: string): Promise<ProgressionHistory[]> {
-    const response = await api.get(`/salary/users/${userId}/progression-history`);
-    return response.data.data;
+    return this.handleRequest<ProgressionHistory[]>(api.get(`/salary/users/${userId}/progression-history`));
   }
 
   // ===== RELATÓRIOS =====
   async getSalaryOverview(): Promise<any> {
-    const response = await api.get('/salary/reports/overview');
-    return response.data.data;
+    return this.handleRequest<any>(api.get('/salary/reports/overview'));
   }
 
   async getSalaryByDepartment(): Promise<any> {
-    const response = await api.get('/salary/reports/by-department');
-    return response.data.data;
+    return this.handleRequest<any>(api.get('/salary/reports/by-department'));
   }
 
   async getSalaryByPosition(): Promise<any> {
-    const response = await api.get('/salary/reports/by-position');
-    return response.data.data;
+    return this.handleRequest<any>(api.get('/salary/reports/by-position'));
   }
 
   // ===== CÁLCULO =====
@@ -348,14 +384,54 @@ class SalaryService {
     levelPercentage: number;
     calculatedSalary: number;
   }> {
-    const response = await api.post('/salary/calculate', {
-      track_position_id: trackPositionId,
-      salary_level_id: salaryLevelId
-    });
-    return response.data.data;
+    return this.handleRequest<{
+      baseSalary: number;
+      levelPercentage: number;
+      calculatedSalary: number;
+    }>(
+      api.post('/salary/calculate', {
+        track_position_id: trackPositionId,
+        salary_level_id: salaryLevelId
+      })
+    );
   }
 
+  // ===== MÉTODOS AUXILIARES =====
+  
+  // Verificar se o sistema de salários está configurado
+  async checkSystemStatus(): Promise<{
+    configured: boolean;
+    hasClasses: boolean;
+    hasPositions: boolean;
+    hasLevels: boolean;
+    hasTracks: boolean;
+  }> {
+    try {
+      const [classes, positions, levels, tracks] = await Promise.all([
+        this.getClasses().catch(() => []),
+        this.getPositions().catch(() => []),
+        this.getLevels().catch(() => []),
+        this.getTracks().catch(() => [])
+      ]);
 
+      return {
+        configured: classes.length > 0 || positions.length > 0 || levels.length > 0 || tracks.length > 0,
+        hasClasses: classes.length > 0,
+        hasPositions: positions.length > 0,
+        hasLevels: levels.length > 0,
+        hasTracks: tracks.length > 0
+      };
+    } catch (error) {
+      console.error('Erro ao verificar status do sistema:', error);
+      return {
+        configured: false,
+        hasClasses: false,
+        hasPositions: false,
+        hasLevels: false,
+        hasTracks: false
+      };
+    }
+  }
 }
 
 export const salaryService = new SalaryService();

@@ -15,14 +15,42 @@ export const api = {
       },
     };
 
-    const response = await fetch(`${this.baseURL}${endpoint}`, config);
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'API request failed');
+    try {
+      const response = await fetch(`${this.baseURL}${endpoint}`, config);
+            
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ 
+          message: `HTTP error! status: ${response.status}` 
+        }));
+        
+        const error: any = new Error(errorData.message || errorData.error || 'API request failed');
+        error.response = {
+          status: response.status,
+          data: errorData
+        };
+        throw error;
+      }
+      
+      const data = await response.json();
+      
+      // Se a resposta tem sucesso mas está estruturada diferente
+      if (data.success === false) {
+        const error: any = new Error(data.error || data.message || 'Request failed');
+        error.response = {
+          status: response.status,
+          data: data
+        };
+        throw error;
+      }
+      
+      return data;
+    } catch (error: any) {
+      // Se for erro de rede/conexão
+      if (!error.response) {
+        error.request = true;
+      }
+      throw error;
     }
-    
-    return response.json();
   },
 
   get(endpoint: string) {
