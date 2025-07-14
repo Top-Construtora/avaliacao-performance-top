@@ -1,31 +1,38 @@
 import { Router } from 'express';
 import authRoutes from './authRoutes';
-import evaluationRoutes from './evaluationRoutes';
 import userRoutes from './userRoutes';
-import salaryRoutes from './salaryRoutes';
 import departmentRoutes from './departmentRoutes';
+import evaluationRoutes from './evaluationRoutes';
+import salaryRoutes from './salaryRoutes';
 
 const router = Router();
 
-// Health check
-router.get('/health', (req, res) => {
-  res.json({ 
-    success: true, 
-    message: 'API is running',
-    timestamp: new Date().toISOString()
+// Test route
+router.get('/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'API is working!',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Test endpoint
-router.get('/hello', (req, res) => {
-  res.json({ message: 'Hello from backend!' });
-});
-
-// Routes
+// Auth routes
 router.use('/auth', authRoutes);
-router.use('/evaluations', evaluationRoutes);
+
+// Protected routes
 router.use('/users', userRoutes);
-router.use('/salary', salaryRoutes);
 router.use('/departments', departmentRoutes);
+router.use('/evaluations', evaluationRoutes);
+router.use('/salary', salaryRoutes);
+
+// Health check
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
+});
 
 export default router;
