@@ -258,7 +258,7 @@ const SalaryAdminPage = () => {
                         <Button 
                           variant="secondary" 
                           size="sm" 
-                          onClick={() => navigate(`/salary/admin/tracks/${track.id}`)}
+                          onClick={() => navigate(`/salary/tracks/${track.id}`)}
                           className="w-full"
                         >
                           <span className="inline-flex items-center">

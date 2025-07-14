@@ -66,7 +66,6 @@ export default function Sidebar({
       path: '/users/new',
       allowedRoles: ['director'],
     },
-    
     {
       label: 'Gerenciar Usuários',
       icon: Users,
@@ -74,16 +73,10 @@ export default function Sidebar({
       allowedRoles: ['director'],
     },
     {
-      label: 'Admin Salários',
-      icon: Settings,
-      path: '/salary/admin',
-      allowedRoles: ['director']
-    },
-    {
       label: 'Cargos e Salários',
       icon: DollarSign,
       path: '/salary',
-      allowedRoles: ['director', 'leader']
+      allowedRoles: ['director']
     },
     {
       label: 'Gerenciar Ciclos',
@@ -133,7 +126,6 @@ export default function Sidebar({
       path: '/nine-box-guide',
       allowedRoles: ['director', 'leader'],
     },
-
   ];
 
   // Filtrar itens baseado no papel do usuário
@@ -154,6 +146,8 @@ export default function Sidebar({
       await signOut();
       navigate('/login');
     } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      toast.error('Erro ao fazer logout');
     }
   };
 

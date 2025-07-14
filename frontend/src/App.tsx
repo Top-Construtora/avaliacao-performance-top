@@ -7,7 +7,6 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
-import SalaryReports from './pages/SalaryReports';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import SelfEvaluation from './pages/SelfEvaluation';
@@ -25,7 +24,6 @@ import NotificationHistory from './pages/NotificationHistory';
 import UserManagement from './pages/UserManagement';
 import EvaluationDashboard from './pages/EvaluationDashboard';
 import CycleManagement from './pages/CycleManagement';
-import SalaryManagement from './pages/SalaryManagement';
 import SalaryAdminPage from './pages/SalaryAdminPage';
 import TrackPositionsPage from './pages/TrackPositionsPage';
 import CareerTrackDetail from './pages/CareerTrackDetail';
@@ -44,249 +42,214 @@ function App() {
         maxWidth: '400px',
         padding: '16px',
         boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        borderRadius: '0.75rem',
-        border: '1px solid #e5e7eb',
-        fontFamily: 'Space Grotesk, sans-serif',
-        zIndex: 9999,
+        borderRadius: '0.5rem',
       },
       success: {
-        duration: 4000,
-        iconTheme: {
-          primary: '#12b0a0',
-          secondary: '#ffffff',
-        },
         style: {
-          background: '#ffffff',
-          color: '#065f46',
-          border: '1px solid #12b0a0',
+          background: '#10b981',
+          color: '#ffffff',
+        },
+        iconTheme: {
+          primary: '#ffffff',
+          secondary: '#10b981',
         },
       },
       error: {
-        duration: 4000,
-        iconTheme: {
-          primary: '#dc2626',
-          secondary: '#ffffff',
-        },
         style: {
-          background: '#ffffff',
-          color: '#991b1b',
-          border: '1px solid #dc2626',
+          background: '#ef4444',
+          color: '#ffffff',
+        },
+        iconTheme: {
+          primary: '#ffffff',
+          secondary: '#ef4444',
         },
       },
     },
-    containerStyle: {
-      top: 20,
-      right: 20,
-      zIndex: 9999,
-    },
   };
 
-  return (
-    <Router>
-      <ThemeProvider>
-        <UserProvider>
+  if (USE_SUPABASE_AUTH) {
+    // Versão com Supabase Auth
+    return (
+      <Router>
+        <ThemeProvider>
           <AuthProvider>
-            <EvaluationProvider>
-              <Toaster {...toasterConfig} />
-              
-              <Routes>
-                {USE_SUPABASE_AUTH ? (
-                  // Rotas com autenticação Supabase
-                  <>
-                    {/* Rotas públicas */}
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
+            <UserProvider>
+              <EvaluationProvider>
+                <Toaster {...toasterConfig} />
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  
+                  <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                    <Route index element={<Dashboard />} />
                     
-                    {/* Rotas protegidas */}
-                    <Route
-                      path="/"
+                    <Route 
+                      path="self-evaluation" 
                       element={
-                        <ProtectedRoute>
-                          <Layout />
+                        <ProtectedRoute allowedRoles={['collaborator', 'leader']}>
+                          <SelfEvaluation />
                         </ProtectedRoute>
-                      }
-                    >
-                      <Route index element={<Dashboard />} />
-                      
-                      <Route 
-                        path="self-evaluation" 
-                        element={
-                          <ProtectedRoute allowedRoles={['collaborator', 'leader']}>
-                            <SelfEvaluation />
-                          </ProtectedRoute>
-                        } 
-                      />
+                      } 
+                    />
+                    
+                    <Route 
+                      path="leader-evaluation" 
+                      element={
+                        <ProtectedRoute allowedRoles={['leader', 'director']}>
+                          <LeaderEvaluation />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    <Route 
+                      path="leader-evaluations" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <EvaluationDashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    <Route 
+                      path="consensus" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <Consensus />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    <Route 
+                      path="nine-box" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <NineBoxMatrix />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    <Route 
+                      path="action-plan" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <ActionPlan />
+                        </ProtectedRoute>
+                      } 
+                    />
 
                     <Route
-                      path="/salary"
+                      path="/salary/tracks/:trackId"
                       element={
-                        <ProtectedRoute allowedRoles={['director', 'leader']}>
-                          <SalaryManagement />
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <TrackPositionsPage />
                         </ProtectedRoute>
                       }
                     />
-                    <Route
-                      path="/salary/admin"
+                    
+                    <Route 
+                      path="reports" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <Reports />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    <Route path="settings" element={<Settings />} />
+                    <Route path="notifications" element={<NotificationHistory />} />
+                    
+                    <Route 
+                      path="users" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <UserManagement />
+                        </ProtectedRoute>
+                      } 
+                    />
+
+                    <Route 
+                      path="salary" 
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <SalaryAdminPage />
                         </ProtectedRoute>
-                      }
+                      } 
                     />
-                    <Route
-                      path="/salary/tracks/:id"
+                    
+                    <Route 
+                      path="users/new" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <UserRegistration />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    <Route 
+                      path="users/:id/edit" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <UserEdit />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    <Route 
+                      path="cycle" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <CycleManagement />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    <Route 
+                      path="nine-box-guide" 
                       element={
                         <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <NineBoxGuide />
+                        </ProtectedRoute>
+                      } 
+                    />
+
+                    <Route 
+                      path="pdi-list" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader', 'collaborator']}>
+                          <PDIList />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    {/* Career Track Detail */}
+                    <Route 
+                      path="career-track/:trackId" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader', 'collaborator']}>
                           <CareerTrackDetail />
                         </ProtectedRoute>
-                      }
+                      } 
                     />
-                    <Route
-                      path="/salary/reports"
-                      element={
-                        <ProtectedRoute allowedRoles={['director', 'leader']}>
-                          <SalaryReports />
-                        </ProtectedRoute>
-                      }
-                    />
-                      
-                      <Route 
-                        path="leader-evaluation" 
-                        element={
-                          <ProtectedRoute allowedRoles={['leader', 'director']}>
-                            <LeaderEvaluation />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="consensus" 
-                        element={
-                          <ProtectedRoute allowedRoles={['director']}>
-                            <Consensus />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route
-                        path='pdis'
-                        element={
-                          <ProtectedRoute allowedRoles={['director']}>
-                            <PDIList/>
-                          </ProtectedRoute>
-                        }
-                      />
-
-                      <Route 
-                        path="users/edit/:id" 
-                        element={
-                          <ProtectedRoute>
-                            <UserEdit />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="evaluation-dashboard/:cycleId"
-                        element={
-                          <ProtectedRoute allowedRoles={['director']}>
-                            <EvaluationDashboard />
-                          </ProtectedRoute>
-                        }
-                      />
-                        
-                      <Route 
-                        path="cycle"
-                        element={
-                          <ProtectedRoute allowedRoles={['director']}>
-                            <CycleManagement />
-                          </ProtectedRoute>
-                        }
-                      />
-                      
-                      <Route 
-                        path="nine-box" 
-                        element={
-                          <ProtectedRoute allowedRoles={['director']}>
-                            <NineBoxMatrix />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="action-plan" 
-                        element={
-                          <ProtectedRoute allowedRoles={['director']}>
-                            <ActionPlan />
-                          </ProtectedRoute>
-                        } 
-                      />
-
-                      <Route
-                        path="/salary/admin/tracks/:trackId"
-                        element={
-                          <ProtectedRoute allowedRoles={['director']}>
-                            <TrackPositionsPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      
-                      <Route 
-                        path="reports" 
-                        element={
-                          <ProtectedRoute allowedRoles={['director']}>
-                            <Reports />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route path="settings" element={<Settings />} />
-                      <Route path="notifications" element={<NotificationHistory />} />
-                      
-                      <Route 
-                        path="users" 
-                        element={
-                          <ProtectedRoute allowedRoles={['director']}>
-                            <UserManagement />
-                          </ProtectedRoute>
-                        } 
-                      />
-
-                      <Route 
-                        path="salary" 
-                        element={
-                          <ProtectedRoute allowedRoles={['director']}>
-                            <SalaryReports />
-                          </ProtectedRoute>
-                        } 
-                      />
-
-                      
-                      <Route 
-                        path="users/new" 
-                        element={
-                          <ProtectedRoute allowedRoles={['director']}>
-                            <UserRegistration />
-                          </ProtectedRoute>
-                        } 
-                      />
-
-                      <Route
-                        path="nine-box-guide"
-                        element={
-                          <ProtectedRoute allowedRoles={['director', 'leader']}>
-                            <NineBoxGuide />
-                          </ProtectedRoute>
-                        }
-                      />
-                      
-                      <Route path="*" element={<NotFound />} />
-                    </Route>
-                    
-                    <Route path="*" element={<Navigate to="/login" replace />} />
-                  </>
-                ) : (
-                  // Rotas sem autenticação
+                  </Route>
+                  
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </EvaluationProvider>
+            </UserProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </Router>
+    );
+  } else {
+    // Versão sem Supabase Auth
+    return (
+      <Router>
+        <ThemeProvider>
+          <AuthProvider>
+            <UserProvider>
+              <EvaluationProvider>
+                <Toaster {...toasterConfig} />
+                <Routes>
                   <Route path="/" element={<Layout />}>
                     <Route index element={<Dashboard />} />
                     <Route path="self-evaluation" element={<SelfEvaluation />} />
@@ -294,23 +257,29 @@ function App() {
                     <Route path="consensus" element={<Consensus />} />
                     <Route path="nine-box" element={<NineBoxMatrix />} />
                     <Route path="action-plan" element={<ActionPlan />} />
+                    <Route path="pdi-list" element={<PDIList />} />
                     <Route path="reports" element={<Reports />} />
-                    <Route path="/salary/reports" element={<SalaryReports />} />
                     <Route path="settings" element={<Settings />} />
+                    <Route path="notifications" element={<NotificationHistory />} />
                     <Route path="users" element={<UserManagement />} />
-                    <Route path="/notifications" element={<NotificationHistory />} />
                     <Route path="users/new" element={<UserRegistration />} />
-                    <Route path="users/edit/:id" element={<UserEdit />} />
-                    <Route path="*" element={<NotFound />} />
+                    <Route path="users/:id/edit" element={<UserEdit />} />
+                    <Route path="cycle" element={<CycleManagement />} />
+                    <Route path="leader-evaluations" element={<EvaluationDashboard />} />
+                    <Route path="nine-box-guide" element={<NineBoxGuide />} />
+                    <Route path="salary" element={<SalaryAdminPage />} />
+                    <Route path="salary/tracks/:trackId" element={<TrackPositionsPage />} />
+                    <Route path="career-track/:trackId" element={<CareerTrackDetail />} />
                   </Route>
-                )}
-              </Routes>
-            </EvaluationProvider>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </EvaluationProvider>
+            </UserProvider>
           </AuthProvider>
-        </UserProvider>
-      </ThemeProvider>
-    </Router>
-  );
+        </ThemeProvider>
+      </Router>
+    );
+  }
 }
 
 export default App;
