@@ -12,7 +12,9 @@ import Dashboard from './pages/Dashboard';
 import SelfEvaluation from './pages/SelfEvaluation';
 import LeaderEvaluation from './pages/LeaderEvaluation';
 import NineBoxGuide from './pages/NineBoxGuide';
-import UserRegistration from './pages/UserRegistration';
+import RegisterUser from './pages/RegisterUser';
+import RegisterTeam from './pages/RegisterTeam';
+import RegisterDepartment from './pages/RegisterDepartment';
 import UserEdit from './pages/UserEdit';
 import Consensus from './pages/Consensus';
 import ActionPlan, { PDIList } from './pages/ActionPlan';
@@ -176,11 +178,30 @@ function App() {
                       } 
                     />
                     
+                    {/* Rotas de cadastro separadas */}
                     <Route 
-                      path="users/new" 
+                      path="register/user" 
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
-                          <UserRegistration />
+                          <RegisterUser />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    <Route 
+                      path="register/team" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <RegisterTeam />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    <Route 
+                      path="register/department" 
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <RegisterDepartment />
                         </ProtectedRoute>
                       } 
                     />
@@ -262,7 +283,12 @@ function App() {
                     <Route path="settings" element={<Settings />} />
                     <Route path="notifications" element={<NotificationHistory />} />
                     <Route path="users" element={<UserManagement />} />
-                    <Route path="users/new" element={<UserRegistration />} />
+                    
+                    {/* Rotas de cadastro separadas */}
+                    <Route path="register/user" element={<RegisterUser />} />
+                    <Route path="register/team" element={<RegisterTeam />} />
+                    <Route path="register/department" element={<RegisterDepartment />} />
+                    
                     <Route path="users/:id/edit" element={<UserEdit />} />
                     <Route path="cycle" element={<CycleManagement />} />
                     <Route path="leader-evaluations" element={<EvaluationDashboard />} />

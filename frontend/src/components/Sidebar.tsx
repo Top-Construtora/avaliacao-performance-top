@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -23,6 +24,9 @@ import {
   Crown,
   Briefcase,
   BookOpen,
+  Plus,
+  ChevronDown,
+  Building,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import logo from '../../assets/images/logo.png';
@@ -38,9 +42,11 @@ interface SidebarProps {
 interface NavItem {
   label: string;
   icon: any;
-  path: string;
+  path?: string;
   allowedRoles?: Array<'director' | 'leader' | 'collaborator'>;
   hideForRoles?: Array<'director' | 'leader' | 'collaborator'>;
+  hasDropdown?: boolean;
+  subItems?: NavItem[];
 }
 
 export default function Sidebar({
@@ -52,6 +58,7 @@ export default function Sidebar({
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const { isDirector, isLeader, role } = useUserRole();
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   // Definir itens de navegação com permissões
   const navItems: NavItem[] = [
@@ -61,15 +68,32 @@ export default function Sidebar({
       path: '/',
     },
     {
-      label: 'Cadastro de Usuários',
-      icon: UserPlus,
-      path: '/users/new',
+      label: 'Cadastrar',
+      icon: Plus,
+      hasDropdown: true,
       allowedRoles: ['director'],
+      subItems: [
+        {
+          label: 'Cadastrar Usuário',
+          icon: UserPlus,
+          path: '/register/user',
+        },
+        {
+          label: 'Cadastrar Time',
+          icon: Users,
+          path: '/register/team',
+        },
+        {
+          label: 'Cadastrar Departamento',
+          icon: Building,
+          path: '/register/department',
+        },
+      ],
     },
     {
       label: 'Gerenciar Usuários',
       icon: Users,
-      path: 'users',
+      path: '/users',
       allowedRoles: ['director'],
     },
     {
@@ -81,7 +105,7 @@ export default function Sidebar({
     {
       label: 'Gerenciar Ciclos',
       icon: RotateCcw,
-      path: 'cycle',
+      path: '/cycle',
       allowedRoles: ['director'],
     },
     {
@@ -151,6 +175,10 @@ export default function Sidebar({
     }
   };
 
+  const handleDropdownToggle = (label: string) => {
+    setOpenDropdown(openDropdown === label ? null : label);
+  };
+
   const sidebarContent = (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -168,21 +196,79 @@ export default function Sidebar({
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
         <div className="space-y-1">
           {filteredNavItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) => `
-                flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
-                ${isActive 
-                  ? 'bg-gradient-to-r from-teal-500/20 to-teal-600/20 text-white border border-teal-500/40 shadow-lg shadow-teal-500/10' 
-                  : 'text-white/70 hover:bg-gray-800/50 hover:text-white'
-                }
-              `}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
-              <span>{item.label}</span>
-            </NavLink>
+            <div key={item.label}>
+              {item.hasDropdown ? (
+                <>
+                  <button
+                    onClick={() => handleDropdownToggle(item.label)}
+                    className={`
+                      w-full flex items-center justify-between px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
+                      ${openDropdown === item.label
+                        ? 'bg-gray-800/50 text-white' 
+                        : 'text-white/70 hover:bg-gray-800/50 hover:text-white'
+                      }
+                    `}
+                  >
+                    <div className="flex items-center">
+                      <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                      <span>{item.label}</span>
+                    </div>
+                    <ChevronDown 
+                      className={`h-4 w-4 transition-transform duration-200 ${
+                        openDropdown === item.label ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+                  
+                  <AnimatePresence>
+                    {openDropdown === item.label && item.subItems && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pl-4 mt-1 space-y-1">
+                          {item.subItems.map((subItem) => (
+                            <NavLink
+                              key={subItem.path}
+                              to={subItem.path!}
+                              className={({ isActive }) => `
+                                flex items-center px-4 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200
+                                ${isActive 
+                                  ? 'bg-gradient-to-r from-teal-500/20 to-teal-600/20 text-white border border-teal-500/40 shadow-lg shadow-teal-500/10' 
+                                  : 'text-white/60 hover:bg-gray-800/30 hover:text-white/90'
+                                }
+                              `}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
+                              <span>{subItem.label}</span>
+                            </NavLink>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
+              ) : (
+                <NavLink
+                  to={item.path!}
+                  className={({ isActive }) => `
+                    flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
+                    ${isActive 
+                      ? 'bg-gradient-to-r from-teal-500/20 to-teal-600/20 text-white border border-teal-500/40 shadow-lg shadow-teal-500/10' 
+                      : 'text-white/70 hover:bg-gray-800/50 hover:text-white'
+                    }
+                  `}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                  <span>{item.label}</span>
+                </NavLink>
+              )}
+            </div>
           ))}
         </div>
       </nav>
