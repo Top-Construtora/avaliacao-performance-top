@@ -37,7 +37,7 @@ const USE_SUPABASE_AUTH = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
 function App() {
   // Configuração do Toaster (comum para ambos os casos)
   const toasterConfig = {
-    position: "top-right" as const,
+    position: "bottom-right" as const,
     toastOptions: {
       style: {
         background: '#ffffff',
