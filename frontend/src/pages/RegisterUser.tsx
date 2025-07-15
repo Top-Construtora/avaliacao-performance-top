@@ -183,27 +183,14 @@ const RegisterUser = () => {
     }
   }, [formData.trackId, positions]);
 
-  const getInternLevel = (orderIndex: number): 'A' | 'B' | 'C' | 'D' | 'E' => {
-    const levels: Record<number, 'A' | 'B' | 'C' | 'D' | 'E'> = {
-      1: 'A',
-      2: 'B',
-      3: 'C',
-      4: 'D',
-      5: 'E'
-    };
-    return levels[orderIndex] || 'A';
-  };
-
+  // Atualizar position quando positionId mudar
   useEffect(() => {
     if (formData.positionId) {
       const selectedPosition = positions.find(p => p.id === formData.positionId);
       if (selectedPosition) {
         const positionName = selectedPosition.position?.name || selectedPosition.position_id;
-        const internLevel = getInternLevel(selectedPosition.order_index);
-        
         setFormData(prev => ({ 
           ...prev, 
-          internLevel: internLevel,
           position: positionName
         }));
       }
@@ -284,6 +271,7 @@ const RegisterUser = () => {
     if (!formData.departmentId) errors.departmentId = 'Departamento é obrigatório';
     if (!formData.trackId) errors.trackId = 'Trilha é obrigatória';
     if (!formData.positionId) errors.positionId = 'Cargo é obrigatório';
+    if (!formData.internLevel) errors.internLevel = 'Internível é obrigatório';
     if (formData.phone && !/^\(\d{2}\) \d{5}-\d{4}$/.test(formData.phone)) {
       errors.phone = 'Telefone inválido';
     }
@@ -893,20 +881,36 @@ const RegisterUser = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Internível
+                Internível *
               </label>
               <div className="relative">
                 <Layers className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                <input
-                  type="text"
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 cursor-not-allowed"
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                <select
+                  className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                    formErrors.internLevel 
+                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
+                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                  }`}
                   value={formData.internLevel}
-                  readOnly
-                  disabled
-                />
+                  onChange={(e) => setFormData({ ...formData, internLevel: e.target.value as 'A' | 'B' | 'C' | 'D' | 'E' })}
+                  disabled={!formData.positionId}
+                >
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="C">C</option>
+                  <option value="D">D</option>
+                  <option value="E">E</option>
+                </select>
               </div>
+              {formErrors.internLevel && (
+                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {formErrors.internLevel}
+                </p>
+              )}
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                O internível é definido automaticamente pelo cargo selecionado
+                Selecione o nível de senioridade dentro do cargo
               </p>
             </div>
           </div>

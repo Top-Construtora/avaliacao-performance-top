@@ -16,7 +16,6 @@ const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  // Garanta que esta URL esteja EXATAMENTE correta, sem barras no final
   'https://avaliacao-desempenho-six.vercel.app', 
 ];
 
