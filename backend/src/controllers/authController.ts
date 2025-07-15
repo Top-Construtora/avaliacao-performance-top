@@ -6,7 +6,6 @@ import { AuthRequest } from '../middleware/auth';
 export const authController = {
   async login(req: Request<{}, {}, LoginRequest>, res: Response, next: NextFunction) {
     try {
-      
       const { email, password } = req.body;
       
       if (!email || !password) {
@@ -17,13 +16,28 @@ export const authController = {
       }
       
       const result = await authService.login(email, password);
-            
+      
+      // Estrutura de resposta esperada pelo frontend
       res.json({
         success: true,
-        data: result
+        data: {
+          user: result.profile, // Usar profile como user para compatibilidade
+          access_token: result.session.access_token,
+          refresh_token: result.session.refresh_token,
+          profile: result.profile
+        }
       });
     } catch (error: any) {
-      console.error('Login error:', error); // LOG
+      console.error('Login error:', error);
+      
+      // Enviar resposta de erro estruturada
+      if (error.statusCode === 401) {
+        return res.status(401).json({
+          success: false,
+          error: 'Email ou senha inválidos'
+        });
+      }
+      
       next(error);
     }
   },

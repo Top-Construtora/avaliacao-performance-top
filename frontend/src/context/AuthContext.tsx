@@ -48,7 +48,7 @@ export const useUserRole = (): UserRole => {
 
   let role: 'admin' | 'director' | 'leader' | 'collaborator' = 'collaborator';
   
-  if (profile.email === 'admin@example.com') {
+  if (profile.email === 'admin@empresa.com' && profile.is_director) {
     role = 'admin';
   } else if (profile.is_director) {
     role = 'director';
@@ -61,7 +61,7 @@ export const useUserRole = (): UserRole => {
     isLeader: profile.is_leader || false,
     isDirector: profile.is_director || false,
     isEmployee: !profile.is_leader && !profile.is_director,
-    isActive: profile.active !== false, // assumindo que active é um campo booleano
+    isActive: profile.active !== false,
     role
   };
 };
@@ -71,7 +71,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  // REMOVIDO: const navigate = useNavigate();
 
   useEffect(() => {
     checkAuth();
@@ -82,15 +81,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = localStorage.getItem('access_token');
       if (token) {
         const response = await api.get('/auth/profile');
-        if (response.success) {
+        if (response.success !== false && response.data) {
           setUser(response.data);
           setProfile(response.data);
           setIsAuthenticated(true);
+        } else {
+          // Token inválido, limpar
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
         }
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
     } finally {
       setLoading(false);
     }
@@ -100,25 +104,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await api.post('/auth/login', { email, password });
       
-      if (response.success) {
-        const { user, session, profile } = response.data;
+      if (response.success !== false && response.data) {
+        const { user, access_token, profile: userProfile } = response.data;
         
-        localStorage.setItem('access_token', session.access_token);
-        if (session.refresh_token) {
-          localStorage.setItem('refresh_token', session.refresh_token);
-        }
+        // Salvar token
+        localStorage.setItem('access_token', access_token);
+        
+        // Usar o perfil retornado ou o user como fallback
+        const profileData = userProfile || user;
         
         setUser(user);
-        setProfile(profile);
+        setProfile(profileData);
         setIsAuthenticated(true);
         
         toast.success('Login realizado com sucesso!');
-        return true; // RETORNA TRUE EM VEZ DE NAVEGAR
+        return true;
       }
-      return false;
-    } catch (error) {
-      console.error('Error signing in:', error);
+      
       toast.error('Erro ao fazer login. Verifique suas credenciais.');
+      return false;
+    } catch (error: any) {
+      console.error('Error signing in:', error);
+      
+      // Mensagem de erro mais específica
+      const errorMessage = error.response?.data?.error || 
+                          error.message || 
+                          'Erro ao fazer login. Verifique suas credenciais.';
+      
+      toast.error(errorMessage);
       return false;
     }
   };
@@ -134,7 +147,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setProfile(null);
       setIsAuthenticated(false);
-      // REMOVIDO: navigate('/login');
     }
   };
 
@@ -143,7 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const response = await api.put(`/users/${profile.id}`, updates);
-      if (response.success) {
+      if (response.success !== false && response.data) {
         setProfile(response.data);
         toast.success('Perfil atualizado com sucesso!');
       }

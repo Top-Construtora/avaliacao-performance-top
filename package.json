@@ -29,5 +29,8 @@
     "url": "https://github.com/Top-Construtora/avaliacao-desempenho/issues"
   },
   "homepage": "https://github.com/Top-Construtora/avaliacao-desempenho#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2"
+  }
 }

@@ -4,6 +4,7 @@ import { ApiError } from '../middleware/errorHandler';
 export const authService = {
   async login(email: string, password: string) {
     try {
+      console.log('🔐 Tentando fazer login para:', email);
       
       const { data, error } = await supabaseAdmin.auth.signInWithPassword({
         email,
@@ -11,8 +12,8 @@ export const authService = {
       });
 
       if (error) {
-        console.error('Supabase auth error:', error); // LOG
-        throw new ApiError(401, error.message);
+        console.error('Supabase auth error:', error);
+        throw new ApiError(401, 'Email ou senha inválidos');
       }
 
       if (!data.user) {
@@ -27,17 +28,20 @@ export const authService = {
         .single();
 
       if (profileError) {
-        console.error('Profile fetch error:', profileError); // LOG
+        console.error('Profile fetch error:', profileError);
+        
         // Se não encontrar perfil, cria um básico
         const basicProfile = {
           id: data.user.id,
           email: data.user.email!,
-          name: data.user.email!.split('@')[0],
+          name: data.user.user_metadata?.name || data.user.email!.split('@')[0],
           position: 'Colaborador',
           is_leader: false,
           is_director: false,
           active: true,
-          created_at: new Date().toISOString()
+          join_date: new Date().toISOString().split('T')[0],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
         
         // Tenta criar o perfil
@@ -52,6 +56,8 @@ export const authService = {
           throw new ApiError(500, 'Erro ao criar perfil de usuário');
         }
         
+        console.log('✅ Perfil criado com sucesso');
+        
         return {
           user: data.user,
           session: data.session,
@@ -59,29 +65,65 @@ export const authService = {
         };
       }
 
+      // Verificar se o usuário está ativo
+      if (!profile.active) {
+        throw new ApiError(403, 'Usuário inativo. Entre em contato com o administrador.');
+      }
+
+      console.log('✅ Login bem-sucedido');
+
       return {
         user: data.user,
         session: data.session,
         profile
       };
     } catch (error: any) {
-      console.error('Auth service error:', error); // LOG
+      console.error('Auth service error:', error);
       throw error;
     }
   },
 
   async getProfile(userId: string) {
-    const { data, error } = await supabaseAdmin
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-    if (error) {
-      console.error('Get profile error:', error); // LOG
-      throw new ApiError(404, 'User not found');
+      if (error) {
+        console.error('Get profile error:', error);
+        throw new ApiError(404, 'Perfil não encontrado');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in getProfile:', error);
+      throw error;
     }
+  },
 
-    return data;
+  async updateProfile(userId: string, updates: any) {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('users')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Update profile error:', error);
+        throw new ApiError(400, 'Erro ao atualizar perfil');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in updateProfile:', error);
+      throw error;
+    }
   }
 };

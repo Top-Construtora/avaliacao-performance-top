@@ -1,6 +1,6 @@
 // Tipos relacionados à autenticação e permissões
 
-export type UserRole = 'director' | 'leader' | 'collaborator';
+export type UserRole = 'director' | 'leader' | 'employee';
 
 export interface Permission {
   resource: string;
@@ -22,6 +22,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     { resource: 'consensus', actions: ['create', 'read', 'update', 'delete'] },
     { resource: 'reports', actions: ['read'] },
     { resource: 'audit_logs', actions: ['read'] },
+    { resource: 'salary', actions: ['create', 'read', 'update', 'delete'] },
   ],
   leader: [
     { resource: 'users', actions: ['read', 'update'] }, // apenas subordinados
@@ -29,12 +30,14 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     { resource: 'departments', actions: ['read'] },
     { resource: 'evaluations', actions: ['create', 'read', 'update'] }, // suas avaliações
     { resource: 'reports', actions: ['read'] }, // relatórios limitados
+    { resource: 'salary', actions: ['read'] }, // visualizar salários da equipe
   ],
-  collaborator: [
-    { resource: 'users', actions: ['read'] }, // apenas próprio perfil e colegas
+  employee: [
+    { resource: 'users', actions: ['read'] }, // apenas próprio perfil
     { resource: 'teams', actions: ['read'] }, // seus times
     { resource: 'departments', actions: ['read'] },
     { resource: 'evaluations', actions: ['create', 'read', 'update'] }, // apenas próprias
+    { resource: 'salary', actions: ['read'] }, // apenas próprio salário
   ],
 };
 
@@ -49,7 +52,14 @@ export function hasPermission(
   return resourcePermission ? resourcePermission.actions.includes(action) : false;
 }
 
-// Tipos para controle de acesso em componentes
+// Helper para determinar role baseado nos booleans
+export function getUserRole(user: { is_director: boolean; is_leader: boolean }): UserRole {
+  if (user.is_director) return 'director';
+  if (user.is_leader) return 'leader';
+  return 'employee';
+}
+
+// Tipos para controle de acesso em rotas
 export interface AccessControl {
   requireAuth: boolean;
   requireRoles?: UserRole[];
@@ -64,7 +74,7 @@ export const ROUTE_ACCESS: Record<string, AccessControl> = {
   '/reset-password': { requireAuth: false },
   '/self-evaluation': { 
     requireAuth: true, 
-    requireRoles: ['collaborator', 'leader'],
+    requireRoles: ['employee', 'leader', 'director'],
     requireActive: true 
   },
   '/leader-evaluation': { 
@@ -115,21 +125,22 @@ export const ROUTE_ACCESS: Record<string, AccessControl> = {
     requireAuth: true,
     requireActive: true 
   },
+  '/salary': {
+    requireAuth: true,
+    requireRoles: ['director'],
+    requireActive: true
+  },
+  '/salary/tracks': {
+    requireAuth: true,
+    requireRoles: ['director'],
+    requireActive: true
+  },
+  '/salary/progressions': {
+    requireAuth: true,
+    requireRoles: ['director', 'leader'],
+    requireActive: true
+  }
 };
-
-// Tipos para auditoria
-export interface AuditLog {
-  id: string;
-  user_id: string;
-  action: 'INSERT' | 'UPDATE' | 'DELETE';
-  table_name: string;
-  record_id: string;
-  old_data?: any;
-  new_data?: any;
-  ip_address?: string;
-  user_agent?: string;
-  created_at: string;
-}
 
 // Tipos para validação de segurança
 export interface SecurityValidation {
@@ -178,6 +189,18 @@ export function validateSecurityOperation(
         errors.push('Apenas diretores e líderes podem alterar responsáveis de times');
       }
       break;
+
+    case 'modify_salary':
+      if (userRole !== 'director') {
+        errors.push('Apenas diretores podem modificar salários');
+      }
+      break;
+
+    case 'approve_progression':
+      if (userRole !== 'director') {
+        errors.push('Apenas diretores podem aprovar progressões');
+      }
+      break;
   }
 
   return {
@@ -185,4 +208,51 @@ export function validateSecurityOperation(
     errors,
     warnings,
   };
+}
+
+// Interface para contexto de autenticação
+export interface AuthContext {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    is_director: boolean;
+    is_leader: boolean;
+    active: boolean;
+  };
+  role: UserRole;
+  permissions: Permission[];
+}
+
+// Helper para criar contexto de autenticação
+export function createAuthContext(user: any): AuthContext {
+  const role = getUserRole(user);
+  return {
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      is_director: user.is_director,
+      is_leader: user.is_leader,
+      active: user.active
+    },
+    role,
+    permissions: ROLE_PERMISSIONS[role]
+  };
+}
+
+// Middleware types
+export interface AuthRequest extends Express.Request {
+  auth?: AuthContext;
+}
+
+// Token payload
+export interface TokenPayload {
+  sub: string; // user id
+  email: string;
+  name: string;
+  is_director: boolean;
+  is_leader: boolean;
+  iat?: number;
+  exp?: number;
 }

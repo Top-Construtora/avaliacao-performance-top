@@ -18,6 +18,7 @@ export interface Database {
           responsible_id: string | null
           created_at: string
           updated_at: string
+          active: boolean
         }
         Insert: {
           id?: string
@@ -26,6 +27,7 @@ export interface Database {
           responsible_id?: string | null
           created_at?: string
           updated_at?: string
+          active?: boolean
         }
         Update: {
           id?: string
@@ -34,6 +36,7 @@ export interface Database {
           responsible_id?: string | null
           created_at?: string
           updated_at?: string
+          active?: boolean
         }
       }
       users: {
@@ -50,12 +53,16 @@ export interface Database {
           active: boolean
           reports_to: string | null
           profile_image: string | null
-          contract_type: 'CLT' | 'PJ'
+          contract_type: 'CLT' | 'PJ' | 'INTERN'
           current_track_position_id: string | null
           current_salary_level_id: string | null
           current_salary: number | null
           admission_date: string | null
           position_start_date: string | null
+          department_id: string | null
+          track_id: string | null
+          position_id: string | null
+          intern_level: string | null
           created_at: string
           updated_at: string
         }
@@ -72,12 +79,16 @@ export interface Database {
           active?: boolean
           reports_to?: string | null
           profile_image?: string | null
-          contract_type?: 'CLT' | 'PJ'
+          contract_type?: 'CLT' | 'PJ' | 'INTERN'
           current_track_position_id?: string | null
           current_salary_level_id?: string | null
           current_salary?: number | null
           admission_date?: string | null
           position_start_date?: string | null
+          department_id?: string | null
+          track_id?: string | null
+          position_id?: string | null
+          intern_level?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -94,12 +105,16 @@ export interface Database {
           active?: boolean
           reports_to?: string | null
           profile_image?: string | null
-          contract_type?: 'CLT' | 'PJ'
+          contract_type?: 'CLT' | 'PJ' | 'INTERN'
           current_track_position_id?: string | null
           current_salary_level_id?: string | null
           current_salary?: number | null
           admission_date?: string | null
           position_start_date?: string | null
+          department_id?: string | null
+          track_id?: string | null
+          position_id?: string | null
+          intern_level?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -167,6 +182,12 @@ export interface Database {
           evaluation_date: string
           created_at: string
           updated_at: string
+          cycle_id: string | null
+          evaluation_type: 'self' | 'leader' | 'consensus' | null
+          potential_score: number | null
+          consensus_performance_score: number | null
+          consensus_potential_score: number | null
+          written_feedback: Json | null
         }
         Insert: {
           id?: string
@@ -184,6 +205,12 @@ export interface Database {
           evaluation_date?: string
           created_at?: string
           updated_at?: string
+          cycle_id?: string | null
+          evaluation_type?: 'self' | 'leader' | 'consensus' | null
+          potential_score?: number | null
+          consensus_performance_score?: number | null
+          consensus_potential_score?: number | null
+          written_feedback?: Json | null
         }
         Update: {
           id?: string
@@ -201,38 +228,205 @@ export interface Database {
           evaluation_date?: string
           created_at?: string
           updated_at?: string
+          cycle_id?: string | null
+          evaluation_type?: 'self' | 'leader' | 'consensus' | null
+          potential_score?: number | null
+          consensus_performance_score?: number | null
+          consensus_potential_score?: number | null
+          written_feedback?: Json | null
         }
       }
-      evaluation_criteria: {
+      evaluation_competencies: {
         Row: {
           id: string
           evaluation_id: string
           criterion_name: string
-          criterion_description: string
+          criterion_description: string | null
           category: 'technical' | 'behavioral' | 'deliveries'
           score: number | null
           created_at: string
+          written_response: string | null
+          weight: number
         }
         Insert: {
           id?: string
           evaluation_id: string
           criterion_name: string
-          criterion_description: string
+          criterion_description?: string | null
           category: 'technical' | 'behavioral' | 'deliveries'
           score?: number | null
           created_at?: string
+          written_response?: string | null
+          weight?: number
         }
         Update: {
           id?: string
           evaluation_id?: string
           criterion_name?: string
-          criterion_description?: string
+          criterion_description?: string | null
           category?: 'technical' | 'behavioral' | 'deliveries'
           score?: number | null
           created_at?: string
+          written_response?: string | null
+          weight?: number
         }
       }
-      // NOVAS TABELAS DO SISTEMA DE SALÁRIOS
+      evaluation_cycles: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          start_date: string
+          end_date: string
+          status: 'draft' | 'open' | 'closed'
+          is_editable: boolean
+          created_at: string
+          updated_at: string
+          created_by: string | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          start_date: string
+          end_date: string
+          status?: 'draft' | 'open' | 'closed'
+          is_editable?: boolean
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          start_date?: string
+          end_date?: string
+          status?: 'draft' | 'open' | 'closed'
+          is_editable?: boolean
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+        }
+      }
+      consensus_evaluations: {
+        Row: {
+          id: string
+          employee_id: string
+          self_evaluation_id: string | null
+          leader_evaluation_id: string | null
+          consensus_score: number | null
+          potential_score: number | null
+          nine_box_position: string | null
+          notes: string | null
+          evaluation_date: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          employee_id: string
+          self_evaluation_id?: string | null
+          leader_evaluation_id?: string | null
+          consensus_score?: number | null
+          potential_score?: number | null
+          nine_box_position?: string | null
+          notes?: string | null
+          evaluation_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          employee_id?: string
+          self_evaluation_id?: string | null
+          leader_evaluation_id?: string | null
+          consensus_score?: number | null
+          potential_score?: number | null
+          nine_box_position?: string | null
+          notes?: string | null
+          evaluation_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      development_plans: {
+        Row: {
+          id: string
+          employee_id: string
+          consensus_evaluation_id: string | null
+          goals: string[]
+          actions: string[]
+          resources: string[]
+          timeline: string | null
+          status: 'draft' | 'active' | 'completed' | 'cancelled' | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          employee_id: string
+          consensus_evaluation_id?: string | null
+          goals?: string[]
+          actions?: string[]
+          resources?: string[]
+          timeline?: string | null
+          status?: 'draft' | 'active' | 'completed' | 'cancelled' | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          employee_id?: string
+          consensus_evaluation_id?: string | null
+          goals?: string[]
+          actions?: string[]
+          resources?: string[]
+          timeline?: string | null
+          status?: 'draft' | 'active' | 'completed' | 'cancelled' | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      audit_logs: {
+        Row: {
+          id: string
+          user_id: string | null
+          action: string
+          table_name: string
+          record_id: string | null
+          old_data: Json | null
+          new_data: Json | null
+          ip_address: string | null
+          user_agent: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          action: string
+          table_name: string
+          record_id?: string | null
+          old_data?: Json | null
+          new_data?: Json | null
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          action?: string
+          table_name?: string
+          record_id?: string | null
+          old_data?: Json | null
+          new_data?: Json | null
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+      }
+      // TABELAS DO SISTEMA DE SALÁRIOS
       salary_classes: {
         Row: {
           id: string
@@ -482,7 +676,7 @@ export interface Database {
           id: string
           name: string
           email: string
-          contract_type: 'CLT' | 'PJ'
+          contract_type: 'CLT' | 'PJ' | 'INTERN'
           base_salary: number | null
           level_percentage: number | null
           calculated_salary: number | null
@@ -542,8 +736,25 @@ export interface Database {
       }
     }
     Enums: {
-      contract_type: 'CLT' | 'PJ'
+      contract_type: 'CLT' | 'PJ' | 'INTERN'
       progression_type: 'horizontal' | 'vertical' | 'merit'
     }
   }
 }
+
+// Type helpers
+export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
+export type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert']
+export type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update']
+export type Views<T extends keyof Database['public']['Views']> = Database['public']['Views'][T]['Row']
+export type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T]
+
+// Aliases for convenience
+export type DBUser = Tables<'users'>
+export type DBDepartment = Tables<'departments'>
+export type DBTeam = Tables<'teams'>
+export type DBEvaluation = Tables<'evaluations'>
+export type DBEvaluationCycle = Tables<'evaluation_cycles'>
+export type DBCareerTrack = Tables<'career_tracks'>
+export type DBJobPosition = Tables<'job_positions'>
+export type DBSalaryLevel = Tables<'salary_levels'>
