@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  'https://avaliacao-desempenho.vercel.app',
+  'https://avaliacao-desempenho-six.vercel.app',
   // Adicione aqui outros domínios customizados se tiver
 ];
 
