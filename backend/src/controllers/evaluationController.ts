@@ -3,6 +3,10 @@ import { evaluationService } from '../services/evaluationService';
 import { AuthRequest } from '../middleware/auth';
 
 export const evaluationController = {
+  // ====================================
+  // CICLOS DE AVALIAÇÃO
+  // ====================================
+  
   // Buscar todos os ciclos
   async getCycles(req: Request, res: Response, next: NextFunction) {
     try {
@@ -43,7 +47,6 @@ export const evaluationController = {
       const authReq = req as AuthRequest;
       const cycleData = req.body;
       
-      
       const newCycle = await evaluationService.createCycle(authReq.supabase, {
         ...cycleData,
         created_by: authReq.user?.id
@@ -64,7 +67,7 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const { id } = req.params;
-            
+      
       const updatedCycle = await evaluationService.updateCycleStatus(
         authReq.supabase,
         id,
@@ -86,7 +89,7 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const { id } = req.params;
-            
+      
       const updatedCycle = await evaluationService.updateCycleStatus(
         authReq.supabase,
         id,
@@ -103,16 +106,24 @@ export const evaluationController = {
     }
   },
 
+  // ====================================
+  // DASHBOARD E RELATÓRIOS
+  // ====================================
+  
   // Dashboard do ciclo
   async getCycleDashboard(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
       const { cycleId } = req.params;
-            
-      // Por enquanto, retornar array vazio
+      
+      const dashboard = await evaluationService.getCycleDashboard(
+        authReq.supabase,
+        cycleId
+      );
+      
       res.json({
         success: true,
-        data: []
+        data: dashboard
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -125,11 +136,15 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const { cycleId } = req.params;
-            
-      // Por enquanto, retornar array vazio
+      
+      const nineBoxData = await evaluationService.getNineBoxData(
+        authReq.supabase,
+        cycleId
+      );
+      
       res.json({
         success: true,
-        data: []
+        data: nineBoxData
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -137,16 +152,65 @@ export const evaluationController = {
     }
   },
 
-  // Buscar avaliações do funcionário
+  // ====================================
+  // AVALIAÇÕES
+  // ====================================
+  
+  // Buscar avaliações do funcionário (unificado)
   async getEmployeeEvaluations(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
       const { employeeId } = req.params;
-      const { cycleId } = req.query;
-            
+      
       const evaluations = await evaluationService.getEmployeeEvaluations(
         authReq.supabase,
         employeeId
+      );
+      
+      res.json({
+        success: true,
+        data: evaluations
+      });
+    } catch (error) {
+      console.error('Controller error:', error);
+      next(error);
+    }
+  },
+
+  // Buscar autoavaliações
+  async getSelfEvaluations(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { employeeId } = req.params;
+      const { cycleId } = req.query;
+      
+      const evaluations = await evaluationService.getSelfEvaluations(
+        authReq.supabase,
+        employeeId,
+        cycleId as string
+      );
+      
+      res.json({
+        success: true,
+        data: evaluations
+      });
+    } catch (error) {
+      console.error('Controller error:', error);
+      next(error);
+    }
+  },
+
+  // Buscar avaliações de líder
+  async getLeaderEvaluations(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { employeeId } = req.params;
+      const { cycleId } = req.query;
+      
+      const evaluations = await evaluationService.getLeaderEvaluations(
+        authReq.supabase,
+        employeeId,
+        cycleId as string
       );
       
       res.json({
@@ -164,11 +228,24 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const { cycleId, employeeId, type } = req.query;
-            
-      // Por enquanto, sempre retornar false
+      
+      if (!cycleId || !employeeId || !type) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required parameters: cycleId, employeeId, type'
+        });
+      }
+      
+      const exists = await evaluationService.checkExistingEvaluation(
+        authReq.supabase,
+        cycleId as string,
+        employeeId as string,
+        type as 'self' | 'leader'
+      );
+      
       res.json({
         success: true,
-        data: false
+        data: exists
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -199,11 +276,16 @@ export const evaluationController = {
   // Criar avaliação do líder
   async createLeaderEvaluation(req: Request, res: Response, next: NextFunction) {
     try {
-      const authReq = req as AuthRequest;      
-      // Por enquanto, retornar sucesso
+      const authReq = req as AuthRequest;
+      
+      const evaluation = await evaluationService.createLeaderEvaluation(
+        authReq.supabase,
+        req.body
+      );
+      
       res.json({
         success: true,
-        data: { id: 'temp-id' }
+        data: evaluation
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -211,15 +293,26 @@ export const evaluationController = {
     }
   },
 
+  // ====================================
+  // CONSENSO
+  // ====================================
+  
   // Criar reunião de consenso
   async createConsensusMeeting(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
       
-      // Por enquanto, retornar sucesso
+      const meeting = await evaluationService.createConsensusMeeting(
+        authReq.supabase,
+        {
+          ...req.body,
+          createdBy: authReq.user?.id
+        }
+      );
+      
       res.json({
         success: true,
-        data: { id: 'temp-id' }
+        data: meeting
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -232,10 +325,24 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const { meetingId } = req.params;
-            
+      const { performanceScore, potentialScore, notes } = req.body;
+      
+      if (!performanceScore || !potentialScore) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields: performanceScore, potentialScore'
+        });
+      }
+      
+      const meeting = await evaluationService.completeConsensusMeeting(
+        authReq.supabase,
+        meetingId,
+        { performanceScore, potentialScore, notes }
+      );
+      
       res.json({
         success: true,
-        data: { message: 'Consensus completed' }
+        data: meeting
       });
     } catch (error) {
       console.error('Controller error:', error);

@@ -98,7 +98,56 @@ export interface TeamMember {
   created_at?: string;
 }
 
-// Evaluation types
+// ====================================
+// EVALUATION TYPES - ATUALIZADAS
+// ====================================
+
+// Tipos base para as avaliações
+export interface BaseEvaluation {
+  id: string;
+  cycle_id: string;
+  employee_id: string;
+  status: 'pending' | 'in-progress' | 'completed';
+  technical_score?: number;
+  behavioral_score?: number;
+  deliveries_score?: number;
+  final_score?: number;
+  strengths?: string;
+  improvements?: string;
+  observations?: string;
+  written_feedback?: WrittenFeedback;
+  evaluation_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Autoavaliação
+export interface SelfEvaluation extends BaseEvaluation {
+  // Autoavaliação não tem campos adicionais específicos
+}
+
+// Avaliação de Líder
+export interface LeaderEvaluation extends BaseEvaluation {
+  evaluator_id: string;
+  potential_score?: number;
+}
+
+// Tipo unificado para queries (usando a view)
+export interface EvaluationSummary {
+  evaluation_type: 'self' | 'leader';
+  id: string;
+  employee_id: string;
+  evaluator_id: string;
+  cycle_id: string;
+  status: string;
+  final_score: number;
+  potential_score?: number;
+  evaluation_date: string;
+  employee_name: string;
+  evaluator_name: string;
+}
+
+// Ciclo de avaliação
 export interface EvaluationCycle {
   id: string;
   title: string;
@@ -112,33 +161,12 @@ export interface EvaluationCycle {
   created_by?: string;
 }
 
-export interface Evaluation {
-  id: string;
-  cycle_id?: string;
-  employee_id: string;
-  evaluator_id: string;
-  type: 'self' | 'leader' | 'potential';
-  evaluation_type?: 'self' | 'leader' | 'consensus';
-  status: 'pending' | 'in-progress' | 'completed';
-  technical_score?: number;
-  behavioral_score?: number;
-  deliveries_score?: number;
-  final_score?: number;
-  potential_score?: number;
-  consensus_performance_score?: number;
-  consensus_potential_score?: number;
-  strengths?: string;
-  improvements?: string;
-  observations?: string;
-  evaluation_date?: string;
-  written_feedback?: any;
-  created_at: string;
-  updated_at: string;
-}
-
+// Competências avaliadas - ATUALIZADA
 export interface EvaluationCompetency {
   id: string;
-  evaluation_id: string;
+  evaluation_id?: string; // Legado
+  self_evaluation_id?: string; // Novo
+  leader_evaluation_id?: string; // Novo
   criterion_name: string;
   criterion_description?: string;
   category: 'technical' | 'behavioral' | 'deliveries';
@@ -148,6 +176,7 @@ export interface EvaluationCompetency {
   created_at?: string;
 }
 
+// Avaliação de consenso
 export interface ConsensusEvaluation {
   id: string;
   employee_id: string;
@@ -162,6 +191,7 @@ export interface ConsensusEvaluation {
   updated_at?: string;
 }
 
+// Reunião de consenso
 export interface ConsensusMeeting {
   id: string;
   cycle_id?: string;
@@ -178,6 +208,61 @@ export interface ConsensusMeeting {
   updated_at?: string;
   created_by?: string;
 }
+
+// Dashboard do ciclo
+export interface CycleDashboard {
+  employee_id: string;
+  employee_name: string;
+  employee_email: string;
+  employee_position: string;
+  self_evaluation_status: string;
+  self_evaluation_score?: number | null;
+  leader_evaluation_status: string;
+  leader_evaluation_score?: number | null;
+  consensus_status: string;
+  consensus_performance_score?: number | null;
+  consensus_potential_score?: number | null;
+}
+
+// Dados do Nine Box
+export interface NineBoxData {
+  employee_id: string;
+  employee_name: string;
+  position: string;
+  department: string;
+  performance_score: number;
+  potential_score: number;
+  nine_box_position: string;
+}
+
+// Feedback escrito
+export interface WrittenFeedback {
+  achievements?: string;
+  challenges?: string;
+  goals?: string;
+  development_areas?: string;
+  additional_comments?: string;
+}
+
+// Tipo estendido para incluir relacionamentos
+export interface EvaluationExtended extends BaseEvaluation {
+  evaluation_type?: 'self' | 'leader';
+  evaluator?: {
+    id: string;
+    name: string;
+  };
+  employee?: {
+    id: string;
+    name: string;
+    email: string;
+    position: string;
+  };
+  competencies?: EvaluationCompetency[];
+}
+
+// ====================================
+// FIM DAS ATUALIZAÇÕES DE EVALUATION
+// ====================================
 
 // PDI (Development Plan) types
 export interface DevelopmentPlan {

@@ -3,7 +3,7 @@ import { Employee, Evaluation, Status, EvaluationStats, Criterion } from '../typ
 import { mapCycleFromDB } from '../utils/fieldMapping';
 import { api } from '../config/api'; 
 import { useAuth } from './AuthContext';
-import { supabase } from '../lib/supabase'; // Adicionar import do supabase
+import { supabase } from '../lib/supabase';
 
 // Interfaces para PDI
 interface ActionItem {
@@ -68,7 +68,7 @@ interface EvaluationContextType {
   saveNineBoxResult: (result: NineBoxResult) => void;
   getNineBoxByEmployeeId: (employeeId: string) => NineBoxResult | undefined;
 
-  // 🔥 Adicionados 
+  // API Functions
   fetchCycles: () => Promise<void>;
   fetchEvaluations: (filters?: any) => Promise<void>;
   fetchStats: () => Promise<void>;
@@ -77,7 +77,8 @@ interface EvaluationContextType {
 
 const EvaluationContext = createContext<EvaluationContextType | undefined>(undefined);
 
-
+// Exportar o contexto para ser usado no hook separado
+export { EvaluationContext };
 
 export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
   // Estados principais
@@ -105,11 +106,11 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 🔥 Estado para API
+  // Estado para API
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  // Carregar dados do Supabase
+  // Carregar dados do Supabase com as novas tabelas
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -137,7 +138,6 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
           .eq('active', true);
         
         if (usersData) {
-          // Mapear para o formato Employee com tipagem correta
           const mappedEmployees = usersData.map((user: any) => ({
             id: user.id,
             name: user.name,
@@ -149,58 +149,88 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
           setEmployees(mappedEmployees);
         }
 
-        // Carregar evaluations do Supabase
-        const { data: evalData, error: evalError } = await supabase
-          .from('evaluations')
-          .select('*');
-        
-        if (evalError) {
-          console.error('Erro ao carregar evaluations:', evalError);
+        // Carregar avaliações das novas tabelas
+        const { data: selfEvals } = await supabase
+          .from('self_evaluations')
+          .select(`
+            *,
+            evaluation_competencies!self_evaluation_id(*)
+          `);
+
+        const { data: leaderEvals } = await supabase
+          .from('leader_evaluations')
+          .select(`
+            *,
+            evaluation_competencies!leader_evaluation_id(*)
+          `);
+
+        // Combinar e processar avaliações
+        const allEvaluations: Evaluation[] = [];
+
+        // Processar autoavaliações
+        if (selfEvals) {
+          const selfEvaluationsMapped = selfEvals.map((evaluation: any) => ({
+            id: evaluation.id,
+            employeeId: evaluation.employee_id,
+            evaluatorId: evaluation.employee_id, // Autoavaliação
+            date: evaluation.evaluation_date || evaluation.created_at,
+            status: evaluation.status || 'pending',
+            criteria: evaluation.evaluation_competencies?.map((ec: any) => ({
+              id: ec.id,
+              name: ec.criterion_name,
+              description: ec.criterion_description || '',
+              category: ec.category,
+              score: ec.score || 0
+            })) || [],
+            feedback: {
+              strengths: evaluation.strengths || '',
+              improvements: evaluation.improvements || '',
+              observations: evaluation.observations || ''
+            },
+            technicalScore: evaluation.technical_score || 0,
+            behavioralScore: evaluation.behavioral_score || 0,
+            deliveriesScore: evaluation.deliveries_score || 0,
+            finalScore: evaluation.final_score || 0,
+            lastUpdated: evaluation.updated_at,
+            isDraft: evaluation.status === 'draft',
+            type: 'self' as const
+          }));
+          allEvaluations.push(...selfEvaluationsMapped);
         }
-        
-        if (evalData) {
-          // Para cada avaliação, buscar as competências avaliadas
-          const evaluationsWithCompetencies = await Promise.all(
-            evalData.map(async (evaluation: any) => {
-              // Buscar as competências desta avaliação
-              const { data: evalCompetencies } = await supabase
-                .from('evaluation_competencies')
-                .select(`
-                  *,
-                  competency:competencies(*)
-                `)
-                .eq('evaluation_id', evaluation.id);
-              
-              return {
-                id: evaluation.id,
-                employeeId: evaluation.employee_id,
-                evaluatorId: evaluation.evaluator_id,
-                date: evaluation.created_at,
-                status: evaluation.status || 'pending',
-                criteria: evalCompetencies?.map((ec: any) => ({
-                  id: ec.competency?.id || ec.competency_id,
-                  name: ec.competency?.name || '',
-                  description: ec.competency?.description || '',
-                  category: ec.competency?.category || '',
-                  score: ec.score || 0
-                })) || [],
-                feedback: {
-                  strengths: evaluation.strengths || '',
-                  improvements: evaluation.improvements || '',
-                  observations: evaluation.observations || ''
-                },
-                technicalScore: evaluation.technical_score || 0,
-                behavioralScore: evaluation.behavioral_score || 0,
-                deliveriesScore: evaluation.deliveries_score || 0,
-                finalScore: evaluation.final_score || 0,
-                lastUpdated: evaluation.updated_at,
-                isDraft: evaluation.status === 'draft'
-              };
-            })
-          );
-          
-          setEvaluations(evaluationsWithCompetencies);
+
+        // Processar avaliações de líder
+        if (leaderEvals) {
+          const leaderEvaluationsMapped = leaderEvals.map((evaluation: any) => ({
+            id: evaluation.id,
+            employeeId: evaluation.employee_id,
+            evaluatorId: evaluation.evaluator_id,
+            date: evaluation.evaluation_date || evaluation.created_at,
+            status: evaluation.status || 'pending',
+            criteria: evaluation.evaluation_competencies?.map((ec: any) => ({
+              id: ec.id,
+              name: ec.criterion_name,
+              description: ec.criterion_description || '',
+              category: ec.category,
+              score: ec.score || 0
+            })) || [],
+            feedback: {
+              strengths: evaluation.strengths || '',
+              improvements: evaluation.improvements || '',
+              observations: evaluation.observations || ''
+            },
+            technicalScore: evaluation.technical_score || 0,
+            behavioralScore: evaluation.behavioral_score || 0,
+            deliveriesScore: evaluation.deliveries_score || 0,
+            finalScore: evaluation.final_score || 0,
+            potentialScore: evaluation.potential_score,
+            lastUpdated: evaluation.updated_at,
+            isDraft: evaluation.status === 'draft',
+            type: 'leader' as const
+          }));
+          allEvaluations.push(...leaderEvaluationsMapped);
         }
+
+        setEvaluations(allEvaluations);
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
       }
@@ -346,7 +376,7 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     return nineBoxResults.find(r => r.employeeId === employeeId);
   };
 
-  // 🔥 Funções API
+  // Funções API
   const fetchCycles = async () => {
     if (!isAuthenticated) return;
     try {
@@ -417,7 +447,7 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     saveNineBoxResult,
     getNineBoxByEmployeeId,
 
-    // 🔥 API Functions
+    // API Functions
     fetchCycles,
     fetchEvaluations,
     fetchStats,
@@ -431,6 +461,7 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// Hook para usar o contexto
 export const useEvaluation = () => {
   const context = useContext(EvaluationContext);
   if (!context) {
@@ -439,4 +470,5 @@ export const useEvaluation = () => {
   return context;
 };
 
-export type { ActionItem, ActionPlanData, NineBoxResult };
+// Exportar tipos
+export type { ActionItem, ActionPlanData, NineBoxResult, EvaluationContextType };

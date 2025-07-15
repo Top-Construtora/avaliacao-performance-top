@@ -7,24 +7,40 @@ const router = Router();
 // Todas as rotas de avaliação requerem autenticação
 router.use(authenticateToken as any);
 
-// Rotas de ciclos
+// ====================================
+// ROTAS DE CICLOS
+// ====================================
 router.get('/cycles', evaluationController.getCycles);
 router.get('/cycles/current', evaluationController.getCurrentCycle);
 router.post('/cycles', evaluationController.createCycle);
 router.put('/cycles/:id/open', evaluationController.openCycle);
 router.put('/cycles/:id/close', evaluationController.closeCycle);
 
-// Rotas de dashboard
+// ====================================
+// ROTAS DE DASHBOARD E RELATÓRIOS
+// ====================================
 router.get('/cycles/:cycleId/dashboard', evaluationController.getCycleDashboard);
 router.get('/cycles/:cycleId/nine-box', evaluationController.getNineBoxData);
 
-// Rotas de avaliações
+// ====================================
+// ROTAS DE AVALIAÇÕES
+// ====================================
+
+// Rotas unificadas (usando a view)
 router.get('/employee/:employeeId', evaluationController.getEmployeeEvaluations);
 router.get('/check', evaluationController.checkExistingEvaluation);
+
+// Rotas específicas para autoavaliações
+router.get('/self-evaluations/:employeeId', evaluationController.getSelfEvaluations);
 router.post('/self', evaluationController.createSelfEvaluation);
+
+// Rotas específicas para avaliações de líder
+router.get('/leader-evaluations/:employeeId', evaluationController.getLeaderEvaluations);
 router.post('/leader', evaluationController.createLeaderEvaluation);
 
-// Rotas de consenso
+// ====================================
+// ROTAS DE CONSENSO
+// ====================================
 router.post('/consensus', evaluationController.createConsensusMeeting);
 router.put('/consensus/:meetingId/complete', evaluationController.completeConsensusMeeting);
 

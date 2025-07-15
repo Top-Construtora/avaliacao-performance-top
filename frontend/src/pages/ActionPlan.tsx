@@ -3,39 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEvaluation } from '../context/EvaluationContext';
+
 import Button from '../components/Button';
 import { 
-  ArrowLeft,
   Save,
   Plus,
   X,
   Target,
   Calendar,
   FileText,
-  User,
   Lightbulb,
   CheckCircle,
-  Clock,
   BookOpen,
   Award,
-  TrendingUp,
   Briefcase,
   AlertCircle,
-  Sparkles,
   Rocket,
   Users,
   ChevronDown,
   ChevronUp,
-  ListChecks,
   MessageSquare,
-  Download,
-  FileSpreadsheet,
-  StickyNote,
-  FileDown,
   Grid3x3,
-  Star,
   Search,
-  Filter,
   Eye,
   Edit,
   Trash2

@@ -6,7 +6,10 @@ import type {
   WrittenFeedback,
   ConsensusMeeting,
   CycleDashboard,
-  NineBoxData
+  NineBoxData,
+  SelfEvaluation,
+  LeaderEvaluation,
+  EvaluationSummary
 } from '../types/evaluation.types';
 
 export const evaluationService = {
@@ -16,13 +19,25 @@ export const evaluationService = {
   
   // Renomeie para corresponder ao que o hook espera
   async getAllCycles(): Promise<EvaluationCycle[]> {
-    const response = await api.get('/evaluations/cycles');
-    return response.data || [];
+    try {
+      const response = await api.get('/evaluations/cycles');
+      // A API retorna os dados diretamente, não em response.data.data
+      return response.data || [];
+    } catch (error) {
+      console.error('Erro ao buscar ciclos:', error);
+      return [];
+    }
   },
 
   async getCurrentCycle(): Promise<EvaluationCycle | null> {
-    const response = await api.get('/evaluations/cycles/current');
-    return response.data || null;
+    try {
+      const response = await api.get('/evaluations/cycles/current');
+      // A API retorna os dados diretamente
+      return response.data || null;
+    } catch (error) {
+      console.error('Erro ao buscar ciclo atual:', error);
+      return null;
+    }
   },
 
   async createCycle(cycle: Partial<EvaluationCycle>): Promise<EvaluationCycle> {
@@ -42,21 +57,36 @@ export const evaluationService = {
   // DASHBOARD
   // ====================================
   async getCycleDashboard(cycleId: string): Promise<CycleDashboard[]> {
-    const response = await api.get(`/evaluations/cycles/${cycleId}/dashboard`);
-    return response.data || [];
+    try {
+      const response = await api.get(`/evaluations/cycles/${cycleId}/dashboard`);
+      return response.data || [];
+    } catch (error) {
+      console.error('Erro ao buscar dashboard:', error);
+      return [];
+    }
   },
 
   async getNineBoxData(cycleId: string): Promise<NineBoxData[]> {
-    const response = await api.get(`/evaluations/cycles/${cycleId}/nine-box`);
-    return response.data || [];
+    try {
+      const response = await api.get(`/evaluations/cycles/${cycleId}/nine-box`);
+      return response.data || [];
+    } catch (error) {
+      console.error('Erro ao buscar nine box:', error);
+      return [];
+    }
   },
 
   // ====================================
   // EVALUATIONS
   // ====================================
   async getEmployeeEvaluations(cycleId: string, employeeId: string): Promise<EvaluationExtended[]> {
-    const response = await api.get(`/evaluations/employee/${employeeId}?cycleId=${cycleId}`);
-    return response.data || [];
+    try {
+      const response = await api.get(`/evaluations/employee/${employeeId}?cycleId=${cycleId}`);
+      return response.data || [];
+    } catch (error) {
+      console.error('Erro ao buscar avaliações:', error);
+      return [];
+    }
   },
 
   async checkExistingEvaluation(
@@ -74,12 +104,29 @@ export const evaluationService = {
     }
   },
 
+  // ====================================
+  // AUTOAVALIAÇÕES
+  // ====================================
+  
+  async getSelfEvaluations(employeeId: string, cycleId?: string): Promise<SelfEvaluation[]> {
+    try {
+      const url = cycleId 
+        ? `/evaluations/self-evaluations/${employeeId}?cycleId=${cycleId}`
+        : `/evaluations/self-evaluations/${employeeId}`;
+      const response = await api.get(url);
+      return response.data || [];
+    } catch (error) {
+      console.error('Erro ao buscar autoavaliações:', error);
+      return [];
+    }
+  },
+
   async saveSelfEvaluation(
     cycleId: string,
     employeeId: string,
     competencies: EvaluationCompetency[],
     writtenFeedback: WrittenFeedback
-  ): Promise<EvaluationExtended> {
+  ): Promise<SelfEvaluation> {
     const response = await api.post('/evaluations/self', {
       cycleId,
       employeeId,
@@ -87,6 +134,23 @@ export const evaluationService = {
       writtenFeedback
     });
     return response.data;
+  },
+
+  // ====================================
+  // AVALIAÇÕES DE LÍDER
+  // ====================================
+  
+  async getLeaderEvaluations(employeeId: string, cycleId?: string): Promise<LeaderEvaluation[]> {
+    try {
+      const url = cycleId 
+        ? `/evaluations/leader-evaluations/${employeeId}?cycleId=${cycleId}`
+        : `/evaluations/leader-evaluations/${employeeId}`;
+      const response = await api.get(url);
+      return response.data || [];
+    } catch (error) {
+      console.error('Erro ao buscar avaliações de líder:', error);
+      return [];
+    }
   },
 
   async saveLeaderEvaluation(
@@ -100,7 +164,7 @@ export const evaluationService = {
       improvements?: string;
       observations?: string;
     }
-  ): Promise<EvaluationExtended> {
+  ): Promise<LeaderEvaluation> {
     const response = await api.post('/evaluations/leader', {
       cycleId,
       employeeId,
@@ -133,5 +197,46 @@ export const evaluationService = {
       potentialScore,
       notes
     });
+  },
+
+  // ====================================
+  // FUNÇÕES AUXILIARES
+  // ====================================
+  
+  // Calcular score por categoria
+  calculateCategoryScore(competencies: EvaluationCompetency[], category: string): number {
+    const categoryComps = competencies.filter(c => c.category === category);
+    if (categoryComps.length === 0) return 0;
+    
+    const sum = categoryComps.reduce((acc, comp) => acc + (comp.score || 0), 0);
+    return Number((sum / categoryComps.length).toFixed(2));
+  },
+
+  // Calcular score final
+  calculateFinalScore(competencies: EvaluationCompetency[]): number {
+    if (competencies.length === 0) return 0;
+    
+    const sum = competencies.reduce((acc, comp) => acc + (comp.score || 0), 0);
+    return Number((sum / competencies.length).toFixed(2));
+  },
+
+  // Mapear posição no Nine Box
+  getNineBoxPosition(performance: number, potential: number): string {
+    const perfLevel = performance <= 2 ? 'low' : performance <= 3 ? 'medium' : 'high';
+    const potLevel = potential <= 2 ? 'low' : potential <= 3 ? 'medium' : 'high';
+    
+    const positions: { [key: string]: string } = {
+      'low-low': 'Questionável',
+      'low-medium': 'Novo/Desenvolvimento',
+      'low-high': 'Enigma',
+      'medium-low': 'Eficaz',
+      'medium-medium': 'Mantenedor',
+      'medium-high': 'Forte Desempenho',
+      'high-low': 'Especialista',
+      'high-medium': 'Alto Desempenho',
+      'high-high': 'Estrela'
+    };
+    
+    return positions[`${perfLevel}-${potLevel}`] || 'Não classificado';
   }
 };

@@ -7,7 +7,10 @@ import type {
   EvaluationCompetency,
   ConsensusMeeting,
   CycleDashboard,
-  NineBoxData
+  NineBoxData,
+  SelfEvaluation,
+  LeaderEvaluation,
+  WrittenFeedback
 } from '../types/evaluation.types';
 import type { UserWithDetails } from '../types/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -36,13 +39,33 @@ interface UseEvaluationReturn {
   closeCycle: (cycleId: string) => Promise<void>;
   
   // Evaluations
-  saveSelfEvaluation: (data: any) => Promise<void>;
-  saveLeaderEvaluation: (data: any) => Promise<void>;
-  createConsensus: (data: any) => Promise<void>;
+  saveSelfEvaluation: (data: {
+    cycleId: string;
+    employeeId: string;
+    competencies: EvaluationCompetency[];
+    writtenFeedback: WrittenFeedback;
+  }) => Promise<void>;
+  
+  saveLeaderEvaluation: (data: {
+    cycleId: string;
+    employeeId: string;
+    evaluatorId: string;
+    competencies: EvaluationCompetency[];
+    potentialScore: number;
+    feedback?: {
+      strengths?: string;
+      improvements?: string;
+      observations?: string;
+    };
+  }) => Promise<void>;
+  
+  createConsensus: (data: Partial<ConsensusMeeting>) => Promise<void>;
   completeConsensus: (meetingId: string, performanceScore: number, potentialScore: number, notes: string) => Promise<void>;
   
   // Queries
-  getEmployeeEvaluations: (cycleId: string, employeeId: string) => Promise<any>;
+  getEmployeeEvaluations: (cycleId: string, employeeId: string) => Promise<EvaluationExtended[]>;
+  getSelfEvaluations: (employeeId: string, cycleId?: string) => Promise<SelfEvaluation[]>;
+  getLeaderEvaluations: (employeeId: string, cycleId?: string) => Promise<LeaderEvaluation[]>;
   checkExistingEvaluation: (cycleId: string, employeeId: string, type: 'self' | 'leader') => Promise<boolean>;
 }
 
@@ -189,7 +212,12 @@ export const useEvaluation = (): UseEvaluationReturn => {
   }, [loadAllCycles, loadCurrentCycle]);
 
   // Save self evaluation
-  const saveSelfEvaluation = useCallback(async (data: any) => {
+  const saveSelfEvaluation = useCallback(async (data: {
+    cycleId: string;
+    employeeId: string;
+    competencies: EvaluationCompetency[];
+    writtenFeedback: WrittenFeedback;
+  }) => {
     try {
       setLoading(true);
       await evaluationService.saveSelfEvaluation(
@@ -208,7 +236,18 @@ export const useEvaluation = (): UseEvaluationReturn => {
   }, []);
 
   // Save leader evaluation
-  const saveLeaderEvaluation = useCallback(async (data: any) => {
+  const saveLeaderEvaluation = useCallback(async (data: {
+    cycleId: string;
+    employeeId: string;
+    evaluatorId: string;
+    competencies: EvaluationCompetency[];
+    potentialScore: number;
+    feedback?: {
+      strengths?: string;
+      improvements?: string;
+      observations?: string;
+    };
+  }) => {
     try {
       setLoading(true);
       await evaluationService.saveLeaderEvaluation(
@@ -229,7 +268,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
   }, []);
 
   // Create consensus meeting
-  const createConsensus = useCallback(async (data: any) => {
+  const createConsensus = useCallback(async (data: Partial<ConsensusMeeting>) => {
     try {
       setLoading(true);
       await evaluationService.createConsensusMeeting(data);
@@ -266,9 +305,34 @@ export const useEvaluation = (): UseEvaluationReturn => {
     }
   }, []);
 
-  // Get employee evaluations
-  const getEmployeeEvaluations = useCallback(async (cycleId: string, employeeId: string) => {
-    return await evaluationService.getEmployeeEvaluations(cycleId, employeeId);
+  // Get employee evaluations (unified)
+  const getEmployeeEvaluations = useCallback(async (cycleId: string, employeeId: string): Promise<EvaluationExtended[]> => {
+    try {
+      return await evaluationService.getEmployeeEvaluations(cycleId, employeeId);
+    } catch (error) {
+      console.error('Erro ao buscar avaliações:', error);
+      return [];
+    }
+  }, []);
+
+  // Get self evaluations
+  const getSelfEvaluations = useCallback(async (employeeId: string, cycleId?: string): Promise<SelfEvaluation[]> => {
+    try {
+      return await evaluationService.getSelfEvaluations(employeeId, cycleId);
+    } catch (error) {
+      console.error('Erro ao buscar autoavaliações:', error);
+      return [];
+    }
+  }, []);
+
+  // Get leader evaluations
+  const getLeaderEvaluations = useCallback(async (employeeId: string, cycleId?: string): Promise<LeaderEvaluation[]> => {
+    try {
+      return await evaluationService.getLeaderEvaluations(employeeId, cycleId);
+    } catch (error) {
+      console.error('Erro ao buscar avaliações de líder:', error);
+      return [];
+    }
   }, []);
 
   // Check existing evaluation
@@ -276,8 +340,13 @@ export const useEvaluation = (): UseEvaluationReturn => {
     cycleId: string,
     employeeId: string,
     type: 'self' | 'leader'
-  ) => {
-    return await evaluationService.checkExistingEvaluation(cycleId, employeeId, type);
+  ): Promise<boolean> => {
+    try {
+      return await evaluationService.checkExistingEvaluation(cycleId, employeeId, type);
+    } catch (error) {
+      console.error('Erro ao verificar avaliação existente:', error);
+      return false;
+    }
   }, []);
 
   // Load initial data
@@ -318,6 +387,8 @@ export const useEvaluation = (): UseEvaluationReturn => {
     createConsensus,
     completeConsensus,
     getEmployeeEvaluations,
+    getSelfEvaluations,
+    getLeaderEvaluations,
     checkExistingEvaluation
   };
 };

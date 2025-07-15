@@ -5,8 +5,8 @@ import { toast } from 'react-hot-toast';
 import Button from '../components/Button';
 import {
   ArrowLeft, Plus, Edit, Trash2, DollarSign, TrendingUp,
-  Award, Clock, Target, Info, ChevronRight, Users,
-  GitBranch, Briefcase, ArrowUpRight, Settings, Save
+  ChevronRight, Users,
+  GitBranch, Briefcase, Save
 } from 'lucide-react';
 import { salaryService, CareerTrack, TrackPosition } from '../services/salary.service';
 import { RoleGuard } from '../components/RoleGuard';

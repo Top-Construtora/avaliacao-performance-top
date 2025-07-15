@@ -1,4 +1,14 @@
 import { ApiError } from '../middleware/errorHandler';
+import type { 
+  EvaluationCycle, 
+  SelfEvaluation,
+  LeaderEvaluation,
+  EvaluationCompetency,
+  ConsensusMeeting,
+  CycleDashboard,
+  NineBoxData,
+  WrittenFeedback
+} from '../types';
 
 export const evaluationService = {
   // ====================================
@@ -8,7 +18,6 @@ export const evaluationService = {
   // Buscar todos os ciclos
   async getEvaluationCycles(supabase: any) {
     try {
-      
       const { data, error } = await supabase
         .from('evaluation_cycles')
         .select('*')
@@ -29,15 +38,14 @@ export const evaluationService = {
   // Buscar ciclo atual
   async getCurrentCycle(supabase: any) {
     try {
-      
-      const now = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+      const now = new Date().toISOString().split('T')[0];
       
       const { data, error } = await supabase
         .from('evaluation_cycles')
         .select('*')
         .lte('start_date', now)
         .gte('end_date', now)
-        .in('status', ['active', 'open']) // Aceitar ambos os status
+        .in('status', ['active', 'open'])
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -46,7 +54,6 @@ export const evaluationService = {
         throw new ApiError(500, error.message || 'Failed to fetch current cycle');
       }
 
-      // Retorna o primeiro item ou null
       return data && data.length > 0 ? data[0] : null;
     } catch (error: any) {
       console.error('Service error:', error);
@@ -57,7 +64,6 @@ export const evaluationService = {
   // Criar novo ciclo
   async createCycle(supabase: any, cycleData: any) {
     try {
-      
       const { data, error } = await supabase
         .from('evaluation_cycles')
         .insert({
@@ -89,11 +95,19 @@ export const evaluationService = {
   // Atualizar status do ciclo
   async updateCycleStatus(supabase: any, cycleId: string, status: string) {
     try {
-      
+      // Se estiver abrindo um ciclo, fechar outros ciclos abertos
+      if (status === 'open') {
+        await supabase
+          .from('evaluation_cycles')
+          .update({ status: 'closed' })
+          .eq('status', 'open');
+      }
+
       const { data, error } = await supabase
         .from('evaluation_cycles')
         .update({
           status: status,
+          is_editable: status !== 'closed',
           updated_at: new Date().toISOString()
         })
         .eq('id', cycleId)
@@ -113,28 +127,353 @@ export const evaluationService = {
   },
 
   // ====================================
-  // AVALIAÇÕES
+  // DASHBOARD E RELATÓRIOS
   // ====================================
   
-  // Buscar avaliações do funcionário
-  async getEmployeeEvaluations(supabase: any, employeeId: string) {
+  // Dashboard do ciclo
+  async getCycleDashboard(supabase: any, cycleId: string) {
     try {
-      
-      const { data, error } = await supabase
-        .from('evaluations')
+      // Buscar autoavaliações
+      const { data: selfEvals } = await supabase
+        .from('self_evaluations')
         .select(`
           *,
-          evaluation_competencies (*)
+          employee:users!employee_id(id, name, email, position)
         `)
+        .eq('cycle_id', cycleId);
+
+      // Buscar avaliações de líder
+      const { data: leaderEvals } = await supabase
+        .from('leader_evaluations')
+        .select(`
+          *,
+          employee:users!employee_id(id, name, email, position),
+          evaluator:users!evaluator_id(id, name)
+        `)
+        .eq('cycle_id', cycleId);
+
+      // Buscar reuniões de consenso
+      const { data: consensusMeetings } = await supabase
+        .from('consensus_meetings')
+        .select(`
+          *,
+          employee:users!employee_id(id, name)
+        `)
+        .eq('cycle_id', cycleId);
+
+      // Combinar dados para o dashboard
+      const employeeMap = new Map<string, CycleDashboard>();
+
+      // Processar autoavaliações
+      selfEvals?.forEach((se: any) => {
+        const empId = se.employee_id;
+        if (!employeeMap.has(empId)) {
+          employeeMap.set(empId, {
+            employee_id: empId,
+            employee_name: se.employee?.name || '',
+            employee_email: se.employee?.email || '',
+            employee_position: se.employee?.position || '',
+            self_evaluation_status: se.status,
+            self_evaluation_score: se.final_score || null,
+            leader_evaluation_status: 'pending',
+            leader_evaluation_score: null,
+            consensus_status: 'pending',
+            consensus_performance_score: null,
+            consensus_potential_score: null
+          });
+        } else {
+          const emp = employeeMap.get(empId)!;
+          emp.self_evaluation_status = se.status;
+          emp.self_evaluation_score = se.final_score || null;
+        }
+      });
+
+      // Processar avaliações de líder
+      leaderEvals?.forEach((le: any) => {
+        const empId = le.employee_id;
+        if (!employeeMap.has(empId)) {
+          employeeMap.set(empId, {
+            employee_id: empId,
+            employee_name: le.employee?.name || '',
+            employee_email: le.employee?.email || '',
+            employee_position: le.employee?.position || '',
+            self_evaluation_status: 'pending',
+            self_evaluation_score: null,
+            leader_evaluation_status: le.status,
+            leader_evaluation_score: le.final_score || null,
+            consensus_status: 'pending',
+            consensus_performance_score: null,
+            consensus_potential_score: null
+          });
+        } else {
+          const emp = employeeMap.get(empId)!;
+          emp.leader_evaluation_status = le.status;
+          emp.leader_evaluation_score = le.final_score || null;
+        }
+      });
+
+      // Processar reuniões de consenso
+      consensusMeetings?.forEach((cm: any) => {
+        const empId = cm.employee_id;
+        if (employeeMap.has(empId)) {
+          const emp = employeeMap.get(empId)!;
+          emp.consensus_status = cm.status;
+          if (cm.status === 'completed') {
+            emp.consensus_performance_score = cm.consensus_performance_score;
+            emp.consensus_potential_score = cm.consensus_potential_score;
+          }
+        }
+      });
+
+      return Array.from(employeeMap.values());
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  // Dados do Nine Box
+  async getNineBoxData(supabase: any, cycleId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('consensus_meetings')
+        .select(`
+          *,
+          employee:users!employee_id(
+            id, 
+            name, 
+            position,
+            department:departments(name)
+          )
+        `)
+        .eq('cycle_id', cycleId)
+        .eq('status', 'completed');
+
+      if (error) throw new ApiError(500, error.message);
+
+      return data?.map((item: any) => ({
+        employee_id: item.employee_id,
+        employee_name: item.employee?.name || '',
+        position: item.employee?.position || '',
+        department: item.employee?.department?.name || '',
+        performance_score: item.consensus_performance_score,
+        potential_score: item.consensus_potential_score,
+        nine_box_position: this.calculateNineBoxPosition(
+          item.consensus_performance_score,
+          item.consensus_potential_score
+        )
+      })) || [];
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  // ====================================
+  // AUTOAVALIAÇÕES
+  // ====================================
+  
+  // Buscar autoavaliações do funcionário
+  async getSelfEvaluations(supabase: any, employeeId: string, cycleId?: string) {
+    try {
+      let query = supabase
+        .from('self_evaluations')
+        .select(`
+          *,
+          evaluation_competencies!self_evaluation_id (*)
+        `)
+        .eq('employee_id', employeeId);
+      
+      if (cycleId) {
+        query = query.eq('cycle_id', cycleId);
+      }
+      
+      const { data, error } = await query.order('created_at', { ascending: false });
+      
+      if (error) throw new ApiError(500, error.message);
+      return data || [];
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  // Criar autoavaliação
+  async createSelfEvaluation(supabase: any, evaluationData: any) {
+    try {
+      // Calcular scores por categoria
+      const technicalScore = this.calculateCategoryScore(evaluationData.competencies, 'technical');
+      const behavioralScore = this.calculateCategoryScore(evaluationData.competencies, 'behavioral');
+      const deliveriesScore = this.calculateCategoryScore(evaluationData.competencies, 'deliveries');
+      const finalScore = this.calculateFinalScore(evaluationData.competencies);
+
+      // Criar a autoavaliação
+      const { data: evaluation, error: evalError } = await supabase
+        .from('self_evaluations')
+        .insert({
+          cycle_id: evaluationData.cycleId,
+          employee_id: evaluationData.employeeId,
+          status: 'completed',
+          technical_score: technicalScore,
+          behavioral_score: behavioralScore,
+          deliveries_score: deliveriesScore,
+          final_score: finalScore,
+          strengths: evaluationData.writtenFeedback?.achievements || '',
+          improvements: evaluationData.writtenFeedback?.development_areas || '',
+          observations: evaluationData.writtenFeedback?.additional_comments || '',
+          written_feedback: evaluationData.writtenFeedback,
+          evaluation_date: new Date().toISOString().split('T')[0],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (evalError) throw new ApiError(500, evalError.message);
+
+      // Salvar as competências avaliadas
+      if (evaluationData.competencies && evaluationData.competencies.length > 0) {
+        const competenciesToInsert = evaluationData.competencies.map((comp: any) => ({
+          self_evaluation_id: evaluation.id,
+          criterion_name: comp.name,
+          criterion_description: comp.description,
+          category: comp.category,
+          score: comp.score,
+          written_response: comp.written_response || '',
+          created_at: new Date().toISOString()
+        }));
+
+        const { error: compError } = await supabase
+          .from('evaluation_competencies')
+          .insert(competenciesToInsert);
+
+        if (compError) throw new ApiError(500, compError.message);
+      }
+
+      return evaluation;
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  // ====================================
+  // AVALIAÇÕES DE LÍDER
+  // ====================================
+  
+  // Buscar avaliações de líder
+  async getLeaderEvaluations(supabase: any, employeeId: string, cycleId?: string) {
+    try {
+      let query = supabase
+        .from('leader_evaluations')
+        .select(`
+          *,
+          evaluation_competencies!leader_evaluation_id (*),
+          evaluator:users!evaluator_id(id, name)
+        `)
+        .eq('employee_id', employeeId);
+      
+      if (cycleId) {
+        query = query.eq('cycle_id', cycleId);
+      }
+      
+      const { data, error } = await query.order('created_at', { ascending: false });
+      
+      if (error) throw new ApiError(500, error.message);
+      return data || [];
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  // Criar avaliação de líder
+  async createLeaderEvaluation(supabase: any, evaluationData: any) {
+    try {
+      // Calcular scores
+      const technicalScore = this.calculateCategoryScore(evaluationData.competencies, 'technical');
+      const behavioralScore = this.calculateCategoryScore(evaluationData.competencies, 'behavioral');
+      const deliveriesScore = this.calculateCategoryScore(evaluationData.competencies, 'deliveries');
+      const finalScore = this.calculateFinalScore(evaluationData.competencies);
+
+      // Criar a avaliação
+      const { data: evaluation, error: evalError } = await supabase
+        .from('leader_evaluations')
+        .insert({
+          cycle_id: evaluationData.cycleId,
+          employee_id: evaluationData.employeeId,
+          evaluator_id: evaluationData.evaluatorId,
+          status: 'completed',
+          technical_score: technicalScore,
+          behavioral_score: behavioralScore,
+          deliveries_score: deliveriesScore,
+          final_score: finalScore,
+          potential_score: evaluationData.potentialScore,
+          strengths: evaluationData.feedback?.strengths || '',
+          improvements: evaluationData.feedback?.improvements || '',
+          observations: evaluationData.feedback?.observations || '',
+          written_feedback: evaluationData.feedback,
+          evaluation_date: new Date().toISOString().split('T')[0],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (evalError) throw new ApiError(500, evalError.message);
+
+      // Salvar as competências avaliadas
+      if (evaluationData.competencies && evaluationData.competencies.length > 0) {
+        const competenciesToInsert = evaluationData.competencies.map((comp: any) => ({
+          leader_evaluation_id: evaluation.id,
+          criterion_name: comp.name,
+          criterion_description: comp.description,
+          category: comp.category,
+          score: comp.score,
+          written_response: comp.written_response || '',
+          created_at: new Date().toISOString()
+        }));
+
+        const { error: compError } = await supabase
+          .from('evaluation_competencies')
+          .insert(competenciesToInsert);
+
+        if (compError) throw new ApiError(500, compError.message);
+      }
+
+      return evaluation;
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  // ====================================
+  // BUSCAR TODAS AS AVALIAÇÕES (UNIFICADO)
+  // ====================================
+  
+  async getEmployeeEvaluations(supabase: any, employeeId: string) {
+    try {
+      // Buscar usando a view unificada
+      const { data, error } = await supabase
+        .from('v_evaluations_summary')
+        .select('*')
         .eq('employee_id', employeeId)
-        .order('created_at', { ascending: false });
+        .order('evaluation_date', { ascending: false });
 
       if (error) {
         console.error('Supabase error:', error);
-        // Se a tabela não existir, retornar array vazio
+        // Se a view não existir, buscar das tabelas separadas
         if (error.code === '42P01') {
-          console.warn('Evaluations table does not exist');
-          return [];
+          console.warn('View v_evaluations_summary does not exist, fetching from separate tables');
+          
+          const selfEvals = await this.getSelfEvaluations(supabase, employeeId);
+          const leaderEvals = await this.getLeaderEvaluations(supabase, employeeId);
+          
+          return [
+            ...selfEvals.map((e: any) => ({ ...e, evaluation_type: 'self' })),
+            ...leaderEvals.map((e: any) => ({ ...e, evaluation_type: 'leader' }))
+          ];
         }
         throw new ApiError(500, error.message || 'Failed to fetch evaluations');
       }
@@ -146,58 +485,21 @@ export const evaluationService = {
     }
   },
 
-  // Criar autoavaliação
-  async createSelfEvaluation(supabase: any, evaluationData: any) {
+  // Verificar avaliação existente
+  async checkExistingEvaluation(supabase: any, cycleId: string, employeeId: string, type: 'self' | 'leader') {
     try {
+      const table = type === 'self' ? 'self_evaluations' : 'leader_evaluations';
       
       const { data, error } = await supabase
-        .from('evaluations')
-        .insert({
-          cycle_id: evaluationData.cycleId,
-          employee_id: evaluationData.employeeId,
-          evaluator_id: evaluationData.employeeId, // Autoavaliação
-          evaluation_type: 'self',
-          status: 'draft',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+        .from(table)
+        .select('id')
+        .eq('cycle_id', cycleId)
+        .eq('employee_id', employeeId)
+        .limit(1);
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw new ApiError(500, error.message || 'Failed to create evaluation');
-      }
-
-      return data;
-    } catch (error: any) {
-      console.error('Service error:', error);
-      throw error;
-    }
-  },
-
-  // ====================================
-  // DASHBOARD E RELATÓRIOS
-  // ====================================
-  
-  // Buscar dados do dashboard
-  async getCycleDashboard(supabase: any, cycleId: string) {
-    try {
+      if (error) throw new ApiError(500, error.message);
       
-      // Por enquanto, retornar dados mockados
-      return [];
-    } catch (error: any) {
-      console.error('Service error:', error);
-      throw error;
-    }
-  },
-
-  // Buscar dados do Nine Box
-  async getNineBoxData(supabase: any, cycleId: string) {
-    try {
-      
-      // Por enquanto, retornar dados mockados
-      return [];
+      return data && data.length > 0;
     } catch (error: any) {
       console.error('Service error:', error);
       throw error;
@@ -211,26 +513,118 @@ export const evaluationService = {
   // Criar reunião de consenso
   async createConsensusMeeting(supabase: any, meetingData: any) {
     try {
-      console.log('Creating consensus meeting:', meetingData);
-      
-      // Por enquanto, retornar sucesso mockado
-      return { id: 'temp-consensus-id', ...meetingData };
+      const { data, error } = await supabase
+        .from('consensus_meetings')
+        .insert({
+          cycle_id: meetingData.cycleId,
+          employee_id: meetingData.employeeId,
+          self_evaluation_id: meetingData.selfEvaluationId,
+          leader_evaluation_id: meetingData.leaderEvaluationId,
+          meeting_date: meetingData.meetingDate,
+          consensus_performance_score: meetingData.performanceScore || 0,
+          consensus_potential_score: meetingData.potentialScore || 0,
+          meeting_notes: meetingData.notes || '',
+          participants: meetingData.participants || [],
+          status: 'scheduled',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          created_by: meetingData.createdBy
+        })
+        .select()
+        .single();
+
+      if (error) throw new ApiError(500, error.message);
+      return data;
     } catch (error: any) {
       console.error('Service error:', error);
       throw error;
     }
   },
 
-  // Completar reunião de consenso
+  // Completar consenso
   async completeConsensusMeeting(supabase: any, meetingId: string, data: any) {
     try {
-      console.log('Completing consensus meeting:', meetingId, data);
-      
-      // Por enquanto, retornar sucesso
-      return { success: true };
+      const { data: meeting, error } = await supabase
+        .from('consensus_meetings')
+        .update({
+          consensus_performance_score: data.performanceScore,
+          consensus_potential_score: data.potentialScore,
+          meeting_notes: data.notes,
+          status: 'completed',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', meetingId)
+        .select()
+        .single();
+
+      if (error) throw new ApiError(500, error.message);
+
+      // Criar registro na tabela consensus_evaluations
+      const { error: consensusError } = await supabase
+        .from('consensus_evaluations')
+        .insert({
+          employee_id: meeting.employee_id,
+          self_evaluation_id: meeting.self_evaluation_id,
+          leader_evaluation_id: meeting.leader_evaluation_id,
+          consensus_score: data.performanceScore,
+          potential_score: data.potentialScore,
+          nine_box_position: this.calculateNineBoxPosition(
+            data.performanceScore,
+            data.potentialScore
+          ),
+          notes: data.notes,
+          evaluation_date: new Date().toISOString().split('T')[0],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (consensusError) throw new ApiError(500, consensusError.message);
+
+      return meeting;
     } catch (error: any) {
       console.error('Service error:', error);
       throw error;
     }
+  },
+
+  // ====================================
+  // FUNÇÕES AUXILIARES
+  // ====================================
+  
+  // Calcular score por categoria
+  calculateCategoryScore(competencies: EvaluationCompetency[], category: string): number {
+    const categoryComps = competencies.filter(c => c.category === category);
+    if (categoryComps.length === 0) return 0;
+    
+    const sum = categoryComps.reduce((acc, comp) => acc + (comp.score || 0), 0);
+    return Number((sum / categoryComps.length).toFixed(2));
+  },
+
+  // Calcular score final
+  calculateFinalScore(competencies: EvaluationCompetency[]): number {
+    if (competencies.length === 0) return 0;
+    
+    const sum = competencies.reduce((acc, comp) => acc + (comp.score || 0), 0);
+    return Number((sum / competencies.length).toFixed(2));
+  },
+
+  // Calcular posição no Nine Box
+  calculateNineBoxPosition(performance: number, potential: number): string {
+    const perfLevel = performance <= 2 ? 'low' : performance <= 3 ? 'medium' : 'high';
+    const potLevel = potential <= 2 ? 'low' : potential <= 3 ? 'medium' : 'high';
+    
+    const positions: { [key: string]: string } = {
+      'low-low': 'Questionável',
+      'low-medium': 'Novo/Desenvolvimento',
+      'low-high': 'Enigma',
+      'medium-low': 'Eficaz',
+      'medium-medium': 'Mantenedor',
+      'medium-high': 'Forte Desempenho',
+      'high-low': 'Especialista',
+      'high-medium': 'Alto Desempenho',
+      'high-high': 'Estrela'
+    };
+    
+    return positions[`${perfLevel}-${potLevel}`] || 'Não classificado';
   }
 };
