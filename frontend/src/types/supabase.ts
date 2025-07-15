@@ -58,6 +58,11 @@ export interface Database {
           position_start_date?: string | null
           created_at: string
           updated_at: string
+          // Campos adicionados para consistência com formulários de frontend
+          department_id?: string | null // Adicionado
+          track_id?: string | null // Adicionado (corresponde a career_tracks.id)
+          position_id?: string | null // Adicionado (corresponde a track_positions.id)
+          intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null // Adicionado
         }
         Insert: {
           id: string
@@ -80,6 +85,11 @@ export interface Database {
           position_start_date?: string | null
           created_at?: string
           updated_at?: string
+          // Campos adicionados
+          department_id?: string | null
+          track_id?: string | null
+          position_id?: string | null
+          intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null
         }
         Update: {
           id?: string
@@ -102,6 +112,11 @@ export interface Database {
           position_start_date?: string | null
           created_at?: string
           updated_at?: string
+          // Campos adicionados
+          department_id?: string | null
+          track_id?: string | null
+          position_id?: string | null
+          intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null
         }
       }
       teams: {
@@ -295,6 +310,12 @@ export interface UserWithDetails extends User {
   departments?: Department[]
   manager?: Pick<User, 'id' | 'name' | 'email'>
   direct_reports?: Pick<User, 'id' | 'name' | 'email' | 'position'>[]
+  // Campos adicionados para consistência com formulários de frontend
+  department_id?: string | null;
+  track_id?: string | null;
+  position_id?: string | null;
+  intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null;
+  contract_type?: 'CLT' | 'PJ' | null;
 }
 
 export interface TeamWithDetails extends Team {

@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
 import { EvaluationProvider } from './context/EvaluationContext';
-import { UserProvider } from './context/UserContext'; 
+import { UserProvider } from './context/UserContext';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
@@ -15,7 +15,9 @@ import NineBoxGuide from './pages/NineBoxGuide';
 import RegisterUser from './pages/RegisterUser';
 import RegisterTeam from './pages/RegisterTeam';
 import RegisterDepartment from './pages/RegisterDepartment';
-import UserEdit from './pages/UserEdit';
+import UserEdit from './pages/EditUser'; 
+import EditTeam from './pages/EditTeam'; 
+import EditDepartment from './pages/EditDepartment'; 
 import Consensus from './pages/Consensus';
 import ActionPlan, { PDIList } from './pages/ActionPlan';
 import Reports from './pages/Reports';
@@ -81,62 +83,62 @@ function App() {
                 <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
-                  
+
                   <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                     <Route index element={<Dashboard />} />
-                    
-                    <Route 
-                      path="self-evaluation" 
+
+                    <Route
+                      path="self-evaluation"
                       element={
                         <ProtectedRoute allowedRoles={['collaborator', 'leader']}>
                           <SelfEvaluation />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
-                    <Route 
-                      path="leader-evaluation" 
+
+                    <Route
+                      path="leader-evaluation"
                       element={
                         <ProtectedRoute allowedRoles={['leader', 'director']}>
                           <LeaderEvaluation />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
-                    <Route 
-                      path="leader-evaluations" 
+
+                    <Route
+                      path="leader-evaluations"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <EvaluationDashboard />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
-                    <Route 
-                      path="consensus" 
+
+                    <Route
+                      path="consensus"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <Consensus />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
-                    <Route 
-                      path="nine-box" 
+
+                    <Route
+                      path="nine-box"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <NineBoxMatrix />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
-                    <Route 
-                      path="action-plan" 
+
+                    <Route
+                      path="action-plan"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <ActionPlan />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
 
                     <Route
@@ -147,112 +149,131 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
-                    
-                    <Route 
-                      path="reports" 
+
+                    <Route
+                      path="reports"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <Reports />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
+
                     <Route path="settings" element={<Settings />} />
                     <Route path="notifications" element={<NotificationHistory />} />
-                    
-                    <Route 
-                      path="users" 
+
+                    <Route
+                      path="users"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <UserManagement />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
 
-                    <Route 
-                      path="salary" 
+                    <Route
+                      path="salary"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <SalaryAdminPage />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
+
                     {/* Rotas de cadastro separadas */}
-                    <Route 
-                      path="register/user" 
+                    <Route
+                      path="register/user"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <RegisterUser />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
-                    <Route 
-                      path="register/team" 
+
+                    <Route
+                      path="register/team"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <RegisterTeam />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
-                    <Route 
-                      path="register/department" 
+
+                    <Route
+                      path="register/department"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <RegisterDepartment />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
-                    <Route 
-                      path="users/:id/edit" 
+
+                    {/* Rotas de edição - UserEdit já existe e atende */}
+                    <Route
+                      path="users/:id/edit"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <UserEdit />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
-                    <Route 
-                      path="cycle" 
+                    {/* Novas rotas de edição para Time e Departamento */}
+                    <Route
+                      path="teams/:id/edit"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <EditTeam />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="departments/:id/edit"
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <EditDepartment />
+                        </ProtectedRoute>
+                      }
+                    />
+
+
+                    <Route
+                      path="cycle"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <CycleManagement />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
-                    <Route 
-                      path="nine-box-guide" 
+
+                    <Route
+                      path="nine-box-guide"
                       element={
                         <ProtectedRoute allowedRoles={['director', 'leader']}>
                           <NineBoxGuide />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
 
-                    <Route 
-                      path="pdi-list" 
+                    <Route
+                      path="pdi-list"
                       element={
                         <ProtectedRoute allowedRoles={['director', 'leader', 'collaborator']}>
                           <PDIList />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
-                    
+
                     {/* Career Track Detail */}
-                    <Route 
-                      path="career-track/:trackId" 
+                    <Route
+                      path="career-track/:trackId"
                       element={
                         <ProtectedRoute allowedRoles={['director', 'leader', 'collaborator']}>
                           <CareerTrackDetail />
                         </ProtectedRoute>
-                      } 
+                      }
                     />
                   </Route>
-                  
+
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </EvaluationProvider>
@@ -262,7 +283,7 @@ function App() {
       </Router>
     );
   } else {
-    // Versão sem Supabase Auth
+    // Versão sem Supabase Auth (mantida como estava, apenas com as novas rotas)
     return (
       <Router>
         <ThemeProvider>
@@ -283,13 +304,17 @@ function App() {
                     <Route path="settings" element={<Settings />} />
                     <Route path="notifications" element={<NotificationHistory />} />
                     <Route path="users" element={<UserManagement />} />
-                    
+
                     {/* Rotas de cadastro separadas */}
                     <Route path="register/user" element={<RegisterUser />} />
                     <Route path="register/team" element={<RegisterTeam />} />
                     <Route path="register/department" element={<RegisterDepartment />} />
-                    
+
                     <Route path="users/:id/edit" element={<UserEdit />} />
+                    {/* Novas rotas de edição para Time e Departamento */}
+                    <Route path="teams/:id/edit" element={<EditTeam />} />
+                    <Route path="departments/:id/edit" element={<EditDepartment />} />
+
                     <Route path="cycle" element={<CycleManagement />} />
                     <Route path="leader-evaluations" element={<EvaluationDashboard />} />
                     <Route path="nine-box-guide" element={<NineBoxGuide />} />

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../components/Button';
 import UserSalaryAssignment from '../components/UserSalaryAssignment';
-import { 
+import {
   Users, Edit, Trash2, Search, Filter, Building, UserPlus,
   Shield, Mail, Calendar, X, AlertCircle, Briefcase,
   UserCheck, UsersIcon, MoreVertical, Star, ChevronRight,
@@ -41,7 +41,7 @@ const UserManagement = () => {
   const permissions = usePermissions();
   const uiPermissions = useUIPermissions();
   const operationValidator = useOperationValidator();
-  
+
   const { users, teams, departments, loading, actions } = useSupabaseData();
 
   const [activeTab, setActiveTab] = useState<TabType>('users');
@@ -52,9 +52,9 @@ const UserManagement = () => {
   const [showOnlyLeaders, setShowOnlyLeaders] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'department'>('name');
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
-  const [editType, setEditType] = useState<'user' | 'team' | 'department'>('user');
+  const [showEditModal, setShowEditModal] = useState(false); // Mantido, mas não usado diretamente para User/Team/Dept edit
+  const [editingItem, setEditingItem] = useState<any>(null); // Mantido
+  const [editType, setEditType] = useState<'user' | 'team' | 'department'>('user'); // Mantido
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
   const [showSalaryModal, setShowSalaryModal] = useState(false);
@@ -67,7 +67,7 @@ const UserManagement = () => {
 
   const getUserById = (id: string) => users.find(u => u.id === id);
   const getTeamById = (id: string) => teams.find(t => t.id === id);
-  const getDepartmentById = (id: string) => departments.find(d => d.id === id);
+  const getDepartmentById = (id: string) => departments.find(d => d.id === d.id); // Corrigido aqui
 
   const getSubordinates = (userId: string) => {
     return users.filter(u => u.reports_to === userId);
@@ -96,23 +96,22 @@ const UserManagement = () => {
         toast.error('Você não tem permissão para editar este usuário');
         return;
       }
-      navigate(`/users/edit/${item.id}`);
-      return;
+      navigate(`/users/${item.id}/edit`);
+    } else if (type === 'team') {
+      if (!permissions.canEditTeam(item.id, item.responsible_id)) {
+        toast.error('Você não tem permissão para editar este time');
+        return;
+      }
+      navigate(`/teams/${item.id}/edit`);
+    } else if (type === 'department') {
+      if (!permissions.canEditDepartment()) {
+        toast.error('Você não tem permissão para editar departamentos');
+        return;
+      }
+      navigate(`/departments/${item.id}/edit`);
     }
-    
-    if (type === 'team' && !permissions.canEditTeam(item.id, item.responsible_id)) {
-      toast.error('Você não tem permissão para editar este time');
-      return;
-    }
-    if (type === 'department' && !permissions.canEditDepartment()) {
-      toast.error('Você não tem permissão para editar departamentos');
-      return;
-    }
-    
-    setEditType(type);
-    setEditingItem(item);
-    setShowEditModal(true);
   };
+
 
   const handleDelete = async (type: 'user' | 'team' | 'department', id: string) => {
     if (!permissions.hasPermission(type + 's', 'delete')) {
@@ -121,9 +120,9 @@ const UserManagement = () => {
     }
 
     const operation = type === 'user' ? 'deactivate_user' : `delete_${type}`;
-    const targetData = type === 'user' 
+    const targetData = type === 'user'
       ? users.find(u => u.id === id)
-      : type === 'team' 
+      : type === 'team'
       ? teams.find(t => t.id === id)
       : departments.find(d => d.id === id);
 
@@ -168,7 +167,7 @@ const UserManagement = () => {
     setShowSalaryModal(true);
   };
 
-  
+
   const handleQuickAction = (action: string) => {
     switch (action) {
       case 'import':
@@ -241,35 +240,35 @@ const UserManagement = () => {
       markdownContent = `# Lista de Usuários\n\n`;
       markdownContent += `| Nome | Email | Cargo | Tipo | Departamento | Time |\n`;
       markdownContent += `|------|-------|-------|------|--------------|------|\n`;
-      
+
       filteredUsers.forEach(user => {
         const userDepts = user.departments?.map(d => d.name).join(', ') || '-';
         const userTeams = user.teams?.map(t => t.name).join(', ') || '-';
         const type = user.is_director ? 'Diretor' : user.is_leader ? 'Líder' : 'Colaborador';
-        
+
         markdownContent += `| ${user.name} | ${user.email} | ${user.position} | ${type} | ${userDepts} | ${userTeams} |\n`;
       });
     } else if (activeTab === 'teams') {
       markdownContent = `# Lista de Times\n\n`;
       markdownContent += `| Nome | Departamento | Responsável | Membros | Descrição |\n`;
       markdownContent += `|------|--------------|-------------|---------|------------|\n`;
-      
+
       filteredTeams.forEach(team => {
         const dept = team.department?.name || '-';
         const responsible = team.responsible?.name || '-';
-        
+
         markdownContent += `| ${team.name} | ${dept} | ${responsible} | ${team.members?.length || 0} | ${team.description || '-'} |\n`;
       });
     } else {
       markdownContent = `# Lista de Departamentos\n\n`;
       markdownContent += `| Nome | Descrição | Responsável | Times | Pessoas |\n`;
       markdownContent += `|------|-----------|-------------|-------|----------|\n`;
-      
+
       filteredDepartments.forEach(dept => {
         const responsible = dept.responsible?.name || '-';
         const teamCount = dept.teams?.length || 0;
         const userCount = dept.member_count || 0;
-        
+
         markdownContent += `| ${dept.name} | ${dept.description || '-'} | ${responsible} | ${teamCount} | ${userCount} |\n`;
       });
     }
@@ -283,7 +282,7 @@ const UserManagement = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     toast.success('Dados exportados em formato Notion!');
   };
 
@@ -325,7 +324,7 @@ const UserManagement = () => {
 
     doc.setFontSize(16);
     doc.text(title, 14, 15);
-    
+
     doc.autoTable({
       head: [headers],
       body: data,
@@ -344,7 +343,7 @@ const UserManagement = () => {
       toast.error('Você não tem permissão para exportar dados');
       return;
     }
-    
+
     switch (format) {
       case 'excel':
         exportToExcel();
@@ -365,13 +364,13 @@ const UserManagement = () => {
         const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                              user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                              user.position.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesDepartment = !selectedDepartment || 
+
+        const matchesDepartment = !selectedDepartment ||
           user.departments?.some(d => d.id === selectedDepartment);
-        
-        const matchesTeam = !selectedTeam || 
+
+        const matchesTeam = !selectedTeam ||
           user.teams?.some(t => t.id === selectedTeam);
-        
+
         const matchesLeader = !showOnlyLeaders || user.is_leader;
 
         return matchesSearch && matchesDepartment && matchesTeam && matchesLeader;
@@ -401,7 +400,7 @@ const UserManagement = () => {
   }, [teams, searchTerm, selectedDepartment]);
 
   const filteredDepartments = useMemo(() => {
-    return departments.filter(dept => 
+    return departments.filter(dept =>
       dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (dept.description && dept.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
@@ -444,7 +443,7 @@ const UserManagement = () => {
     const subordinates = getSubordinates(user.id);
     const leader = user.manager;
     const age = user.birth_date ? calculateAge(user.birth_date) : null;
-    
+
     return (
       <motion.div
         layout
@@ -453,29 +452,29 @@ const UserManagement = () => {
         className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group"
       >
         <div className={`h-2 bg-gradient-to-r ${
-          user.is_director 
-            ? 'from-gray-700 to-gray-800 dark:from-gray-600 dark:to-gray-700' 
-            : user.is_leader 
-              ? 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700' 
+          user.is_director
+            ? 'from-gray-700 to-gray-800 dark:from-gray-600 dark:to-gray-700'
+            : user.is_leader
+              ? 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700'
               : 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700'
         }`} />
-        
+
         <div className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-4">
               <div className="relative">
                 {user.profile_image ? (
-                  <img 
-                    src={user.profile_image} 
+                  <img
+                    src={user.profile_image}
                     alt={user.name}
                     className="h-14 w-14 rounded-2xl object-cover shadow-md dark:shadow-lg"
                   />
                 ) : (
                   <div className={`h-14 w-14 rounded-2xl flex items-center justify-center text-white font-bold shadow-md dark:shadow-lg bg-gradient-to-br ${
-                    user.is_director 
-                      ? 'from-gray-700 to-gray-900' 
-                      : user.is_leader 
-                        ? 'from-primary-500 to-primary-700' 
+                    user.is_director
+                      ? 'from-gray-700 to-gray-900'
+                      : user.is_leader
+                        ? 'from-primary-500 to-primary-700'
                         : 'from-secondary-500 to-secondary-700'
                   }`}>
                     {user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
@@ -492,7 +491,7 @@ const UserManagement = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate">{user.name}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{user.position}</p>
@@ -509,7 +508,7 @@ const UserManagement = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <ActionGuard can={() => permissions.canEditUser(user.id)}>
                 <button
@@ -533,7 +532,7 @@ const UserManagement = () => {
                   </Button>
                 </span>
               </RoleGuard>
-              
+
               <ActionGuard can={permissions.canDeactivateUser}>
                 <button
                   onClick={() => handleDelete('user', user.id)}
@@ -551,7 +550,7 @@ const UserManagement = () => {
               <Mail className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500 group-hover/item:text-primary-500 dark:group-hover/item:text-primary-400" />
               <span className="text-sm truncate">{user.email}</span>
             </div>
-            
+
             <UIGuard show="showFullContactInfo">
               {user.phone && (
                 <div className="flex items-center text-gray-600 dark:text-gray-400 group/item hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
@@ -560,17 +559,17 @@ const UserManagement = () => {
                 </div>
               )}
             </UIGuard>
-            
+
             <div className="flex items-center text-gray-600 dark:text-gray-400">
               <Calendar className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
               <span className="text-sm">
-                Desde {new Date(user.join_date).toLocaleDateString('pt-BR', { 
-                  month: 'short', 
-                  year: 'numeric' 
+                Desde {new Date(user.join_date).toLocaleDateString('pt-BR', {
+                  month: 'short',
+                  year: 'numeric'
                 })}
               </span>
             </div>
-            
+
             {age && (
               <div className="flex items-center text-gray-600 dark:text-gray-400">
                 <CalendarDays className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
@@ -621,7 +620,7 @@ const UserManagement = () => {
     const department = team.department;
     const responsible = team.responsible;
     const members = team.members || [];
-    
+
     return (
       <motion.div
         layout
@@ -630,7 +629,7 @@ const UserManagement = () => {
         className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group"
       >
         <div className="h-2 bg-gradient-to-r from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700" />
-        
+
         <div className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-4">
@@ -653,7 +652,7 @@ const UserManagement = () => {
                   <Edit className="h-4 w-4" />
                 </button>
               </ActionGuard>
-              
+
               <ActionGuard can={permissions.canDeleteTeam}>
                 <button
                   onClick={() => handleDelete('team', team.id)}
@@ -725,7 +724,7 @@ const UserManagement = () => {
     const deptTeams = department.teams || [];
     const deptUsers = department.member_count || 0;
     const responsible = department.responsible;
-    
+
     return (
       <motion.div
         layout
@@ -734,7 +733,7 @@ const UserManagement = () => {
         className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group"
       >
         <div className="h-2 bg-gradient-to-r from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700" />
-        
+
         <div className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-4">
@@ -748,7 +747,7 @@ const UserManagement = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <ActionGuard can={permissions.canEditDepartment}>
                 <button
@@ -758,7 +757,7 @@ const UserManagement = () => {
                   <Edit className="h-4 w-4" />
                 </button>
               </ActionGuard>
-              
+
               <ActionGuard can={permissions.canDeleteDepartment}>
                 <button
                   onClick={() => handleDelete('department', department.id)}
@@ -834,7 +833,7 @@ const UserManagement = () => {
             <UIGuard show="showCreateUserButton">
               <Button
                 variant="primary"
-                onClick={() => navigate('/users/new')}
+                onClick={() => navigate('/register/user')} // Alterado para o RegisterUser
                 icon={<Plus size={18} />}
                 size="lg"
               >
@@ -843,7 +842,7 @@ const UserManagement = () => {
             </UIGuard>
           </div>
 
-          <motion.div 
+          <motion.div
             className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"
             variants={containerVariants}
             initial="hidden"
@@ -856,7 +855,7 @@ const UserManagement = () => {
               </div>
               <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-700 dark:text-gray-800 opacity-50" />
             </motion.div>
-            
+
             <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-gray-700 via-gray-600 to-gray-700 dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalDirectors}</p>
@@ -864,7 +863,7 @@ const UserManagement = () => {
               </div>
               <Shield className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-600 dark:text-gray-700 opacity-50" />
             </motion.div>
-            
+
             <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 dark:from-primary-600 dark:via-primary-700 dark:to-primary-800 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalLeaders}</p>
@@ -872,7 +871,7 @@ const UserManagement = () => {
               </div>
               <Crown className="absolute -bottom-2 -right-2 h-16 w-16 text-primary-400 dark:text-primary-500 opacity-50" />
             </motion.div>
-            
+
             <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-secondary-500 via-secondary-600 to-secondary-700 dark:from-secondary-600 dark:via-secondary-700 dark:to-secondary-800 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalCollaborators}</p>
@@ -880,9 +879,9 @@ const UserManagement = () => {
               </div>
               <UserCheck className="absolute -bottom-2 -right-2 h-16 w-16 text-secondary-400 dark:text-secondary-500 opacity-50" />
             </motion.div>
-            
-            <motion.div 
-              variants={itemVariants} 
+
+            <motion.div
+              variants={itemVariants}
               className="relative overflow-hidden rounded-xl p-4 text-center shadow-lg"
               style={{ background: 'linear-gradient(to bottom right, #247B7B, #1B5B5B)' }}
             >
@@ -892,7 +891,7 @@ const UserManagement = () => {
               </div>
               <UsersIcon className="absolute -bottom-2 -right-2 h-16 w-16 text-teal-300 opacity-50" />
             </motion.div>
-            
+
             <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-accent-500 via-accent-600 to-accent-700 dark:from-accent-600 dark:via-accent-700 dark:to-accent-800 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalDepartments}</p>
@@ -962,8 +961,8 @@ const UserManagement = () => {
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`p-2.5 rounded-xl transition-all ${
-                  showFilters 
-                    ? 'bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' 
+                  showFilters
+                    ? 'bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
@@ -1160,7 +1159,7 @@ const UserManagement = () => {
               <UIGuard show="showCreateUserButton">
                 <Button
                   variant="primary"
-                  onClick={() => navigate('/users/new')}
+                  onClick={() => navigate('/register/user')}
                   icon={<Plus size={18} />}
                 >
                   Cadastrar Usuário
@@ -1183,7 +1182,7 @@ const UserManagement = () => {
               <UIGuard show="showCreateTeamButton">
                 <Button
                   variant="primary"
-                  onClick={() => navigate('/users/new')}
+                  onClick={() => navigate('/register/team')} // Alterado para o RegisterTeam
                   icon={<Plus size={18} />}
                 >
                   Criar Time
@@ -1206,7 +1205,7 @@ const UserManagement = () => {
               <UIGuard show="showCreateDepartmentButton">
                 <Button
                   variant="primary"
-                  onClick={() => navigate('/users/new')}
+                  onClick={() => navigate('/register/department')} // Alterado para o RegisterDepartment
                   icon={<Plus size={18} />}
                 >
                   Criar Departamento
@@ -1236,7 +1235,7 @@ const UserManagement = () => {
                   <Download className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
                   Exportar Dados
                 </h2>
-                
+
                 <div className="space-y-3">
                   <button
                     onClick={() => handleExport('excel')}
