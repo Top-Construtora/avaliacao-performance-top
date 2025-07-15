@@ -8,6 +8,8 @@ export const api = {
     
     const config: RequestInit = {
       ...options,
+      credentials: 'include', // Importante para CORS
+      mode: 'cors', // Explicitamente define modo CORS
       headers: {
         'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
