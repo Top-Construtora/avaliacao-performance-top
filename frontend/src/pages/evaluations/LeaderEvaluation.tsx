@@ -2,11 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEvaluation } from '../hooks/useEvaluation'; // Assuming useEvaluation provides employees, getNineBoxByEmployeeId, savePDI
-import { useAuth } from '../context/AuthContext';
-import { userService } from '../services/user.service';
-import { evaluationService } from '../services/evaluation.service';
-import Button from '../components/Button';
+import { useEvaluation } from '../../hooks/useEvaluation'; // Assuming useEvaluation provides employees, getNineBoxByEmployeeId, savePDI
+import { useAuth } from '../../context/AuthContext';
+import { userService } from '../../services/user.service';
+import { evaluationService } from '../../services/evaluation.service';
+import Button from '../../components/Button';
 import {
   ChevronDown,
   ChevronRight,
@@ -41,9 +41,9 @@ import {
   Edit, // Added for edit button on PDI items
   Trash2 // Added for delete button on PDI items
 } from 'lucide-react';
-import type { User } from '../types/user';
-import { EVALUATION_COMPETENCIES } from '../types/evaluation.types';
-import type { WrittenFeedback } from '../types/evaluation.types';
+import type { User } from '../../types/user';
+import { EVALUATION_COMPETENCIES } from '../../types/evaluation.types';
+import type { WrittenFeedback } from '../../types/evaluation.types';
 
 interface Section {
   id: string;

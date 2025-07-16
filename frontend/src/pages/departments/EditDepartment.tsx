@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSupabaseUsers, useSupabaseDepartments } from '../hooks/useSupabaseData';
-import Button from '../components/Button';
+import { useSupabaseUsers, useSupabaseDepartments } from '../../hooks/useSupabaseData';
+import Button from '../../components/Button';
 import {
   Building, Sparkles, AlertCircle, ChevronDown,
   Save, Loader2, Target, Edit2, Info
 } from 'lucide-react';
-import { DepartmentWithDetails } from '../types/supabase';
+import { DepartmentWithDetails } from '../../types/supabase';
 
 const EditDepartment = () => {
   const navigate = useNavigate();

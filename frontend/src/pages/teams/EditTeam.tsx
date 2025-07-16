@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../hooks/useSupabaseData';
-import Button from '../components/Button';
+import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../../hooks/useSupabaseData';
+import Button from '../../components/Button';
 import {
   Users, Building2, Crown, AlertCircle, UserCheck,
   CheckCircle2, ChevronDown, Save, Loader2, Edit2, X, Info
 } from 'lucide-react';
-import { TeamWithDetails } from '../types/supabase';
+import { TeamWithDetails } from '../../types/supabase';
 
 const EditTeam = () => {
   const navigate = useNavigate();

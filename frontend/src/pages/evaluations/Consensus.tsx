@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
-import Button from '../components/Button';
+import { supabase } from '../../lib/supabase';
+import Button from '../../components/Button';
 import { 
   ArrowLeft,
   Save,

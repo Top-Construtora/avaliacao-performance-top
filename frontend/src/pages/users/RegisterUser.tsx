@@ -2,10 +2,10 @@ import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../hooks/useSupabaseData';
-import { authService } from '../services/auth.service';
-import { supabase } from '../lib/supabase';
-import Button from '../components/Button';
+import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../../hooks/useSupabaseData';
+import { authService } from '../../services/auth.service';
+import { supabase } from '../../lib/supabase';
+import Button from '../../components/Button';
 import { 
   Users, Plus, Building, Shield, Mail, Calendar, 
   X, Check, AlertCircle, Briefcase, UserCheck, 

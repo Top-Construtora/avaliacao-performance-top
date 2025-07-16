@@ -28,12 +28,12 @@ import {
   Pen,
   AlertCircle
 } from 'lucide-react';
-import Button from '../components/Button';
-import { useEvaluation } from '../hooks/useEvaluation';
-import { useAuth } from '../context/AuthContext';
-import { EVALUATION_COMPETENCIES } from '../types/evaluation.types';
-import type { WrittenFeedback } from '../types/evaluation.types';
-import { evaluationService } from '../services/evaluation.service';
+import Button from '../../components/Button';
+import { useEvaluation } from '../../hooks/useEvaluation';
+import { useAuth } from '../../context/AuthContext';
+import { EVALUATION_COMPETENCIES } from '../../types/evaluation.types';
+import type { WrittenFeedback } from '../../types/evaluation.types';
+import { evaluationService } from '../../services/evaluation.service';
 
 interface SelfEvaluationData {
   conhecimentos: string[];
@@ -227,6 +227,8 @@ const SelfEvaluation = () => {
         ].find(c => c.name === item.name);
 
         return {
+          criterion_name: item.name,
+          criterion_description: item.description,
           name: item.name,
           description: item.description,
           category: competency?.category || 'technical',

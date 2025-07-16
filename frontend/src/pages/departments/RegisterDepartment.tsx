@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { useSupabaseUsers, useSupabaseDepartments } from '../hooks/useSupabaseData';
-import Button from '../components/Button';
+import { useSupabaseUsers, useSupabaseDepartments } from '../../hooks/useSupabaseData';
+import Button from '../../components/Button';
 import { 
   Building, Sparkles, AlertCircle, ChevronDown, 
   Save, Loader2, Target

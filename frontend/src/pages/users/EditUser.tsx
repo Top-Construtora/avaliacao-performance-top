@@ -2,9 +2,9 @@ import { useState, useRef, useEffect, ChangeEvent } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../hooks/useSupabaseData';
-import { supabase } from '../lib/supabase';
-import Button from '../components/Button';
+import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../../hooks/useSupabaseData';
+import { supabase } from '../../lib/supabase';
+import Button from '../../components/Button';
 import { 
   Users, Shield, Mail, Calendar, AlertCircle, Briefcase, UserCheck, 
   Sparkles, Crown, User, Phone, CalendarDays, Camera, Upload,
@@ -12,8 +12,8 @@ import {
   Edit2, X, Check, Info, Building2, Lock, Unlock, TrendingUp, Route, Layers,
   FileText, UserCog, GitBranch, Network
 } from 'lucide-react';
-import { PermissionGuard } from '../components/PermissionGuard';
-import { usePermissions } from '../hooks/usePermissions';
+import { PermissionGuard } from '../../components/PermissionGuard';
+import { usePermissions } from '../../hooks/usePermissions';
 
 interface Track {
   id: string;

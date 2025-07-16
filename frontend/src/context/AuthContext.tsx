@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -166,6 +167,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Add resetPassword implementation
+  const resetPassword = async (email: string) => {
+    try {
+      await api.post('/auth/reset-password', { email });
+      toast.success('Email de recuperação enviado!');
+    } catch (error) {
+      toast.error('Erro ao enviar email de recuperação');
+      throw error;
+    }
+  };
+
   const value = {
     user,
     profile,
@@ -173,7 +185,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     signIn,
     signOut,
-    updateProfile
+    updateProfile,
+    resetPassword
   };
 
   return (
