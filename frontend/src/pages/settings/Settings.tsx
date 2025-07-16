@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import Button from '../components/Button';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { supabase } from '../lib/supabase';
+import Button from '../../components/Button';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { supabase } from '../../lib/supabase';
 import { 
   Settings as SettingsIcon,
   User,

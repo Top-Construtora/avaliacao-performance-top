@@ -5,10 +5,10 @@ import {
   AlertCircle, TrendingUp, Grid3x3, Calendar, Filter,
   Download, Search, ChevronRight, Info, Award
 } from 'lucide-react';
-import { useEvaluation } from '../hooks/useEvaluation';
-import { useUserRole } from '../context/AuthContext';
+import { useEvaluation } from '../../hooks/useEvaluation';
+import { useUserRole } from '../../context/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { CycleDashboard } from '../types/evaluation.types';
+import type { CycleDashboard } from '../../types/evaluation.types';
 
 const EvaluationDashboard: React.FC = () => {
   const { cycleId } = useParams<{ cycleId: string }>();

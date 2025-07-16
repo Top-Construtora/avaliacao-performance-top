@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import Button from '../components/Button';
+import Button from '../../components/Button';
 
 interface Notification {
   id: number;

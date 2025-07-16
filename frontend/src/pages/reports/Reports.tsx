@@ -16,16 +16,16 @@ import {
   AlertTriangle,
   Target
 } from 'lucide-react';
-import Button from '../components/Button';
+import Button from '../../components/Button';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { toast } from 'react-hot-toast';
-import { useEvaluation } from '../hooks/useEvaluation';
-import { evaluationService } from '../services/evaluation.service';
-import { departmentsService, usersService } from '../services/supabase.service';
-import type { Department, UserWithDetails } from '../types/supabase';
-import type { CycleDashboard, EvaluationCycle } from '../types/evaluation.types';
+import { useEvaluation } from '../../hooks/useEvaluation';
+import { evaluationService } from '../../services/evaluation.service';
+import { departmentsService, usersService } from '../../services/supabase.service';
+import type { Department, UserWithDetails } from '../../types/supabase';
+import type { CycleDashboard, EvaluationCycle } from '../../types/evaluation.types';
 
 declare module 'jspdf' {
   interface jsPDF {

@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import Button from '../components/Button';
-import UserSalaryAssignment from '../components/UserSalaryAssignment';
+import Button from '../../components/Button';
+import UserSalaryAssignment from '../../components/UserSalaryAssignment';
 import { 
   Users, Edit, Trash2, Search, Filter, Building, UserPlus,
   Shield, Mail, Calendar, X, AlertCircle, Briefcase,
@@ -17,14 +17,14 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
-import { useSupabaseData } from '../hooks/useSupabaseData';
-import type { UserWithDetails, TeamWithDetails, DepartmentWithDetails } from '../types/supabase';
-import { RoleGuard } from '../components/RoleGuard';
-import { usePermissions, useUIPermissions, useOperationValidator } from '../hooks/usePermissions';
-import type { User } from '../types/supabase';
+import { useSupabaseData } from '../../hooks/useSupabaseData';
+import type { UserWithDetails, TeamWithDetails, DepartmentWithDetails } from '../../types/supabase';
+import { RoleGuard } from '../../components/RoleGuard';
+import { usePermissions, useUIPermissions, useOperationValidator } from '../../hooks/usePermissions';
+import type { User } from '../../types/supabase';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { PermissionGuard, ActionGuard, UIGuard, OperationWarning } from '../components/PermissionGuard';
+import { PermissionGuard, ActionGuard, UIGuard, OperationWarning } from '../../components/PermissionGuard';
 
 declare module 'jspdf' {
   interface jsPDF {

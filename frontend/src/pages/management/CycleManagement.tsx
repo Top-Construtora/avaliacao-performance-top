@@ -9,10 +9,10 @@ import {
   ChevronDown, MoreVertical, RefreshCw, Zap, Grid3x3
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useEvaluation } from '../hooks/useEvaluation';
-import { useUserRole } from '../context/AuthContext';
-import type { EvaluationCycle, CycleDashboard } from '../types/evaluation.types';
-import Button from '../components/Button';
+import { useEvaluation } from '../../hooks/useEvaluation';
+import { useUserRole } from '../../context/AuthContext';
+import type { EvaluationCycle, CycleDashboard } from '../../types/evaluation.types';
+import Button from '../../components/Button';
 
 interface CycleStats {
   totalEmployees: number;

@@ -7,11 +7,11 @@ import {
   Briefcase, Layers, Hash, Move, ChevronUp, ChevronDown,
   Info, Settings, GitBranch, Building, Target, Percent
 } from 'lucide-react';
-import Button from '../components/Button';
-import { useAuth } from '../context/AuthContext';
-import { RoleGuard } from '../components/RoleGuard';
-import { salaryService, CareerTrack, JobPosition, SalaryClass, TrackPosition, SalaryLevel } from '../services/salary.service';
-import { departmentsService } from '../services/departments.service';
+import Button from '../../components/Button';
+import { useAuth } from '../../context/AuthContext';
+import { RoleGuard } from '../../components/RoleGuard';
+import { salaryService, CareerTrack, JobPosition, SalaryClass, TrackPosition, SalaryLevel } from '../../services/salary.service';
+import { departmentsService } from '../../services/departments.service';
 
 interface PositionFormData {
   position_id: string;

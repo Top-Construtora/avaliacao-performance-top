@@ -8,11 +8,11 @@ import {
 } from 'lucide-react';
 
 // Importações corretas dos serviços
-import Button from '../components/Button';
-import { useAuth } from '../context/AuthContext';
-import { RoleGuard } from '../components/RoleGuard';
-import { departmentsService } from '../services/departments.service';
-import { salaryService, CareerTrack, JobPosition, SalaryClass, SalaryLevel, TrackPosition } from '../services/salary.service';
+import Button from '../../components/Button';
+import { useAuth } from '../../context/AuthContext';
+import { RoleGuard } from '../../components/RoleGuard';
+import { departmentsService } from '../../services/departments.service';
+import { salaryService, CareerTrack, JobPosition, SalaryClass, SalaryLevel, TrackPosition } from '../../services/salary.service';
 
 // Interface para Department estendida com active
 interface DepartmentWithActive {
