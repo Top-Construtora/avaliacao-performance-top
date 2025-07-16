@@ -228,6 +228,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       icon: BookOpen,
       gradient: 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
       bgColor: 'bg-primary-50',
+      darkBgColor: 'dark:bg-primary-800',
       borderColor: 'border-primary-200',
       iconBg: 'bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
       description: 'Ações imediatas e de rápido impacto'
@@ -237,8 +238,10 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       title: 'Médio Prazo',
       subtitle: '6-12 meses',
       icon: Target,
-      gradient: 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
+      gradient: 'from-secondary-500 to-secondary-600',
+      darkGradient: 'dark:from-secondary-600 dark:to-secondary-700', // Added dark mode gradient
       bgColor: 'bg-secondary-50',
+      darkBgColor: 'dark:bg-secondary-800', 
       borderColor: 'border-secondary-200',
       iconBg: 'bg-gradient-to-br from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
       description: 'Desenvolvimento contínuo e estruturado'
@@ -250,7 +253,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       icon: Rocket,
       gradient: 'from-accent-500 to-accent-600',
       bgColor: 'bg-accent-50',
-      darkBgColor: 'dark:bg-accent-900/20',
+      darkBgColor: 'dark:bg-accent-800',
       borderColor: 'border-accent-200',
       iconBg: 'bg-gradient-to-br from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700',
       description: 'Visão estratégica e crescimento sustentável'
@@ -271,7 +274,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       >
         <button
           onClick={() => togglePdiSection(category.replace('Prazos', '') as 'curto' | 'medio' | 'longo')}
-          className={`w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${categoryData.bgColor} border-b ${categoryData.borderColor} hover:opacity-90 transition-all duration-200`}
+          className={`w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${categoryData.bgColor} ${categoryData.darkBgColor} border-b ${categoryData.borderColor} hover:opacity-90 transition-all duration-200`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 sm:space-x-4">
@@ -280,7 +283,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
               </div>
               <div className="text-left">
                 <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 dark:text-gray-100">{categoryData.title}</h3>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5 hidden sm:block">{categoryData.subtitle} • {categoryData.description}</p>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-white mt-0.5 hidden sm:block">{categoryData.subtitle} • {categoryData.description}</p>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 sm:hidden">{categoryData.subtitle}</p>
               </div>
             </div>
