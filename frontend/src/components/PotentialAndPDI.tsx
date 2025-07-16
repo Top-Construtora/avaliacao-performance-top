@@ -189,10 +189,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     setNewPdiItem(prev => ({ ...prev, prazo }));
     setEditingPdiItemPrazo(prazo);
     setExpandedPdiSections(prev => ({ ...prev, [prazo]: true }));
-    const formElement = document.getElementById('pdi-add-form');
-    if (formElement) {
-        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    // No need to scroll to a global form, as it will be inline
   };
 
   const closeAddPdiItemForm = () => {
@@ -264,6 +261,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     const categoryData = categories.find(cat => cat.key === category)!;
     const items = pdiData[category];
     const isExpanded = expandedPdiSections[category.replace('Prazos', '') as 'curto' | 'medio' | 'longo'];
+    const isAddingItemToThisCategory = editingPdiItemPrazo === category.replace('Prazos', '') as 'curto' | 'medio' | 'longo';
 
     return (
       <motion.div
@@ -310,7 +308,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
               className="p-4 sm:p-6 lg:p-8"
             >
               <div className="space-y-4 sm:space-y-6">
-                {items.length === 0 ? (
+                {items.length === 0 && !isAddingItemToThisCategory ? (
                   <div className="text-center py-8 sm:py-12">
                     <BookOpen className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
                     <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm sm:text-base">Nenhum item de desenvolvimento adicionado</p>
@@ -333,6 +331,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                         transition={{ delay: itemIndex * 0.1 }}
                         className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-200 dark:border-gray-600"
                       >
+                        {/* Header do Item */}
                         <div className="flex items-start justify-between mb-4 sm:mb-6">
                           <div className="flex items-center space-x-3">
                             <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl ${categoryData.iconBg} flex items-center justify-center text-white text-sm sm:text-base font-bold shadow-md`}>
@@ -357,6 +356,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                         </div>
 
                         <div className="space-y-4 sm:space-y-6">
+                          {/* Competência a desenvolver */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                               <Award className="h-4 w-4 mr-2 text-primary-600 dark:text-primary-400" />
@@ -371,6 +371,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             />
                           </div>
 
+                          {/* Calendarização */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                               <Calendar className="h-4 w-4 mr-2 text-secondary-600 dark:text-secondary-400" />
@@ -384,6 +385,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             />
                           </div>
 
+                          {/* Como desenvolver as competências */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                               <Lightbulb className="h-4 w-4 mr-2 text-accent-600 dark:text-accent-400" />
@@ -398,6 +400,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             />
                           </div>
 
+                          {/* Resultados Esperados */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                               <Target className="h-4 w-4 mr-2 text-primary-600 dark:text-primary-400" />
@@ -413,6 +416,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                           </div>
 
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-600">
+                            {/* Status */}
                             <div>
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                                 <CheckCircle className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
@@ -421,7 +425,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               <select
                                 className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-500 dark:focus:border-green-400 focus:ring-green-500 dark:focus:ring-green-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
                                 value={item.status}
-                                onChange={(e) => updateActionItem(category, item.id, 'status', e.target.value as ActionItem['status'])}
+                                onChange={(e) => updateActionItem(category, item.id, 'status', e.target.value as any)}
                               >
                                 {statusOptions.map(option => (
                                   <option key={option.value} value={option.value}>
@@ -431,6 +435,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               </select>
                             </div>
 
+                            {/* Observação */}
                             <div>
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                                 <MessageSquare className="h-4 w-4 mr-2 text-secondary-600 dark:text-secondary-400" />
@@ -448,20 +453,171 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                         </div>
                       </motion.div>
                     ))}
-
-                    <div className="flex justify-center pt-4">
-                      <Button
-                        variant="outline"
-                        onClick={() => openAddPdiItemForm(category.replace('Prazos', '') as 'curto' | 'medio' | 'longo')}
-                        icon={<Plus size={16} />}
-                        className="border-2 border-dashed hover:border-solid"
-                        size="sm"
-                      >
-                        Adicionar Novo Item
-                      </Button>
-                    </div>
+                    
+                    {/* Add New Item Button always visible if items exist, or if no items AND form is not open */}
+                    {!isAddingItemToThisCategory && (
+                        <div className="flex justify-center pt-4">
+                            <Button
+                            variant="outline"
+                            onClick={() => openAddPdiItemForm(category.replace('Prazos', '') as 'curto' | 'medio' | 'longo')}
+                            icon={<Plus size={16} />}
+                            className="border-2 border-dashed hover:border-solid"
+                            size="sm"
+                            >
+                            Adicionar Novo Item
+                            </Button>
+                        </div>
+                    )}
                   </>
                 )}
+
+                {/* New Item Add Form - RENDERED INSIDE THE SECTION */}
+                <AnimatePresence>
+                {isAddingItemToThisCategory && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8 overflow-hidden mt-6"
+                  >
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+                        <Plus className="h-6 w-6 text-primary-600 dark:text-primary-400 mr-3" />
+                        Adicionar Novo Item de Desenvolvimento ({categoryData.title})
+                      </h3>
+                      <button
+                        onClick={closeAddPdiItemForm}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      >
+                        <X size={24} />
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="competencia" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                          <Lightbulb size={16} className="mr-1 text-accent-500" />
+                          Competência a desenvolver
+                        </label>
+                        <input
+                          type="text"
+                          id="competencia"
+                          name="competencia"
+                          value={newPdiItem.competencia}
+                          onChange={handleNewPdiItemChange}
+                          placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
+                          className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="calendarizacao" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                            <Calendar size={16} className="mr-1 text-primary-500" />
+                            Calendarização (Mês/Ano)
+                          </label>
+                          <input
+                            type="month"
+                            id="calendarizacao"
+                            name="calendarizacao"
+                            value={newPdiItem.calendarizacao}
+                            onChange={handleNewPdiItemChange}
+                            className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="comoDesenvolver" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                          <FileText size={16} className="mr-1 text-secondary-500" />
+                          Como desenvolver as competências
+                        </label>
+                        <textarea
+                          id="comoDesenvolver"
+                          name="comoDesenvolver"
+                          value={newPdiItem.comoDesenvolver}
+                          onChange={handleNewPdiItemChange}
+                          placeholder="Descreva as ações e métodos para desenvolver esta competência..."
+                          rows={3}
+                          className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
+                        ></textarea>
+                      </div>
+
+                      <div>
+                        <label htmlFor="resultadosEsperados" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                          <TrendingUp size={16} className="mr-1 text-green-500" />
+                          Resultados Esperados
+                        </label>
+                        <textarea
+                          id="resultadosEsperados"
+                          name="resultadosEsperados"
+                          value={newPdiItem.resultadosEsperados}
+                          onChange={handleNewPdiItemChange}
+                          placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
+                          rows={3}
+                          className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
+                        ></textarea>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                            <CheckCircle size={16} className="mr-1 text-cyan-500" />
+                            Status
+                          </label>
+                          <select
+                            id="status"
+                            name="status"
+                            value={newPdiItem.status}
+                            onChange={handleNewPdiItemChange}
+                            className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
+                          >
+                            {statusOptions.map(option => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="observacao" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                            <MessageSquare size={16} className="mr-1 text-gray-500" />
+                            Observação
+                          </label>
+                          <textarea
+                            id="observacao"
+                            name="observacao"
+                            value={newPdiItem.observacao}
+                            onChange={handleNewPdiItemChange}
+                            placeholder="Observações adicionais..."
+                            rows={1}
+                            className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
+                          ></textarea>
+                        </div>
+                      </div>
+                      <div className="flex justify-end space-x-3 mt-4">
+                        <Button
+                          variant="outline"
+                          onClick={closeAddPdiItemForm}
+                          size="lg"
+                          className="w-full sm:w-auto"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          onClick={addPdiItem}
+                          icon={<Plus size={18} />}
+                          size="lg"
+                          className="w-full sm:w-auto"
+                        >
+                          Adicionar Item
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+                </AnimatePresence>
               </div>
             </motion.div>
           )}
@@ -698,173 +854,6 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
           exit={{ opacity: 0, y: -20 }}
           className="space-y-6"
         >
-          <AnimatePresence>
-            {editingPdiItemPrazo && (
-              <motion.div
-                id="pdi-add-form"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8 overflow-hidden"
-              >
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                    <Plus className="h-6 w-6 text-primary-600 dark:text-primary-400 mr-3" />
-                    Adicionar Novo Item de Desenvolvimento
-                  </h3>
-                  <button
-                    onClick={closeAddPdiItemForm}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="competencia" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                      <Lightbulb size={16} className="mr-1 text-accent-500" />
-                      Competência a desenvolver
-                    </label>
-                    <input
-                      type="text"
-                      id="competencia"
-                      name="competencia"
-                      value={newPdiItem.competencia}
-                      onChange={handleNewPdiItemChange}
-                      placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
-                      className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="calendarizacao" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                        <Calendar size={16} className="mr-1 text-primary-500" />
-                        Calendarização (Mês/Ano)
-                      </label>
-                      <input
-                        type="month"
-                        id="calendarizacao"
-                        name="calendarizacao"
-                        value={newPdiItem.calendarizacao}
-                        onChange={handleNewPdiItemChange}
-                        className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="comoDesenvolver" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                      <FileText size={16} className="mr-1 text-secondary-500" />
-                      Como desenvolver as competências
-                    </label>
-                    <textarea
-                      id="comoDesenvolver"
-                      name="comoDesenvolver"
-                      value={newPdiItem.comoDesenvolver}
-                      onChange={handleNewPdiItemChange}
-                      placeholder="Descreva as ações e métodos para desenvolver esta competência..."
-                      rows={3}
-                      className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
-                    ></textarea>
-                  </div>
-
-                  <div>
-                    <label htmlFor="resultadosEsperados" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                      <TrendingUp size={16} className="mr-1 text-green-500" />
-                      Resultados Esperados
-                    </label>
-                    <textarea
-                      id="resultadosEsperados"
-                      name="resultadosEsperados"
-                      value={newPdiItem.resultadosEsperados}
-                      onChange={handleNewPdiItemChange}
-                      placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
-                      rows={3}
-                      className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
-                    ></textarea>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                        <CheckCircle size={16} className="mr-1 text-cyan-500" />
-                        Status
-                      </label>
-                      <select
-                        id="status"
-                        name="status"
-                        value={newPdiItem.status}
-                        onChange={handleNewPdiItemChange}
-                        className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
-                      >
-                        {statusOptions.map(option => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="observacao" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                        <MessageSquare size={16} className="mr-1 text-gray-500" />
-                        Observação
-                      </label>
-                      <textarea
-                        id="observacao"
-                        name="observacao"
-                        value={newPdiItem.observacao}
-                        onChange={handleNewPdiItemChange}
-                        placeholder="Observações adicionais..."
-                        rows={1}
-                        className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
-                      ></textarea>
-                    </div>
-                  </div>
-                  <div>
-                    <label htmlFor="prazo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                      <Calendar size={16} className="mr-1 text-orange-500" />
-                      Prazo
-                    </label>
-                    <select
-                      id="prazo"
-                      name="prazo"
-                      value={newPdiItem.prazo}
-                      onChange={handleNewPdiItemChange}
-                      className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
-                      disabled={!!editingPdiItemPrazo}
-                    >
-                      <option value="">Selecione o prazo...</option>
-                      <option value="curto">Curto Prazo (0-6 meses)</option>
-                      <option value="medio">Médio Prazo (6-12 meses)</option>
-                      <option value="longo">Longo Prazo (12-24 meses)</option>
-                    </select>
-                  </div>
-                  <div className="flex justify-end space-x-3 mt-4">
-                    <Button
-                      variant="outline"
-                      onClick={closeAddPdiItemForm}
-                      size="lg"
-                      className="w-full sm:w-auto"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={addPdiItem}
-                      icon={<Plus size={18} />}
-                      size="lg"
-                      className="w-full sm:w-auto"
-                    >
-                      Adicionar Item
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           {categories.map((category, index) => (
             <motion.div
               key={category.key}
