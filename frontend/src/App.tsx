@@ -19,7 +19,6 @@ import UserEdit from './pages/users/EditUser';
 import EditTeam from './pages/teams/EditTeam'; 
 import EditDepartment from './pages/departments/EditDepartment'; 
 import Consensus from './pages/evaluations/Consensus';
-import ActionPlan, { PDIList } from './pages/evaluations/ActionPlan';
 import Reports from './pages/reports/Reports';
 import Settings from './pages/settings/Settings';
 import NotFound from './pages/NotFound';
@@ -128,15 +127,6 @@ function App() {
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <NineBoxMatrix />
-                        </ProtectedRoute>
-                      }
-                    />
-
-                    <Route
-                      path="action-plan"
-                      element={
-                        <ProtectedRoute allowedRoles={['director']}>
-                          <ActionPlan />
                         </ProtectedRoute>
                       }
                     />
@@ -254,15 +244,6 @@ function App() {
                       }
                     />
 
-                    <Route
-                      path="pdi-list"
-                      element={
-                        <ProtectedRoute allowedRoles={['director', 'leader', 'collaborator']}>
-                          <PDIList />
-                        </ProtectedRoute>
-                      }
-                    />
-
                     {/* Career Track Detail */}
                     <Route
                       path="career-track/:trackId"
@@ -298,8 +279,6 @@ function App() {
                     <Route path="leader-evaluation" element={<LeaderEvaluation />} />
                     <Route path="consensus" element={<Consensus />} />
                     <Route path="nine-box" element={<NineBoxMatrix />} />
-                    <Route path="action-plan" element={<ActionPlan />} />
-                    <Route path="pdi-list" element={<PDIList />} />
                     <Route path="reports" element={<Reports />} />
                     <Route path="settings" element={<Settings />} />
                     <Route path="notifications" element={<NotificationHistory />} />
