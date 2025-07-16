@@ -238,5 +238,50 @@ export const evaluationService = {
     };
     
     return positions[`${perfLevel}-${potLevel}`] || 'Não classificado';
+  },
+
+  // ====================================
+  // PDI - PLANO DE DESENVOLVIMENTO INDIVIDUAL
+  // ====================================
+  
+  async savePDI(pdiData: {
+    employeeId: string;
+    goals: string[];
+    actions: string[];
+    resources?: string[];
+    timeline?: string;
+  }): Promise<any> {
+    try {
+      const response = await api.post('/evaluations/pdi', pdiData);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao salvar PDI:', error);
+      throw error;
+    }
+  },
+
+  async getPDI(employeeId: string): Promise<any> {
+    try {
+      const response = await api.get(`/evaluations/pdi/${employeeId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar PDI:', error);
+      return null;
+    }
+  },
+
+  async updatePDI(pdiId: string, updates: {
+    goals?: string[];
+    actions?: string[];
+    resources?: string[];
+    timeline?: string;
+  }): Promise<any> {
+    try {
+      const response = await api.put(`/evaluations/pdi/${pdiId}`, updates);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar PDI:', error);
+      throw error;
+    }
   }
 };

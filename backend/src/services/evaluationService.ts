@@ -626,5 +626,96 @@ export const evaluationService = {
     };
     
     return positions[`${perfLevel}-${potLevel}`] || 'Não classificado';
+  },
+
+  // ====================================
+  // PDI - PLANO DE DESENVOLVIMENTO INDIVIDUAL
+  // ====================================
+  
+  // Salvar PDI
+  async savePDI(supabase: any, pdiData: any) {
+    try {
+      // Verificar se já existe um PDI ativo para o colaborador
+      const { data: existingPDI } = await supabase
+        .from('development_plans')
+        .select('*')
+        .eq('employee_id', pdiData.employeeId)
+        .eq('status', 'active')
+        .single();
+
+      if (existingPDI) {
+        // Se já existe, atualizar o status para 'completed'
+        await supabase
+          .from('development_plans')
+          .update({ status: 'completed' })
+          .eq('id', existingPDI.id);
+      }
+
+      // Criar novo PDI
+      const { data, error } = await supabase
+        .from('development_plans')
+        .insert({
+          employee_id: pdiData.employeeId,
+          goals: pdiData.goals,
+          actions: pdiData.actions,
+          resources: pdiData.resources || [],
+          timeline: pdiData.timeline || null,
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw new ApiError(500, error.message);
+      return data;
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  // Buscar PDI ativo do colaborador
+  async getPDI(supabase: any, employeeId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('development_plans')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        throw new ApiError(500, error.message);
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  // Atualizar PDI
+  async updatePDI(supabase: any, pdiId: string, updates: any) {
+    try {
+      const { data, error } = await supabase
+        .from('development_plans')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', pdiId)
+        .select()
+        .single();
+
+      if (error) throw new ApiError(500, error.message);
+      return data;
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
   }
 };

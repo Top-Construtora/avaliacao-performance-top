@@ -348,5 +348,93 @@ export const evaluationController = {
       console.error('Controller error:', error);
       next(error);
     }
+  },
+
+  // ====================================
+  // PDI (PLANO DE DESENVOLVIMENTO INDIVIDUAL)
+  // ====================================
+  
+  // Salvar PDI
+  async savePDI(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { employeeId, goals, actions, resources, timeline } = req.body;
+      
+      if (!employeeId || !goals || !actions) {
+        return res.status(400).json({
+          success: false,
+          error: 'Campos obrigatórios: employeeId, goals, actions'
+        });
+      }
+      
+      const pdi = await evaluationService.savePDI(
+        authReq.supabase,
+        {
+          employeeId,
+          goals,
+          actions,
+          resources,
+          timeline,
+          createdBy: authReq.user?.id
+        }
+      );
+      
+      res.json({
+        success: true,
+        data: pdi
+      });
+    } catch (error) {
+      console.error('Controller error:', error);
+      next(error);
+    }
+  },
+
+  // Buscar PDI
+  async getPDI(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { employeeId } = req.params;
+      
+      const pdi = await evaluationService.getPDI(
+        authReq.supabase,
+        employeeId
+      );
+      
+      res.json({
+        success: true,
+        data: pdi
+      });
+    } catch (error) {
+      console.error('Controller error:', error);
+      next(error);
+    }
+  },
+
+  // Atualizar PDI
+  async updatePDI(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { pdiId } = req.params;
+      const { goals, actions, resources, timeline } = req.body;
+      
+      const pdi = await evaluationService.updatePDI(
+        authReq.supabase,
+        pdiId,
+        {
+          goals,
+          actions,
+          resources,
+          timeline
+        }
+      );
+      
+      res.json({
+        success: true,
+        data: pdi
+      });
+    } catch (error) {
+      console.error('Controller error:', error);
+      next(error);
+    }
   }
 };

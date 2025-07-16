@@ -67,6 +67,9 @@ interface UseEvaluationReturn {
   getSelfEvaluations: (employeeId: string, cycleId?: string) => Promise<SelfEvaluation[]>;
   getLeaderEvaluations: (employeeId: string, cycleId?: string) => Promise<LeaderEvaluation[]>;
   checkExistingEvaluation: (cycleId: string, employeeId: string, type: 'self' | 'leader') => Promise<boolean>;
+  // Additions:
+  getNineBoxByEmployeeId: (employeeId: string) => NineBoxData | undefined;
+  savePDI: (pdiData: any) => Promise<any>;
 }
 
 export const useEvaluation = (): UseEvaluationReturn => {
@@ -349,6 +352,16 @@ export const useEvaluation = (): UseEvaluationReturn => {
     }
   }, []);
 
+  // Add getNineBoxByEmployeeId
+  const getNineBoxByEmployeeId = (employeeId: string) => {
+    return nineBoxData.find((item) => item.employee_id === employeeId);
+  };
+
+  // Add savePDI
+  const savePDI = async (pdiData: any) => {
+    return evaluationService.savePDI(pdiData);
+  };
+
   // Load initial data
   useEffect(() => {
     loadCurrentCycle();
@@ -389,6 +402,8 @@ export const useEvaluation = (): UseEvaluationReturn => {
     getEmployeeEvaluations,
     getSelfEvaluations,
     getLeaderEvaluations,
-    checkExistingEvaluation
+    checkExistingEvaluation,
+    getNineBoxByEmployeeId, // Added
+    savePDI // Added
   };
 };
