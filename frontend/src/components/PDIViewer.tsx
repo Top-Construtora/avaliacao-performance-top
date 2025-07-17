@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import Button from './Button';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ptBR } from 'date-fns/locale/pt-BR'; // Import correto do locale
 
 interface PDIItem {
   id: string;
