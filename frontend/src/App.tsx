@@ -255,7 +255,7 @@ function App() {
                       }
                     />
                     {/* PDI Management (New Route) */}
-                    <Route path="pdi-management" element={<ProtectedRoute allowedRoles={['director', 'hr', 'leader']}><PdiManagement /></ProtectedRoute>} />
+                    <Route path="pdi" element={<ProtectedRoute allowedRoles={['director', 'leader']}><PdiManagement /></ProtectedRoute>} />
                   </Route>
 
                   <Route path="*" element={<NotFound />} />
