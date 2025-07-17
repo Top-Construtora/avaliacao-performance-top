@@ -367,13 +367,32 @@ const LeaderEvaluation = () => {
         }
       });
 
-      const pdiToSave: PdiData = { // Explicitly type pdiToSave
-        ...pdiData,
-        id: pdiData.id || Date.now().toString(),
-        dataCriacao: pdiData.dataCriacao || new Date().toISOString(),
-        dataAtualizacao: new Date().toISOString()
+      // --- START PDI Data Transformation for savePDI ---
+      const allPdiActionItems = [
+        ...pdiData.curtosPrazos,
+        ...pdiData.mediosPrazos,
+        ...pdiData.longosPrazos
+      ];
+
+      const pdiGoals = allPdiActionItems.map(item => 
+        `Competência: ${item.competencia || 'N/A'}. Resultados Esperados: ${item.resultadosEsperados || 'N/A'}.`
+      );
+
+      const pdiActions = allPdiActionItems.map(item => 
+        `Como desenvolver: ${item.comoDesenvolver || 'N/A'} (Prazo: ${item.calendarizacao || 'N/A'}, Status: ${item.status || 'N/A'}, Observação: ${item.observacao || 'N/A'}).`
+      );
+
+      const pdiToSave = {
+        employeeId: pdiData.colaboradorId,
+        goals: pdiGoals,
+        actions: pdiActions,
+        resources: [], // Assuming no direct mapping for resources from current PDI structure
+        timeline: pdiData.periodo, // Using 'periodo' as timeline
+        // No need for createdBy, backend service sets it from authReq.user?.id
       };
-      await savePDI(pdiToSave);
+      // --- END PDI Data Transformation ---
+
+      await savePDI(pdiToSave); //
 
       toast.success('Avaliação enviada com sucesso!');
       setTimeout(() => {
@@ -439,13 +458,30 @@ const LeaderEvaluation = () => {
       });
 
       if (totalPdiItems > 0) {
-        const pdiToSave: PdiData = { // Explicitly type pdiToSave
-          ...pdiData,
-          id: pdiData.id || Date.now().toString(),
-          dataCriacao: pdiData.dataCriacao || new Date().toISOString(),
-          dataAtualizacao: new Date().toISOString()
+        // --- START PDI Data Transformation for savePDI (Draft) ---
+        const allPdiActionItems = [
+          ...pdiData.curtosPrazos,
+          ...pdiData.mediosPrazos,
+          ...pdiData.longosPrazos
+        ];
+
+        const pdiGoals = allPdiActionItems.map(item => 
+          `Competência: ${item.competencia || 'N/A'}. Resultados Esperados: ${item.resultadosEsperados || 'N/A'}.`
+        );
+
+        const pdiActions = allPdiActionItems.map(item => 
+          `Como desenvolver: ${item.comoDesenvolver || 'N/A'} (Prazo: ${item.calendarizacao || 'N/A'}, Status: ${item.status || 'N/A'}, Observação: ${item.observacao || 'N/A'}).`
+        );
+
+        const pdiToSave = {
+          employeeId: pdiData.colaboradorId,
+          goals: pdiGoals,
+          actions: pdiActions,
+          resources: [], // Assuming no direct mapping for resources from current PDI structure
+          timeline: pdiData.periodo, // Using 'periodo' as timeline
         };
-        await savePDI(pdiToSave);
+        // --- END PDI Data Transformation ---
+        await savePDI(pdiToSave); //
       }
 
       toast.success('Avaliação salva como rascunho');

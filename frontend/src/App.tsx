@@ -30,6 +30,7 @@ import CycleManagement from './pages/management/CycleManagement';
 import SalaryAdminPage from './pages/management/SalaryAdminPage';
 import TrackPositionsPage from './pages/carrer/TrackPositionsPage';
 import CareerTrackDetail from './pages/carrer/CareerTrackDetail';
+import PdiManagement from './pages/pdi/PdiManagement'; // Import the new PDI Management page
 
 const USE_SUPABASE_AUTH = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
 
@@ -253,6 +254,8 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
+                    {/* PDI Management (New Route) */}
+                    <Route path="pdi-management" element={<ProtectedRoute allowedRoles={['director', 'hr', 'leader']}><PdiManagement /></ProtectedRoute>} />
                   </Route>
 
                   <Route path="*" element={<NotFound />} />
@@ -300,6 +303,8 @@ function App() {
                     <Route path="salary" element={<SalaryAdminPage />} />
                     <Route path="salary/tracks/:trackId" element={<TrackPositionsPage />} />
                     <Route path="career-track/:trackId" element={<CareerTrackDetail />} />
+                    {/* PDI Management (New Route) */}
+                    <Route path="pdi-management" element={<PdiManagement />} />
                   </Route>
                   <Route path="*" element={<NotFound />} />
                 </Routes>

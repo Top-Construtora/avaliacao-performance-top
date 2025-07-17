@@ -43,8 +43,8 @@ interface NavItem {
   label: string;
   icon: any;
   path?: string;
-  allowedRoles?: Array<'director' | 'leader' | 'collaborator'>;
-  hideForRoles?: Array<'director' | 'leader' | 'collaborator'>;
+  allowedRoles?: Array<'director' | 'leader' | 'collaborator' | 'hr'>; // Adicionado 'hr'
+  hideForRoles?: Array<'director' | 'leader' | 'collaborator' | 'hr'>; // Adicionado 'hr'
   hasDropdown?: boolean;
   subItems?: NavItem[];
 }
@@ -71,22 +71,25 @@ export default function Sidebar({
       label: 'Cadastrar',
       icon: Plus,
       hasDropdown: true,
-      allowedRoles: ['director'],
+      allowedRoles: ['director', 'hr'], // Adicionado 'hr'
       subItems: [
         {
           label: 'Cadastrar Usuário',
           icon: UserPlus,
           path: '/register/user',
+          allowedRoles: ['director', 'hr'], // Adicionado 'hr'
         },
         {
           label: 'Cadastrar Time',
           icon: Users,
           path: '/register/team',
+          allowedRoles: ['director', 'hr'], // Adicionado 'hr'
         },
         {
           label: 'Cadastrar Departamento',
           icon: Building,
           path: '/register/department',
+          allowedRoles: ['director', 'hr'], // Adicionado 'hr'
         },
       ],
     },
@@ -94,25 +97,25 @@ export default function Sidebar({
       label: 'Gerenciar Usuários',
       icon: Users,
       path: '/users',
-      allowedRoles: ['director'],
+      allowedRoles: ['director', 'hr'], // Adicionado 'hr'
     },
     {
       label: 'Cargos e Salários',
       icon: DollarSign,
       path: '/salary',
-      allowedRoles: ['director']
+      allowedRoles: ['director', 'hr'] // Adicionado 'hr'
     },
     {
       label: 'Gerenciar Ciclos',
       icon: RotateCcw,
       path: '/cycle',
-      allowedRoles: ['director'],
+      allowedRoles: ['director', 'hr'], // Adicionado 'hr'
     },
     {
       label: 'Autoavaliação',
       icon: FileText,
       path: '/self-evaluation',
-      hideForRoles: ['director'],
+      allowedRoles: ['collaborator', 'leader', 'director', 'hr'], // Todos podem fazer autoavaliação
     },
     {
       label: 'Avaliação do Líder',
@@ -124,45 +127,61 @@ export default function Sidebar({
       label: 'Consenso',
       icon: Handshake,
       path: '/consensus',
-      allowedRoles: ['director'],
+      allowedRoles: ['director', 'hr', 'leader'], // Adicionado 'hr' e 'leader'
     },
     {
       label: 'Matriz 9 Box',
       icon: Grid3X3,
       path: '/nine-box',
-      allowedRoles: ['director'],
+      allowedRoles: ['director', 'hr', 'leader'], // Adicionado 'hr' e 'leader'
     },
     {
-      label: 'PDI',
-      icon: FileText,
-      path: '/action-plan',
-      allowedRoles: ['director'],
+      label: 'Gerenciar PDI', // Rótulo atualizado
+      icon: BookOpen,
+      path: '/pdi-management', // Caminho da nova página
+      allowedRoles: ['director', 'hr', 'leader'], // Acesso para diretores, RH e líderes
     },
     {
       label: 'Relatórios',
       icon: PieChart,
       path: '/reports',
-      allowedRoles: ['director'],
+      allowedRoles: ['director', 'hr'], // Adicionado 'hr'
     },
     {
       label: 'Guia NineBox',
       icon: BookOpen,
       path: '/nine-box-guide',
-      allowedRoles: ['director', 'leader'],
+      allowedRoles: ['director', 'leader', 'collaborator', 'hr'], // Todos podem ver o guia
+    },
+    {
+      label: 'Notificações',
+      icon: Bell,
+      path: '/notifications',
+      allowedRoles: ['director', 'leader', 'collaborator', 'hr'], // Todos podem ver notificações
+    },
+    {
+      label: 'Configurações',
+      icon: Settings,
+      path: '/settings',
+      allowedRoles: ['director', 'leader', 'collaborator', 'hr'], // Todos podem ver configurações
     },
   ];
 
   // Filtrar itens baseado no papel do usuário
   const filteredNavItems = navItems.filter(item => {
-    if (item.hideForRoles && item.hideForRoles.includes(role as 'director' | 'leader' | 'collaborator')) {
+    if (!profile || !role) return false; // Ensure profile and role are available
+
+    // Check hideForRoles first
+    if (item.hideForRoles && item.hideForRoles.includes(role as 'director' | 'leader' | 'collaborator' | 'hr')) {
       return false;
     }
     
-    if (item.allowedRoles && !item.allowedRoles.includes(role as 'director' | 'leader' | 'collaborator')) {
+    // If allowedRoles is defined, check if the current role is included
+    if (item.allowedRoles && !item.allowedRoles.includes(role as 'director' | 'leader' | 'collaborator' | 'hr')) {
       return false;
     }
     
-    return true;
+    return true; // If no specific roles are defined or role is allowed
   });
 
   const handleLogout = async () => {
@@ -230,23 +249,34 @@ export default function Sidebar({
                         className="overflow-hidden"
                       >
                         <div className="pl-4 mt-1 space-y-1">
-                          {item.subItems.map((subItem) => (
-                            <NavLink
-                              key={subItem.path}
-                              to={subItem.path!}
-                              className={({ isActive }) => `
-                                flex items-center px-4 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200
-                                ${isActive 
-                                  ? 'bg-gradient-to-r from-teal-500/20 to-teal-600/20 text-white border border-teal-500/40 shadow-lg shadow-teal-500/10' 
-                                  : 'text-white/60 hover:bg-gray-800/30 hover:text-white/90'
-                                }
-                              `}
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
-                              <span>{subItem.label}</span>
-                            </NavLink>
-                          ))}
+                          {item.subItems.map((subItem) => {
+                            if (!profile || !role) return null; // Ensure profile and role are available for sub-items
+
+                            const hasSubItemPermission = subItem.allowedRoles?.includes(role as 'director' | 'leader' | 'collaborator' | 'hr');
+                            const shouldHideSubItem = subItem.hideForRoles?.includes(role as 'director' | 'leader' | 'collaborator' | 'hr');
+
+                            if (shouldHideSubItem || (subItem.allowedRoles && !hasSubItemPermission)) {
+                              return null;
+                            }
+
+                            return (
+                              <NavLink
+                                key={subItem.path}
+                                to={subItem.path!}
+                                className={({ isActive }) => `
+                                  flex items-center px-4 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200
+                                  ${isActive 
+                                    ? 'bg-gradient-to-r from-teal-500/20 to-teal-600/20 text-white border border-teal-500/40 shadow-lg shadow-teal-500/10' 
+                                    : 'text-white/60 hover:bg-gray-800/30 hover:text-white/90'
+                                  }
+                                `}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
+                                <span>{subItem.label}</span>
+                              </NavLink>
+                            );
+                          })}
                         </div>
                       </motion.div>
                     )}

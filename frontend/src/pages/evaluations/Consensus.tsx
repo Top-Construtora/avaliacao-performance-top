@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import Button from '../../components/Button';
+import { useEvaluation } from '../../hooks/useEvaluation'; // Import useEvaluation hook
+import PotentialAndPDI from '../../components/PotentialAndPDI'; // Import PotentialAndPDI component
+import { UserWithDetails } from '../../types/supabase'; // Import UserWithDetails
 import { 
   ArrowLeft,
   Save,
+  BookOpen,
   Users,
   Award,
   CheckCircle,
@@ -33,36 +37,40 @@ interface Criterion {
   icon: React.ElementType;
 }
 
-interface User {
+// Define ActionItem and PdiData interfaces here to ensure consistency
+interface ActionItem {
   id: string;
-  name: string;
-  email: string;
-  position: string;
-  is_leader: boolean;
-  is_director: boolean;
-  reports_to: string | null;
-  active: boolean;
+  competencia: string;
+  calendarizacao: string;
+  comoDesenvolver: string;
+  resultadosEsperados: string;
+  status: '1' | '2' | '3' | '4' | '5';
+  observacao: string;
 }
 
-interface ConsensusEvaluation {
-  id: string;
-  employee_id: string;
-  self_evaluation_id?: string;
-  leader_evaluation_id?: string;
-  consensus_score?: number;
-  potential_score?: number;
-  nine_box_position?: string;
-  notes?: string;
-  evaluation_date?: string;
-  created_at: string;
-  updated_at: string;
+interface PdiData {
+  id?: string;
+  colaboradorId: string;
+  colaborador: string;
+  cargo: string;
+  departamento: string;
+  periodo: string;
+  nineBoxQuadrante?: string;
+  nineBoxDescricao?: string;
+  curtosPrazos: ActionItem[];
+  mediosPrazos: ActionItem[];
+  longosPrazos: ActionItem[];
+  dataCriacao?: string;
+  dataAtualizacao?: string;
 }
+
 
 const Consensus = () => {
   const navigate = useNavigate();
+  const { loadPDI, savePDI } = useEvaluation(); // Use loadPDI and savePDI from hook
   
-  const [leaders, setLeaders] = useState<User[]>([]);
-  const [employees, setEmployees] = useState<User[]>([]);
+  const [leaders, setLeaders] = useState<UserWithDetails[]>([]); // Usando UserWithDetails
+  const [employees, setEmployees] = useState<UserWithDetails[]>([]); // Usando UserWithDetails
   const [selectedLeaderId, setSelectedLeaderId] = useState<string>('');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [consensusScores, setConsensusScores] = useState<ScoreMap>({});
@@ -71,6 +79,17 @@ const Consensus = () => {
   const [leaderScores, setLeaderScores] = useState<ScoreMap>({});
   const [showMatrix, setShowMatrix] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [pdiData, setPdiData] = useState<PdiData>({ // Add pdiData state
+    colaboradorId: '',
+    colaborador: '',
+    cargo: '',
+    departamento: '',
+    periodo: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
+    curtosPrazos: [],
+    mediosPrazos: [],
+    longosPrazos: []
+  });
+
 
   const criteria: Criterion[] = [
     { 
@@ -180,6 +199,44 @@ const Consensus = () => {
     }
   };
 
+  // Move loadPdiForEmployee declaration before useEffect
+  const loadPdiForEmployee = useCallback(async (employeeId: string) => {
+    setLoading(true);
+    try {
+      const pdi = await loadPDI(employeeId); // Call loadPDI from useEvaluation hook
+      const employeeProfile = employees.find(emp => emp.id === employeeId); // Encontrar o perfil do funcionário
+      
+      if (pdi) {
+        setPdiData({
+          ...pdi,
+          colaborador: employeeProfile?.name || pdi.colaborador, // Atualiza o nome do colaborador
+          cargo: employeeProfile?.position || pdi.cargo, // Atualiza o cargo
+          departamento: employeeProfile?.departments?.map(dep => dep.name).join(', ') || pdi.departamento || 'Não definido',
+        });
+      } else {
+        // Reset PDI data if no PDI is found
+        setPdiData({
+          colaboradorId: employeeId,
+          colaborador: employeeProfile?.name || '',
+          cargo: employeeProfile?.position || '',
+          departamento: employeeProfile?.departments?.map(dep => dep.name).join(', ') || 'Não definido',
+          periodo: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
+          curtosPrazos: [],
+          mediosPrazos: [],
+          longosPrazos: [],
+          dataCriacao: new Date().toISOString(),
+          dataAtualizacao: new Date().toISOString(),
+        });
+      }
+    } catch (error) {
+      console.error('Error loading PDI:', error);
+      toast.error('Erro ao carregar PDI');
+    } finally {
+      setLoading(false);
+    }
+  }, [loadPDI, employees]); // Adicionado employees à lista de dependências
+
+
   // Fetch leaders on component mount
   useEffect(() => {
     fetchLeaders();
@@ -193,12 +250,13 @@ const Consensus = () => {
     }
   }, [selectedLeaderId]);
 
-  // Load evaluations when employee is selected
+  // Load evaluations and PDI when employee is selected
   useEffect(() => {
     if (selectedEmployeeId) {
       loadEmployeeEvaluations();
+      loadPdiForEmployee(selectedEmployeeId); // Load PDI
     }
-  }, [selectedEmployeeId]);
+  }, [selectedEmployeeId, loadPdiForEmployee]); // Adicionado loadPdiForEmployee como dependência
 
   const fetchLeaders = async () => {
     try {
@@ -244,13 +302,12 @@ const Consensus = () => {
     try {
       // Buscar a autoavaliação mais recente
       const { data: selfEval, error: selfError } = await supabase
-        .from('evaluations')
+        .from('self_evaluations') // Changed from 'evaluations'
         .select(`
           *,
           evaluation_competencies (*)
         `)
         .eq('employee_id', selectedEmployeeId)
-        .eq('evaluation_type', 'self')
         .eq('status', 'completed')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -258,13 +315,12 @@ const Consensus = () => {
 
       // Buscar a avaliação do líder mais recente
       const { data: leaderEval, error: leaderError } = await supabase
-        .from('evaluations')
+        .from('leader_evaluations') // Changed from 'evaluations'
         .select(`
           *,
           evaluation_competencies (*)
         `)
         .eq('employee_id', selectedEmployeeId)
-        .eq('evaluation_type', 'leader')
         .eq('status', 'completed')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -445,6 +501,50 @@ const Consensus = () => {
       setLoading(false);
     }
   };
+
+  // Handle PDI save from Consensus page (reusing savePDI from useEvaluation hook)
+  const handleSavePDI = async () => {
+    if (!pdiData.colaboradorId) {
+      toast.error('Selecione um colaborador para salvar o PDI.');
+      return;
+    }
+
+    const allPdiActionItems = [
+      ...pdiData.curtosPrazos,
+      ...pdiData.mediosPrazos,
+      ...pdiData.longosPrazos
+    ];
+
+    if (allPdiActionItems.length === 0) {
+      toast.error('Adicione pelo menos um item ao Plano de Desenvolvimento Individual (PDI) antes de salvar.');
+      return;
+    }
+
+    const pdiGoals = allPdiActionItems.map(item => 
+      `Competência: ${item.competencia || 'N/A'}. Resultados Esperados: ${item.resultadosEsperados || 'N/A'}.`
+    );
+
+    const pdiActions = allPdiActionItems.map(item => 
+      `Como desenvolver: ${item.comoDesenvolver || 'N/A'} (Prazo: ${item.calendarizacao || 'N/A'}, Status: ${item.status || 'N/A'}, Observação: ${item.observacao || 'N/A'}).`
+    );
+
+    const pdiToSave = {
+      employeeId: pdiData.colaboradorId,
+      goals: pdiGoals,
+      actions: pdiActions,
+      resources: [],
+      timeline: pdiData.periodo,
+    };
+
+    try {
+      await savePDI(pdiToSave); // Call savePDI from useEvaluation hook
+      toast.success('PDI atualizado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao salvar PDI na reunião de consenso:', error);
+      toast.error('Erro ao salvar PDI');
+    }
+  };
+
 
   const generateMatrix = (): void => {
     setShowMatrix(true);
@@ -797,6 +897,36 @@ const Consensus = () => {
               );
             })}
 
+            {/* PDI Section */}
+            {selectedEmployeeId && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden p-4 sm:p-6 lg:p-8"
+              >
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
+                  <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-secondary-500 dark:text-secondary-400" />
+                  Plano de Desenvolvimento Individual (PDI)
+                </h3>
+                <PotentialAndPDI
+                  currentStep={3} // Force step 3 to show PDI section
+                  potentialItems={[]} // Not used in this context, but required by prop
+                  setPotentialItems={() => {}} // Not used in this context
+                  pdiData={pdiData}
+                  setPdiData={setPdiData}
+                  handlePreviousStep={() => {}} // Not used in this context
+                  handleNextStep={() => {}} // Not used in this context
+                  handleSave={handleSavePDI} // Use the new PDI save handler
+                  handleSubmit={async () => { /* No-op or specific submit for PDI in consensus */ }} // Marked as async
+                  isSaving={loading} // Use loading state from Consensus
+                  loading={loading}
+                  canProceedToStep3={() => true} // Always true as it's the PDI section
+                  selectedEmployee={selectedEmployee}
+                />
+              </motion.div>
+            )}
+
             {/* Score Summary */}
             {Object.keys(consensusScores).length > 0 && (
               <motion.div
@@ -828,7 +958,7 @@ const Consensus = () => {
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 30%</p>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700 p-4 sm:p-6 rounded-xl text-white">
+                  <div className="bg-gradient-to-br from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-primary-700 p-4 sm:p-6 rounded-xl text-white">
                     <h4 className="text-xs sm:text-sm font-medium text-primary-100 dark:text-primary-200 mb-1">Nota Final</h4>
                     <p className="text-2xl sm:text-3xl font-bold">{calculateOverallAverage().toFixed(1)}</p>
                     <p className="text-xs text-primary-100 dark:text-primary-200 mt-1">Média Ponderada</p>

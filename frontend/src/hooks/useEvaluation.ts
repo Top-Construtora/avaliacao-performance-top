@@ -16,6 +16,34 @@ import type { UserWithDetails } from '../types/supabase';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
+// Define ActionItem and PdiData interfaces here or import them
+interface ActionItem {
+  id: string;
+  competencia: string;
+  calendarizacao: string;
+  comoDesenvolver: string;
+  resultadosEsperados: string;
+  status: '1' | '2' | '3' | '4' | '5';
+  observacao: string;
+}
+
+interface PdiData {
+  id?: string;
+  colaboradorId: string;
+  colaborador: string;
+  cargo: string;
+  departamento: string;
+  periodo: string;
+  nineBoxQuadrante?: string;
+  nineBoxDescricao?: string;
+  curtosPrazos: ActionItem[];
+  mediosPrazos: ActionItem[];
+  longosPrazos: ActionItem[];
+  dataCriacao?: string;
+  dataAtualizacao?: string;
+}
+
+
 interface UseEvaluationReturn {
   // States
   loading: boolean;
@@ -67,9 +95,9 @@ interface UseEvaluationReturn {
   getSelfEvaluations: (employeeId: string, cycleId?: string) => Promise<SelfEvaluation[]>;
   getLeaderEvaluations: (employeeId: string, cycleId?: string) => Promise<LeaderEvaluation[]>;
   checkExistingEvaluation: (cycleId: string, employeeId: string, type: 'self' | 'leader') => Promise<boolean>;
-  // Additions:
   getNineBoxByEmployeeId: (employeeId: string) => NineBoxData | undefined;
   savePDI: (pdiData: any) => Promise<any>;
+  loadPDI: (employeeId: string) => Promise<PdiData | null>; // Added loadPDI
 }
 
 export const useEvaluation = (): UseEvaluationReturn => {
@@ -359,8 +387,117 @@ export const useEvaluation = (): UseEvaluationReturn => {
 
   // Add savePDI
   const savePDI = async (pdiData: any) => {
-    return evaluationService.savePDI(pdiData);
+    try {
+      setLoading(true);
+      const result = await evaluationService.savePDI(pdiData);
+      toast.success('PDI salvo com sucesso!');
+      return result;
+    } catch (error: any) {
+      console.error('Erro ao salvar PDI:', error);
+      toast.error(error.message || 'Erro ao salvar PDI');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Add loadPDI
+  const loadPDI = useCallback(async (employeeId: string): Promise<PdiData | null> => {
+    try {
+      setLoading(true);
+      const pdi = await evaluationService.getPDI(employeeId);
+      if (pdi) {
+        // Transform the fetched PDI data (goals, actions are string arrays)
+        // back into the frontend's PdiData structure
+        const transformActionItems = (items: string[]): ActionItem[] => {
+          return items.map((item, index) => {
+            // This is a simplified parsing. A more robust solution would involve
+            // a structured format for saving/loading PDI items.
+            // For now, we'll try to extract parts based on the saving format.
+            const competenceMatch = item.match(/Competência: (.*?)\./);
+            const resultsMatch = item.match(/Resultados Esperados: (.*?)\./);
+            const howToDevelopMatch = item.match(/Como desenvolver: (.*?) \(Prazo: (.*?), Status: (.*?), Observação: (.*?)\)\./);
+
+            let competencia = competenceMatch ? competenceMatch[1] : `Item ${index + 1}`;
+            let resultadosEsperados = resultsMatch ? resultsMatch[1] : '';
+            let comoDesenvolver = howToDevelopMatch ? howToDevelopMatch[1] : '';
+            let calendarizacao = howToDevelopMatch ? howToDevelopMatch[2] : '';
+            let status = (howToDevelopMatch ? howToDevelopMatch[3] : '1') as '1' | '2' | '3' | '4' | '5';
+            let observacao = howToDevelopMatch ? howToDevelopMatch[4] : '';
+
+            return {
+              id: `pdi-${index}-${Date.now()}`, // Generate a unique ID
+              competencia,
+              calendarizacao,
+              comoDesenvolver,
+              resultadosEsperados,
+              status,
+              observacao,
+            };
+          });
+        };
+
+        const curtosPrazos: ActionItem[] = []; // Assuming no direct mapping for short/medium/long term from backend
+        const mediosPrazos: ActionItem[] = [];
+        const longosPrazos: ActionItem[] = [];
+
+        // For simplicity, let's put all loaded items into 'curtosPrazos' for now.
+        // A more complex parsing based on 'timeline' or other criteria would be needed
+        // if the backend stores distinct short/medium/long term PDIs.
+        // Given the current backend structure (single goals/actions arrays),
+        // we'll just put them all into 'curtosPrazos' for display.
+        if (pdi.goals && pdi.actions) {
+            for (let i = 0; i < pdi.goals.length; i++) {
+                const goal = pdi.goals[i];
+                const action = pdi.actions[i];
+
+                const competenceMatch = goal.match(/Competência: (.*?)\./);
+                const resultsMatch = goal.match(/Resultados Esperados: (.*?)\./);
+                const howToDevelopMatch = action.match(/Como desenvolver: (.*?) \(Prazo: (.*?), Status: (.*?), Observação: (.*?)\)\./);
+
+                let competencia = competenceMatch ? competenceMatch[1] : `Item ${i + 1}`;
+                let resultadosEsperados = resultsMatch ? resultsMatch[1] : '';
+                let comoDesenvolver = howToDevelopMatch ? howToDevelopMatch[1] : '';
+                let calendarizacao = howToDevelopMatch ? howToDevelopMatch[2] : '';
+                let status = (howToDevelopMatch ? howToDevelopMatch[3] : '1') as '1' | '2' | '3' | '4' | '5';
+                let observacao = howToDevelopMatch ? howToDevelopMatch[4] : '';
+
+                curtosPrazos.push({
+                    id: `pdi-${i}-${Date.now()}`,
+                    competencia,
+                    calendarizacao,
+                    comoDesenvolver,
+                    resultadosEsperados,
+                    status,
+                    observacao,
+                });
+            }
+        }
+
+
+        return {
+          id: pdi.id,
+          colaboradorId: pdi.employee_id,
+          colaborador: '', // Will be populated from selectedEmployee in Consensus.tsx
+          cargo: '', // Will be populated from selectedEmployee in Consensus.tsx
+          departamento: '', // Will be populated from selectedEmployee in Consensus.tsx
+          periodo: pdi.timeline || '',
+          curtosPrazos,
+          mediosPrazos,
+          longosPrazos,
+          dataCriacao: pdi.created_at,
+          dataAtualizacao: pdi.updated_at,
+        };
+      }
+      return null;
+    } catch (error: any) {
+      console.error('Erro ao carregar PDI:', error);
+      toast.error(error.message || 'Erro ao carregar PDI');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Load initial data
   useEffect(() => {
@@ -403,7 +540,8 @@ export const useEvaluation = (): UseEvaluationReturn => {
     getSelfEvaluations,
     getLeaderEvaluations,
     checkExistingEvaluation,
-    getNineBoxByEmployeeId, // Added
-    savePDI // Added
+    getNineBoxByEmployeeId,
+    savePDI,
+    loadPDI, // Added
   };
 };

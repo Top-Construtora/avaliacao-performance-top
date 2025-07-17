@@ -8,6 +8,7 @@ import Button from './Button';
 import { useEvaluation } from '../hooks/useEvaluation';
 import type { NineBoxData } from '../types/evaluation.types';
 import type { UserWithDetails } from '../types/supabase';
+import { toast } from 'react-hot-toast'; // Import toast
 
 interface PotentialItem {
   id: string;
@@ -129,7 +130,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
   const addPdiItem = () => {
     if (!newPdiItem.competencia.trim() || !newPdiItem.comoDesenvolver.trim() || !newPdiItem.resultadosEsperados.trim() || !newPdiItem.prazo) {
-      alert('Preencha todos os campos obrigatórios e selecione o prazo para o item de desenvolvimento.');
+      toast.error('Preencha todos os campos obrigatórios e selecione o prazo para o item de desenvolvimento.');
       return;
     }
 
@@ -146,6 +147,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       return prev;
     });
 
+    // Clear the form fields but keep it open
     setNewPdiItem({
       competencia: '',
       calendarizacao: '',
@@ -153,9 +155,9 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       resultadosEsperados: '',
       status: '1',
       observacao: '',
-      prazo: ''
+      prazo: newPdiItem.prazo // Keep the selected prazo
     });
-    setEditingPdiItemPrazo(null);
+    toast.success('Item de PDI adicionado com sucesso!');
   };
 
   const removePdiItem = (idToRemove: string, prazo: 'curto' | 'medio' | 'longo') => {
@@ -169,6 +171,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       }
       return prev;
     });
+    toast.success('Item de PDI removido.');
   };
 
   const updateActionItem = (
@@ -189,7 +192,6 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     setNewPdiItem(prev => ({ ...prev, prazo }));
     setEditingPdiItemPrazo(prazo);
     setExpandedPdiSections(prev => ({ ...prev, [prazo]: true }));
-    // No need to scroll to a global form, as it will be inline
   };
 
   const closeAddPdiItemForm = () => {
@@ -226,7 +228,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       title: 'Curto Prazo',
       subtitle: '0-6 meses',
       icon: BookOpen,
-      gradient: 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
+      gradient: 'from-primary-500 to-primary-600',
+      darkGradient: 'dark:from-primary-600 dark:to-primary-700',
       bgColor: 'bg-primary-50',
       darkBgColor: 'dark:bg-primary-800',
       borderColor: 'border-primary-200',
@@ -776,7 +779,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                 </p>
               </div>
 
-              <div className="bg-gradient-to-br from-accent-500 to-primary-600 dark:from-accent-600 dark:to-primary-700 p-4 sm:p-6 rounded-lg sm:rounded-xl text-white sm:col-span-2 lg:col-span-1">
+              <div className="bg-gradient-to-br from-accent-500 to-primary-600 dark:from-accent-600 dark:to-accent-700 p-4 sm:p-6 rounded-lg sm:rounded-xl text-white sm:col-span-2 lg:col-span-1">
                 <h4 className="text-sm font-medium text-accent-100 dark:text-accent-200 mb-2">Classificação</h4>
                 <p className="text-xl sm:text-2xl font-bold break-words">
                   {calculatePotentialScores().final >= 3.5 ? 'Alto Potencial' :
