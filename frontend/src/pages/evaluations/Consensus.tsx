@@ -4,9 +4,12 @@ import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import Button from '../../components/Button';
-import { useEvaluation } from '../../hooks/useEvaluation'; // Import useEvaluation hook
-import PotentialAndPDI from '../../components/PotentialAndPDI'; // Import PotentialAndPDI component
-import { UserWithDetails } from '../../types/supabase'; // Import UserWithDetails
+import { useEvaluation } from '../../hooks/useEvaluation';
+import { pdiService } from '../../services/pdiService';
+import { evaluationService } from '../../services/evaluation.service';
+import PotentialAndPDI from '../../components/PotentialAndPDI';
+import PDIViewer from '../../components/PDIViewer';
+import { UserWithDetails } from '../../types/supabase';
 import { 
   ArrowLeft,
   Save,
@@ -23,6 +26,9 @@ import {
   Handshake,
   MessageSquare,
   Sparkles,
+  ChevronDown,
+  ChevronUp,
+  FileText,
 } from 'lucide-react';
 
 interface ScoreMap {
@@ -67,10 +73,9 @@ interface PdiData {
 
 const Consensus = () => {
   const navigate = useNavigate();
-  const { loadPDI, savePDI } = useEvaluation(); // Use loadPDI and savePDI from hook
   
-  const [leaders, setLeaders] = useState<UserWithDetails[]>([]); // Usando UserWithDetails
-  const [employees, setEmployees] = useState<UserWithDetails[]>([]); // Usando UserWithDetails
+  const [leaders, setLeaders] = useState<UserWithDetails[]>([]);
+  const [employees, setEmployees] = useState<UserWithDetails[]>([]);
   const [selectedLeaderId, setSelectedLeaderId] = useState<string>('');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [consensusScores, setConsensusScores] = useState<ScoreMap>({});
@@ -79,7 +84,13 @@ const Consensus = () => {
   const [leaderScores, setLeaderScores] = useState<ScoreMap>({});
   const [showMatrix, setShowMatrix] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [pdiData, setPdiData] = useState<PdiData>({ // Add pdiData state
+  const [loadingPDI, setLoadingPDI] = useState(false);
+  
+  // Novos estados para controle do PDI
+  const [showPDI, setShowPDI] = useState(false);
+  const [pdiViewMode, setPdiViewMode] = useState<'view' | 'edit'>('view');
+  
+  const [pdiData, setPdiData] = useState<PdiData>({
     colaboradorId: '',
     colaborador: '',
     cargo: '',
@@ -199,27 +210,55 @@ const Consensus = () => {
     }
   };
 
-  // Move loadPdiForEmployee declaration before useEffect
   const loadPdiForEmployee = useCallback(async (employeeId: string) => {
-    setLoading(true);
     try {
-      const pdi = await loadPDI(employeeId); // Call loadPDI from useEvaluation hook
-      const employeeProfile = employees.find(emp => emp.id === employeeId); // Encontrar o perfil do funcionário
+      const employeeProfile = employees.find(emp => emp.id === employeeId);
       
-      if (pdi) {
-        setPdiData({
-          ...pdi,
-          colaborador: employeeProfile?.name || pdi.colaborador, // Atualiza o nome do colaborador
-          cargo: employeeProfile?.position || pdi.cargo, // Atualiza o cargo
-          departamento: employeeProfile?.departments?.map(dep => dep.name).join(', ') || pdi.departamento || 'Não definido',
-        });
-      } else {
-        // Reset PDI data if no PDI is found
+      // Tentar carregar o PDI, mas sem mostrar erro se não existir
+      try {
+        const pdi = await pdiService.getPDI(employeeId);
+        
+        if (pdi) {
+          const transformedPDI = pdiService.transformPDIDataFromAPI(pdi);
+          setPdiData({
+            ...transformedPDI,
+            colaborador: employeeProfile?.name || transformedPDI.colaborador,
+            cargo: employeeProfile?.position || transformedPDI.cargo,
+            departamento: Array.isArray(employeeProfile?.departments)
+              ? employeeProfile.departments.map(dep => dep.name).join(', ')
+              : employeeProfile?.departments || transformedPDI.departamento || 'Não definido',
+          });
+          setShowPDI(false); // Não mostrar automaticamente
+          setPdiViewMode('view');
+        } else {
+          // Reset PDI data if no PDI is found
+          setPdiData({
+            colaboradorId: employeeId,
+            colaborador: employeeProfile?.name || '',
+            cargo: employeeProfile?.position || '',
+            departamento: Array.isArray(employeeProfile?.departments)
+              ? employeeProfile.departments.map(dep => dep.name).join(', ')
+              : employeeProfile?.departments || 'Não definido',
+            periodo: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
+            curtosPrazos: [],
+            mediosPrazos: [],
+            longosPrazos: [],
+            dataCriacao: new Date().toISOString(),
+            dataAtualizacao: new Date().toISOString(),
+          });
+          setShowPDI(false);
+          setPdiViewMode('edit'); // Modo criação se não existir PDI
+        }
+      } catch (pdiError: any) {
+        // Se o erro for 404 ou similar, apenas configurar um PDI vazio
+        console.log('PDI não encontrado para o colaborador, configurando novo PDI');
         setPdiData({
           colaboradorId: employeeId,
           colaborador: employeeProfile?.name || '',
           cargo: employeeProfile?.position || '',
-          departamento: employeeProfile?.departments?.map(dep => dep.name).join(', ') || 'Não definido',
+          departamento: Array.isArray(employeeProfile?.departments)
+            ? employeeProfile.departments.map(dep => dep.name).join(', ')
+            : employeeProfile?.departments || 'Não definido',
           periodo: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
           curtosPrazos: [],
           mediosPrazos: [],
@@ -227,15 +266,81 @@ const Consensus = () => {
           dataCriacao: new Date().toISOString(),
           dataAtualizacao: new Date().toISOString(),
         });
+        setShowPDI(false);
+        setPdiViewMode('edit');
       }
     } catch (error) {
-      console.error('Error loading PDI:', error);
-      toast.error('Erro ao carregar PDI');
+      console.error('Erro ao configurar PDI:', error);
+      // Não mostrar toast de erro, apenas configurar silenciosamente
+      setShowPDI(false);
+    }
+  }, [employees]);
+  // Atualizar handleSavePDI para usar o novo serviço
+  const handleSavePDI = async () => {
+    if (!pdiData.colaboradorId) {
+      toast.error('Selecione um colaborador para salvar o PDI.');
+      return;
+    }
+
+    const allPdiActionItems = [
+      ...pdiData.curtosPrazos,
+      ...pdiData.mediosPrazos,
+      ...pdiData.longosPrazos
+    ];
+
+    if (allPdiActionItems.length === 0) {
+      toast.error('Adicione pelo menos um item ao Plano de Desenvolvimento Individual (PDI) antes de salvar.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const currentCycle = await evaluationService.getCurrentCycle();
+      const pdiParams = pdiService.transformPDIDataForAPI(
+        pdiData,
+        currentCycle?.id,
+        undefined // Não temos o ID da avaliação do líder no contexto de consenso
+      );
+
+      await pdiService.savePDI(pdiParams);
+      toast.success('PDI atualizado com sucesso!');
+      
+      // Recarregar o PDI para mostrar a versão atualizada
+      await loadPdiForEmployee(pdiData.colaboradorId);
+      setPdiViewMode('view');
+    } catch (error) {
+      console.error('Erro ao salvar PDI na reunião de consenso:', error);
+      toast.error('Erro ao salvar PDI');
     } finally {
       setLoading(false);
     }
-  }, [loadPDI, employees]); // Adicionado employees à lista de dependências
+  };
 
+  // Adicionar funções para controlar a visualização/edição do PDI
+  const handleEditPDI = () => {
+    setPdiViewMode('edit');
+  };
+
+  const handleCancelEditPDI = () => {
+    setPdiViewMode('view');
+    // Recarregar o PDI original
+    if (selectedEmployeeId) {
+      loadPdiForEmployee(selectedEmployeeId);
+    }
+  };
+
+  // Adicionar função para controlar visualização do PDI
+  const togglePDIView = async () => {
+    if (!showPDI && selectedEmployeeId) {
+      setLoadingPDI(true);
+      try {
+        await loadPdiForEmployee(selectedEmployeeId);
+      } finally {
+        setLoadingPDI(false);
+      }
+    }
+    setShowPDI(!showPDI);
+  };
 
   // Fetch leaders on component mount
   useEffect(() => {
@@ -254,13 +359,11 @@ const Consensus = () => {
   useEffect(() => {
     if (selectedEmployeeId) {
       loadEmployeeEvaluations();
-      loadPdiForEmployee(selectedEmployeeId); // Load PDI
     }
-  }, [selectedEmployeeId, loadPdiForEmployee]); // Adicionado loadPdiForEmployee como dependência
+  }, [selectedEmployeeId]);
 
   const fetchLeaders = async () => {
     try {
-      // Busca todos os usuários que são líderes ou diretores
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -302,7 +405,7 @@ const Consensus = () => {
     try {
       // Buscar a autoavaliação mais recente
       const { data: selfEval, error: selfError } = await supabase
-        .from('self_evaluations') // Changed from 'evaluations'
+        .from('self_evaluations')
         .select(`
           *,
           evaluation_competencies (*)
@@ -315,7 +418,7 @@ const Consensus = () => {
 
       // Buscar a avaliação do líder mais recente
       const { data: leaderEval, error: leaderError } = await supabase
-        .from('leader_evaluations') // Changed from 'evaluations'
+        .from('leader_evaluations')
         .select(`
           *,
           evaluation_competencies (*)
@@ -501,50 +604,6 @@ const Consensus = () => {
       setLoading(false);
     }
   };
-
-  // Handle PDI save from Consensus page (reusing savePDI from useEvaluation hook)
-  const handleSavePDI = async () => {
-    if (!pdiData.colaboradorId) {
-      toast.error('Selecione um colaborador para salvar o PDI.');
-      return;
-    }
-
-    const allPdiActionItems = [
-      ...pdiData.curtosPrazos,
-      ...pdiData.mediosPrazos,
-      ...pdiData.longosPrazos
-    ];
-
-    if (allPdiActionItems.length === 0) {
-      toast.error('Adicione pelo menos um item ao Plano de Desenvolvimento Individual (PDI) antes de salvar.');
-      return;
-    }
-
-    const pdiGoals = allPdiActionItems.map(item => 
-      `Competência: ${item.competencia || 'N/A'}. Resultados Esperados: ${item.resultadosEsperados || 'N/A'}.`
-    );
-
-    const pdiActions = allPdiActionItems.map(item => 
-      `Como desenvolver: ${item.comoDesenvolver || 'N/A'} (Prazo: ${item.calendarizacao || 'N/A'}, Status: ${item.status || 'N/A'}, Observação: ${item.observacao || 'N/A'}).`
-    );
-
-    const pdiToSave = {
-      employeeId: pdiData.colaboradorId,
-      goals: pdiGoals,
-      actions: pdiActions,
-      resources: [],
-      timeline: pdiData.periodo,
-    };
-
-    try {
-      await savePDI(pdiToSave); // Call savePDI from useEvaluation hook
-      toast.success('PDI atualizado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao salvar PDI na reunião de consenso:', error);
-      toast.error('Erro ao salvar PDI');
-    }
-  };
-
 
   const generateMatrix = (): void => {
     setShowMatrix(true);
@@ -897,37 +956,99 @@ const Consensus = () => {
               );
             })}
 
-            {/* PDI Section */}
+            {/* PDI Section - Atualizado */}
             {selectedEmployeeId && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden p-4 sm:p-6 lg:p-8"
-              >
-                <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
-                  <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-secondary-500 dark:text-secondary-400" />
-                  Plano de Desenvolvimento Individual (PDI)
-                </h3>
-                <PotentialAndPDI
-                  currentStep={3} // Force step 3 to show PDI section
-                  potentialItems={[]} // Not used in this context, but required by prop
-                  setPotentialItems={() => {}} // Not used in this context
-                  pdiData={pdiData}
-                  setPdiData={setPdiData}
-                  handlePreviousStep={() => {}} // Not used in this context
-                  handleNextStep={() => {}} // Not used in this context
-                  handleSave={handleSavePDI} // Use the new PDI save handler
-                  handleSubmit={async () => { /* No-op or specific submit for PDI in consensus */ }} // Marked as async
-                  isSaving={loading} // Use loading state from Consensus
-                  loading={loading}
-                  canProceedToStep3={() => true} // Always true as it's the PDI section
-                  selectedEmployee={selectedEmployee}
-                />
-              </motion.div>
+              <>
+                {/* Botão para mostrar/ocultar PDI */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="h-6 w-6 text-accent-600 dark:text-accent-400" />
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">
+                          Plano de Desenvolvimento Individual (PDI)
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {showPDI ? 'Visualize ou edite o PDI do colaborador' : 'Clique para visualizar o PDI'}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={togglePDIView}
+                      icon={showPDI ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      size="sm"
+                    >
+                      {showPDI ? 'Ocultar PDI' : 'Visualizar PDI'}
+                    </Button>
+                  </div>
+                </motion.div>
+
+                {/* PDI Viewer/Editor */}
+                <AnimatePresence>
+                  {showPDI && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {pdiViewMode === 'view' && pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length > 0 ? (
+                        <PDIViewer
+                          pdiData={pdiData}
+                          onEdit={handleEditPDI}
+                          readOnly={false}
+                        />
+                      ) : (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-8"
+                        >
+                          <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+                              <FileText className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-accent-600 dark:text-accent-400" />
+                              {pdiViewMode === 'edit' ? 'Editar PDI' : 'Criar PDI'}
+                            </h3>
+                            {pdiViewMode === 'edit' && (
+                              <Button
+                                variant="outline"
+                                onClick={handleCancelEditPDI}
+                                size="sm"
+                              >
+                                Cancelar Edição
+                              </Button>
+                            )}
+                          </div>
+                          
+                          <PotentialAndPDI
+                            currentStep={3} // Force step 3 to show PDI section
+                            potentialItems={[]} // Not used in this context
+                            setPotentialItems={() => {}} // Not used in this context
+                            pdiData={pdiData}
+                            setPdiData={setPdiData}
+                            handlePreviousStep={() => {}} // Not used in this context
+                            handleNextStep={() => {}} // Not used in this context
+                            handleSave={handleSavePDI}
+                            handleSubmit={handleSavePDI} // Use save as submit in this context
+                            isSaving={loading}
+                            loading={loading}
+                            canProceedToStep3={() => true} // Always true as it's the PDI section
+                            selectedEmployee={employees.find(emp => emp.id === selectedEmployeeId)}
+                          />
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
             )}
 
-            {/* Score Summary */}
+            {/* Score Summary - Atualizado com indicador de PDI */}
             {Object.keys(consensusScores).length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -939,7 +1060,7 @@ const Consensus = () => {
                   <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary-600 dark:text-primary-400" />
                   Resumo do Consenso
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-primary-200 dark:border-primary-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Técnicas</h4>
                     <p className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">{calculateCategoryAverage('Técnica').toFixed(1)}</p>
@@ -962,6 +1083,27 @@ const Consensus = () => {
                     <h4 className="text-xs sm:text-sm font-medium text-primary-100 dark:text-primary-200 mb-1">Nota Final</h4>
                     <p className="text-2xl sm:text-3xl font-bold">{calculateOverallAverage().toFixed(1)}</p>
                     <p className="text-xs text-primary-100 dark:text-primary-200 mt-1">Média Ponderada</p>
+                  </div>
+
+                  {/* Adicionar indicador do PDI */}
+                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-accent-200 dark:border-accent-700">
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Status PDI</h4>
+                    <div className="flex items-center space-x-2">
+                      {pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length > 0 ? (
+                        <>
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <p className="text-sm font-semibold text-green-600 dark:text-green-400">Definido</p>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="h-5 w-5 text-amber-500" />
+                          <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">Pendente</p>
+                        </>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length} itens
+                    </p>
                   </div>
                 </div>
               </motion.div>

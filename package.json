@@ -31,6 +31,7 @@
   "homepage": "https://github.com/Top-Construtora/avaliacao-desempenho#readme",
   "description": "",
   "dependencies": {
+    "date-fns": "^4.1.0",
     "jsonwebtoken": "^9.0.2"
   }
 }

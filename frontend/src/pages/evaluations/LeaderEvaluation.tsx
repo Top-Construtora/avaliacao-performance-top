@@ -5,6 +5,7 @@ import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 import { EVALUATION_COMPETENCIES } from '../../types/evaluation.types';
 import type { EvaluationCompetency, WrittenFeedback, EvaluationCycle } from '../../types/evaluation.types';
+import { pdiService } from '../../services/pdiService';
 import LeaderEvaluationHeader from '../../components/LeaderEvaluationHeader';
 import EvaluationSection from '../../components/EvaluationSection';
 import PotentialAndPDI from '../../components/PotentialAndPDI';
@@ -79,13 +80,14 @@ interface PdiData {
 
 const LeaderEvaluation = () => {
   const navigate = useNavigate();
-  const { currentCycle, saveLeaderEvaluation, checkExistingEvaluation, loadSubordinates, subordinates, savePDI } = useEvaluation();
+  const { currentCycle, saveLeaderEvaluation, checkExistingEvaluation, loadSubordinates, subordinates } = useEvaluation();
   const { user, profile } = useAuth();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [currentStep, setCurrentStep] = useState(1); // 1: Competências, 2: Potencial, 3: PDI
   const [loading, setLoading] = useState(true);
   const [hasExistingEvaluation, setHasExistingEvaluation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [leaderEvaluationId, setLeaderEvaluationId] = useState<string | null>(null);
 
   const [sections, setSections] = useState<SectionProps[]>([ // Explicitly type sections state
     {
@@ -195,6 +197,28 @@ const LeaderEvaluation = () => {
     loadData();
   }, [loadSubordinates]);
 
+  // Load existing PDI when employee is selected
+  const loadExistingPDI = async (employeeId: string) => {
+    try {
+      const existingPDI = await pdiService.getPDI(employeeId);
+      
+      if (existingPDI) {
+        const transformedPDI = pdiService.transformPDIDataFromAPI(existingPDI);
+        setPdiData(prev => ({
+          ...transformedPDI,
+          colaboradorId: employeeId,
+          colaborador: prev.colaborador || transformedPDI.colaborador,
+          cargo: prev.cargo || transformedPDI.cargo,
+          departamento: prev.departamento || transformedPDI.departamento,
+        }));
+        toast('PDI existente carregado para edição');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar PDI:', error);
+      // Não mostrar erro se não houver PDI, é esperado
+    }
+  };
+
   // Check for existing evaluation and populate PDI data when employee is selected
   useEffect(() => {
     const checkAndPopulate = async () => {
@@ -204,7 +228,11 @@ const LeaderEvaluation = () => {
         if (exists) {
           toast.error('Já existe uma avaliação para este colaborador neste ciclo');
           setSelectedEmployeeId('');
+          return;
         }
+
+        // Load existing PDI
+        await loadExistingPDI(selectedEmployeeId);
       }
 
       if (selectedEmployeeId) {
@@ -354,6 +382,8 @@ const LeaderEvaluation = () => {
 
     setIsSaving(true);
     try {
+      // 1. Criar a avaliação do líder
+      // Primeiro salvamos sem o ID do leader evaluation
       await saveLeaderEvaluation({
         cycleId: currentCycle.id,
         employeeId: selectedEmployeeId,
@@ -367,34 +397,17 @@ const LeaderEvaluation = () => {
         }
       });
 
-      // --- START PDI Data Transformation for savePDI ---
-      const allPdiActionItems = [
-        ...pdiData.curtosPrazos,
-        ...pdiData.mediosPrazos,
-        ...pdiData.longosPrazos
-      ];
-
-      const pdiGoals = allPdiActionItems.map(item => 
-        `Competência: ${item.competencia || 'N/A'}. Resultados Esperados: ${item.resultadosEsperados || 'N/A'}.`
+      // 2. Salvar o PDI usando o novo serviço
+      // Como não temos o ID da avaliação retornado, salvamos sem ele
+      const pdiParams = pdiService.transformPDIDataForAPI(
+        pdiData, 
+        currentCycle.id,
+        undefined // leaderEvaluationId será undefined por enquanto
       );
 
-      const pdiActions = allPdiActionItems.map(item => 
-        `Como desenvolver: ${item.comoDesenvolver || 'N/A'} (Prazo: ${item.calendarizacao || 'N/A'}, Status: ${item.status || 'N/A'}, Observação: ${item.observacao || 'N/A'}).`
-      );
+      await pdiService.savePDI(pdiParams);
 
-      const pdiToSave = {
-        employeeId: pdiData.colaboradorId,
-        goals: pdiGoals,
-        actions: pdiActions,
-        resources: [], // Assuming no direct mapping for resources from current PDI structure
-        timeline: pdiData.periodo, // Using 'periodo' as timeline
-        // No need for createdBy, backend service sets it from authReq.user?.id
-      };
-      // --- END PDI Data Transformation ---
-
-      await savePDI(pdiToSave); //
-
-      toast.success('Avaliação enviada com sucesso!');
+      toast.success('Avaliação e PDI salvos com sucesso!');
       setTimeout(() => {
         navigate('/');
       }, 2000);
@@ -444,6 +457,7 @@ const LeaderEvaluation = () => {
 
     setIsSaving(true);
     try {
+      // Salvar avaliação como rascunho
       await saveLeaderEvaluation({
         cycleId: currentCycle.id,
         employeeId: selectedEmployeeId,
@@ -457,34 +471,18 @@ const LeaderEvaluation = () => {
         }
       });
 
+      // Se houver itens no PDI, salvar também
       if (totalPdiItems > 0) {
-        // --- START PDI Data Transformation for savePDI (Draft) ---
-        const allPdiActionItems = [
-          ...pdiData.curtosPrazos,
-          ...pdiData.mediosPrazos,
-          ...pdiData.longosPrazos
-        ];
-
-        const pdiGoals = allPdiActionItems.map(item => 
-          `Competência: ${item.competencia || 'N/A'}. Resultados Esperados: ${item.resultadosEsperados || 'N/A'}.`
+        const pdiParams = pdiService.transformPDIDataForAPI(
+          pdiData, 
+          currentCycle.id,
+          undefined // Sem ID da avaliação por enquanto
         );
-
-        const pdiActions = allPdiActionItems.map(item => 
-          `Como desenvolver: ${item.comoDesenvolver || 'N/A'} (Prazo: ${item.calendarizacao || 'N/A'}, Status: ${item.status || 'N/A'}, Observação: ${item.observacao || 'N/A'}).`
-        );
-
-        const pdiToSave = {
-          employeeId: pdiData.colaboradorId,
-          goals: pdiGoals,
-          actions: pdiActions,
-          resources: [], // Assuming no direct mapping for resources from current PDI structure
-          timeline: pdiData.periodo, // Using 'periodo' as timeline
-        };
-        // --- END PDI Data Transformation ---
-        await savePDI(pdiToSave); //
+        
+        await pdiService.savePDI(pdiParams);
       }
 
-      toast.success('Avaliação salva como rascunho');
+      toast.success('Rascunho salvo com sucesso');
     } catch (error) {
       console.error('Erro ao salvar avaliação:', error);
       toast.error('Erro ao salvar avaliação');
