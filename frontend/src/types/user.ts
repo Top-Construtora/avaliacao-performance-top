@@ -1,3 +1,4 @@
+// frontend/src/types/user.ts
 export interface User {
   id: string;
   email: string;
@@ -19,6 +20,18 @@ export interface User {
   position_start_date?: string;
   intern_level?: string;
   
+  // Novos campos de perfil pessoal
+  gender?: 'masculino' | 'feminino' | 'outro' | 'nao_informar' | null;
+  has_children?: boolean;
+  children_age_ranges?: string[];
+  marital_status?: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar' | null;
+  hobbies?: string | null;
+  favorite_color?: string | null;
+  supports_team?: boolean;
+  team_name?: string | null;
+  practices_sports?: boolean;
+  sports?: string[];
+  
   // Campos de trilha/salário (opcionais)
   current_track_position_id?: string;
   current_salary_level_id?: string;
@@ -32,6 +45,69 @@ export interface User {
   managed_teams?: Team[];
   managed_department?: Department;
 }
+
+// Tipos auxiliares para os novos campos
+export type Gender = 'masculino' | 'feminino' | 'outro' | 'nao_informar';
+export type MaritalStatus = 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar';
+export type ChildrenAgeRange = '0-3' | '4-6' | '7-12' | '13-17' | '18+';
+
+// Opções para os formulários
+export const GENDER_OPTIONS: { value: Gender; label: string }[] = [
+  { value: 'masculino', label: 'Masculino' },
+  { value: 'feminino', label: 'Feminino' },
+  { value: 'outro', label: 'Outro' },
+  { value: 'nao_informar', label: 'Prefiro não informar' }
+];
+
+export const MARITAL_STATUS_OPTIONS: { value: MaritalStatus; label: string }[] = [
+  { value: 'solteiro', label: 'Solteiro(a)' },
+  { value: 'casado', label: 'Casado(a)' },
+  { value: 'divorciado', label: 'Divorciado(a)' },
+  { value: 'viuvo', label: 'Viúvo(a)' },
+  { value: 'uniao_estavel', label: 'União Estável' },
+  { value: 'nao_informar', label: 'Prefiro não informar' }
+];
+
+export const CHILDREN_AGE_OPTIONS: { value: ChildrenAgeRange; label: string }[] = [
+  { value: '0-3', label: '0 a 3 anos' },
+  { value: '4-6', label: '4 a 6 anos' },
+  { value: '7-12', label: '7 a 12 anos' },
+  { value: '13-17', label: '13 a 17 anos' },
+  { value: '18+', label: '18 anos ou mais' }
+];
+
+// Cores populares para seleção
+export const FAVORITE_COLORS = [
+  { value: 'vermelho', label: 'Vermelho' },
+  { value: 'azul', label: 'Azul' },
+  { value: 'verde', label: 'Verde' },
+  { value: 'amarelo', label: 'Amarelo' },
+  { value: 'laranja', label: 'Laranja' },
+  { value: 'roxo', label: 'Roxo' },
+  { value: 'rosa', label: 'Rosa' },
+  { value: 'preto', label: 'Preto' },
+  { value: 'branco', label: 'Branco' },
+  { value: 'cinza', label: 'Cinza' }
+];
+
+// Esportes comuns
+export const POPULAR_SPORTS = [
+  'Futebol',
+  'Vôlei',
+  'Basquete',
+  'Natação',
+  'Corrida',
+  'Ciclismo',
+  'Musculação',
+  'Tênis',
+  'Caminhada',
+  'Yoga',
+  'Pilates',
+  'Artes Marciais',
+  'Dança',
+  'Crossfit',
+  'Surf'
+];
 
 export interface Department {
   id: string;
@@ -138,6 +214,18 @@ export interface UpdateUserRequest {
   is_leader?: boolean;
   is_director?: boolean;
   active?: boolean;
+  
+  // Novos campos
+  gender?: Gender | null;
+  has_children?: boolean;
+  children_age_ranges?: string[];
+  marital_status?: MaritalStatus | null;
+  hobbies?: string | null;
+  favorite_color?: string | null;
+  supports_team?: boolean;
+  team_name?: string | null;
+  practices_sports?: boolean;
+  sports?: string[];
 }
 
 // Enum para tipos de contrato

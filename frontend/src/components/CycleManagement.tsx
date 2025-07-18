@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Calendar, Plus, Play, Lock, Edit, Trash2, Clock, 
+  Calendar, Plus, Play, Lock, Edit, Clock, 
   CheckCircle, AlertCircle, Users, BarChart3, FileText,
-  ArrowRight, Info, Settings, X, Save, ChevronRight
+  Info, X, Save
 } from 'lucide-react';
 // Date utilities
 const formatDate = (dateString: string): string => {

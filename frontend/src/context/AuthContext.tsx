@@ -155,9 +155,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!profile) return;
 
     try {
-      const response = await api.put(`/users/${profile.id}`, updates);
+      // Garantir consistência dos dados antes de enviar
+      const updateData = { ...updates };
+      
+      // Se não tem filhos, limpar array de faixas etárias
+      if ('has_children' in updateData && !updateData.has_children) {
+        updateData.children_age_ranges = [];
+      }
+      
+      // Se não pratica esportes, limpar array de esportes
+      if ('practices_sports' in updateData && !updateData.practices_sports) {
+        updateData.sports = [];
+      }
+      
+      // Se não torce para time, limpar nome do time
+      if ('supports_team' in updateData && !updateData.supports_team) {
+        updateData.team_name = null;
+      }
+
+      const response = await api.put(`/users/${profile.id}`, updateData);
       if (response.success !== false && response.data) {
         setProfile(response.data);
+        // Atualizar também o user se necessário
+        if (user && user.id === profile.id) {
+          setUser(response.data);
+        }
         toast.success('Perfil atualizado com sucesso!');
       }
     } catch (error) {

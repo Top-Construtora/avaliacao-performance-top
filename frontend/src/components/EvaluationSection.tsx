@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronRight, CheckCircle, BarChart3, Award } from 'lucide-react';
+import { ChevronDown, ChevronRight, BarChart3, Award } from 'lucide-react';
 
 interface CompetencyItem {
   id: string;

@@ -1,3 +1,4 @@
+// frontend/src/pages/users/RegisterUser.tsx
 import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -6,14 +7,15 @@ import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../.
 import { authService } from '../../services/auth.service';
 import { supabase } from '../../lib/supabase';
 import Button from '../../components/Button';
+import { UserProfileFields } from '../../components/UserProfileFields';
 import { 
-  Users, Plus, Building, Shield, Mail, Calendar, 
+  Users, Shield, Mail, Calendar, 
   X, Check, AlertCircle, Briefcase, UserCheck, 
-  Sparkles, Crown, User, Phone, CalendarDays, Camera, Upload,
-  ArrowLeft, Eye, EyeOff, Save, Loader2, Star, Award,
-  CheckCircle2, ChevronDown, Info, UserPlus, UsersIcon, Building2,
-  Hash, FileText, Target, UserCog, GitBranch, Network,
-  Database, Trash2, Edit, Route, Layers, TrendingUp
+  Sparkles, Crown, User, Phone, CalendarDays, Upload,
+  Eye, EyeOff, Save, Loader2,
+  CheckCircle2, ChevronDown, UserPlus, Building2,
+  FileText, UserCog, GitBranch,
+  Route, Layers, TrendingUp
 } from 'lucide-react';
 
 interface Track {
@@ -80,6 +82,18 @@ const RegisterUser = () => {
     positionId: '',
     internLevel: 'A' as 'A' | 'B' | 'C' | 'D' | 'E',
     contractType: 'CLT' as 'CLT' | 'PJ',
+    
+    // Novos campos de perfil pessoal
+    gender: null as any,
+    has_children: false,
+    children_age_ranges: [] as string[],
+    marital_status: null as any,
+    hobbies: '',
+    favorite_color: '',
+    supports_team: false,
+    team_name: '',
+    practices_sports: false,
+    sports: [] as string[]
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -256,6 +270,10 @@ const RegisterUser = () => {
     }
   };
 
+  const handleProfileFieldChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   const validateForm = () => {
     const errors: Record<string, string> = {};
     
@@ -347,6 +365,18 @@ const RegisterUser = () => {
         position_id: formData.positionId || undefined,
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
+        
+        // Novos campos
+        gender: formData.gender,
+        has_children: formData.has_children,
+        children_age_ranges: formData.has_children ? formData.children_age_ranges : [],
+        marital_status: formData.marital_status,
+        hobbies: formData.hobbies || undefined,
+        favorite_color: formData.favorite_color || undefined,
+        supports_team: formData.supports_team,
+        team_name: formData.supports_team ? formData.team_name : undefined,
+        practices_sports: formData.practices_sports,
+        sports: formData.practices_sports ? formData.sports : []
       });
 
       if (error || !user) {
@@ -915,6 +945,12 @@ const RegisterUser = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* Novos campos de perfil pessoal */}
+        <UserProfileFields
+          formData={formData}
+          onChange={handleProfileFieldChange}
+        />
 
         {/* Team Allocation */}
         {formData.profileType !== 'director' && (

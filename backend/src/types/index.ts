@@ -1,4 +1,5 @@
-// User types
+// backend/src/types/index.ts
+
 export interface User {
   id: string;
   email: string;
@@ -26,6 +27,18 @@ export interface User {
   current_salary?: number;
   track_id?: string;
   position_id?: string;
+  
+  // Novos campos de perfil pessoal
+  gender?: 'masculino' | 'feminino' | 'outro' | 'nao_informar' | null;
+  has_children?: boolean;
+  children_age_ranges?: string[];
+  marital_status?: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar' | null;
+  hobbies?: string | null;
+  favorite_color?: string | null;
+  supports_team?: boolean;
+  team_name?: string | null;
+  practices_sports?: boolean;
+  sports?: string[];
 }
 
 // Auth types
@@ -260,6 +273,24 @@ export interface EvaluationExtended extends BaseEvaluation {
   competencies?: EvaluationCompetency[];
 }
 
+// Tipo Evaluation para compatibilidade
+export interface Evaluation {
+  id: string;
+  evaluator_id: string;
+  evaluated_id: string;
+  evaluation_type: 'self' | 'leader' | 'peer';
+  period_start: string;
+  period_end: string;
+  status: 'draft' | 'completed' | 'submitted';
+  submitted_at?: string;
+  total_score?: number;
+  competencies?: any;
+  feedback?: string;
+  goals?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 // ====================================
 // FIM DAS ATUALIZAÇÕES DE EVALUATION
 // ====================================
@@ -277,6 +308,8 @@ export interface DevelopmentPlan {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface PDI extends DevelopmentPlan {} // Alias para compatibilidade
 
 // Competency types
 export interface Competency {
@@ -327,6 +360,18 @@ export interface UsersRow {
   track_id: string | null;
   position_id: string | null;
   intern_level: string | null;
+  
+  // Novos campos
+  gender: 'masculino' | 'feminino' | 'outro' | 'nao_informar' | null;
+  has_children: boolean;
+  children_age_ranges: string[] | null;
+  marital_status: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar' | null;
+  hobbies: string | null;
+  favorite_color: string | null;
+  supports_team: boolean;
+  team_name: string | null;
+  practices_sports: boolean;
+  sports: string[] | null;
 }
 
 export interface UsersInsert {
@@ -349,6 +394,23 @@ export interface UsersInsert {
   admission_date?: string | null;
   position_start_date?: string | null;
   intern_level?: string | null;
+  track_id?: string | null;
+  position_id?: string | null;
+  current_track_position_id?: string | null;
+  current_salary_level_id?: string | null;
+  current_salary?: number | null;
+  
+  // Novos campos
+  gender?: 'masculino' | 'feminino' | 'outro' | 'nao_informar' | null;
+  has_children?: boolean;
+  children_age_ranges?: string[] | null;
+  marital_status?: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar' | null;
+  hobbies?: string | null;
+  favorite_color?: string | null;
+  supports_team?: boolean;
+  team_name?: string | null;
+  practices_sports?: boolean;
+  sports?: string[] | null;
 }
 
 export interface UsersUpdate {
@@ -369,6 +431,122 @@ export interface UsersUpdate {
   admission_date?: string | null;
   position_start_date?: string | null;
   intern_level?: string | null;
+  track_id?: string | null;
+  position_id?: string | null;
+  current_track_position_id?: string | null;
+  current_salary_level_id?: string | null;
+  current_salary?: number | null;
+  
+  // Novos campos
+  gender?: 'masculino' | 'feminino' | 'outro' | 'nao_informar' | null;
+  has_children?: boolean;
+  children_age_ranges?: string[] | null;
+  marital_status?: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar' | null;
+  hobbies?: string | null;
+  favorite_color?: string | null;
+  supports_team?: boolean;
+  team_name?: string | null;
+  practices_sports?: boolean;
+  sports?: string[] | null;
+}
+
+// Tipos auxiliares
+export type Gender = 'masculino' | 'feminino' | 'outro' | 'nao_informar';
+export type MaritalStatus = 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar';
+export type ChildrenAgeRange = '0-3' | '4-6' | '7-12' | '13-17' | '18+';
+export type ContractType = 'CLT' | 'PJ' | 'INTERN';
+
+// Enums para validação
+export const GENDER_VALUES: Gender[] = ['masculino', 'feminino', 'outro', 'nao_informar'];
+export const MARITAL_STATUS_VALUES: MaritalStatus[] = ['solteiro', 'casado', 'divorciado', 'viuvo', 'uniao_estavel', 'nao_informar'];
+export const CHILDREN_AGE_RANGES: ChildrenAgeRange[] = ['0-3', '4-6', '7-12', '13-17', '18+'];
+export const CONTRACT_TYPES: ContractType[] = ['CLT', 'PJ', 'INTERN'];
+
+// Request/Response types
+export interface CreateUserRequest {
+  email: string;
+  password: string;
+  name: string;
+  position: string;
+  is_leader?: boolean;
+  is_director?: boolean;
+  phone?: string;
+  birth_date?: string;
+  join_date?: string;
+  profile_image?: string;
+  reports_to?: string;
+  team_ids?: string[];
+  department_id?: string;
+  track_id?: string;
+  position_id?: string;
+  intern_level?: string;
+  contract_type?: ContractType;
+  
+  // Novos campos
+  gender?: Gender;
+  has_children?: boolean;
+  children_age_ranges?: string[];
+  marital_status?: MaritalStatus;
+  hobbies?: string;
+  favorite_color?: string;
+  supports_team?: boolean;
+  team_name?: string;
+  practices_sports?: boolean;
+  sports?: string[];
+}
+
+export interface UpdateUserRequest {
+  name?: string;
+  position?: string;
+  is_leader?: boolean;
+  is_director?: boolean;
+  phone?: string;
+  birth_date?: string;
+  join_date?: string;
+  profile_image?: string;
+  reports_to?: string;
+  active?: boolean;
+  department_id?: string;
+  track_id?: string;
+  position_id?: string;
+  intern_level?: string;
+  contract_type?: ContractType;
+  
+  // Novos campos
+  gender?: Gender;
+  has_children?: boolean;
+  children_age_ranges?: string[];
+  marital_status?: MaritalStatus;
+  hobbies?: string;
+  favorite_color?: string;
+  supports_team?: boolean;
+  team_name?: string;
+  practices_sports?: boolean;
+  sports?: string[];
+}
+
+// Auth types
+export interface LoginResponse {
+  user: User;
+  access_token: string;
+  refresh_token?: string;
+}
+
+// Filter types
+export interface UserFilters {
+  active?: boolean;
+  is_leader?: boolean;
+  is_director?: boolean;
+  reports_to?: string;
+  department_id?: string;
+  contract_type?: ContractType;
+  gender?: Gender;
+  has_children?: boolean;
+  marital_status?: MaritalStatus;
+  supports_team?: boolean;
+  practices_sports?: boolean;
+  favorite_color?: string;
+  sport?: string;
 }
 
 // Import and re-export other type files if they exist

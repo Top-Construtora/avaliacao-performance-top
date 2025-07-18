@@ -1,3 +1,4 @@
+// frontend/src/types/supabase.ts
 // Tipos gerados do Supabase - representam as tabelas do banco
 export type Json =
   | string
@@ -59,10 +60,22 @@ export interface Database {
           created_at: string
           updated_at: string
           // Campos adicionados para consistência com formulários de frontend
-          department_id?: string | null // Adicionado
-          track_id?: string | null // Adicionado (corresponde a career_tracks.id)
-          position_id?: string | null // Adicionado (corresponde a track_positions.id)
-          intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null // Adicionado
+          department_id?: string | null
+          track_id?: string | null
+          position_id?: string | null
+          intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null
+          
+          // Novos campos de perfil pessoal
+          gender?: 'masculino' | 'feminino' | 'outro' | 'nao_informar' | null
+          has_children?: boolean
+          children_age_ranges?: string[] | null
+          marital_status?: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar' | null
+          hobbies?: string | null
+          favorite_color?: string | null
+          supports_team?: boolean
+          team_name?: string | null
+          practices_sports?: boolean
+          sports?: string[] | null
         }
         Insert: {
           id: string
@@ -90,6 +103,18 @@ export interface Database {
           track_id?: string | null
           position_id?: string | null
           intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null
+          
+          // Novos campos de perfil pessoal
+          gender?: 'masculino' | 'feminino' | 'outro' | 'nao_informar' | null
+          has_children?: boolean
+          children_age_ranges?: string[] | null
+          marital_status?: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar' | null
+          hobbies?: string | null
+          favorite_color?: string | null
+          supports_team?: boolean
+          team_name?: string | null
+          practices_sports?: boolean
+          sports?: string[] | null
         }
         Update: {
           id?: string
@@ -117,6 +142,18 @@ export interface Database {
           track_id?: string | null
           position_id?: string | null
           intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null
+          
+          // Novos campos de perfil pessoal
+          gender?: 'masculino' | 'feminino' | 'outro' | 'nao_informar' | null
+          has_children?: boolean
+          children_age_ranges?: string[] | null
+          marital_status?: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar' | null
+          hobbies?: string | null
+          favorite_color?: string | null
+          supports_team?: boolean
+          team_name?: string | null
+          practices_sports?: boolean
+          sports?: string[] | null
         }
       }
       teams: {
@@ -276,7 +313,8 @@ export interface Database {
       }
     }
     Enums: {
-      [_ in never]: never
+      gender_type: 'masculino' | 'feminino' | 'outro' | 'nao_informar'
+      marital_status_type: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar'
     }
   }
 }
@@ -310,12 +348,6 @@ export interface UserWithDetails extends User {
   departments?: Department[]
   manager?: Pick<User, 'id' | 'name' | 'email'>
   direct_reports?: Pick<User, 'id' | 'name' | 'email' | 'position'>[]
-  // Campos adicionados para consistência com formulários de frontend
-  department_id?: string | null;
-  track_id?: string | null;
-  position_id?: string | null;
-  intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null;
-  contract_type?: 'CLT' | 'PJ' | null;
 }
 
 export interface TeamWithDetails extends Team {

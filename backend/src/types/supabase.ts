@@ -1,3 +1,4 @@
+// backend/src/types/supabase.ts
 // Tipos gerados do Supabase para o backend
 export type Json =
   | string
@@ -65,6 +66,18 @@ export interface Database {
           intern_level: string | null
           created_at: string
           updated_at: string
+          
+          // Novos campos de perfil pessoal
+          gender: 'masculino' | 'feminino' | 'outro' | 'nao_informar' | null
+          has_children: boolean
+          children_age_ranges: string[] | null
+          marital_status: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar' | null
+          hobbies: string | null
+          favorite_color: string | null
+          supports_team: boolean
+          team_name: string | null
+          practices_sports: boolean
+          sports: string[] | null
         }
         Insert: {
           id: string
@@ -91,6 +104,18 @@ export interface Database {
           intern_level?: string | null
           created_at?: string
           updated_at?: string
+          
+          // Novos campos
+          gender?: 'masculino' | 'feminino' | 'outro' | 'nao_informar' | null
+          has_children?: boolean
+          children_age_ranges?: string[] | null
+          marital_status?: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar' | null
+          hobbies?: string | null
+          favorite_color?: string | null
+          supports_team?: boolean
+          team_name?: string | null
+          practices_sports?: boolean
+          sports?: string[] | null
         }
         Update: {
           id?: string
@@ -117,6 +142,18 @@ export interface Database {
           intern_level?: string | null
           created_at?: string
           updated_at?: string
+          
+          // Novos campos
+          gender?: 'masculino' | 'feminino' | 'outro' | 'nao_informar' | null
+          has_children?: boolean
+          children_age_ranges?: string[] | null
+          marital_status?: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar' | null
+          hobbies?: string | null
+          favorite_color?: string | null
+          supports_team?: boolean
+          team_name?: string | null
+          practices_sports?: boolean
+          sports?: string[] | null
         }
       }
       teams: {
@@ -738,6 +775,8 @@ export interface Database {
     Enums: {
       contract_type: 'CLT' | 'PJ' | 'INTERN'
       progression_type: 'horizontal' | 'vertical' | 'merit'
+      gender_type: 'masculino' | 'feminino' | 'outro' | 'nao_informar'
+      marital_status_type: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar'
     }
   }
 }
@@ -751,6 +790,8 @@ export type Enums<T extends keyof Database['public']['Enums']> = Database['publi
 
 // Aliases for convenience
 export type DBUser = Tables<'users'>
+export type DBUserInsert = TablesInsert<'users'>
+export type DBUserUpdate = TablesUpdate<'users'>
 export type DBDepartment = Tables<'departments'>
 export type DBTeam = Tables<'teams'>
 export type DBEvaluation = Tables<'evaluations'>
