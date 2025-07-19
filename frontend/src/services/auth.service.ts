@@ -1,4 +1,3 @@
-// frontend/src/services/auth.service.ts
 import { supabase } from '../lib/supabase';
 import { User } from '../types/user';
 
@@ -20,7 +19,6 @@ export interface CreateUserData {
   position_id?: string;
   intern_level?: string;
   contract_type?: 'CLT' | 'PJ';
-  admission_date?: string;
   position_start_date?: string;
   
   // Novos campos de perfil pessoal
@@ -39,13 +37,31 @@ export interface CreateUserData {
 export const authService = {
   async createUser(userData: CreateUserData) {
     try {
+      // Primeiro, verificar se o email já existe
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('id, email')
+        .eq('email', userData.email.toLowerCase())
+        .single();
+
+      if (existingUser && !checkError) {
+        throw new Error('Email já cadastrado no sistema');
+      }
+
       // Criar usuário no Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
+        options: {
+          data: {
+            name: userData.name,
+            position: userData.position
+          }
+        }
       });
 
       if (authError) {
+        console.error('Auth error:', authError);
         throw new Error(authError.message);
       }
 
@@ -55,12 +71,83 @@ export const authService = {
 
       const userId = authData.user.id;
 
-      // Criar perfil do usuário na tabela users
+      // Aguardar um momento para garantir que o usuário foi criado no Auth
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Verificar se o perfil já foi criado automaticamente pelo trigger
+      const { data: existingProfile, error: profileCheckError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', userId)
+        .single();
+
+      // Se o perfil já existe, apenas atualizar
+      if (existingProfile && !profileCheckError) {
+        const { data: updatedProfile, error: updateError } = await supabase
+          .from('users')
+          .update({
+            name: userData.name,
+            position: userData.position,
+            is_leader: userData.is_leader || false,
+            is_director: userData.is_director || false,
+            phone: userData.phone || null,
+            birth_date: userData.birth_date || null,
+            join_date: userData.join_date || new Date().toISOString().split('T')[0],
+            profile_image: userData.profile_image || null,
+            reports_to: userData.reports_to || null,
+            department_id: userData.department_id || null,
+            track_id: userData.track_id || null,
+            position_id: userData.position_id || null,
+            intern_level: userData.intern_level || null,
+            contract_type: userData.contract_type || 'CLT',
+            position_start_date: userData.position_start_date || userData.join_date || null,
+            // Novos campos
+            gender: userData.gender || null,
+            has_children: userData.has_children || false,
+            children_age_ranges: userData.has_children ? (userData.children_age_ranges || []) : [],
+            marital_status: userData.marital_status || null,
+            hobbies: userData.hobbies || null,
+            favorite_color: userData.favorite_color || null,
+            supports_team: userData.supports_team || false,
+            team_name: userData.supports_team ? userData.team_name : null,
+            practices_sports: userData.practices_sports || false,
+            sports: userData.practices_sports ? (userData.sports || []) : [],
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('Update error:', updateError);
+          throw new Error('Erro ao atualizar perfil: ' + updateError.message);
+        }
+
+        // Adicionar usuário aos times, se especificado
+        if (userData.team_ids && userData.team_ids.length > 0) {
+          const teamMembers = userData.team_ids.map(teamId => ({
+            team_id: teamId,
+            user_id: userId,
+          }));
+
+          const { error: teamError } = await supabase
+            .from('team_members')
+            .insert(teamMembers);
+
+          if (teamError) {
+            console.error('Erro ao adicionar usuário aos times:', teamError);
+          }
+        }
+
+        return { user: updatedProfile, error: null };
+      }
+
+      // Se o perfil não existe, criar um novo
       const { data: userProfile, error: profileError } = await supabase
         .from('users')
         .insert({
           id: userId,
-          email: userData.email,
+          email: userData.email.toLowerCase(),
           name: userData.name,
           position: userData.position,
           is_leader: userData.is_leader || false,
@@ -76,10 +163,8 @@ export const authService = {
           position_id: userData.position_id || null,
           intern_level: userData.intern_level || null,
           contract_type: userData.contract_type || 'CLT',
-          admission_date: userData.admission_date || userData.join_date || null,
           position_start_date: userData.position_start_date || userData.join_date || null,
-          
-          // Novos campos de perfil pessoal
+          // Novos campos
           gender: userData.gender || null,
           has_children: userData.has_children || false,
           children_age_ranges: userData.has_children ? (userData.children_age_ranges || []) : [],
@@ -96,7 +181,12 @@ export const authService = {
 
       if (profileError) {
         // Se houver erro ao criar o perfil, deletar o usuário do Auth
-        await supabase.auth.admin.deleteUser(userId);
+        try {
+          // Usar o service role client para deletar o usuário
+          await supabase.auth.admin.deleteUser(userId);
+        } catch (deleteError) {
+          console.error('Erro ao deletar usuário após falha:', deleteError);
+        }
         throw new Error('Erro ao criar perfil: ' + profileError.message);
       }
 
@@ -131,115 +221,38 @@ export const authService = {
         .eq('email', email.toLowerCase())
         .single();
 
-      return !!data && !error;
-    } catch {
+      return !error && !!data;
+    } catch (error) {
+      console.error('Erro ao verificar email:', error);
       return false;
     }
   },
 
-  async signIn(email: string, password: string) {
+  // Função auxiliar para limpar usuários órfãos (sem perfil)
+  async cleanupOrphanedAuthUsers() {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // Esta função precisa ser executada com privilégios de admin
+      // Pode ser chamada periodicamente ou manualmente
+      const { data: authUsers } = await supabase.auth.admin.listUsers();
+      
+      if (!authUsers || !authUsers.users) return;
 
-      if (error) {
-        throw new Error(error.message);
+      for (const authUser of authUsers.users) {
+        // Verificar se existe perfil para este usuário
+        const { data: profile } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', authUser.id)
+          .single();
+
+        // Se não existe perfil, deletar o usuário do Auth
+        if (!profile) {
+          console.log(`Removendo usuário órfão: ${authUser.email}`);
+          await supabase.auth.admin.deleteUser(authUser.id);
+        }
       }
-
-      // Buscar dados completos do usuário
-      const { data: userProfile, error: profileError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-
-      if (profileError || !userProfile) {
-        throw new Error('Perfil não encontrado');
-      }
-
-      return { user: userProfile, session: data.session, error: null };
-    } catch (error: any) {
-      return { user: null, session: null, error: error.message };
+    } catch (error) {
+      console.error('Erro ao limpar usuários órfãos:', error);
     }
-  },
-
-  async signOut() {
-    const { error } = await supabase.auth.signOut();
-    return { error };
-  },
-
-  async getCurrentUser() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        return null;
-      }
-
-      const { data: userProfile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      return userProfile;
-    } catch {
-      return null;
-    }
-  },
-
-  async updateProfile(userId: string, updates: Partial<User>) {
-    try {
-      // Garantir consistência dos dados
-      const updateData = { ...updates };
-      
-      // Se não tem filhos, limpar array de faixas etárias
-      if ('has_children' in updateData && !updateData.has_children) {
-        updateData.children_age_ranges = [];
-      }
-      
-      // Se não pratica esportes, limpar array de esportes
-      if ('practices_sports' in updateData && !updateData.practices_sports) {
-        updateData.sports = [];
-      }
-      
-      // Se não torce para time, limpar nome do time
-      if ('supports_team' in updateData && !updateData.supports_team) {
-        updateData.team_name = null;
-      }
-
-      const { data, error } = await supabase
-        .from('users')
-        .update(updateData)
-        .eq('id', userId)
-        .select()
-        .single();
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      return { data, error: null };
-    } catch (error: any) {
-      return { data: null, error: error.message };
-    }
-  },
-
-  async resetPassword(email: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-
-    return { error };
-  },
-
-  async updatePassword(newPassword: string) {
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-
-    return { error };
-  },
+  }
 };
