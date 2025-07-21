@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User, Team, Department, HierarchicalRelation } from '../types';
 import { toast } from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
 
 interface UserContextType {
   users: User[];
@@ -28,6 +29,12 @@ interface UserContextType {
   getSubordinates: (leaderId: string) => User[];
   getLeader: (subordinateId: string) => User | undefined;
   calculateAge: (birthDate: string) => number;
+  reloadUsers: () => Promise<void>;
+  reloadTeams: () => Promise<void>;
+  reloadDepartments: () => Promise<void>;
+  reloadAll: () => Promise<void>;
+  loading: boolean;
+  error: string | null;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -194,6 +201,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [teams, setTeams] = useState<Team[]>(initialTeams);
   const [departments, setDepartments] = useState<Department[]>(initialDepartments);
   const [hierarchicalRelations, setHierarchicalRelations] = useState<HierarchicalRelation[]>(initialHierarchicalRelations);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Load from localStorage
   useEffect(() => {
@@ -224,6 +233,153 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     localStorage.setItem('hierarchicalRelations', JSON.stringify(hierarchicalRelations));
   }, [hierarchicalRelations]);
+
+  // Setup real-time subscriptions
+  useEffect(() => {
+    // Subscribe to changes in users table
+    const userSubscription = supabase
+      .channel('users-changes')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'users' 
+        },
+        (payload) => {
+          console.log('User change detected:', payload);
+          // Aguarda um pouco para garantir que a transação foi completada
+          setTimeout(() => {
+            reloadUsers();
+          }, 1000);
+        }
+      )
+      .subscribe();
+
+    // Subscribe to changes in teams table
+    const teamSubscription = supabase
+      .channel('teams-changes')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'teams' 
+        },
+        () => {
+          reloadTeams();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to changes in departments table
+    const departmentSubscription = supabase
+      .channel('departments-changes')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'departments' 
+        },
+        () => {
+          reloadDepartments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      userSubscription.unsubscribe();
+      teamSubscription.unsubscribe();
+      departmentSubscription.unsubscribe();
+    };
+  }, []);
+
+  // Reload functions
+  const reloadUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Aguarda um pouco para garantir que o registro foi completado no backend
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // TODO: Substituir por chamada real à API quando disponível
+      // const data = await userService.getUsers();
+      // setUsers(data || []);
+      
+      // Por enquanto, apenas recarrega do localStorage
+      const savedUsers = localStorage.getItem('users');
+      if (savedUsers) {
+        setUsers(JSON.parse(savedUsers));
+      }
+    } catch (err) {
+      console.error('Erro ao carregar usuários:', err);
+      setError('Erro ao carregar usuários');
+      
+      // Se for erro 406, tenta novamente após 1 segundo
+      if (err instanceof Error && err.message.includes('406')) {
+        setTimeout(async () => {
+          try {
+            const savedUsers = localStorage.getItem('users');
+            if (savedUsers) {
+              setUsers(JSON.parse(savedUsers));
+            }
+            setError(null);
+          } catch (retryErr) {
+            console.error('Erro na segunda tentativa:', retryErr);
+          }
+        }, 1000);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reloadTeams = async () => {
+    try {
+      setLoading(true);
+      // TODO: Substituir por chamada real à API
+      const savedTeams = localStorage.getItem('teams');
+      if (savedTeams) {
+        setTeams(JSON.parse(savedTeams));
+      }
+    } catch (err) {
+      console.error('Erro ao carregar times:', err);
+      setError('Erro ao carregar times');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reloadDepartments = async () => {
+    try {
+      setLoading(true);
+      // TODO: Substituir por chamada real à API
+      const savedDepartments = localStorage.getItem('departments');
+      if (savedDepartments) {
+        setDepartments(JSON.parse(savedDepartments));
+      }
+    } catch (err) {
+      console.error('Erro ao carregar departamentos:', err);
+      setError('Erro ao carregar departamentos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reloadAll = async () => {
+    setLoading(true);
+    setError(null);
+    
+    await Promise.all([
+      reloadUsers(),
+      reloadTeams(),
+      reloadDepartments()
+    ]);
+    
+    setLoading(false);
+  };
 
   // User operations
   const addUser = (userData: Omit<User, 'id'>) => {
@@ -566,6 +722,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     getSubordinates,
     getLeader,
     calculateAge,
+    reloadUsers,
+    reloadTeams,
+    reloadDepartments,
+    reloadAll,
+    loading,
+    error
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

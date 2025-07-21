@@ -52,7 +52,6 @@ const UserManagement = () => {
   const [showOnlyLeaders, setShowOnlyLeaders] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'department'>('name');
-  const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editType, setEditType] = useState<'user' | 'team' | 'department'>('user');
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -67,7 +66,7 @@ const UserManagement = () => {
 
   const getUserById = (id: string) => users.find(u => u.id === id);
   const getTeamById = (id: string) => teams.find(t => t.id === id);
-  const getDepartmentById = (id: string) => departments.find(d => d.id === d.id);
+  const getDepartmentById = (id: string) => departments.find(d => d.id === id);
 
   const getSubordinates = (userId: string) => {
     return users.filter(u => u.reports_to === userId);
@@ -96,19 +95,19 @@ const UserManagement = () => {
         toast.error('Você não tem permissão para editar este usuário');
         return;
       }
-      navigate(`/users/${item.id}/edit`);
+      navigate(`/users/edit/${item.id}`);
     } else if (type === 'team') {
       if (!permissions.canEditTeam(item.id, item.responsible_id)) {
         toast.error('Você não tem permissão para editar este time');
         return;
       }
-      navigate(`/teams/${item.id}/edit`);
+      navigate(`/teams/edit/${item.id}`);
     } else if (type === 'department') {
       if (!permissions.canEditDepartment()) {
         toast.error('Você não tem permissão para editar departamentos');
         return;
       }
-      navigate(`/departments/${item.id}/edit`);
+      navigate(`/departments/edit/${item.id}`);
     }
   };
 
@@ -137,12 +136,19 @@ const UserManagement = () => {
         type: operation,
         data: targetData,
         callback: async () => {
-          if (type === 'user') {
-            await actions.users.deactivate(id);
-          } else if (type === 'team') {
-            await actions.teams.delete(id);
-          } else {
-            await actions.departments.delete(id);
+          try {
+            if (type === 'user') {
+              await actions.users.deactivate(id);
+              toast.success('Usuário desativado com sucesso!');
+            } else if (type === 'team') {
+              await actions.teams.delete(id);
+              toast.success('Time removido com sucesso!');
+            } else {
+              await actions.departments.delete(id);
+              toast.success('Departamento removido com sucesso!');
+            }
+          } catch (error) {
+            toast.error(`Erro ao ${type === 'user' ? 'desativar usuário' : 'remover ' + type}`);
           }
         }
       });
@@ -150,13 +156,20 @@ const UserManagement = () => {
       return;
     }
 
-    if (window.confirm('Tem certeza que deseja excluir?')) {
-      if (type === 'user') {
-        await actions.users.deactivate(id);
-      } else if (type === 'team') {
-        await actions.teams.delete(id);
-      } else {
-        await actions.departments.delete(id);
+    if (window.confirm(`Tem certeza que deseja ${type === 'user' ? 'desativar este usuário' : 'excluir'}?`)) {
+      try {
+        if (type === 'user') {
+          await actions.users.deactivate(id);
+          toast.success('Usuário desativado com sucesso!');
+        } else if (type === 'team') {
+          await actions.teams.delete(id);
+          toast.success('Time removido com sucesso!');
+        } else {
+          await actions.departments.delete(id);
+          toast.success('Departamento removido com sucesso!');
+        }
+      } catch (error) {
+        toast.error(`Erro ao ${type === 'user' ? 'desativar usuário' : 'remover ' + type}`);
       }
     }
   };
@@ -166,7 +179,6 @@ const UserManagement = () => {
     setShowSalaryModal(true);
   };
 
-  
   const handleQuickAction = (action: string) => {
     switch (action) {
       case 'import':
@@ -365,12 +377,12 @@ const UserManagement = () => {
                              user.position.toLowerCase().includes(searchTerm.toLowerCase());
         
         const matchesDepartment = !selectedDepartment || 
-          user.departments?.some(d => d.id === selectedDepartment);
+          user.department_id === selectedDepartment;
         
         const matchesTeam = !selectedTeam || 
           user.teams?.some(t => t.id === selectedTeam);
         
-        const matchesLeader = !showOnlyLeaders || user.is_leader;
+        const matchesLeader = !showOnlyLeaders || user.is_leader || user.is_director;
 
         return matchesSearch && matchesDepartment && matchesTeam && matchesLeader;
       })
@@ -392,7 +404,8 @@ const UserManagement = () => {
 
   const filteredTeams = useMemo(() => {
     return teams.filter(team => {
-      const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (team.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
       const matchesDepartment = !selectedDepartment || team.department_id === selectedDepartment;
       return matchesSearch && matchesDepartment;
     });
@@ -409,7 +422,7 @@ const UserManagement = () => {
     totalUsers: users.length,
     totalLeaders: users.filter(u => u.is_leader && !u.is_director).length,
     totalDirectors: users.filter(u => u.is_director).length,
-    totalCollaborators: users.filter(u => !u.is_leader).length,
+    totalCollaborators: users.filter(u => !u.is_leader && !u.is_director).length,
     totalTeams: teams.length,
     totalDepartments: departments.length,
   }), [users, teams, departments]);
@@ -459,8 +472,8 @@ const UserManagement = () => {
         }`} />
         
         <div className="p-6">
-          <div className="flex items-start justify-between gap-2 mb-4"> {/* Adicionado gap-2 e flex-wrap */}
-            <div className="flex items-center space-x-4 flex-shrink-0"> {/* flex-shrink-0 para avatar */}
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <div className="flex items-center space-x-4 flex-shrink-0">
               <div className="relative">
                 {user.profile_image ? (
                   <img 
@@ -492,7 +505,7 @@ const UserManagement = () => {
               </div>
             </div>
             
-            <div className="flex-1 min-w-0"> {/* flex-1 para o nome/cargo */}
+            <div className="flex-1 min-w-0">
               <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate">{user.name}</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{user.position}</p>
               {(user.is_director || user.is_leader) && (
@@ -508,8 +521,7 @@ const UserManagement = () => {
               )}
             </div>
             
-            {/* Botões de Ação - envolto em uma div flex para controle */}
-            <div className="flex flex-col space-y-1 ml-2 flex-shrink-0"> {/* Adicionado flex-shrink-0 */}
+            <div className="flex flex-col space-y-1 ml-2 flex-shrink-0">
               <ActionGuard can={() => permissions.canEditUser(user.id)}>
                 <button
                   onClick={() => handleEdit('user', user)}
@@ -521,15 +533,13 @@ const UserManagement = () => {
               </ActionGuard>
 
               <RoleGuard allowedRoles={['director', 'leader']}>
-                <span title="Gestão Salarial">
-                  <button
-                    onClick={() => handleOpenSalaryModal(user)}
-                    className="p-2 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400"
-                    title="Gestão Salarial"
-                  >
-                    <DollarSign className="h-4 w-4" />
-                  </button>
-                </span>
+                <button
+                  onClick={() => handleOpenSalaryModal(user)}
+                  className="p-2 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400"
+                  title="Gestão Salarial"
+                >
+                  <DollarSign className="h-4 w-4" />
+                </button>
               </RoleGuard>
               
               <ActionGuard can={permissions.canDeactivateUser}>
@@ -538,7 +548,7 @@ const UserManagement = () => {
                   className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
                   title="Desativar"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <UserX className="h-4 w-4" />
                 </button>
               </ActionGuard>
             </div>
@@ -630,19 +640,19 @@ const UserManagement = () => {
         <div className="h-2 bg-gradient-to-r from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700" />
         
         <div className="p-6">
-          <div className="flex items-start justify-between gap-2 mb-4"> {/* Adicionado gap-2 */}
-            <div className="flex items-center space-x-4 flex-shrink-0"> {/* flex-shrink-0 para ícone */}
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <div className="flex items-center space-x-4 flex-shrink-0">
               <div className="p-3 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 shadow-md dark:shadow-lg">
                 <UsersIcon className="h-6 w-6 text-white" />
               </div>
             </div>
-            <div className="flex-1 min-w-0"> {/* flex-1 e min-w-0 para o nome */}
+            <div className="flex-1 min-w-0">
               <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate">{team.name}</h3>
               {team.description && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{team.description}</p>
               )}
             </div>
-            <div className="flex flex-col space-y-1 ml-2 flex-shrink-0"> {/* Botões de Ação */}
+            <div className="flex flex-col space-y-1 ml-2 flex-shrink-0">
               <ActionGuard can={() => permissions.canEditTeam(team.id, team.responsible_id ?? undefined)}>
                 <button
                   onClick={() => handleEdit('team', team)}
@@ -736,20 +746,20 @@ const UserManagement = () => {
         <div className="h-2 bg-gradient-to-r from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700" />
         
         <div className="p-6">
-          <div className="flex items-start justify-between gap-2 mb-4"> {/* Adicionado gap-2 */}
-            <div className="flex items-center space-x-4 flex-shrink-0"> {/* flex-shrink-0 para ícone */}
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <div className="flex items-center space-x-4 flex-shrink-0">
               <div className="p-3 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700 shadow-md dark:shadow-lg">
                 <Building className="h-6 w-6 text-white" />
               </div>
             </div>
-            <div className="flex-1 min-w-0"> {/* flex-1 e min-w-0 para o nome */}
+            <div className="flex-1 min-w-0">
               <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate">{department.name}</h3>
               {department.description && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{department.description}</p>
               )}
             </div>
             
-            <div className="flex flex-col space-y-1 ml-2 flex-shrink-0"> {/* Botões de Ação */}
+            <div className="flex flex-col space-y-1 ml-2 flex-shrink-0">
               <ActionGuard can={permissions.canEditDepartment}>
                 <button
                   onClick={() => handleEdit('department', department)}
@@ -824,7 +834,7 @@ const UserManagement = () => {
             <div className="flex items-center space-x-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                  <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3 flex-shrink-0" />
+                  <Database className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3 flex-shrink-0" />
                   Gerenciamento
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
@@ -836,7 +846,7 @@ const UserManagement = () => {
             <UIGuard show="showCreateUserButton">
               <Button
                 variant="primary"
-                onClick={() => navigate('/register/user')}
+                onClick={() => navigate('/users/new')}
                 icon={<Plus size={18} />}
                 size="lg"
               >
@@ -1162,7 +1172,7 @@ const UserManagement = () => {
               <UIGuard show="showCreateUserButton">
                 <Button
                   variant="primary"
-                  onClick={() => navigate('/register/user')}
+                  onClick={() => navigate('/users/new')}
                   icon={<Plus size={18} />}
                 >
                   Cadastrar Usuário
@@ -1185,7 +1195,7 @@ const UserManagement = () => {
               <UIGuard show="showCreateTeamButton">
                 <Button
                   variant="primary"
-                  onClick={() => navigate('/register/team')}
+                  onClick={() => navigate('/teams/new')}
                   icon={<Plus size={18} />}
                 >
                   Criar Time
@@ -1208,7 +1218,7 @@ const UserManagement = () => {
               <UIGuard show="showCreateDepartmentButton">
                 <Button
                   variant="primary"
-                  onClick={() => navigate('/register/department')}
+                  onClick={() => navigate('/departments/new')}
                   icon={<Plus size={18} />}
                 >
                   Criar Departamento
@@ -1286,18 +1296,18 @@ const UserManagement = () => {
         </AnimatePresence>
 
         {showSalaryModal && selectedUserForSalary && (
-      <UserSalaryAssignment
-        user={selectedUserForSalary}
-        isOpen={showSalaryModal}
-        onClose={() => {
-          setShowSalaryModal(false);
-          setSelectedUserForSalary(null);
-        }}
-        onUpdate={() => {
-          window.location.reload();
-        }}
-      />
-    )}
+          <UserSalaryAssignment
+            user={selectedUserForSalary}
+            isOpen={showSalaryModal}
+            onClose={() => {
+              setShowSalaryModal(false);
+              setSelectedUserForSalary(null);
+            }}
+            onUpdate={() => {
+              actions.users.reload();
+            }}
+          />
+        )}
 
         {showWarning && pendingOperation && (
           <OperationWarning

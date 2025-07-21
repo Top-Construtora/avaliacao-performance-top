@@ -6,13 +6,24 @@ export const api = {
   async request(endpoint: string, options: RequestInit = {}) {
     const token = localStorage.getItem('access_token');
     
+    // Headers padrão limpos
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    
+    // Adiciona token se existir
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    // Não adiciona headers customizados que possam causar problemas
     const config: RequestInit = {
       ...options,
       credentials: 'include', // Importante para CORS
       mode: 'cors', // Explicitamente define modo CORS
       headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
+        ...headers,
         ...options.headers,
       },
     };
@@ -33,47 +44,82 @@ export const api = {
         throw error;
       }
       
-      const data = await response.json();
-      
-      // Se a resposta tem sucesso mas está estruturada diferente
-      if (data.success === false) {
-        const error: any = new Error(data.error || data.message || 'Request failed');
-        error.response = {
-          status: response.status,
-          data: data
-        };
-        throw error;
+      // Verifica se a resposta é JSON
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        const data = await response.json();
+        
+        // Se a resposta tem sucesso mas está estruturada diferente
+        if (data.success === false) {
+          const error: any = new Error(data.error || data.message || 'Request failed');
+          error.response = {
+            status: response.status,
+            data: data
+          };
+          throw error;
+        }
+        
+        return data;
+      } else {
+        // Se não for JSON, retorna como texto
+        return await response.text();
       }
-      
-      return data;
     } catch (error: any) {
       // Se for erro de rede/conexão
       if (!error.response) {
         error.request = true;
       }
+      
+      // Log de debug em desenvolvimento
+      if (import.meta.env.DEV) {
+        console.error('API Request Error:', {
+          endpoint,
+          method: options.method || 'GET',
+          error: error.message,
+          status: error.response?.status,
+          data: error.response?.data
+        });
+      }
+      
       throw error;
     }
   },
 
-  get(endpoint: string) {
-    return this.request(endpoint, { method: 'GET' });
+  get(endpoint: string, customHeaders?: HeadersInit) {
+    return this.request(endpoint, { 
+      method: 'GET',
+      headers: customHeaders 
+    });
   },
 
-  post(endpoint: string, data: any) {
+  post(endpoint: string, data: any, customHeaders?: HeadersInit) {
     return this.request(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
+      headers: customHeaders
     });
   },
 
-  put(endpoint: string, data: any) {
+  put(endpoint: string, data: any, customHeaders?: HeadersInit) {
     return this.request(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
+      headers: customHeaders
     });
   },
 
-  delete(endpoint: string) {
-    return this.request(endpoint, { method: 'DELETE' });
+  patch(endpoint: string, data: any, customHeaders?: HeadersInit) {
+    return this.request(endpoint, {
+      method: 'PATCH', 
+      body: JSON.stringify(data),
+      headers: customHeaders
+    });
+  },
+
+  delete(endpoint: string, customHeaders?: HeadersInit) {
+    return this.request(endpoint, { 
+      method: 'DELETE',
+      headers: customHeaders
+    });
   },
 };

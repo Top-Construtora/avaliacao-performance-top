@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../config/api';
 import { User } from '../types/user';
 import toast from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -79,18 +80,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        const response = await api.get('/auth/profile');
-        if (response.success !== false && response.data) {
-          setUser(response.data);
-          setProfile(response.data);
-          setIsAuthenticated(true);
-        } else {
-          // Token inválido, limpar
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-        }
+      // Primeiro verifica se há sessão no Supabase
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        setLoading(false);
+        return;
+      }
+
+      // Se houver sessão, busca o perfil do usuário
+      const { data: profileData, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (!error && profileData) {
+        setUser(profileData);
+        setProfile(profileData);
+        setIsAuthenticated(true);
+        
+        // Salva o token no localStorage para uso com a API
+        localStorage.setItem('access_token', session.access_token);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -103,43 +114,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await api.post('/auth/login', { email, password });
-      
-      if (response.success !== false && response.data) {
-        const { user, access_token, profile: userProfile } = response.data;
-        
-        // Salvar token
-        localStorage.setItem('access_token', access_token);
-        
-        // Usar o perfil retornado ou o user como fallback
-        const profileData = userProfile || user;
-        
-        setUser(user);
-        setProfile(profileData);
-        setIsAuthenticated(true);
-        
-        toast.success('Login realizado com sucesso!');
-        return true;
+      // Faz login via Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        toast.error(error.message || 'Erro ao fazer login');
+        return false;
       }
+
+      if (!data.user || !data.session) {
+        toast.error('Erro ao fazer login');
+        return false;
+      }
+
+      // Busca o perfil do usuário
+      const { data: profileData, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError || !profileData) {
+        toast.error('Erro ao buscar perfil do usuário');
+        return false;
+      }
+
+      // Verifica se o usuário está ativo
+      if (!profileData.active) {
+        await supabase.auth.signOut();
+        toast.error('Usuário inativo. Entre em contato com o administrador.');
+        return false;
+      }
+
+      // Salva os dados
+      localStorage.setItem('access_token', data.session.access_token);
+      setUser(profileData);
+      setProfile(profileData);
+      setIsAuthenticated(true);
       
-      toast.error('Erro ao fazer login. Verifique suas credenciais.');
-      return false;
+      toast.success('Login realizado com sucesso!');
+      return true;
     } catch (error: any) {
       console.error('Error signing in:', error);
-      
-      // Mensagem de erro mais específica
-      const errorMessage = error.response?.data?.error || 
-                          error.message || 
-                          'Erro ao fazer login. Verifique suas credenciais.';
-      
-      toast.error(errorMessage);
+      toast.error('Erro ao fazer login. Verifique suas credenciais.');
       return false;
     }
   };
 
   const signOut = async (): Promise<void> => {
     try {
-      await api.post('/auth/logout', {});
+      await supabase.auth.signOut();
     } catch (error) {
       console.error('Error signing out:', error);
     } finally {
@@ -173,12 +200,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateData.team_name = null;
       }
 
-      const response = await api.put(`/users/${profile.id}`, updateData);
-      if (response.success !== false && response.data) {
-        setProfile(response.data);
+      // Atualiza no Supabase
+      const { data, error } = await supabase
+        .from('users')
+        .update({
+          ...updateData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', profile.id)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setProfile(data);
         // Atualizar também o user se necessário
         if (user && user.id === profile.id) {
-          setUser(response.data);
+          setUser(data);
         }
         toast.success('Perfil atualizado com sucesso!');
       }
@@ -192,10 +233,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Add resetPassword implementation
   const resetPassword = async (email: string) => {
     try {
-      await api.post('/auth/reset-password', { email });
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        throw error;
+      }
+
       toast.success('Email de recuperação enviado!');
-    } catch (error) {
-      toast.error('Erro ao enviar email de recuperação');
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      toast.error(error.message || 'Erro ao enviar email de recuperação');
       throw error;
     }
   };

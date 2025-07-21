@@ -14,6 +14,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
+  },
+  global: {
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    }
   }
 })
 
@@ -36,6 +43,25 @@ export type Database = {
           profile_image: string | null
           created_at: string
           updated_at: string
+          contract_type?: 'CLT' | 'PJ' | 'ESTAGIO'
+          current_track_position_id?: string | null
+          current_salary_level_id?: string | null
+          current_salary?: number | null
+          position_start_date?: string | null
+          department_id?: string | null
+          track_id?: string | null
+          position_id?: string | null
+          intern_level?: string | null
+          gender?: string | null
+          has_children?: boolean
+          children_age_ranges?: string[] | null
+          marital_status?: string | null
+          hobbies?: string | null
+          favorite_color?: string | null
+          supports_team?: boolean
+          team_name?: string | null
+          practices_sports?: boolean
+          sports?: string[] | null
         }
         Insert: Omit<Database['public']['Tables']['users']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['users']['Insert']>
@@ -47,8 +73,10 @@ export type Database = {
           description: string | null
           responsible_id: string | null
           created_at: string
+          updated_at: string
+          active: boolean
         }
-        Insert: Omit<Database['public']['Tables']['departments']['Row'], 'id' | 'created_at'>
+        Insert: Omit<Database['public']['Tables']['departments']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['departments']['Insert']>
       }
       teams: {
@@ -59,8 +87,9 @@ export type Database = {
           responsible_id: string | null
           description: string | null
           created_at: string
+          updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['teams']['Row'], 'id' | 'created_at'>
+        Insert: Omit<Database['public']['Tables']['teams']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['teams']['Insert']>
       }
       team_members: {

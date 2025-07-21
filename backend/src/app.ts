@@ -1,5 +1,5 @@
 import express from 'express';
-import cors, { CorsOptions } from 'cors'; // Importe CorsOptions
+import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler';
@@ -16,6 +16,7 @@ const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'http://localhost:3001',
   'https://avaliacao-desempenho-six.vercel.app', 
 ];
 
@@ -27,7 +28,6 @@ if (process.env.FRONTEND_URL) {
 const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
     // Permite requisições sem 'origin' (ex: Postman, apps mobile, ou server-to-server)
-    // Em produção, você pode querer restringir isso por segurança.
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -38,8 +38,21 @@ const corsOptions: CorsOptions = {
   },
   credentials: true, // Essencial para cookies e autenticação
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['X-Total-Count'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'Prefer',
+    'Origin',
+    'Access-Control-Allow-Headers',
+    'Access-Control-Request-Headers',
+    'Access-Control-Request-Method'
+  ],
+  exposedHeaders: ['X-Total-Count', 'Content-Range'],
+  maxAge: 86400, // 24 horas
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
 // --- MIDDLEWARES ---
@@ -47,13 +60,48 @@ const corsOptions: CorsOptions = {
 // Confiar no proxy do Render é crucial para obter o IP/origem correto
 app.set('trust proxy', 1); 
 
-// Middlewares de segurança
-app.use(helmet());
-app.use(cors(corsOptions)); // Use a configuração centralizada aqui
+// IMPORTANTE: CORS deve vir ANTES do Helmet
+app.use(cors(corsOptions));
+
+// Helmet com configuração ajustada para não interferir com CORS
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginOpenerPolicy: { policy: "unsafe-none" },
+  crossOriginEmbedderPolicy: false,
+}));
 
 // Parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Middleware adicional para garantir CORS em todas as respostas
+app.use((req, res, next) => {
+  // Se a origem está na lista permitida, adiciona os headers
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  
+  // Para requisições OPTIONS, responde imediatamente
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Prefer');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    return res.sendStatus(204);
+  }
+  
+  next();
+});
+
+// Logging em desenvolvimento
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    if (req.headers.origin) {
+    }
+    next();
+  });
+}
 
 // --- ROTAS E HANDLERS ---
 
@@ -86,7 +134,8 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`🌍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-  console.log('✅ Origens permitidas pelo CORS:', allowedOrigins);
+  console.log('✅ Origens permitidas pelo CORS:');
+  allowedOrigins.forEach(origin => console.log(`   - ${origin}`));
 });
 
 export default app;

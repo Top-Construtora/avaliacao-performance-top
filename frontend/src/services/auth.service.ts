@@ -18,7 +18,7 @@ export interface CreateUserData {
   track_id?: string;
   position_id?: string;
   intern_level?: string;
-  contract_type?: 'CLT' | 'PJ';
+  contract_type?: 'CLT' | 'PJ' | 'ESTAGIO';
   position_start_date?: string;
   
   // Novos campos de perfil pessoal
@@ -37,14 +37,14 @@ export interface CreateUserData {
 export const authService = {
   async createUser(userData: CreateUserData) {
     try {
-      // Primeiro, verificar se o email já existe
-      const { data: existingUser, error: checkError } = await supabase
+      // Primeiro, verificar se o email já existe - com maybeSingle para evitar erro 406
+      const { data: existingUser } = await supabase
         .from('users')
-        .select('id, email')
+        .select('id')
         .eq('email', userData.email.toLowerCase())
-        .single();
+        .maybeSingle();
 
-      if (existingUser && !checkError) {
+      if (existingUser) {
         throw new Error('Email já cadastrado no sistema');
       }
 
@@ -72,17 +72,17 @@ export const authService = {
       const userId = authData.user.id;
 
       // Aguardar um momento para garantir que o usuário foi criado no Auth
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Verificar se o perfil já foi criado automaticamente pelo trigger
-      const { data: existingProfile, error: profileCheckError } = await supabase
+      const { data: existingProfile } = await supabase
         .from('users')
         .select('id')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       // Se o perfil já existe, apenas atualizar
-      if (existingProfile && !profileCheckError) {
+      if (existingProfile) {
         const { data: updatedProfile, error: updateError } = await supabase
           .from('users')
           .update({
@@ -182,7 +182,7 @@ export const authService = {
       if (profileError) {
         // Se houver erro ao criar o perfil, deletar o usuário do Auth
         try {
-          // Usar o service role client para deletar o usuário
+          // Usar admin API se disponível
           await supabase.auth.admin.deleteUser(userId);
         } catch (deleteError) {
           console.error('Erro ao deletar usuário após falha:', deleteError);
@@ -219,9 +219,15 @@ export const authService = {
         .from('users')
         .select('id')
         .eq('email', email.toLowerCase())
-        .single();
+        .maybeSingle(); // Usar maybeSingle para evitar erro 406
 
-      return !error && !!data;
+      // Se tiver erro ou não encontrar dados, retorna false
+      if (error) {
+        console.error('Erro ao verificar email:', error);
+        return false;
+      }
+
+      return !!data;
     } catch (error) {
       console.error('Erro ao verificar email:', error);
       return false;
@@ -243,7 +249,7 @@ export const authService = {
           .from('users')
           .select('id')
           .eq('id', authUser.id)
-          .single();
+          .maybeSingle();
 
         // Se não existe perfil, deletar o usuário do Auth
         if (!profile) {
