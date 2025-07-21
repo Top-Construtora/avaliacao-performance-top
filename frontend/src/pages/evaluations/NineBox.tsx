@@ -111,24 +111,31 @@ const NineBoxMatrix = () => {
     }
   }, [currentCycle, loadDashboard]);
 
-  // Filtrar apenas colaboradores que completaram autoavaliação e avaliação do líder
-  useEffect(() => {
-    if (dashboard && users) {
-      const eligible = dashboard.filter(d => 
-        d.self_evaluation_status === 'completed' && 
-        d.leader_evaluation_status === 'completed' &&
-        d.consensus_performance_score &&
-        d.consensus_potential_score
-      ).map(d => {
-        const user = users.find(u => u.id === d.employee_id);
+// Filtrar apenas colaboradores que completaram autoavaliação e avaliação do líder
+useEffect(() => {
+  if (dashboard && users) {
+    // TEMPORARIAMENTE mostrando todos - com validações de segurança
+    const eligible = dashboard
+      .filter(d => d && d.employee_id) // Garante que o objeto existe e tem employee_id
+      .map(d => {
+        const user = users.find(u => u && u.id === d.employee_id);
         return {
           ...d,
-          user: user || null
+          user: user || null,
+          // Garante que sempre há valores para as notas
+          consensus_performance_score: d.consensus_performance_score || 0,
+          consensus_potential_score: d.consensus_potential_score || 0,
+          // Garante que outros campos necessários existam
+          employee_name: d.employee_name || user?.name || 'Sem nome',
+          position: d.position || user?.position || 'Sem cargo'
         };
-      });
-      setEligibleEmployees(eligible);
-    }
-  }, [dashboard, users]);
+      })
+      // Filtra apenas os que têm dados mínimos necessários
+      .filter(d => d.user !== null);
+      
+    setEligibleEmployees(eligible);
+  }
+}, [dashboard, users]);
 
   const selectedEvaluation = eligibleEmployees.find(e => e.employee_id === selectedEmployee);
   const selectedEmp = selectedEvaluation?.user;
