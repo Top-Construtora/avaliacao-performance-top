@@ -201,7 +201,7 @@ function App() {
 
                     {/* Rotas de edição - UserEdit já existe e atende */}
                     <Route
-                      path="users/:id/edit"
+                      path="users/edit/:id"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <UserEdit />
@@ -210,15 +210,15 @@ function App() {
                     />
                     {/* Novas rotas de edição para Time e Departamento */}
                     <Route
-                      path="teams/:id/edit"
+                      path="teams/edit/:id"
                       element={
-                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                        <ProtectedRoute allowedRoles={['director']}>
                           <EditTeam />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="departments/:id/edit"
+                      path="departments/edit/:id"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <EditDepartment />
@@ -292,10 +292,10 @@ function App() {
                     <Route path="register/team" element={<RegisterTeam />} />
                     <Route path="register/department" element={<RegisterDepartment />} />
 
-                    <Route path="users/:id/edit" element={<UserEdit />} />
+                    <Route path="users/edit/:id" element={<UserEdit />} />
                     {/* Novas rotas de edição para Time e Departamento */}
-                    <Route path="teams/:id/edit" element={<EditTeam />} />
-                    <Route path="departments/:id/edit" element={<EditDepartment />} />
+                    <Route path="teams/edit/:id" element={<EditTeam />} />
+                    <Route path="departments/edit/:id" element={<EditDepartment />} />
 
                     <Route path="cycle" element={<CycleManagement />} />
                     <Route path="leader-evaluations" element={<EvaluationDashboard />} />
