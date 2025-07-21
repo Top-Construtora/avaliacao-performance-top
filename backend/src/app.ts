@@ -130,17 +130,10 @@ app.get('/', (req, res) => {
   res.json({
     message: 'API de Avaliação de Desempenho',
     status: 'online',
-    version: '1.0.0',
+    version: '1.2.0',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    endpoints: {
-      health: '/health',
-      api: '/api',
-      documentation: 'Em desenvolvimento'
-    },
-    cors: {
-      allowedOrigins: process.env.NODE_ENV === 'development' ? allowedOrigins : 'Configurado'
-    }
+
   });
 });
 
@@ -180,10 +173,6 @@ app.listen(PORT, () => {
   console.log(`📍 URL: ${process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`}`);
   console.log('✅ Origens permitidas pelo CORS:');
   allowedOrigins.forEach(origin => console.log(`   - ${origin}`));
-  console.log('\n📋 Endpoints disponíveis:');
-  console.log('   - GET  /          (Informações da API)');
-  console.log('   - GET  /health    (Status do servidor)');
-  console.log('   - *    /api/*     (Rotas da API)');
 });
 
 export default app;
