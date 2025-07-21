@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../../hooks/useSupabaseData';
 import { supabase } from '../../lib/supabase';
 import Button from '../../components/Button';
+import { UserProfileFields } from '../../components/UserProfileFields';
 import { 
   Users, Shield, Mail, Calendar, AlertCircle, Briefcase, UserCheck, 
   Sparkles, Crown, User, Phone, CalendarDays, Camera, Upload,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import { PermissionGuard } from '../../components/PermissionGuard';
 import { usePermissions } from '../../hooks/usePermissions';
+import type { Gender, MaritalStatus } from '../../types/user';
 
 interface Track {
   id: string;
@@ -84,6 +86,18 @@ const EditUser = () => {
     positionId: '', // ID do track_position
     internLevel: 'A' as 'A' | 'B' | 'C' | 'D' | 'E',
     contractType: 'CLT' as 'CLT' | 'PJ',
+    
+    // Novos campos de perfil pessoal
+    gender: null as Gender | null,
+    has_children: false,
+    children_age_ranges: [] as string[],
+    marital_status: null as MaritalStatus | null,
+    hobbies: '',
+    favorite_color: '',
+    supports_team: false,
+    team_name: '',
+    practices_sports: false,
+    sports: [] as string[],
   });
 
   const [originalData, setOriginalData] = useState(formData);
@@ -170,7 +184,6 @@ const EditUser = () => {
       }
     } else {
       setFilteredTracks([]);
-      // Only clear if departmentId is intentionally empty, not on initial load when data might still be loading
       if (formData.departmentId === '') {
         setFormData(prev => ({ ...prev, trackId: '', positionId: '', internLevel: 'A' }));
       }
@@ -187,7 +200,6 @@ const EditUser = () => {
       }
     } else {
       setFilteredPositions([]);
-      // Only clear if trackId is intentionally empty
       if (formData.trackId === '') {
         setFormData(prev => ({ ...prev, positionId: '', internLevel: 'A' }));
       }
@@ -202,14 +214,13 @@ const EditUser = () => {
         const positionName = selectedPosition.position?.name || selectedPosition.position_id;
         setFormData(prev => ({ 
           ...prev, 
-          position: positionName // Atualiza o campo 'position' com o nome
+          position: positionName
         }));
       }
     } else if (formData.positionId === '') {
       setFormData(prev => ({ ...prev, position: '' }));
     }
   }, [formData.positionId, positions]);
-
 
   // Carregar dados do usuário
   useEffect(() => {
@@ -251,19 +262,27 @@ const EditUser = () => {
         profileImage: user.profile_image || null,
         reportsTo: user.reports_to || '',
         active: user.active !== false,
-        // Novos campos
         departmentId: user.department_id || '',
         trackId: user.track_id || '',
         positionId: user.position_id || '',
         internLevel: user.intern_level || 'A' as 'A' | 'B' | 'C' | 'D' | 'E',
         contractType: user.contract_type || 'CLT' as 'CLT' | 'PJ',
+        
+        // Novos campos de perfil pessoal
+        gender: user.gender || null,
+        has_children: user.has_children || false,
+        children_age_ranges: user.children_age_ranges || [],
+        marital_status: user.marital_status || null,
+        hobbies: user.hobbies || '',
+        favorite_color: user.favorite_color || '',
+        supports_team: user.supports_team || false,
+        team_name: user.team_name || '',
+        practices_sports: user.practices_sports || false,
+        sports: user.sports || [],
       };
 
       setFormData(userData);
       setOriginalData(userData);
-
-      // Trigger filtering for tracks and positions based on loaded department/track
-      // These will be handled by their respective useEffects
     } catch (error) {
       console.error('Erro ao carregar dados do usuário:', error);
       toast.error('Erro ao carregar dados do usuário');
@@ -331,6 +350,13 @@ const EditUser = () => {
     }
   };
 
+  const handleProfileFieldChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const validateForm = () => {
     const errors: Record<string, string> = {};
     
@@ -339,8 +365,6 @@ const EditUser = () => {
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = 'Email inválido';
     }
-    // O campo 'position' que usamos aqui é o nome do cargo, que agora é derivado, mas ainda importante para validação se o ID estiver ok.
-    // if (!formData.position.trim()) errors.position = 'Cargo é obrigatório';
     if (formData.phone && !/^\(\d{2}\) \d{5}-\d{4}$/.test(formData.phone)) {
       errors.phone = 'Telefone inválido';
     }
@@ -378,7 +402,7 @@ const EditUser = () => {
     if (formData.profileType === 'regular' && !formData.reportsTo) {
       errors.reportsTo = 'Selecione um líder';
     }
-    if (formData.profileType === 'leader' && !formData.reportsTo && users.find(u => u.id === id)?.is_director === false) { // Leaders can report to directors only
+    if (formData.profileType === 'leader' && !formData.reportsTo && users.find(u => u.id === id)?.is_director === false) {
       errors.reportsTo = 'Selecione um diretor para o líder';
     }
 
@@ -388,7 +412,6 @@ const EditUser = () => {
     if (!formData.positionId) errors.positionId = 'Cargo é obrigatório';
     if (!formData.internLevel) errors.internLevel = 'Internível é obrigatório';
     if (!formData.contractType) errors.contractType = 'Tipo de contrato é obrigatório';
-
 
     // Validação de senha se estiver mudando
     if (showPasswordChange) {
@@ -422,7 +445,7 @@ const EditUser = () => {
       // Atualizar dados do usuário
       await updateUser(id!, {
         name: formData.name.trim(),
-        position: formData.position.trim(), // Agora o nome do cargo
+        position: formData.position.trim(),
         is_leader: formData.profileType !== 'regular',
         is_director: formData.profileType === 'director',
         phone: formData.phone || null,
@@ -431,12 +454,23 @@ const EditUser = () => {
         profile_image: formData.profileImage || null,
         reports_to: formData.reportsTo || null,
         active: formData.active,
-        // Novos campos
         department_id: formData.departmentId || null,
         track_id: formData.trackId || null,
-        position_id: formData.positionId || null, // ID do track_position
+        position_id: formData.positionId || null,
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
+        
+        // Novos campos de perfil pessoal
+        gender: formData.gender,
+        has_children: formData.has_children,
+        children_age_ranges: formData.children_age_ranges,
+        marital_status: formData.marital_status,
+        hobbies: formData.hobbies || null,
+        favorite_color: formData.favorite_color || null,
+        supports_team: formData.supports_team,
+        team_name: formData.team_name || null,
+        practices_sports: formData.practices_sports,
+        sports: formData.sports,
       });
 
       // Atualizar times do usuário
@@ -1015,6 +1049,14 @@ const EditUser = () => {
                 </p>
               </div>
             </div>
+          </motion.div>
+
+          {/* Personal Profile Information - UserProfileFields */}
+          <motion.div variants={itemVariants}>
+            <UserProfileFields 
+              formData={formData}
+              onChange={handleProfileFieldChange}
+            />
           </motion.div>
 
           {/* Team Allocation */}
