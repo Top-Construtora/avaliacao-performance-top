@@ -1,4 +1,3 @@
-// frontend/src/components/users/UserProfileFields.tsx
 import React from 'react';
 import { 
   User,
@@ -7,14 +6,14 @@ import {
   Palette,
   Users,
   Activity,
-  Hash,
-  Shield
+  BookHeart,
+  Shield,
+  ChevronDown
 } from 'lucide-react';
 import {
   GENDER_OPTIONS,
   MARITAL_STATUS_OPTIONS,
   CHILDREN_AGE_OPTIONS,
-  FAVORITE_COLORS,
   POPULAR_SPORTS,
   Gender,
   MaritalStatus,
@@ -72,18 +71,21 @@ export const UserProfileFields: React.FC<UserProfileFieldsProps> = ({
               <Shield className="inline h-4 w-4 mr-1" />
               Gênero
             </label>
-            <select
-              value={formData.gender || ''}
-              onChange={(e) => onChange('gender', e.target.value || null)}
-              className="w-full rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white transition-all"
-            >
-              <option value="">Selecione...</option>
-              {GENDER_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+              <select
+                value={formData.gender || ''}
+                onChange={(e) => onChange('gender', e.target.value || null)}
+                className="w-full px-4 py-3 pr-10 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
+              >
+                <option value="">Selecione...</option>
+                {GENDER_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Estado Civil */}
@@ -92,18 +94,21 @@ export const UserProfileFields: React.FC<UserProfileFieldsProps> = ({
               <Heart className="inline h-4 w-4 mr-1" />
               Estado Civil
             </label>
-            <select
-              value={formData.marital_status || ''}
-              onChange={(e) => onChange('marital_status', e.target.value || null)}
-              className="w-full rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white transition-all"
-            >
-              <option value="">Selecione...</option>
-              {MARITAL_STATUS_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+              <select
+                value={formData.marital_status || ''}
+                onChange={(e) => onChange('marital_status', e.target.value || null)}
+                className="w-full px-4 py-3 pr-10 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
+              >
+                <option value="">Selecione...</option>
+                {MARITAL_STATUS_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Tem Filhos */}
@@ -164,7 +169,7 @@ export const UserProfileFields: React.FC<UserProfileFieldsProps> = ({
           {/* Hobbies */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              <Hash className="inline h-4 w-4 mr-1" />
+              <BookHeart className="inline h-4 w-4 mr-1" />
               Hobbies e Lazer
             </label>
             <textarea
@@ -172,7 +177,7 @@ export const UserProfileFields: React.FC<UserProfileFieldsProps> = ({
               onChange={(e) => onChange('hobbies', e.target.value)}
               rows={3}
               placeholder="Ex: Leitura, viagens, culinária, música..."
-              className="w-full rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white transition-all"
+              className="w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 resize-none"
             />
           </div>
 
@@ -182,18 +187,13 @@ export const UserProfileFields: React.FC<UserProfileFieldsProps> = ({
               <Palette className="inline h-4 w-4 mr-1" />
               Cor Preferida
             </label>
-            <select
+            <input
+              type="text"
               value={formData.favorite_color || ''}
               onChange={(e) => onChange('favorite_color', e.target.value)}
-              className="w-full rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white transition-all"
-            >
-              <option value="">Selecione uma cor...</option>
-              {FAVORITE_COLORS.map(color => (
-                <option key={color.value} value={color.value}>
-                  {color.label}
-                </option>
-              ))}
-            </select>
+              placeholder="Digite sua cor preferida"
+              className="w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
+            />
           </div>
 
           {/* Time de Futebol */}
@@ -212,7 +212,7 @@ export const UserProfileFields: React.FC<UserProfileFieldsProps> = ({
               />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 <Users className="inline h-4 w-4 mr-1" />
-                Torce para algum time
+                Torce para algum time?
               </span>
             </label>
 
@@ -222,7 +222,7 @@ export const UserProfileFields: React.FC<UserProfileFieldsProps> = ({
                 value={formData.team_name || ''}
                 onChange={(e) => onChange('team_name', e.target.value)}
                 placeholder="Nome do time"
-                className="w-full rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white transition-all"
+                className="w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
               />
             )}
           </div>
@@ -273,7 +273,7 @@ export const UserProfileFields: React.FC<UserProfileFieldsProps> = ({
                   <input
                     type="text"
                     placeholder="Outro esporte (pressione Enter para adicionar)"
-                    className="w-full rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white transition-all text-sm"
+                    className="w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 text-sm"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();

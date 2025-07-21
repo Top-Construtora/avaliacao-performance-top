@@ -76,20 +76,6 @@ export const CHILDREN_AGE_OPTIONS: { value: ChildrenAgeRange; label: string }[] 
   { value: '18+', label: '18 anos ou mais' }
 ];
 
-// Cores populares para seleção
-export const FAVORITE_COLORS = [
-  { value: 'vermelho', label: 'Vermelho' },
-  { value: 'azul', label: 'Azul' },
-  { value: 'verde', label: 'Verde' },
-  { value: 'amarelo', label: 'Amarelo' },
-  { value: 'laranja', label: 'Laranja' },
-  { value: 'roxo', label: 'Roxo' },
-  { value: 'rosa', label: 'Rosa' },
-  { value: 'preto', label: 'Preto' },
-  { value: 'branco', label: 'Branco' },
-  { value: 'cinza', label: 'Cinza' }
-];
-
 // Esportes comuns
 export const POPULAR_SPORTS = [
   'Futebol',
