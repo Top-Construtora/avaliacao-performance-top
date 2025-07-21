@@ -17,7 +17,8 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:3001',
-  'https://avaliacao-desempenho-six.vercel.app', 
+  'https://avaliacao-desempenho-six.vercel.app',
+  'https://avaliacao-desempenho-yns9.onrender.com', // URL do Render
 ];
 
 // Adiciona a URL do frontend a partir das variáveis de ambiente se ela existir
@@ -68,7 +69,25 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginOpenerPolicy: { policy: "unsafe-none" },
   crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false, // Vamos configurar manualmente abaixo
 }));
+
+// Configuração manual de CSP para permitir fontes do Google
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+    "font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com data:; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+    "img-src 'self' data: https: blob:; " +
+    "connect-src 'self' https: wss: ws:; " +
+    "frame-ancestors 'none'; " +
+    "base-uri 'self'; " +
+    "form-action 'self'"
+  );
+  next();
+});
 
 // Parsers
 app.use(express.json());
@@ -98,6 +117,7 @@ app.use((req, res, next) => {
 if (process.env.NODE_ENV === 'development') {
   app.use((req, res, next) => {
     if (req.headers.origin) {
+      console.log(`📨 Requisição de: ${req.headers.origin} para ${req.method} ${req.path}`);
     }
     next();
   });
@@ -105,12 +125,33 @@ if (process.env.NODE_ENV === 'development') {
 
 // --- ROTAS E HANDLERS ---
 
+// Rota raiz - página inicial da API
+app.get('/', (req, res) => {
+  res.json({
+    message: 'API de Avaliação de Desempenho',
+    status: 'online',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    endpoints: {
+      health: '/health',
+      api: '/api',
+      documentation: 'Em desenvolvimento'
+    },
+    cors: {
+      allowedOrigins: process.env.NODE_ENV === 'development' ? allowedOrigins : 'Configurado'
+    }
+  });
+});
+
 // Rota de Health Check
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    uptime: process.uptime(),
+    memory: process.memoryUsage()
   });
 });
 
@@ -118,11 +159,13 @@ app.get('/health', (req, res) => {
 app.use('/api', routes);
 
 // Handler para rotas não encontradas (404)
-app.use('/api/*', (req, res) => {
+app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
     error: 'Rota não encontrada',
-    path: req.originalUrl
+    path: req.originalUrl,
+    method: req.method,
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -134,8 +177,13 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`🌍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📍 URL: ${process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`}`);
   console.log('✅ Origens permitidas pelo CORS:');
   allowedOrigins.forEach(origin => console.log(`   - ${origin}`));
+  console.log('\n📋 Endpoints disponíveis:');
+  console.log('   - GET  /          (Informações da API)');
+  console.log('   - GET  /health    (Status do servidor)');
+  console.log('   - *    /api/*     (Rotas da API)');
 });
 
 export default app;
