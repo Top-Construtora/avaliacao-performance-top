@@ -13,7 +13,6 @@ import {
   X,
   CheckCircle,
   AlertCircle,
-  Info,
   Clock,
   Users,
   Crown,
@@ -24,7 +23,6 @@ import {
   Target
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
-import { toast } from 'react-hot-toast';
 
 interface HeaderProps {
   isMobileMenuOpen?: boolean;

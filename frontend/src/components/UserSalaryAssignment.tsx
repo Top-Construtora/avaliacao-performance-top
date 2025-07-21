@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from './Button';
 import {
-  DollarSign, GitBranch, Briefcase, Target, TrendingUp,
-  Save, X, Info, Calendar, Award, ArrowRight, Clock,
+  DollarSign, GitBranch, Target, TrendingUp,
+  Save, X, Calendar, Award, ArrowRight, Clock,
   FileText, AlertCircle, UserRound
 } from 'lucide-react';
 import { salaryService, CareerTrack, TrackPosition, SalaryLevel, UserSalaryInfo } from '../services/salary.service';

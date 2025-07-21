@@ -3,16 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import {
-  Building, GitBranch, Plus, ChevronRight, Briefcase, Layers, Target,
-  DollarSign, Edit, Trash2, Save, X, Search, Settings, BarChart3, Move
+  Building, GitBranch, Plus, ChevronRight,
+  Trash2, Save, X, Settings, BarChart3, 
 } from 'lucide-react';
 
 // Importações corretas dos serviços
 import Button from '../../components/Button';
-import { useAuth } from '../../context/AuthContext';
 import { RoleGuard } from '../../components/RoleGuard';
 import { departmentsService } from '../../services/departments.service';
-import { salaryService, CareerTrack, JobPosition, SalaryClass, SalaryLevel, TrackPosition } from '../../services/salary.service';
+import { salaryService, CareerTrack } from '../../services/salary.service';
 
 // Interface para Department estendida com active
 interface DepartmentWithActive {

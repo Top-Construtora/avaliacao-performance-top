@@ -1,10 +1,7 @@
-// frontend/src/components/PDIViewer.tsx - Versão sem date-fns
-
 import React from 'react';
 import {
   FileText,
   Calendar,
-  Target,
   Clock,
   CheckCircle,
   AlertCircle,

@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Grid3x3, 
   TrendingUp, 
-  Users, 
-  Trophy,
   BookOpen,
   Info,
   Briefcase,
@@ -14,7 +11,6 @@ import {
   Target,
   AlertTriangle,
   HelpCircle,
-  Zap,
   ShieldCheck,
   TrendingDown,
   Activity,

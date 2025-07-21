@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, BarChart3, Download, Calendar, Briefcase, TrendingUp, Target, Award, Info, Grid3x3 } from 'lucide-react';
+import { User, BarChart3, Download, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3 } from 'lucide-react';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useSupabaseUsers } from '../../hooks/useSupabaseData';
 import Button from '../../components/Button';

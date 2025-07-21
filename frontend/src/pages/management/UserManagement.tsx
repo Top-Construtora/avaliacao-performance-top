@@ -4,15 +4,13 @@ import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import UserSalaryAssignment from '../../components/UserSalaryAssignment';
 import { 
-  Users, Edit, Trash2, Search, Filter, Building, UserPlus,
-  Shield, Mail, Calendar, X, AlertCircle, Briefcase,
-  UserCheck, UsersIcon, MoreVertical, Star, ChevronRight,
-  ArrowUpDown, Sparkles, Hash, Info, ChevronLeft, Zap,
-  Crown, Target, Layers, Eye, EyeOff, Copy, Download,
-  FolderPlus, UserCog, MapPin, FileText, BarChart,
-  UserRound, Phone, CalendarDays, Camera, Upload, Link2,
-  GitBranch, Network, UserX, ArrowRight, ArrowLeft, Plus,
-  Grid3x3, List, CheckCircle, FileSpreadsheet, FileDown, DollarSign,
+  Users, Edit, Trash2, Search, Filter, Building,
+  Shield, Mail, Calendar, 
+  UserCheck, UsersIcon, MoreVertical, Crown,  Copy, Download,
+  UserCog, FileText,
+  UserRound, Phone, CalendarDays, Upload,
+  GitBranch, Network, UserX, Plus,
+  Grid3x3, List, FileSpreadsheet, FileDown, DollarSign,
   Loader2, Database
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

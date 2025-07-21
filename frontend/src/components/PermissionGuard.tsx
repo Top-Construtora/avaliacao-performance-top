@@ -3,7 +3,6 @@ import { Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShieldOff, AlertTriangle } from 'lucide-react';
 import { usePermissions, useUIPermissions } from '../hooks/usePermissions';
-import { UserRole } from '../types/auth';
 
 interface PermissionGuardProps {
   children: React.ReactNode;

@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Calendar, Plus, Play, Lock, Edit, Trash2, Clock, 
+  Calendar, Plus, Play, Lock, Edit, Clock, 
   CheckCircle, AlertCircle, Users, BarChart3, FileText,
-  ArrowRight, Info, Settings, X, Save, ChevronRight,
-  CalendarDays, Timer, TrendingUp, Award, Pause,
-  RotateCcw, Eye, Download, Filter, Search,
-  ChevronDown, MoreVertical, RefreshCw, Zap, Grid3x3
+  Info, X, Save, ChevronRight,
+  CalendarDays, Timer, TrendingUp, Award,
+  Eye, Download,
+  MoreVertical, RefreshCw, Zap, Grid3x3
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useUserRole } from '../../context/AuthContext';
-import type { EvaluationCycle, CycleDashboard } from '../../types/evaluation.types';
+import type { EvaluationCycle } from '../../types/evaluation.types';
 import Button from '../../components/Button';
 
 interface CycleStats {

@@ -4,12 +4,11 @@ import { toast } from 'react-hot-toast';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 import { EVALUATION_COMPETENCIES } from '../../types/evaluation.types';
-import type { EvaluationCompetency, WrittenFeedback, EvaluationCycle } from '../../types/evaluation.types';
 import { pdiService } from '../../services/pdiService';
 import LeaderEvaluationHeader from '../../components/LeaderEvaluationHeader';
 import EvaluationSection from '../../components/EvaluationSection';
 import PotentialAndPDI from '../../components/PotentialAndPDI';
-import { AlertCircle, CheckCircle, Save, ArrowRight, BookOpen, Target, Award, Building, Grid3x3, Briefcase, Calendar as CalendarIcon, Info } from 'lucide-react';
+import { AlertCircle, CheckCircle, Save, ArrowRight, BookOpen, Target, Award, Info } from 'lucide-react';
 import Button from '../../components/Button';
 import { motion } from 'framer-motion';
 

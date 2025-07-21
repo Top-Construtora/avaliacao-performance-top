@@ -1,12 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  Users, Target, Briefcase, Calendar, Info, ChevronDown, BarChart3,
+  Users, Briefcase, Calendar, Info, ChevronDown,
   AlertCircle, Building, Grid3x3
 } from 'lucide-react';
 import type { EvaluationCycle } from '../types/evaluation.types';
 import type { UserWithDetails } from '../types/supabase';
-import Button from './Button';
 import { useEvaluation } from '../hooks/useEvaluation'; // Import useEvaluation to get getNineBoxByEmployeeId
 
 interface LeaderEvaluationHeaderProps {
