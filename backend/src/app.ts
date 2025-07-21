@@ -15,7 +15,6 @@ const PORT = process.env.PORT || 3001;
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'http://localhost:3000',
   'http://localhost:3001',
   'https://avaliacao-desempenho-six.vercel.app',
   'https://avaliacao-desempenho-yns9.onrender.com', // URL do Render
@@ -133,7 +132,6 @@ app.get('/', (req, res) => {
     version: '1.2.0',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-
   });
 });
 
