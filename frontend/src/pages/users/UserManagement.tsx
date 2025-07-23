@@ -4,14 +4,11 @@ import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import UserSalaryAssignment from '../../components/UserSalaryAssignment';
 import { 
-  Users, Edit, Search, Filter, Building,
-  Shield, Mail, Calendar, 
-  UserCheck, MoreVertical, Crown, Copy, Download,
-  UserCog, FileText,
-  UserRound, Phone, CalendarDays, Upload,
-  GitBranch, Network, UserX, Plus,
-  Grid3x3, List, FileSpreadsheet, FileDown, DollarSign,
-  Loader2, Database, UsersIcon
+  Users, Edit, Search, Filter,
+  Shield, Mail, Calendar, UserCheck, MoreVertical, Crown, 
+  Copy, Download, FileText,Phone, CalendarDays, Upload,
+  GitBranch, Network, UserX, Plus,Grid3x3, List, FileSpreadsheet, 
+  FileDown, DollarSign, Loader2, Database, UsersIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
@@ -57,8 +54,6 @@ const UserManagement = () => {
     data: any;
     callback: () => void;
   } | null>(null);
-
-  const getUserById = (id: string) => users.find(u => u.id === id);
 
   const getSubordinates = (userId: string) => {
     return users.filter(u => u.reports_to === userId);
