@@ -9,6 +9,7 @@ import {
   PieChart,
   Settings,
   LogOut,
+  Layers,
   RotateCcw,
   Grid3X3,
   DollarSign,
@@ -17,6 +18,7 @@ import {
   Plus,
   ChevronDown,
   Building,
+  User,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import logo from '../../assets/images/logo.png';
@@ -81,10 +83,27 @@ export default function Sidebar({
       ],
     },
     {
-      label: 'Gerenciar Usuários',
-      icon: Users,
-      path: '/users',
+      label: 'Gerenciar',
+      icon: Layers,
+      hasDropdown: true,
       allowedRoles: ['director'],
+      subItems: [
+        {
+          label: 'Gerenciar Usuários',
+          icon: User,
+          path: '/users',
+        },
+        {
+          label: 'Gerenciar Times',
+          icon: Users,
+          path: '/teams',
+        },
+        {
+          label: 'Gerenciar Departamentos',
+          icon: Building,
+          path: '/departments',
+        },
+      ],
     },
     {
       label: 'Cargos e Salários',

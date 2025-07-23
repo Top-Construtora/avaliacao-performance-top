@@ -7,6 +7,9 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/auth/Login';
+import UserManagement from './pages/users/UserManagement';
+import TeamManagement from './pages/teams/TeamManagement';
+import DepartmentManagement from './pages/departments/DepartmentManagement';
 import ResetPassword from './pages/auth/ResetPassword';
 import Dashboard from './pages/home/Dashboard';
 import SelfEvaluation from './pages/evaluations/SelfEvaluation';
@@ -24,7 +27,6 @@ import Settings from './pages/settings/Settings';
 import NotFound from './pages/NotFound';
 import NineBoxMatrix from './pages/evaluations/NineBox';
 import NotificationHistory from './pages/notifications/NotificationHistory';
-import UserManagement from './pages/management/UserManagement';
 import EvaluationDashboard from './pages/reports/EvaluationDashboard';
 import CycleManagement from './pages/management/CycleManagement';
 import SalaryAdminPage from './pages/management/SalaryAdminPage';
@@ -199,6 +201,33 @@ function App() {
                       }
                     />
 
+                    <Route
+                      path="/users"
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <UserManagement />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    <Route
+                      path="/teams"
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <TeamManagement />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    <Route
+                      path="/departments"
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <DepartmentManagement />
+                        </ProtectedRoute>
+                      }
+                    />
+
                     {/* Rotas de edição - UserEdit já existe e atende */}
                     <Route
                       path="users/edit/:id"
@@ -281,6 +310,9 @@ function App() {
                     <Route path="self-evaluation" element={<SelfEvaluation />} />
                     <Route path="leader-evaluation" element={<LeaderEvaluation />} />
                     <Route path="consensus" element={<Consensus />} />
+                    <Route path="/users" element={<UserManagement />} />
+                    <Route path="/teams" element={<TeamManagement />} />
+                    <Route path="/departments" element={<DepartmentManagement />} />
                     <Route path="nine-box" element={<NineBoxMatrix />} />
                     <Route path="reports" element={<Reports />} />
                     <Route path="settings" element={<Settings />} />

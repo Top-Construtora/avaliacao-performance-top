@@ -4,19 +4,19 @@ import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import UserSalaryAssignment from '../../components/UserSalaryAssignment';
 import { 
-  Users, Edit, Trash2, Search, Filter, Building,
+  Users, Edit, Search, Filter, Building,
   Shield, Mail, Calendar, 
-  UserCheck, UsersIcon, MoreVertical, Crown,  Copy, Download,
+  UserCheck, MoreVertical, Crown, Copy, Download,
   UserCog, FileText,
   UserRound, Phone, CalendarDays, Upload,
   GitBranch, Network, UserX, Plus,
   Grid3x3, List, FileSpreadsheet, FileDown, DollarSign,
-  Loader2, Database
+  Loader2, Database, UsersIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { useSupabaseData } from '../../hooks/useSupabaseData';
-import type { UserWithDetails, TeamWithDetails, DepartmentWithDetails } from '../../types/supabase';
+import type { UserWithDetails } from '../../types/supabase';
 import { RoleGuard } from '../../components/RoleGuard';
 import { usePermissions, useUIPermissions, useOperationValidator } from '../../hooks/usePermissions';
 import type { User } from '../../types/supabase';
@@ -30,7 +30,6 @@ declare module 'jspdf' {
   }
 }
 
-type TabType = 'users' | 'teams' | 'departments';
 type ViewMode = 'grid' | 'list';
 type ExportFormat = 'excel' | 'notion' | 'pdf';
 
@@ -42,7 +41,6 @@ const UserManagement = () => {
   
   const { users, teams, departments, loading, actions } = useSupabaseData();
 
-  const [activeTab, setActiveTab] = useState<TabType>('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -50,8 +48,6 @@ const UserManagement = () => {
   const [showOnlyLeaders, setShowOnlyLeaders] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'department'>('name');
-  const [editingItem, setEditingItem] = useState<any>(null);
-  const [editType, setEditType] = useState<'user' | 'team' | 'department'>('user');
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
   const [showSalaryModal, setShowSalaryModal] = useState(false);
@@ -63,16 +59,9 @@ const UserManagement = () => {
   } | null>(null);
 
   const getUserById = (id: string) => users.find(u => u.id === id);
-  const getTeamById = (id: string) => teams.find(t => t.id === id);
-  const getDepartmentById = (id: string) => departments.find(d => d.id === id);
 
   const getSubordinates = (userId: string) => {
     return users.filter(u => u.reports_to === userId);
-  };
-
-  const getLeader = (userId: string) => {
-    const user = getUserById(userId);
-    return user?.reports_to ? getUserById(user.reports_to) : null;
   };
 
   const calculateAge = (birthDate: string) => {
@@ -87,66 +76,39 @@ const UserManagement = () => {
     return age;
   };
 
-  const handleEdit = (type: 'user' | 'team' | 'department', item: any) => {
-    if (type === 'user') {
-      if (!permissions.canEditUser(item.id)) {
-        toast.error('Você não tem permissão para editar este usuário');
-        return;
-      }
-      navigate(`/users/edit/${item.id}`);
-    } else if (type === 'team') {
-      if (!permissions.canEditTeam(item.id, item.responsible_id)) {
-        toast.error('Você não tem permissão para editar este time');
-        return;
-      }
-      navigate(`/teams/edit/${item.id}`);
-    } else if (type === 'department') {
-      if (!permissions.canEditDepartment()) {
-        toast.error('Você não tem permissão para editar departamentos');
-        return;
-      }
-      navigate(`/departments/edit/${item.id}`);
+  const handleEdit = (user: UserWithDetails) => {
+    if (!permissions.canEditUser(user.id)) {
+      toast.error('Você não tem permissão para editar este usuário');
+      return;
     }
+    navigate(`/users/edit/${user.id}`);
   };
 
-  const handleDelete = async (type: 'user' | 'team' | 'department', id: string) => {
-    if (!permissions.hasPermission(type + 's', 'delete')) {
+  const handleDelete = async (id: string) => {
+    if (!permissions.hasPermission('users', 'delete')) {
       toast.error('Você não tem permissão para esta ação');
       return;
     }
 
-    const operation = type === 'user' ? 'deactivate_user' : `delete_${type}`;
-    const targetData = type === 'user' 
-      ? users.find(u => u.id === id)
-      : type === 'team' 
-      ? teams.find(t => t.id === id)
-      : departments.find(d => d.id === id);
+    const targetData = users.find(u => u.id === id);
 
-    if (!operationValidator.canExecute(operation, targetData)) {
-      const errors = operationValidator.getValidationErrors(operation, targetData);
+    if (!operationValidator.canExecute('deactivate_user', targetData)) {
+      const errors = operationValidator.getValidationErrors('deactivate_user', targetData);
       toast.error(errors[0] || 'Operação não permitida');
       return;
     }
 
-    const warnings = operationValidator.getValidationWarnings(operation, targetData);
+    const warnings = operationValidator.getValidationWarnings('deactivate_user', targetData);
     if (warnings.length > 0) {
       setPendingOperation({
-        type: operation,
+        type: 'deactivate_user',
         data: targetData,
         callback: async () => {
           try {
-            if (type === 'user') {
-              await actions.users.deactivate(id);
-              toast.success('Usuário desativado com sucesso!');
-            } else if (type === 'team') {
-              await actions.teams.delete(id);
-              toast.success('Time removido com sucesso!');
-            } else {
-              await actions.departments.delete(id);
-              toast.success('Departamento removido com sucesso!');
-            }
+            await actions.users.deactivate(id);
+            toast.success('Usuário desativado com sucesso!');
           } catch (error) {
-            toast.error(`Erro ao ${type === 'user' ? 'desativar usuário' : 'remover ' + type}`);
+            toast.error('Erro ao desativar usuário');
           }
         }
       });
@@ -154,20 +116,12 @@ const UserManagement = () => {
       return;
     }
 
-    if (window.confirm(`Tem certeza que deseja ${type === 'user' ? 'desativar este usuário' : 'excluir'}?`)) {
+    if (window.confirm('Tem certeza que deseja desativar este usuário?')) {
       try {
-        if (type === 'user') {
-          await actions.users.deactivate(id);
-          toast.success('Usuário desativado com sucesso!');
-        } else if (type === 'team') {
-          await actions.teams.delete(id);
-          toast.success('Time removido com sucesso!');
-        } else {
-          await actions.departments.delete(id);
-          toast.success('Departamento removido com sucesso!');
-        }
+        await actions.users.deactivate(id);
+        toast.success('Usuário desativado com sucesso!');
       } catch (error) {
-        toast.error(`Erro ao ${type === 'user' ? 'desativar usuário' : 'remover ' + type}`);
+        toast.error('Erro ao desativar usuário');
       }
     }
   };
@@ -196,97 +150,44 @@ const UserManagement = () => {
   };
 
   const exportToExcel = () => {
-    let data: any[] = [];
-    let filename = '';
-
-    if (activeTab === 'users') {
-      data = filteredUsers.map(user => ({
-        Nome: user.name,
-        Email: user.email,
-        Cargo: user.position,
-        Tipo: user.is_director ? 'Diretor' : user.is_leader ? 'Líder' : 'Colaborador',
-        Departamentos: user.departments?.map(d => d.name).join(', ') || '-',
-        Times: user.teams?.map(t => t.name).join(', ') || '-',
-        'Data de Entrada': new Date(user.join_date).toLocaleDateString('pt-BR'),
-        Telefone: uiPermissions.showFullContactInfo ? (user.phone || '-') : '***',
-        Idade: user.birth_date ? calculateAge(user.birth_date) : '-',
-        'Reporta para': user.manager?.name || '-'
-      }));
-      filename = 'usuarios.xlsx';
-    } else if (activeTab === 'teams') {
-      data = filteredTeams.map(team => ({
-        Nome: team.name,
-        Departamento: team.department?.name || '-',
-        Responsável: team.responsible?.name || '-',
-        'Qtd. Membros': team.members?.length || 0,
-        Descrição: team.description || '-',
-        'Criado em': new Date(team.created_at).toLocaleDateString('pt-BR')
-      }));
-      filename = 'times.xlsx';
-    } else {
-      data = filteredDepartments.map(dept => ({
-        Nome: dept.name,
-        Descrição: dept.description || '-',
-        Responsável: dept.responsible?.name || '-',
-        'Qtd. Times': dept.teams?.length || 0,
-        'Qtd. Pessoas': dept.member_count || 0,
-        'Criado em': new Date(dept.created_at).toLocaleDateString('pt-BR')
-      }));
-      filename = 'departamentos.xlsx';
-    }
+    const data = filteredUsers.map(user => ({
+      Nome: user.name,
+      Email: user.email,
+      Cargo: user.position,
+      Tipo: user.is_director ? 'Diretor' : user.is_leader ? 'Líder' : 'Colaborador',
+      Departamentos: user.departments?.map(d => d.name).join(', ') || '-',
+      Times: user.teams?.map(t => t.name).join(', ') || '-',
+      'Data de Entrada': new Date(user.join_date).toLocaleDateString('pt-BR'),
+      Telefone: uiPermissions.showFullContactInfo ? (user.phone || '-') : '***',
+      Idade: user.birth_date ? calculateAge(user.birth_date) : '-',
+      'Reporta para': user.manager?.name || '-'
+    }));
 
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, activeTab.charAt(0).toUpperCase() + activeTab.slice(1));
-    XLSX.writeFile(wb, filename);
+    XLSX.utils.book_append_sheet(wb, ws, 'Usuarios');
+    XLSX.writeFile(wb, 'usuarios.xlsx');
     toast.success('Dados exportados para Excel!');
   };
 
   const exportToNotion = () => {
-    let markdownContent = '';
-
-    if (activeTab === 'users') {
-      markdownContent = `# Lista de Usuários\n\n`;
-      markdownContent += `| Nome | Email | Cargo | Tipo | Departamento | Time |\n`;
-      markdownContent += `|------|-------|-------|------|--------------|------|\n`;
+    let markdownContent = `# Lista de Usuários\n\n`;
+    markdownContent += `| Nome | Email | Cargo | Tipo | Departamento | Time |\n`;
+    markdownContent += `|------|-------|-------|------|--------------|------|\n`;
+    
+    filteredUsers.forEach(user => {
+      const userDepts = user.departments?.map(d => d.name).join(', ') || '-';
+      const userTeams = user.teams?.map(t => t.name).join(', ') || '-';
+      const type = user.is_director ? 'Diretor' : user.is_leader ? 'Líder' : 'Colaborador';
       
-      filteredUsers.forEach(user => {
-        const userDepts = user.departments?.map(d => d.name).join(', ') || '-';
-        const userTeams = user.teams?.map(t => t.name).join(', ') || '-';
-        const type = user.is_director ? 'Diretor' : user.is_leader ? 'Líder' : 'Colaborador';
-        
-        markdownContent += `| ${user.name} | ${user.email} | ${user.position} | ${type} | ${userDepts} | ${userTeams} |\n`;
-      });
-    } else if (activeTab === 'teams') {
-      markdownContent = `# Lista de Times\n\n`;
-      markdownContent += `| Nome | Departamento | Responsável | Membros | Descrição |\n`;
-      markdownContent += `|------|--------------|-------------|---------|------------|\n`;
-      
-      filteredTeams.forEach(team => {
-        const dept = team.department?.name || '-';
-        const responsible = team.responsible?.name || '-';
-        
-        markdownContent += `| ${team.name} | ${dept} | ${responsible} | ${team.members?.length || 0} | ${team.description || '-'} |\n`;
-      });
-    } else {
-      markdownContent = `# Lista de Departamentos\n\n`;
-      markdownContent += `| Nome | Descrição | Responsável | Times | Pessoas |\n`;
-      markdownContent += `|------|-----------|-------------|-------|----------|\n`;
-      
-      filteredDepartments.forEach(dept => {
-        const responsible = dept.responsible?.name || '-';
-        const teamCount = dept.teams?.length || 0;
-        const userCount = dept.member_count || 0;
-        
-        markdownContent += `| ${dept.name} | ${dept.description || '-'} | ${responsible} | ${teamCount} | ${userCount} |\n`;
-      });
-    }
+      markdownContent += `| ${user.name} | ${user.email} | ${user.position} | ${type} | ${userDepts} | ${userTeams} |\n`;
+    });
 
     const blob = new Blob([markdownContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${activeTab}_notion.md`;
+    a.download = 'usuarios_notion.md';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -297,39 +198,15 @@ const UserManagement = () => {
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-    let title = '';
-    let headers: string[] = [];
-    let data: any[][] = [];
-
-    if (activeTab === 'users') {
-      title = 'Lista de Usuários';
-      headers = ['Nome', 'Email', 'Cargo', 'Tipo', 'Data de Entrada'];
-      data = filteredUsers.map(user => [
-        user.name,
-        user.email,
-        user.position,
-        user.is_director ? 'Diretor' : user.is_leader ? 'Líder' : 'Colaborador',
-        new Date(user.join_date).toLocaleDateString('pt-BR')
-      ]);
-    } else if (activeTab === 'teams') {
-      title = 'Lista de Times';
-      headers = ['Nome', 'Departamento', 'Responsável', 'Membros'];
-      data = filteredTeams.map(team => [
-        team.name,
-        team.department?.name || '-',
-        team.responsible?.name || '-',
-        (team.members?.length || 0).toString()
-      ]);
-    } else {
-      title = 'Lista de Departamentos';
-      headers = ['Nome', 'Responsável', 'Times', 'Pessoas'];
-      data = filteredDepartments.map(dept => [
-        dept.name,
-        dept.responsible?.name || '-',
-        (dept.teams?.length || 0).toString(),
-        (dept.member_count || 0).toString()
-      ]);
-    }
+    const title = 'Lista de Usuários';
+    const headers = ['Nome', 'Email', 'Cargo', 'Tipo', 'Data de Entrada'];
+    const data = filteredUsers.map(user => [
+      user.name,
+      user.email,
+      user.position,
+      user.is_director ? 'Diretor' : user.is_leader ? 'Líder' : 'Colaborador',
+      new Date(user.join_date).toLocaleDateString('pt-BR')
+    ]);
 
     doc.setFontSize(16);
     doc.text(title, 14, 15);
@@ -343,7 +220,7 @@ const UserManagement = () => {
       headStyles: { fillColor: [18, 176, 160] }
     });
 
-    doc.save(`${activeTab}.pdf`);
+    doc.save('usuarios.pdf');
     toast.success('PDF gerado com sucesso!');
   };
 
@@ -400,30 +277,12 @@ const UserManagement = () => {
       });
   }, [users, searchTerm, selectedDepartment, selectedTeam, showOnlyLeaders, sortBy]);
 
-  const filteredTeams = useMemo(() => {
-    return teams.filter(team => {
-      const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (team.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-      const matchesDepartment = !selectedDepartment || team.department_id === selectedDepartment;
-      return matchesSearch && matchesDepartment;
-    });
-  }, [teams, searchTerm, selectedDepartment]);
-
-  const filteredDepartments = useMemo(() => {
-    return departments.filter(dept => 
-      dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (dept.description && dept.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  }, [departments, searchTerm]);
-
   const stats = useMemo(() => ({
     totalUsers: users.length,
     totalLeaders: users.filter(u => u.is_leader && !u.is_director).length,
     totalDirectors: users.filter(u => u.is_director).length,
     totalCollaborators: users.filter(u => !u.is_leader && !u.is_director).length,
-    totalTeams: teams.length,
-    totalDepartments: departments.length,
-  }), [users, teams, departments]);
+  }), [users]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -449,7 +308,6 @@ const UserManagement = () => {
 
   const renderUserCard = (user: UserWithDetails) => {
     const userTeams = user.teams || [];
-    const userDepartments = user.departments || [];
     const subordinates = getSubordinates(user.id);
     const leader = user.manager;
     const age = user.birth_date ? calculateAge(user.birth_date) : null;
@@ -522,7 +380,7 @@ const UserManagement = () => {
             <div className="flex flex-col space-y-1 ml-2 flex-shrink-0">
               <ActionGuard can={() => permissions.canEditUser(user.id)}>
                 <button
-                  onClick={() => handleEdit('user', user)}
+                  onClick={() => handleEdit(user)}
                   className="p-2 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
                   title="Editar"
                 >
@@ -542,7 +400,7 @@ const UserManagement = () => {
               
               <ActionGuard can={permissions.canDeactivateUser}>
                 <button
-                  onClick={() => handleDelete('user', user.id)}
+                  onClick={() => handleDelete(user.id)}
                   className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
                   title="Desativar"
                 >
@@ -623,192 +481,6 @@ const UserManagement = () => {
     );
   };
 
-  const renderTeamCard = (team: TeamWithDetails) => {
-    const department = team.department;
-    const responsible = team.responsible;
-    const members = team.members || [];
-    
-    return (
-      <motion.div
-        layout
-        variants={itemVariants}
-        whileHover={{ y: -4, transition: { duration: 0.2 } }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group"
-      >
-        <div className="h-2 bg-gradient-to-r from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700" />
-        
-        <div className="p-6">
-          <div className="flex items-start justify-between gap-2 mb-4">
-            <div className="flex items-center space-x-4 flex-shrink-0">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 shadow-md dark:shadow-lg">
-                <UsersIcon className="h-6 w-6 text-white" />
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate">{team.name}</h3>
-              {team.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{team.description}</p>
-              )}
-            </div>
-            <div className="flex flex-col space-y-1 ml-2 flex-shrink-0">
-              <ActionGuard can={() => permissions.canEditTeam(team.id, team.responsible_id ?? undefined)}>
-                <button
-                  onClick={() => handleEdit('team', team)}
-                  className="p-2 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
-                  title="Editar"
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-              </ActionGuard>
-              
-              <ActionGuard can={permissions.canDeleteTeam}>
-                <button
-                  onClick={() => handleDelete('team', team.id)}
-                  className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                  title="Excluir"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </ActionGuard>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {department && (
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 group/item hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                <Building className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500 group-hover/item:text-primary-500 dark:group-hover/item:text-primary-400" />
-                <span className="font-medium truncate">{department.name}</span>
-              </div>
-            )}
-
-            {responsible && (
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 group/item hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                <UserCog className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500 group-hover/item:text-primary-500 dark:group-hover/item:text-primary-400" />
-                <span>Líder: <span className="font-medium truncate">{responsible.name}</span></span>
-              </div>
-            )}
-
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-              <Users className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
-              <span className="font-medium">{members.length} {members.length === 1 ? 'membro' : 'membros'}</span>
-            </div>
-          </div>
-
-          {members.length > 0 && (
-            <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-700">
-              <div className="flex -space-x-2">
-                {members.slice(0, 5).map((member) => (
-                  <div
-                    key={member.id}
-                    className="relative group/avatar"
-                    title={member.name}
-                  >
-                    {member.profile_image ? (
-                      <img
-                        src={member.profile_image}
-                        alt={member.name}
-                        className="h-9 w-9 rounded-full border-2 border-white dark:border-gray-800 shadow-sm group-hover/avatar:z-10 transition-all"
-                      />
-                    ) : (
-                      <div className="h-9 w-9 rounded-full border-2 border-white dark:border-gray-800 bg-gradient-to-br from-secondary-400 to-secondary-600 flex items-center justify-center text-xs font-bold text-white shadow-sm group-hover/avatar:z-10 transition-all">
-                        {member.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {members.length > 5 && (
-                  <div className="h-9 w-9 rounded-full border-2 border-white dark:border-gray-800 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300 shadow-sm">
-                    +{members.length - 5}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </motion.div>
-    );
-  };
-
-  const renderDepartmentCard = (department: DepartmentWithDetails) => {
-    const deptTeams = department.teams || [];
-    const deptUsers = department.member_count || 0;
-    const responsible = department.responsible;
-    
-    return (
-      <motion.div
-        layout
-        variants={itemVariants}
-        whileHover={{ y: -4, transition: { duration: 0.2 } }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group"
-      >
-        <div className="h-2 bg-gradient-to-r from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700" />
-        
-        <div className="p-6">
-          <div className="flex items-start justify-between gap-2 mb-4">
-            <div className="flex items-center space-x-4 flex-shrink-0">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700 shadow-md dark:shadow-lg">
-                <Building className="h-6 w-6 text-white" />
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate">{department.name}</h3>
-              {department.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{department.description}</p>
-              )}
-            </div>
-            
-            <div className="flex flex-col space-y-1 ml-2 flex-shrink-0">
-              <ActionGuard can={permissions.canEditDepartment}>
-                <button
-                  onClick={() => handleEdit('department', department)}
-                  className="p-2 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
-                  title="Editar"
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-              </ActionGuard>
-              
-              <ActionGuard can={permissions.canDeleteDepartment}>
-                <button
-                  onClick={() => handleDelete('department', department.id)}
-                  className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                  title="Excluir"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </ActionGuard>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {responsible && (
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 group/item hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                <UserCog className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500 group-hover/item:text-primary-500 dark:group-hover/item:text-primary-400" />
-                <span>Responsável: <span className="font-medium truncate">{responsible.name}</span></span>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                <UsersIcon className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500" />
-                <span className="font-medium">{deptTeams.length} {deptTeams.length === 1 ? 'time' : 'times'}</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                <UserRound className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500" />
-                <span className="font-medium">{deptUsers} {deptUsers === 1 ? 'pessoa' : 'pessoas'}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-              <Calendar className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
-              <span>Criado em {new Date(department.created_at).toLocaleDateString('pt-BR')}</span>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    );
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -833,10 +505,10 @@ const UserManagement = () => {
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
                   <Database className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3 flex-shrink-0" />
-                  Gerenciamento
+                  Gerenciamento de Usuários
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
-                  Visualize e gerencie usuários, times e departamentos
+                  Visualize e gerencie usuários do sistema
                 </p>
               </div>
             </div>
@@ -848,13 +520,13 @@ const UserManagement = () => {
                 icon={<Plus size={18} />}
                 size="lg"
               >
-                Novo Cadastro
+                Novo Usuário
               </Button>
             </UIGuard>
           </div>
 
           <motion.div 
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"
+            className="grid grid-cols-2 sm:grid-cols-4 gap-4"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -862,7 +534,7 @@ const UserManagement = () => {
             <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 dark:from-gray-700 dark:via-gray-800 dark:to-gray-900 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalUsers}</p>
-                <p className="text-sm text-gray-300 font-medium">Usuários</p>
+                <p className="text-sm text-gray-300 font-medium">Total</p>
               </div>
               <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-700 dark:text-gray-800 opacity-50" />
             </motion.div>
@@ -890,59 +562,11 @@ const UserManagement = () => {
               </div>
               <UserCheck className="absolute -bottom-2 -right-2 h-16 w-16 text-secondary-400 dark:text-secondary-500 opacity-50" />
             </motion.div>
-            
-            <motion.div 
-              variants={itemVariants} 
-              className="relative overflow-hidden rounded-xl p-4 text-center shadow-lg"
-              style={{ background: 'linear-gradient(to bottom right, #247B7B, #1B5B5B)' }}
-            >
-              <div className="relative z-10">
-                <p className="text-2xl font-bold text-white">{stats.totalTeams}</p>
-                <p className="text-sm text-teal-100 font-medium">Times</p>
-              </div>
-              <UsersIcon className="absolute -bottom-2 -right-2 h-16 w-16 text-teal-300 opacity-50" />
-            </motion.div>
-            
-            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-accent-500 via-accent-600 to-accent-700 dark:from-accent-600 dark:via-accent-700 dark:to-accent-800 rounded-xl p-4 text-center shadow-lg">
-              <div className="relative z-10">
-                <p className="text-2xl font-bold text-white">{stats.totalDepartments}</p>
-                <p className="text-sm text-accent-100 font-medium">Departamentos</p>
-              </div>
-              <Building className="absolute -bottom-2 -right-2 h-16 w-16 text-accent-400 dark:text-accent-500 opacity-50" />
-            </motion.div>
           </motion.div>
         </motion.div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
-            <div className="flex p-1.5 bg-gray-100/80 dark:bg-gray-700/50 backdrop-blur-sm rounded-2xl">
-              {[
-                { id: 'users', label: 'Usuários', icon: Users },
-                { id: 'teams', label: 'Times', icon: UsersIcon },
-                { id: 'departments', label: 'Departamentos', icon: Building }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`relative px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center space-x-2 ${
-                    activeTab === tab.id
-                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm dark:shadow-lg'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                  }`}
-                >
-                  <tab.icon className="h-4 w-4" />
-                  <span>{tab.label}</span>
-                  {activeTab === tab.id && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute inset-0 bg-white dark:bg-gray-700 rounded-xl shadow-sm dark:shadow-lg -z-10"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                </button>
-              ))}
-            </div>
-
             <div className="flex items-center space-x-3">
               <div className="flex items-center bg-gray-100/80 dark:bg-gray-700/50 backdrop-blur-sm rounded-xl p-1.5">
                 <button
@@ -1021,7 +645,7 @@ const UserManagement = () => {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
-                placeholder={`Buscar ${activeTab === 'users' ? 'usuários' : activeTab === 'teams' ? 'times' : 'departamentos'}...`}
+                placeholder="Buscar usuários..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 rounded-xl border-gray-200 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 bg-gray-50/50 dark:bg-gray-700/50 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100"
@@ -1029,7 +653,7 @@ const UserManagement = () => {
             </div>
 
             <AnimatePresence>
-              {showFilters && activeTab === 'users' && (
+              {showFilters && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
@@ -1103,60 +727,24 @@ const UserManagement = () => {
 
           <div className="mt-6">
             <AnimatePresence mode="wait">
-              {activeTab === 'users' && (
-                <motion.div
-                  key="users"
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit={{ opacity: 0 }}
-                  className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
-                >
-                  {filteredUsers.map(user => (
-                    <div key={user.id}>
-                      {renderUserCard(user)}
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-
-              {activeTab === 'teams' && (
-                <motion.div
-                  key="teams"
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit={{ opacity: 0 }}
-                  className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
-                >
-                  {filteredTeams.map(team => (
-                    <div key={team.id}>
-                      {renderTeamCard(team)}
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-
-              {activeTab === 'departments' && (
-                <motion.div
-                  key="departments"
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit={{ opacity: 0 }}
-                  className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
-                >
-                  {filteredDepartments.map(dept => (
-                    <div key={dept.id}>
-                      {renderDepartmentCard(dept)}
-                    </div>
-                  ))}
-                </motion.div>
-              )}
+              <motion.div
+                key="users"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                exit={{ opacity: 0 }}
+                className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
+              >
+                {filteredUsers.map(user => (
+                  <div key={user.id}>
+                    {renderUserCard(user)}
+                  </div>
+                ))}
+              </motion.div>
             </AnimatePresence>
           </div>
 
-          {activeTab === 'users' && filteredUsers.length === 0 && (
+          {filteredUsers.length === 0 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -1174,52 +762,6 @@ const UserManagement = () => {
                   icon={<Plus size={18} />}
                 >
                   Cadastrar Usuário
-                </Button>
-              </UIGuard>
-            </motion.div>
-          )}
-
-          {activeTab === 'teams' && filteredTeams.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-12"
-            >
-              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 mb-6">
-                <UsersIcon className="h-10 w-10 text-gray-400 dark:text-gray-500" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Nenhum time encontrado</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">Crie o primeiro time da organização</p>
-              <UIGuard show="showCreateTeamButton">
-                <Button
-                  variant="primary"
-                  onClick={() => navigate('/teams/new')}
-                  icon={<Plus size={18} />}
-                >
-                  Criar Time
-                </Button>
-              </UIGuard>
-            </motion.div>
-          )}
-
-          {activeTab === 'departments' && filteredDepartments.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-12"
-            >
-              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 mb-6">
-                <Building className="h-10 w-10 text-gray-400 dark:text-gray-500" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Nenhum departamento encontrado</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">Crie o primeiro departamento da organização</p>
-              <UIGuard show="showCreateDepartmentButton">
-                <Button
-                  variant="primary"
-                  onClick={() => navigate('/departments/new')}
-                  icon={<Plus size={18} />}
-                >
-                  Criar Departamento
                 </Button>
               </UIGuard>
             </motion.div>
