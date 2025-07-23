@@ -49,6 +49,28 @@ export const userController = {
     }
   },
 
+  async createUserWithAuth(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, password, ...userData } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Email e senha são obrigatórios'
+        });
+      }
+
+      const user = await userService.createUserWithAuth(email, password, userData);
+      
+      res.status(201).json({
+        success: true,
+        data: user
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async updateUser(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;

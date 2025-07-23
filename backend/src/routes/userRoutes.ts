@@ -10,6 +10,7 @@ router.use(authenticateToken as any);
 router.get('/', userController.getUsers);
 router.get('/:id', userController.getUserById);
 router.post('/', userController.createUser);
+router.post('/create-with-auth', userController.createUserWithAuth);
 router.put('/:id', userController.updateUser);
 router.delete('/:id', userController.deleteUser);
 router.get('/leader/:leaderId/subordinates', userController.getSubordinates);

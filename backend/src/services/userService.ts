@@ -162,6 +162,139 @@ export const userService = {
     }
   },
 
+  async createUserWithAuth(email: string, password: string, userData: Omit<User, 'id' | 'created_at' | 'updated_at' | 'email'>) {
+    try {
+      // Verificar se o email já existe na tabela users
+      const { data: existingUser } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('email', email.toLowerCase())
+        .maybeSingle();
+
+      if (existingUser) {
+        throw new ApiError(400, 'Email já cadastrado no sistema');
+      }
+
+      // Verificar se já existe um usuário no Auth com este email
+      const { data: existingAuthUsers } = await supabaseAdmin.auth.admin.listUsers();
+
+      let authUserId: string;
+      let existingAuthUser = null;
+
+      if (existingAuthUsers && existingAuthUsers.users.length > 0) {
+        // Procurar o usuário com o email específico
+        existingAuthUser = existingAuthUsers.users.find(
+          user => user.email?.toLowerCase() === email.toLowerCase()
+        );
+      }
+
+      if (existingAuthUser) {
+        // Se o usuário já existe no Auth, usar o ID existente
+        authUserId = existingAuthUser.id;
+        
+        // Atualizar a senha se necessário
+        await supabaseAdmin.auth.admin.updateUserById(authUserId, {
+          password: password,
+          email_confirm: true,
+          user_metadata: {
+            name: userData.name,
+            position: userData.position
+          }
+        });
+      } else {
+        // Criar usuário no Auth usando Admin API (não cria sessão)
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+          email: email.toLowerCase(),
+          password: password,
+          email_confirm: true, // Confirma o email automaticamente
+          user_metadata: {
+            name: userData.name,
+            position: userData.position
+          }
+        });
+
+        if (authError || !authData.user) {
+          throw new ApiError(500, authError?.message || 'Erro ao criar usuário no sistema de autenticação');
+        }
+
+        authUserId = authData.user.id;
+      }
+
+      // Verificar se já existe um usuário com este ID na tabela users (pode acontecer se houver inconsistências)
+      const { data: existingUserById } = await supabaseAdmin
+        .from('users')
+        .select('*')
+        .eq('id', authUserId)
+        .maybeSingle();
+
+      if (existingUserById) {
+        // Se já existe um usuário com este ID mas com email diferente, há uma inconsistência
+        if (existingUserById.email !== email.toLowerCase()) {
+          throw new ApiError(500, 'Inconsistência detectada: ID de usuário já existe com email diferente');
+        }
+        // Se é o mesmo email, atualizar os dados e retornar
+        const { data: updatedUser, error: updateError } = await supabaseAdmin
+          .from('users')
+          .update({
+            ...userData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', authUserId)
+          .select()
+          .single();
+
+        if (updateError) {
+          throw new ApiError(500, 'Erro ao atualizar usuário existente: ' + updateError.message);
+        }
+
+        return updatedUser;
+      }
+
+      // Preparar dados do usuário
+      const userToInsert = {
+        id: authUserId,
+        email: email.toLowerCase(),
+        ...userData,
+        // Garantir que arrays vazios sejam tratados corretamente
+        children_age_ranges: userData.has_children ? (userData.children_age_ranges || []) : [],
+        sports: userData.practices_sports ? (userData.sports || []) : [],
+        team_name: userData.supports_team ? userData.team_name : null,
+        // Garantir valores padrão
+        gender: userData.gender || null,
+        has_children: userData.has_children || false,
+        marital_status: userData.marital_status || null,
+        hobbies: userData.hobbies || null,
+        favorite_color: userData.favorite_color || null,
+        supports_team: userData.supports_team || false,
+        practices_sports: userData.practices_sports || false,
+        active: true,
+        join_date: userData.join_date || new Date().toISOString().split('T')[0]
+      };
+
+      // Criar perfil do usuário
+      const { data: userProfile, error: profileError } = await supabaseAdmin
+        .from('users')
+        .insert(userToInsert)
+        .select()
+        .single();
+
+      if (profileError) {
+        // Se houver erro ao criar o perfil, deletar o usuário do Auth apenas se foi criado agora
+        if (!existingAuthUser) {
+          await supabaseAdmin.auth.admin.deleteUser(authUserId);
+        }
+        throw new ApiError(500, 'Erro ao criar perfil: ' + profileError.message);
+      }
+
+      return userProfile;
+    } catch (error: any) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError(500, error.message || 'Erro ao criar usuário');
+    }
+  },
+
   async getSubordinates(leaderId: string) {
     const { data, error } = await supabaseAdmin
       .from('users')

@@ -41,5 +41,10 @@ export const userService = {
   async getSubordinates(leaderId: string): Promise<User[]> {
     const response = await api.get(`/users/leader/${leaderId}/subordinates`);
     return response.data;
+  },
+
+  async createUserWithAuth(userData: any): Promise<User> {
+    const response = await api.post('/users/create-with-auth', userData);
+    return response.data;
   }
 };

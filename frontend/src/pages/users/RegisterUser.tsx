@@ -1,10 +1,9 @@
-// frontend/src/pages/users/RegisterUser.tsx
 import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../../hooks/useSupabaseData';
-import { authService } from '../../services/auth.service';
+import { userService } from '../../services/user.service';
 import { supabase } from '../../lib/supabase';
 import Button from '../../components/Button';
 import { UserProfileFields } from '../../components/UserProfileFields';
@@ -341,29 +340,22 @@ const RegisterUser = () => {
     setIsLoading(true);
 
     try {
-      const emailExists = await authService.checkEmailExists(formData.email);
-      if (emailExists) {
-        toast.error('Este email já está cadastrado');
-        setIsLoading(false);
-        return;
-      }
-
-      const { user, error } = await authService.createUser({
+      // Usar a nova API que não cria sessão
+      const user = await userService.createUserWithAuth({
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
         name: formData.name.trim(),
         position: formData.position.trim(),
         is_leader: formData.profileType !== 'regular',
         is_director: formData.profileType === 'director',
-        phone: formData.phone || undefined,
-        birth_date: formData.birthDate || undefined,
-        join_date: formData.joinDate || undefined, 
-        profile_image: formData.profileImage || undefined,
-        reports_to: formData.reportsTo || undefined,
-        team_ids: formData.profileType === 'director' ? [] : formData.teamIds,
-        department_id: formData.departmentId || undefined,
-        track_id: formData.trackId || undefined,
-        position_id: formData.positionId || undefined,
+        phone: formData.phone || null,
+        birth_date: formData.birthDate || null,
+        join_date: formData.joinDate || null, 
+        profile_image: formData.profileImage || null,
+        reports_to: formData.reportsTo || null,
+        department_id: formData.departmentId || null,
+        track_id: formData.trackId || null,
+        position_id: formData.positionId || null,
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
         
@@ -372,18 +364,24 @@ const RegisterUser = () => {
         has_children: formData.has_children,
         children_age_ranges: formData.has_children ? formData.children_age_ranges : [],
         marital_status: formData.marital_status,
-        hobbies: formData.hobbies || undefined,
-        favorite_color: formData.favorite_color || undefined,
+        hobbies: formData.hobbies || null,
+        favorite_color: formData.favorite_color || null,
         supports_team: formData.supports_team,
-        team_name: formData.supports_team ? formData.team_name : undefined,
+        team_name: formData.supports_team ? formData.team_name : null,
         practices_sports: formData.practices_sports,
         sports: formData.practices_sports ? formData.sports : []
       });
 
-      if (error || !user) {
-        console.error('Erro ao criar usuário:', error);
-        setIsLoading(false);
-        return;
+      // Adicionar usuário aos times, se especificado
+      if (formData.teamIds && formData.teamIds.length > 0 && formData.profileType !== 'director') {
+        const teamMembers = formData.teamIds.map(teamId => ({
+          team_id: teamId,
+          user_id: user.id,
+        }));
+
+        await supabase
+          .from('team_members')
+          .insert(teamMembers);
       }
 
       await reloadUsers();
@@ -392,9 +390,9 @@ const RegisterUser = () => {
       setTimeout(() => {
         navigate('/users');
       }, 1500);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro no cadastro:', error);
-      toast.error('Erro ao processar cadastro');
+      toast.error(error.response?.data?.error || 'Erro ao processar cadastro');
     } finally {
       setIsLoading(false);
     }

@@ -6,8 +6,8 @@ import UserSalaryAssignment from '../../components/UserSalaryAssignment';
 import { 
   Users, Edit, Search, Filter,
   Shield, Mail, Calendar, UserCheck, MoreVertical, Crown, 
-  Copy, Download, FileText,Phone, CalendarDays, Upload,
-  GitBranch, Network, UserX, Plus,Grid3x3, List, FileSpreadsheet, 
+  Copy, Download, Phone, CalendarDays, Upload, FileText, GitBranch,
+  Network, UserX, Plus, Grid3x3, List, FileSpreadsheet, 
   FileDown, DollarSign, Loader2, Database, UsersIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -511,7 +511,7 @@ const UserManagement = () => {
             <UIGuard show="showCreateUserButton">
               <Button
                 variant="primary"
-                onClick={() => navigate('/users/new')}
+                onClick={() => navigate('/register/user')}
                 icon={<Plus size={18} />}
                 size="lg"
               >

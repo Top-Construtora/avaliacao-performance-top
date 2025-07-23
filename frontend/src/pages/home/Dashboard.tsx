@@ -5,16 +5,11 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   User, 
   Users, 
-  TrendingUp, 
   FileText, 
   BarChart3, 
-  Clock,
-  CheckCircle,
-  AlertCircle,
   Target,
   Award,
-  ArrowRight,
-  Activity
+  ArrowRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
