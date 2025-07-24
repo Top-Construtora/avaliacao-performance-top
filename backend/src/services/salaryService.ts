@@ -780,21 +780,15 @@ export const salaryService = {
     if (!salaryData) return null;
     
     // Agrupar por diferentes dimensões
-    const byGender = this.groupByGender(salaryData);
     const byDepartment = this.groupByDepartment(salaryData);
     const bySeniority = this.groupBySeniority(salaryData);
     
     // Calcular gaps
-    const genderGap = this.calculateGenderPayGap(byGender);
     const departmentVariance = this.calculateDepartmentVariance(byDepartment);
     const seniorityProgression = this.calculateSeniorityProgression(bySeniority);
     
     // Gerar recomendações
     const recommendations: string[] = [];
-    
-    if (Math.abs(genderGap) > 5) {
-      recommendations.push(`Gap salarial de gênero de ${Math.abs(genderGap).toFixed(1)}% detectado`);
-    }
     
     if (departmentVariance > 15) {
       recommendations.push(`Variância entre departamentos de ${departmentVariance.toFixed(1)}% - considerar ajustes`);
@@ -802,7 +796,6 @@ export const salaryService = {
     
     return {
       metrics: {
-        genderGap,
         departmentVariance,
         seniorityProgression,
         totalEmployees: salaryData.length,
@@ -810,7 +803,6 @@ export const salaryService = {
       },
       recommendations,
       details: {
-        byGender,
         byDepartment,
         bySeniority
       }
@@ -937,36 +929,6 @@ export const salaryService = {
   async notifyProgression(supabase: SupabaseClient<Database>, notification: any) {
     // Implementar notificação
     console.log('Notification:', notification);
-  },
-
-  groupByGender(data: any[]): any {
-    // Implementar agrupamento por gênero
-    return {};
-  },
-
-  groupByDepartment(data: any[]): any {
-    // Implementar agrupamento por departamento
-    return {};
-  },
-
-  groupBySeniority(data: any[]): any {
-    // Implementar agrupamento por senioridade
-    return {};
-  },
-
-  calculateGenderPayGap(data: any): number {
-    // Implementar cálculo de gap de gênero
-    return 0;
-  },
-
-  calculateDepartmentVariance(data: any): number {
-    // Implementar cálculo de variância entre departamentos
-    return 0;
-  },
-
-  calculateSeniorityProgression(data: any): number {
-    // Implementar cálculo de progressão por senioridade
-    return 0;
   },
 
   calculateAverage(values: number[]): number {

@@ -190,15 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateData.children_age_ranges = [];
       }
       
-      // Se não pratica esportes, limpar array de esportes
-      if ('practices_sports' in updateData && !updateData.practices_sports) {
-        updateData.sports = [];
-      }
       
-      // Se não torce para time, limpar nome do time
-      if ('supports_team' in updateData && !updateData.supports_team) {
-        updateData.team_name = null;
-      }
 
       // Atualiza no Supabase
       const { data, error } = await supabase

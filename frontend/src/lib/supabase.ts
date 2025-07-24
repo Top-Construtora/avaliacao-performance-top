@@ -52,16 +52,6 @@ export type Database = {
           track_id?: string | null
           position_id?: string | null
           intern_level?: string | null
-          gender?: string | null
-          has_children?: boolean
-          children_age_ranges?: string[] | null
-          marital_status?: string | null
-          hobbies?: string | null
-          favorite_color?: string | null
-          supports_team?: boolean
-          team_name?: string | null
-          practices_sports?: boolean
-          sports?: string[] | null
         }
         Insert: Omit<Database['public']['Tables']['users']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['users']['Insert']>

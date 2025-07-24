@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../../hooks/useSupabaseData';
 import { supabase } from '../../lib/supabase';
 import Button from '../../components/Button';
-import { UserProfileFields } from '../../components/UserProfileFields';
+
 import { 
   Users, Shield, Mail, Calendar, AlertCircle, Briefcase, UserCheck, 
   Sparkles, Crown, User, Phone, CalendarDays, Camera, Upload,
@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { PermissionGuard } from '../../components/PermissionGuard';
 import { usePermissions } from '../../hooks/usePermissions';
-import type { Gender, MaritalStatus } from '../../types/user';
+
 
 interface Track {
   id: string;
@@ -88,16 +88,8 @@ const EditUser = () => {
     contractType: 'CLT' as 'CLT' | 'PJ',
     
     // Novos campos de perfil pessoal
-    gender: null as Gender | null,
     has_children: false,
     children_age_ranges: [] as string[],
-    marital_status: null as MaritalStatus | null,
-    hobbies: '',
-    favorite_color: '',
-    supports_team: false,
-    team_name: '',
-    practices_sports: false,
-    sports: [] as string[],
   });
 
   const [originalData, setOriginalData] = useState(formData);
@@ -268,17 +260,8 @@ const EditUser = () => {
         internLevel: user.intern_level || 'A' as 'A' | 'B' | 'C' | 'D' | 'E',
         contractType: user.contract_type || 'CLT' as 'CLT' | 'PJ',
         
-        // Novos campos de perfil pessoal
-        gender: user.gender || null,
         has_children: user.has_children || false,
         children_age_ranges: user.children_age_ranges || [],
-        marital_status: user.marital_status || null,
-        hobbies: user.hobbies || '',
-        favorite_color: user.favorite_color || '',
-        supports_team: user.supports_team || false,
-        team_name: user.team_name || '',
-        practices_sports: user.practices_sports || false,
-        sports: user.sports || [],
       };
 
       setFormData(userData);
@@ -461,17 +444,8 @@ const EditUser = () => {
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
         
-        // Novos campos de perfil pessoal
-        gender: formData.gender,
         has_children: formData.has_children,
         children_age_ranges: formData.children_age_ranges,
-        marital_status: formData.marital_status,
-        hobbies: formData.hobbies || null,
-        favorite_color: formData.favorite_color || null,
-        supports_team: formData.supports_team,
-        team_name: formData.team_name || null,
-        practices_sports: formData.practices_sports,
-        sports: formData.sports,
       });
 
       // Atualizar times do usuário

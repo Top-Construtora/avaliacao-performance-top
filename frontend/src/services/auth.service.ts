@@ -22,16 +22,7 @@ export interface CreateUserData {
   position_start_date?: string;
   
   // Novos campos de perfil pessoal
-  gender?: 'masculino' | 'feminino' | 'outro' | 'nao_informar';
-  has_children?: boolean;
-  children_age_ranges?: string[];
-  marital_status?: 'solteiro' | 'casado' | 'divorciado' | 'viuvo' | 'uniao_estavel' | 'nao_informar';
-  hobbies?: string;
-  favorite_color?: string;
-  supports_team?: boolean;
-  team_name?: string;
-  practices_sports?: boolean;
-  sports?: string[];
+  
 }
 
 export const authService = {
@@ -101,17 +92,6 @@ export const authService = {
             intern_level: userData.intern_level || null,
             contract_type: userData.contract_type || 'CLT',
             position_start_date: userData.position_start_date || userData.join_date || null,
-            // Novos campos
-            gender: userData.gender || null,
-            has_children: userData.has_children || false,
-            children_age_ranges: userData.has_children ? (userData.children_age_ranges || []) : [],
-            marital_status: userData.marital_status || null,
-            hobbies: userData.hobbies || null,
-            favorite_color: userData.favorite_color || null,
-            supports_team: userData.supports_team || false,
-            team_name: userData.supports_team ? userData.team_name : null,
-            practices_sports: userData.practices_sports || false,
-            sports: userData.practices_sports ? (userData.sports || []) : [],
             updated_at: new Date().toISOString()
           })
           .eq('id', userId)
@@ -164,17 +144,6 @@ export const authService = {
           intern_level: userData.intern_level || null,
           contract_type: userData.contract_type || 'CLT',
           position_start_date: userData.position_start_date || userData.join_date || null,
-          // Novos campos
-          gender: userData.gender || null,
-          has_children: userData.has_children || false,
-          children_age_ranges: userData.has_children ? (userData.children_age_ranges || []) : [],
-          marital_status: userData.marital_status || null,
-          hobbies: userData.hobbies || null,
-          favorite_color: userData.favorite_color || null,
-          supports_team: userData.supports_team || false,
-          team_name: userData.supports_team ? userData.team_name : null,
-          practices_sports: userData.practices_sports || false,
-          sports: userData.practices_sports ? (userData.sports || []) : [],
         })
         .select()
         .single();

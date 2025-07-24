@@ -350,7 +350,6 @@ async function findOrCreateTrackPosition(
 function calculateEquityMetrics(data: any[]): any {
   // Implementar cálculo de métricas de equidade
   return {
-    genderGap: 0,
     departmentGap: 0,
     seniorityGap: 0
   };

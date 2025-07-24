@@ -6,7 +6,6 @@ import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../.
 import { userService } from '../../services/user.service';
 import { supabase } from '../../lib/supabase';
 import Button from '../../components/Button';
-import { UserProfileFields } from '../../components/UserProfileFields';
 import { 
   Users, Shield, Mail, Calendar, 
   X, Check, AlertCircle, Briefcase, UserCheck, 
@@ -81,18 +80,6 @@ const RegisterUser = () => {
     positionId: '',
     internLevel: 'A' as 'A' | 'B' | 'C' | 'D' | 'E',
     contractType: 'CLT' as 'CLT' | 'PJ',
-    
-    // Novos campos de perfil pessoal
-    gender: null as any,
-    has_children: false,
-    children_age_ranges: [] as string[],
-    marital_status: null as any,
-    hobbies: '',
-    favorite_color: '',
-    supports_team: false,
-    team_name: '',
-    practices_sports: false,
-    sports: [] as string[]
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -358,18 +345,6 @@ const RegisterUser = () => {
         position_id: formData.positionId || null,
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
-        
-        // Novos campos
-        gender: formData.gender,
-        has_children: formData.has_children,
-        children_age_ranges: formData.has_children ? formData.children_age_ranges : [],
-        marital_status: formData.marital_status,
-        hobbies: formData.hobbies || null,
-        favorite_color: formData.favorite_color || null,
-        supports_team: formData.supports_team,
-        team_name: formData.supports_team ? formData.team_name : null,
-        practices_sports: formData.practices_sports,
-        sports: formData.practices_sports ? formData.sports : []
       });
 
       // Adicionar usuário aos times, se especificado
@@ -944,12 +919,6 @@ const RegisterUser = () => {
             </div>
           </div>
         </motion.div>
-
-        {/* Novos campos de perfil pessoal */}
-        <UserProfileFields
-          formData={formData}
-          onChange={handleProfileFieldChange}
-        />
 
         {/* Team Allocation */}
         {formData.profileType !== 'director' && (
