@@ -16,8 +16,8 @@ const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3001',
-  'https://avaliacao-performance-six.vercel.app',
-  'https://avaliacao-performance-yns9.onrender.com', // URL do Render
+  'https://avaliacao-performance.vercel.app',
+  'https://avaliacao-performance.onrender.com', // URL do Render
 ];
 
 // Adiciona a URL do frontend a partir das variáveis de ambiente se ela existir

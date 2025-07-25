@@ -91,7 +91,7 @@ const PdiManagement: React.FC = () => {
           } else {
             // Se não houver PDI, mantenha os dados iniciais e informe ao usuário
             setPdiData(initialPdiData);
-            toast.info('Nenhum PDI encontrado para este colaborador. Crie um novo!');
+            toast('Nenhum PDI encontrado para este colaborador. Crie um novo!');
           }
         } catch (error) {
           console.error('Erro ao carregar PDI:', error);
@@ -273,6 +273,7 @@ const PdiManagement: React.FC = () => {
                 loading={loadingPDI}
                 canProceedToStep3={() => true}
                 selectedEmployee={selectedEmployee}
+                hideActionButtons={true} // Ocultar botões de Salvar Rascunho e Enviar Avaliação
               />
               <div className="flex justify-end space-x-4 mt-6">
                 <Button

@@ -57,6 +57,7 @@ interface PotentialAndPDIProps {
   loading: boolean;
   canProceedToStep3: () => boolean;
   selectedEmployee: UserWithDetails | undefined;
+  hideActionButtons?: boolean; // Nova propriedade para ocultar botões
 }
 
 const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
@@ -72,7 +73,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
   isSaving,
   loading,
   canProceedToStep3,
-  selectedEmployee
+  selectedEmployee,
+  hideActionButtons = false
 }) => {
   const { getNineBoxByEmployeeId } = useEvaluation();
   const employeeNineBox: NineBoxData | undefined = selectedEmployee ? getNineBoxByEmployeeId(selectedEmployee.id) : undefined;
@@ -858,37 +860,39 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-              <Button
-                variant="outline"
-                onClick={handlePreviousStep}
-                icon={<ArrowLeft size={18} />}
-                size="lg"
-                className="w-full sm:w-auto"
-              >
-                Voltar
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleSave}
-                icon={<Save size={18} />}
-                size="lg"
-                disabled={isSaving || loading}
-                className="w-full sm:w-auto"
-              >
-                {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleNextStep}
-                icon={<ArrowRight size={18} />}
-                size="lg"
-                disabled={!canProceedToStep3()}
-                className="w-full sm:w-auto"
-              >
-                Próxima Etapa
-              </Button>
-            </div>
+            {!hideActionButtons && (
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                <Button
+                  variant="outline"
+                  onClick={handlePreviousStep}
+                  icon={<ArrowLeft size={18} />}
+                  size="lg"
+                  className="w-full sm:w-auto"
+                >
+                  Voltar
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleSave}
+                  icon={<Save size={18} />}
+                  size="lg"
+                  disabled={isSaving || loading}
+                  className="w-full sm:w-auto"
+                >
+                  {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleNextStep}
+                  icon={<ArrowRight size={18} />}
+                  size="lg"
+                  disabled={!canProceedToStep3()}
+                  className="w-full sm:w-auto"
+                >
+                  Próxima Etapa
+                </Button>
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}
@@ -945,38 +949,40 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                 <span>Adicione pelo menos um item ao PDI para enviar a avaliação</span>
               </div>
             )}
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-              <Button
-                variant="outline"
-                onClick={handlePreviousStep}
-                icon={<ArrowLeft size={18} />}
-                size="lg"
-                className="w-full sm:w-auto"
-              >
-                Voltar
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleSave}
-                icon={<Save size={18} />}
-                size="lg"
-                disabled={isSaving || loading}
-                className="w-full sm:w-auto"
-              >
-                {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleSubmit}
-                icon={<Send size={18} />}
-                size="lg"
-                disabled={totalPdiItems === 0 || isSaving || loading}
-                className="w-full sm:w-auto"
-                title={totalPdiItems === 0 ? 'Adicione pelo menos um item ao PDI' : 'Enviar avaliação'}
-              >
-                {isSaving ? 'Enviando...' : 'Enviar Avaliação'}
-              </Button>
-            </div>
+            {!hideActionButtons && (
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                <Button
+                  variant="outline"
+                  onClick={handlePreviousStep}
+                  icon={<ArrowLeft size={18} />}
+                  size="lg"
+                  className="w-full sm:w-auto"
+                >
+                  Voltar
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleSave}
+                  icon={<Save size={18} />}
+                  size="lg"
+                  disabled={isSaving || loading}
+                  className="w-full sm:w-auto"
+                >
+                  {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleSubmit}
+                  icon={<Send size={18} />}
+                  size="lg"
+                  disabled={totalPdiItems === 0 || isSaving || loading}
+                  className="w-full sm:w-auto"
+                  title={totalPdiItems === 0 ? 'Adicione pelo menos um item ao PDI' : 'Enviar avaliação'}
+                >
+                  {isSaving ? 'Enviando...' : 'Enviar Avaliação'}
+                </Button>
+              </div>
+            )}
           </div>
         </motion.div>
       )}

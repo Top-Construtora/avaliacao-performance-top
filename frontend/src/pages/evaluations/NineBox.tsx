@@ -506,7 +506,7 @@ const NineBoxMatrix = () => {
                   {/* Título do eixo X */}
                   <div className="flex justify-center w-72 sm:w-[420px] mt-3">
                     <span className="text-sm sm:text-base font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest">
-                      performanceee
+                      performance
                     </span>
                   </div>
                 </div>

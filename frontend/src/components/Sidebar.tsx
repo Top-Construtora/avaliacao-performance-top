@@ -148,12 +148,6 @@ export default function Sidebar({
       allowedRoles: ['director'],
     },
     {
-      label: 'PDI',
-      icon: FileText,
-      path: '/action-plan',
-      allowedRoles: ['director'],
-    },
-    {
       label: 'Relatórios',
       icon: PieChart,
       path: '/reports',

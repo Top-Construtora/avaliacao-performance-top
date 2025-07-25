@@ -67,7 +67,14 @@ export const pdiService = {
 
       const result = await response.json();
       console.log('Resposta completa da API getPDI:', result);
-      return result.data || result; // Retorna result.data se existir, senão retorna result
+      
+      // Se a resposta tem success e data, retorna data (pode ser null)
+      if (result && result.success !== undefined) {
+        return result.data;
+      }
+      
+      // Caso contrário, retorna o resultado diretamente
+      return result;
     } catch (error: any) {
       console.error('Erro ao buscar PDI:', error);
       throw error;

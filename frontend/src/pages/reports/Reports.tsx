@@ -570,7 +570,7 @@ const Reports = () => {
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-gradient-to-br from-error-500 to-error-600 p-6 rounded-xl shadow-lg text-white"
+              className="bg-gradient-to-br from-yellow-500 to-yellow-600 p-6 rounded-xl shadow-lg text-white"
             >
               <div className="flex items-center justify-between mb-2">
                 <AlertTriangle className="w-8 h-8 opacity-80" />
@@ -581,6 +581,7 @@ const Reports = () => {
               <h3 className="text-3xl font-bold mb-1">{summaryData.pending}</h3>
               <p className="text-sm opacity-90">Pendentes</p>
             </motion.div>
+
           </div>
 
           {/* Progress by Department */}

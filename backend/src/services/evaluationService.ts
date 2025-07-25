@@ -851,7 +851,14 @@ export const evaluationService = {
 
       console.log('Resultado da busca do PDI:', { data, error });
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      // Se não encontrou PDI (PGRST116 = no rows returned), retorna null
+      if (error && error.code === 'PGRST116') {
+        console.log('Nenhum PDI ativo encontrado para o colaborador');
+        return null;
+      }
+
+      // Se houve outro tipo de erro, lança exceção
+      if (error) {
         console.error('Erro ao buscar PDI:', error);
         throw new ApiError(500, error.message);
       }

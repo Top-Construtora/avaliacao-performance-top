@@ -419,12 +419,29 @@ export const evaluationController = {
         employeeId
       );
       
+      // Se não encontrou PDI, retorna null ao invés de erro
+      if (!pdi) {
+        return res.json({
+          success: true,
+          data: null
+        });
+      }
+      
       res.json({
         success: true,
         data: pdi
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Controller error:', error);
+      
+      // Se o erro for "no rows returned", retorna null ao invés de erro 500
+      if (error.message && error.message.includes('PGRST116')) {
+        return res.json({
+          success: true,
+          data: null
+        });
+      }
+      
       next(error);
     }
   },
