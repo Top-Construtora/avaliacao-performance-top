@@ -109,7 +109,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
       icon: UserCheck,
       title: 'Novo ciclo disponível', 
       description: 'O ciclo de avaliação 2025 está aberto.',
-      fullText: 'O novo ciclo de avaliação de desempenho 2025 está disponível. Você tem até 30/01/2025 para completar sua autoavaliação. Não esqueça de avaliar todas as competências técnicas e comportamentais.',
+      fullText: 'O novo ciclo de avaliação de Performance 2025 está disponível. Você tem até 30/01/2025 para completar sua autoavaliação. Não esqueça de avaliar todas as competências técnicas e comportamentais.',
       time: '1 hora atrás', 
       read: false,
       actions: ['Iniciar Avaliação']
@@ -254,8 +254,8 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
 
           <div className="min-w-0 flex-1">
             <h1 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
-              <span className="hidden sm:inline">Sistema de Avaliação de Desempenho</span>
-              <span className="sm:hidden">Avaliação de Desempenho</span>
+              <span className="hidden sm:inline">Sistema de Avaliação de Performance</span>
+              <span className="sm:hidden">Avaliação de Performance</span>
             </h1>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center">
               <Calendar className="w-3 h-3 mr-1 flex-shrink-0" />

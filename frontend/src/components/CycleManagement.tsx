@@ -87,7 +87,7 @@ const CycleManagement: React.FC = () => {
               Ciclos de Avaliação
             </h1>
             <p className="text-gray-600 mt-1">
-              Gerencie os ciclos de avaliação de desempenho
+              Gerencie os ciclos de avaliação de performance
             </p>
           </div>
           

@@ -242,9 +242,9 @@ export const evaluationService = {
       'low-high': 'Enigma',
       'medium-low': 'Eficaz',
       'medium-medium': 'Mantenedor',
-      'medium-high': 'Forte Desempenho',
+      'medium-high': 'Forte Performance',
       'high-low': 'Especialista',
-      'high-medium': 'Alto Desempenho',
+      'high-medium': 'Alto Performance',
       'high-high': 'Estrela'
     };
     
@@ -261,6 +261,7 @@ export const evaluationService = {
     actions: string[];
     resources?: string[];
     timeline?: string;
+    items?: any[]; // Adicionar suporte para items
   }): Promise<any> {
     try {
       const response = await api.post('/evaluations/pdi', pdiData);
@@ -274,6 +275,10 @@ export const evaluationService = {
   async getPDI(employeeId: string): Promise<any> {
     try {
       const response = await api.get(`/evaluations/pdi/${employeeId}`);
+      // O backend retorna { success: true, data: pdi }
+      if (response.data && response.data.success) {
+        return response.data.data;
+      }
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar PDI:', error);

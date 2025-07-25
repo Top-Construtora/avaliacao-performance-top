@@ -159,29 +159,22 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     console.log('Adicionando item com prazo:', prazo, 'Item:', newItem);
 
     setPdiData((prev: PdiData) => {
-      let updatedData = { ...prev };
+      // Mapear o prazo para a chave correta
+      const prazoMap: { [key: string]: 'curtosPrazos' | 'mediosPrazos' | 'longosPrazos' } = {
+        'curto': 'curtosPrazos',
+        'medio': 'mediosPrazos',
+        'longo': 'longosPrazos'
+      };
       
-      // Corrigir o prazo removendo o 's' se existir
-      const prazoCorrigido = prazo.replace(/s$/, ''); // Remove 's' do final
-      console.log('Prazo original:', prazo, 'Prazo corrigido:', prazoCorrigido);
-      
-      if (prazoCorrigido === 'curto' || prazo === 'curto') {
-        updatedData.curtosPrazos = [...prev.curtosPrazos, newItem];
-      } else if (prazoCorrigido === 'medio' || prazo === 'medio') {
-        updatedData.mediosPrazos = [...prev.mediosPrazos, newItem];
-      } else if (prazoCorrigido === 'longo' || prazo === 'longo') {
-        updatedData.longosPrazos = [...prev.longosPrazos, newItem];
+      const key = prazoMap[newPdiItem.prazo];
+
+      if (!key || !prev[key]) {
+        console.error(`Chave de prazo inválida: ${newPdiItem.prazo}`);
+        return prev;
       }
-      
-      console.log('PDI atualizado:', {
-        curtos: updatedData.curtosPrazos.length,
-        medios: updatedData.mediosPrazos.length,
-        longos: updatedData.longosPrazos.length,
-        total: updatedData.curtosPrazos.length + updatedData.mediosPrazos.length + updatedData.longosPrazos.length,
-        dadosCompletos: updatedData
-      });
-      
-      return updatedData;
+
+      const updatedPrazos = [...prev[key], newItem];
+      return { ...prev, [key]: updatedPrazos };
     });
 
     // Clear the form fields but keep it open
@@ -303,9 +296,18 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
   const renderActionItems = (category: 'curtosPrazos' | 'mediosPrazos' | 'longosPrazos') => {
     const categoryData = categories.find(cat => cat.key === category)!;
-    const items = pdiData[category];
-    const isExpanded = expandedPdiSections[category.replace('Prazos', '') as 'curto' | 'medio' | 'longo'];
-    const isAddingItemToThisCategory = editingPdiItemPrazo === category.replace('Prazos', '') as 'curto' | 'medio' | 'longo';
+    const items = pdiData[category] || [];
+    
+    // Mapear corretamente a categoria para o prazo
+    const categoryToPrazoMap: { [key: string]: 'curto' | 'medio' | 'longo' } = {
+      'curtosPrazos': 'curto',
+      'mediosPrazos': 'medio',
+      'longosPrazos': 'longo'
+    };
+    const prazo = categoryToPrazoMap[category];
+    
+    const isExpanded = expandedPdiSections[prazo];
+    const isAddingItemToThisCategory = editingPdiItemPrazo === prazo;
 
     return (
       <motion.div
@@ -314,7 +316,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
         className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
       >
         <button
-          onClick={() => togglePdiSection(category.replace('Prazos', '') as 'curto' | 'medio' | 'longo')}
+          onClick={() => togglePdiSection(prazo)}
           className={`w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${categoryData.bgColor} ${categoryData.darkBgColor} border-b ${categoryData.borderColor} hover:opacity-90 transition-all duration-200`}
         >
           <div className="flex items-center justify-between">
@@ -358,7 +360,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                     <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm sm:text-base">Nenhum item de desenvolvimento adicionado</p>
                     <Button
                       variant="outline"
-                      onClick={() => openAddPdiItemForm(category.replace('Prazos', '') as 'curto' | 'medio' | 'longo')}
+                      onClick={() => openAddPdiItemForm(prazo)}
                       icon={<Plus size={16} />}
                       size="sm"
                     >
@@ -391,7 +393,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             </div>
                           </div>
                           <button
-                            onClick={() => removePdiItem(item.id, category.replace('Prazos', '') as 'curto' | 'medio' | 'longo')}
+                            onClick={() => removePdiItem(item.id, prazo)}
                             className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
                           >
                             <X size={16} className="sm:hidden" />
@@ -503,7 +505,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                         <div className="flex justify-center pt-4">
                             <Button
                             variant="outline"
-                            onClick={() => openAddPdiItemForm(category.replace('Prazos', '') as 'curto' | 'medio' | 'longo')}
+                            onClick={() => openAddPdiItemForm(prazo)}
                             icon={<Plus size={16} />}
                             className="border-2 border-dashed hover:border-solid"
                             size="sm"

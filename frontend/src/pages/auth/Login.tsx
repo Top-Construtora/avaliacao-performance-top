@@ -78,7 +78,7 @@ export default function Login() {
               <img src={logo}/>
             </motion.div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Sistema de Avaliação
+              Avaliação de Performance
             </h1>
             <p className="text-gray-600">
               Entre com suas credenciais para acessar

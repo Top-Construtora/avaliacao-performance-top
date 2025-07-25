@@ -95,7 +95,7 @@ export const useSalaryManagement = () => {
         // Aqui você pode integrar com o sistema de avaliação
         const lastPerformance = 8.5; // Exemplo - buscar da última avaliação
         if (lastPerformance < progression.performance_requirement) {
-          reasons.push(`Nota mínima de desempenho: ${progression.performance_requirement} (atual: ${lastPerformance})`);
+          reasons.push(`Nota mínima de performancee: ${progression.performance_requirement} (atual: ${lastPerformance})`);
           missingRequirements.performanceScore = progression.performance_requirement;
         }
       }

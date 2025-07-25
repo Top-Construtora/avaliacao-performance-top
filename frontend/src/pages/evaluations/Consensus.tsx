@@ -103,6 +103,7 @@ const Consensus = () => {
 
 
   const criteria: Criterion[] = [
+    // Competências Técnicas
     { 
       id: 'gestao-conhecimento', 
       name: 'GESTÃO DO CONHECIMENTO', 
@@ -112,78 +113,80 @@ const Consensus = () => {
     },
     { 
       id: 'orientacao-resultados', 
-      name: 'ORIENTAÇÃO A RESULTADOS', 
-      description: 'Foco em resultados com segurança e qualidade',
+      name: 'ORIENTAÇÃO A RESULTADOS COM SEGURANÇA', 
+      description: 'Foco em resultados mantendo padrões de segurança e qualidade',
       category: 'Técnica', 
       icon: TrendingUp 
     },
     { 
       id: 'pensamento-critico', 
       name: 'PENSAMENTO CRÍTICO', 
-      description: 'Capacidade de analisar criticamente situações e propor soluções',
+      description: 'Capacidade de analisar criticamente situações e propor soluções eficazes',
       category: 'Técnica', 
       icon: Target 
     },
     { 
       id: 'aderencia-processos', 
-      name: 'ADERÊNCIA A PROCESSOS', 
-      description: 'Seguimento de procedimentos e padrões estabelecidos',
+      name: 'ASSERTIVIDADE E PROATIVIDADE', 
+      description: 'Comunicação assertiva e capacidade de prover soluções de forma proativa',
       category: 'Técnica', 
       icon: Target 
     },
+    // Competências Comportamentais
     { 
       id: 'comunicacao', 
       name: 'COMUNICAÇÃO', 
-      description: 'Capacidade de se comunicar de forma clara e eficaz',
+      description: 'Capacidade de se comunicar de forma clara, eficaz e respeitosa',
       category: 'Comportamental', 
       icon: Users 
     },
     { 
       id: 'inteligencia-emocional', 
       name: 'INTELIGÊNCIA EMOCIONAL', 
-      description: 'Capacidade de reconhecer e gerenciar emoções próprias e dos outros',
+      description: 'Habilidade de reconhecer e gerenciar emoções próprias e dos outros',
       category: 'Comportamental', 
       icon: Users 
     },
     { 
       id: 'colaboracao', 
-      name: 'COLABORAÇÃO', 
-      description: 'Trabalho em equipe e cooperação com colegas',
+      name: 'DELEGAÇÃO', 
+      description: 'Capacidade de distribuir tarefas adequadamente e empoderar a equipe',
       category: 'Comportamental', 
       icon: Users 
     },
     { 
       id: 'flexibilidade', 
-      name: 'FLEXIBILIDADE', 
-      description: 'Adaptação a mudanças e novas situações',
+      name: 'PATRIMONIALISMO', 
+      description: 'Cuidado e responsabilidade com os recursos e patrimônio da empresa',
       category: 'Comportamental', 
       icon: Users 
     },
+    // Competências Organizacionais
     { 
       id: 'missao-dada-cumprida', 
-      name: 'MISSÃO DADA É MISSÃO CUMPRIDA', 
-      description: 'Comprometimento com a entrega e cumprimento de compromissos',
+      name: 'MERITOCRACIA E MISSÃO COMPARTILHADA', 
+      description: 'Reconhecimento por mérito e alinhamento com os valores da empresa',
       category: 'Organizacional', 
       icon: Award 
     },
     { 
       id: 'senso-dono', 
-      name: 'SENSO DE DONO', 
-      description: 'Responsabilidade e cuidado como se fosse próprio',
+      name: 'ESPIRAL DE PASSOS', 
+      description: 'Evolução contínua através de pequenos passos consistentes',
       category: 'Organizacional', 
       icon: Award 
     },
     { 
       id: 'planejar-preco', 
       name: 'PLANEJAR É PREÇO', 
-      description: 'Valorização do planejamento e organização',
+      description: 'Valorização do planejamento e organização como fator crítico de sucesso',
       category: 'Organizacional', 
       icon: Award 
     },
     { 
       id: 'melhoria-continua', 
       name: 'MELHORIA CONTÍNUA', 
-      description: 'Busca constante por aperfeiçoamento e inovação',
+      description: 'Busca constante por aperfeiçoamento e inovação em processos e resultados',
       category: 'Organizacional', 
       icon: Award 
     }
@@ -213,13 +216,16 @@ const Consensus = () => {
   const loadPdiForEmployee = useCallback(async (employeeId: string) => {
     try {
       const employeeProfile = employees.find(emp => emp.id === employeeId);
+      console.log('Carregando PDI para colaborador:', employeeId, employeeProfile?.name);
       
       // Tentar carregar o PDI, mas sem mostrar erro se não existir
       try {
         const pdi = await pdiService.getPDI(employeeId);
+        console.log('PDI retornado da API:', pdi);
         
         if (pdi) {
           const transformedPDI = pdiService.transformPDIDataFromAPI(pdi);
+          console.log('PDI transformado:', transformedPDI);
           setPdiData({
             ...transformedPDI,
             colaborador: employeeProfile?.name || transformedPDI.colaborador,
@@ -359,8 +365,9 @@ const Consensus = () => {
   useEffect(() => {
     if (selectedEmployeeId) {
       loadEmployeeEvaluations();
+      loadPdiForEmployee(selectedEmployeeId);
     }
-  }, [selectedEmployeeId]);
+  }, [selectedEmployeeId, loadPdiForEmployee]);
 
   const fetchLeaders = async () => {
     try {
@@ -435,16 +442,19 @@ const Consensus = () => {
 
       // Mapear nomes dos critérios para IDs
       const criterionNameToId: Record<string, string> = {
+        // Técnicas
         'GESTÃO DO CONHECIMENTO': 'gestao-conhecimento',
-        'ORIENTAÇÃO A RESULTADOS': 'orientacao-resultados',
+        'ORIENTAÇÃO A RESULTADOS COM SEGURANÇA': 'orientacao-resultados',
         'PENSAMENTO CRÍTICO': 'pensamento-critico',
-        'ADERÊNCIA A PROCESSOS': 'aderencia-processos',
+        'ASSERTIVIDADE E PROATIVIDADE': 'aderencia-processos',
+        // Comportamentais
         'COMUNICAÇÃO': 'comunicacao',
         'INTELIGÊNCIA EMOCIONAL': 'inteligencia-emocional',
-        'COLABORAÇÃO': 'colaboracao',
-        'FLEXIBILIDADE': 'flexibilidade',
-        'MISSÃO DADA É MISSÃO CUMPRIDA': 'missao-dada-cumprida',
-        'SENSO DE DONO': 'senso-dono',
+        'DELEGAÇÃO': 'colaboracao',
+        'PATRIMONIALISMO': 'flexibilidade',
+        // Organizacionais
+        'MERITOCRACIA E MISSÃO COMPARTILHADA': 'missao-dada-cumprida',
+        'ESPIRAL DE PASSOS': 'senso-dono',
         'PLANEJAR É PREÇO': 'planejar-preco',
         'MELHORIA CONTÍNUA': 'melhoria-continua'
       };

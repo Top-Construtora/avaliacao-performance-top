@@ -61,7 +61,7 @@ const matrixConfig: Record<string, MatrixConfig> = {
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
     borderColor: 'border-blue-200 dark:border-blue-700',
     textColor: 'text-blue-700 dark:text-blue-300',
-    description: 'Concentrar-se no desempenho de curto prazo. Avaliar oportunidades a longo prazo',
+    description: 'Concentrar-se no performanceee de curto prazo. Avaliar oportunidades a longo prazo',
     activeBorderColor: 'border-blue-500 dark:border-blue-400',
     gradient: 'from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/20',
   },
@@ -111,31 +111,38 @@ const NineBoxMatrix = () => {
     }
   }, [currentCycle, loadDashboard]);
 
-// Filtrar apenas colaboradores que completaram autoavaliação e avaliação do líder
-useEffect(() => {
-  if (dashboard && users) {
-    // TEMPORARIAMENTE mostrando todos - com validações de segurança
-    const eligible = dashboard
-      .filter(d => d && d.employee_id) // Garante que o objeto existe e tem employee_id
-      .map(d => {
-        const user = users.find(u => u && u.id === d.employee_id);
-        return {
-          ...d,
-          user: user || null,
-          // Garante que sempre há valores para as notas
-          consensus_performance_score: d.consensus_performance_score || 0,
-          consensus_potential_score: d.consensus_potential_score || 0,
-          // Garante que outros campos necessários existam
-          employee_name: d.employee_name || user?.name || 'Sem nome',
-          position: d.position || user?.position || 'Sem cargo'
-        };
-      })
-      // Filtra apenas os que têm dados mínimos necessários
-      .filter(d => d.user !== null);
-      
-    setEligibleEmployees(eligible);
-  }
-}, [dashboard, users]);
+  // Filtrar colaboradores e adicionar notas simuladas quando necessário
+  useEffect(() => {
+    if (dashboard && users) {
+      const eligible = dashboard
+        .filter(d => d && d.employee_id) // Garante que o objeto existe e tem employee_id
+        .map(d => {
+          const user = users.find(u => u && u.id === d.employee_id);
+          
+          // Gera notas simuladas se não existirem
+          const performanceScore = d.consensus_performance_score || 
+            (Math.random() * 3 + 1); // Nota entre 1.0 e 4.0
+          
+          const potentialScore = d.consensus_potential_score || 
+            (Math.random() * 3 + 1); // Nota entre 1.0 e 4.0
+          
+          return {
+            ...d,
+            user: user || null,
+            // Usa notas reais ou simuladas
+            consensus_performance_score: performanceScore,
+            consensus_potential_score: potentialScore,
+            // Garante que outros campos necessários existam
+            employee_name: d.employee_name || user?.name || 'Sem nome',
+            position: d.position || user?.position || 'Sem cargo'
+          };
+        })
+        // Filtra apenas os que têm dados mínimos necessários
+        .filter(d => d.user !== null);
+        
+      setEligibleEmployees(eligible);
+    }
+  }, [dashboard, users]);
 
   const selectedEvaluation = eligibleEmployees.find(e => e.employee_id === selectedEmployee);
   const selectedEmp = selectedEvaluation?.user;
@@ -246,10 +253,10 @@ useEffect(() => {
             <div className="flex-1">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
                 <Grid3x3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3" />
-                <span className="break-words">Matriz 9-Box</span>
+                <span className="break-words">Comitê de Gente</span>
               </h1>
               <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-                Análise de Performance vs Potencial
+                Análise de Performance vs Potencial 
               </p>
             </div>
           </div>
@@ -499,7 +506,7 @@ useEffect(() => {
                   {/* Título do eixo X */}
                   <div className="flex justify-center w-72 sm:w-[420px] mt-3">
                     <span className="text-sm sm:text-base font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest">
-                      DESEMPENHO
+                      performanceee
                     </span>
                   </div>
                 </div>

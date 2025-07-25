@@ -15,7 +15,6 @@ export interface BaseEvaluation {
   strengths_internal?: string;
   improvements?: string;
   observations?: string;
-  written_feedback?: WrittenFeedback;
   evaluation_date: string;
   created_at: string;
   updated_at: string;
@@ -96,7 +95,6 @@ export interface EvaluationExtended {
   potential_score?: number;
   consensus_performance_score?: number;
   consensus_potential_score?: number;
-  written_feedback?: WrittenFeedback;
   strengths_internal?: string;
   improvements?: string;
   observations?: string;
@@ -115,14 +113,6 @@ export interface EvaluationExtended {
     position: string;
   };
   competencies?: EvaluationCompetency[];
-}
-
-export interface WrittenFeedback {
-  achievements?: string;
-  challenges?: string;
-  goals?: string;
-  development_areas?: string;
-  additional_comments?: string;
 }
 
 export interface ConsensusMeeting {
@@ -267,12 +257,12 @@ export const getCategoryScore = (competencies: EvaluationCompetency[], category:
 
 export const getNineBoxDescription = (position: number): string => {
   const descriptions: Record<number, string> = {
-    1: 'Insuficiente - Risco com desempenho',
+    1: 'Insuficiente - Risco com performance',
     2: 'Questionável - Potencial para melhorar',
     3: 'Dilema - Potencial não demonstrado',
     4: 'Eficaz - Especialista de alto valor',
     5: 'Mantenedor - Boa performance, espaço para crescer',
-    6: 'Forte Desempenho - Potencial para mudanças',
+    6: 'Forte Performance - Potencial para mudanças',
     7: 'Comprometimento - Especialista difícil de substituir',
     8: 'Alto Impacto - Contribuição de valor',
     9: 'Futuro Líder - Potencial além da função atual'
@@ -321,7 +311,6 @@ export interface EvaluationFormData {
   employeeId: string;
   evaluatorId?: string;
   competencies: EvaluationCompetency[];
-  writtenFeedback?: WrittenFeedback;
   potentialScore?: number;
   feedback?: {
     strengths_internal?: string;
@@ -343,9 +332,9 @@ export type NineBoxPosition =
   | 'Enigma'
   | 'Eficaz'
   | 'Mantenedor'
-  | 'Forte Desempenho'
+  | 'Forte Performance'
   | 'Especialista'
-  | 'Alto Desempenho'
+  | 'Alto Performance'
   | 'Estrela';
 
 // Métricas de avaliação
@@ -372,9 +361,9 @@ export const calculateNineBoxPosition = (performance: number, potential: number)
     'low-high': 'Enigma',
     'medium-low': 'Eficaz',
     'medium-medium': 'Mantenedor',
-    'medium-high': 'Forte Desempenho',
+    'medium-high': 'Forte Performance',
     'high-low': 'Especialista',
-    'high-medium': 'Alto Desempenho',
+    'high-medium': 'Alto Performance',
     'high-high': 'Estrela'
   };
   

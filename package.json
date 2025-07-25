@@ -1,5 +1,5 @@
 {
-  "name": "avaliacao-desempenho",
+  "name": "avaliacao-performance",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -22,15 +22,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Top-Construtora/avaliacao-desempenho.git"
+    "url": "git+https://github.com/Top-Construtora/avaliacao-performance.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Top-Construtora/avaliacao-desempenho/issues"
+    "url": "https://github.com/Top-Construtora/avaliacao-performance/issues"
   },
-  "homepage": "https://github.com/Top-Construtora/avaliacao-desempenho#readme",
+  "homepage": "https://github.com/Top-Construtora/avaliacao-performance#readme",
   "description": "",
   "dependencies": {
     "date-fns": "^4.1.0",

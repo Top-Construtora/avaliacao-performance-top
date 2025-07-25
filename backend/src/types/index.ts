@@ -119,7 +119,6 @@ export interface BaseEvaluation {
   strengths_internal?: string;
   improvements?: string;
   observations?: string;
-  written_feedback?: WrittenFeedback;
   evaluation_date: string;
   created_at: string;
   updated_at: string;
@@ -175,7 +174,6 @@ export interface EvaluationCompetency {
   criterion_description?: string;
   category: 'technical' | 'behavioral' | 'deliveries';
   score?: number;
-  written_response?: string;
   weight?: number;
   created_at?: string;
 }
@@ -237,15 +235,6 @@ export interface NineBoxData {
   performance_score: number;
   potential_score: number;
   nine_box_position: string;
-}
-
-// Feedback escrito
-export interface WrittenFeedback {
-  achievements?: string;
-  challenges?: string;
-  goals?: string;
-  development_areas?: string;
-  additional_comments?: string;
 }
 
 // Tipo estendido para incluir relacionamentos

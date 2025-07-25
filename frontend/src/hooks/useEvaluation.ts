@@ -427,28 +427,77 @@ export const useEvaluation = (): UseEvaluationReturn => {
   const loadPDI = useCallback(async (employeeId: string): Promise<PdiData | null> => {
     try {
       setLoading(true);
-      const pdi = await evaluationService.getPDI(employeeId);
-      if (pdi) {
-        // Transform the fetched PDI data (goals, actions are string arrays)
-        // back into the frontend's PdiData structure
-        const transformActionItems = (items: string[]): ActionItem[] => {
-          return items.map((item, index) => {
-            // This is a simplified parsing. A more robust solution would involve
-            // a structured format for saving/loading PDI items.
-            // For now, we'll try to extract parts based on the saving format.
-            const competenceMatch = item.match(/Competência: (.*?)\./);
-            const resultsMatch = item.match(/Resultados Esperados: (.*?)\./);
-            const howToDevelopMatch = item.match(/Como desenvolver: (.*?) \(Prazo: (.*?), Status: (.*?), Observação: (.*?)\)\./);
+      const pdiDataFromApi = await evaluationService.getPDI(employeeId);
+      
+      console.log('PDI recebido da API:', pdiDataFromApi);
 
-            let competencia = competenceMatch ? competenceMatch[1] : `Item ${index + 1}`;
-            let resultadosEsperados = resultsMatch ? resultsMatch[1] : '';
-            let comoDesenvolver = howToDevelopMatch ? howToDevelopMatch[1] : '';
-            let calendarizacao = howToDevelopMatch ? howToDevelopMatch[2] : '';
-            let status = (howToDevelopMatch ? howToDevelopMatch[3] : '1') as '1' | '2' | '3' | '4' | '5';
-            let observacao = howToDevelopMatch ? howToDevelopMatch[4] : '';
+      if (pdiDataFromApi) {
+        const curtosPrazos: ActionItem[] = [];
+        const mediosPrazos: ActionItem[] = [];
+        const longosPrazos: ActionItem[] = [];
 
-            return {
-              id: `pdi-${index}-${Date.now()}`, // Generate a unique ID
+        // Primeiro verificar se temos o campo items (novo formato)
+        if (pdiDataFromApi.items && Array.isArray(pdiDataFromApi.items)) {
+          console.log('Processando items do PDI:', pdiDataFromApi.items);
+          
+          pdiDataFromApi.items.forEach((item: any) => {
+            const actionItem: ActionItem = {
+              id: item.id || `item-${Date.now()}-${Math.random()}`,
+              competencia: item.competencia || '',
+              calendarizacao: item.calendarizacao || '',
+              comoDesenvolver: item.comoDesenvolver || '',
+              resultadosEsperados: item.resultadosEsperados || '',
+              status: item.status || '1',
+              observacao: item.observacao || ''
+            };
+
+            // Distribuir nos prazos corretos
+            switch (item.prazo) {
+              case 'curto':
+                curtosPrazos.push(actionItem);
+                break;
+              case 'medio':
+                mediosPrazos.push(actionItem);
+                break;
+              case 'longo':
+                longosPrazos.push(actionItem);
+                break;
+              default:
+                console.warn(`Prazo desconhecido: ${item.prazo}`);
+                curtosPrazos.push(actionItem); // Default para curto prazo
+            }
+          });
+        }
+        // Se não tem items, tentar processar goals e actions (formato antigo)
+        else if (pdiDataFromApi.goals && Array.isArray(pdiDataFromApi.goals)) {
+          console.log('Processando formato antigo - goals:', pdiDataFromApi.goals);
+          console.log('Processando formato antigo - actions:', pdiDataFromApi.actions);
+          
+          pdiDataFromApi.goals.forEach((goal: string, index: number) => {
+            const action = pdiDataFromApi.actions?.[index] || '';
+            
+            console.log(`Processando item ${index}:`, { goal, action });
+            
+            // Extrair competência e resultados esperados do goal
+            const competenciaMatch = goal.match(/Competência: (.+?)\. Resultados Esperados: (.+)/);
+            const competencia = competenciaMatch?.[1] || goal.split('.')[0] || 'N/A';
+            const resultadosEsperados = competenciaMatch?.[2] || goal.split('.')[1] || 'N/A';
+            
+            // Extrair como desenvolver, prazo, status e observação do action
+            // Tentar diferentes formatos de regex
+            let actionMatch = action.match(/Como desenvolver: (.+?) \(Prazo: (.+?), Status: (.+?), Observação: (.+?)\)\./);
+            if (!actionMatch) {
+              // Tentar sem o ponto final
+              actionMatch = action.match(/Como desenvolver: (.+?) \(Prazo: (.+?), Status: (.+?), Observação: (.+?)\)/);
+            }
+            
+            const comoDesenvolver = actionMatch?.[1] || action.replace(/Como desenvolver: /, '').split('(')[0].trim() || 'N/A';
+            const calendarizacao = actionMatch?.[2] || 'N/A';
+            const status = (actionMatch?.[3] || '1') as '1' | '2' | '3' | '4' | '5';
+            const observacao = actionMatch?.[4] || 'N/A';
+            
+            const actionItem: ActionItem = {
+              id: `item-${index}-${Date.now()}`,
               competencia,
               calendarizacao,
               comoDesenvolver,
@@ -456,61 +505,35 @@ export const useEvaluation = (): UseEvaluationReturn => {
               status,
               observacao,
             };
-          });
-        };
 
-        const curtosPrazos: ActionItem[] = []; // Assuming no direct mapping for short/medium/long term from backend
-        const mediosPrazos: ActionItem[] = [];
-        const longosPrazos: ActionItem[] = [];
-
-        // For simplicity, let's put all loaded items into 'curtosPrazos' for now.
-        // A more complex parsing based on 'timeline' or other criteria would be needed
-        // if the backend stores distinct short/medium/long term PDIs.
-        // Given the current backend structure (single goals/actions arrays),
-        // we'll just put them all into 'curtosPrazos' for display.
-        if (pdi.goals && pdi.actions) {
-            for (let i = 0; i < pdi.goals.length; i++) {
-                const goal = pdi.goals[i];
-                const action = pdi.actions[i];
-
-                const competenceMatch = goal.match(/Competência: (.*?)\./);
-                const resultsMatch = goal.match(/Resultados Esperados: (.*?)\./);
-                const howToDevelopMatch = action.match(/Como desenvolver: (.*?) \(Prazo: (.*?), Status: (.*?), Observação: (.*?)\)\./);
-
-                let competencia = competenceMatch ? competenceMatch[1] : `Item ${i + 1}`;
-                let resultadosEsperados = resultsMatch ? resultsMatch[1] : '';
-                let comoDesenvolver = howToDevelopMatch ? howToDevelopMatch[1] : '';
-                let calendarizacao = howToDevelopMatch ? howToDevelopMatch[2] : '';
-                let status = (howToDevelopMatch ? howToDevelopMatch[3] : '1') as '1' | '2' | '3' | '4' | '5';
-                let observacao = howToDevelopMatch ? howToDevelopMatch[4] : '';
-
-                curtosPrazos.push({
-                    id: `pdi-${i}-${Date.now()}`,
-                    competencia,
-                    calendarizacao,
-                    comoDesenvolver,
-                    resultadosEsperados,
-                    status,
-                    observacao,
-                });
+            // Distribuir nos prazos baseado no índice ou em alguma lógica
+            // Por padrão, vamos colocar todos em curto prazo
+            // Você pode ajustar essa lógica conforme necessário
+            if (index < pdiDataFromApi.goals.length / 3) {
+              curtosPrazos.push(actionItem);
+            } else if (index < (pdiDataFromApi.goals.length * 2) / 3) {
+              mediosPrazos.push(actionItem);
+            } else {
+              longosPrazos.push(actionItem);
             }
+          });
         }
 
-
         return {
-          id: pdi.id,
-          colaboradorId: pdi.employee_id,
-          colaborador: '', // Will be populated from selectedEmployee in Consensus.tsx
-          cargo: '', // Will be populated from selectedEmployee in Consensus.tsx
-          departamento: '', // Will be populated from selectedEmployee in Consensus.tsx
-          periodo: pdi.timeline || '',
+          id: pdiDataFromApi.id,
+          colaboradorId: pdiDataFromApi.employee_id,
+          colaborador: '', // Será preenchido no componente
+          cargo: '', // Será preenchido no componente
+          departamento: '', // Será preenchido no componente
+          periodo: pdiDataFromApi.timeline || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
           curtosPrazos,
           mediosPrazos,
           longosPrazos,
-          dataCriacao: pdi.created_at,
-          dataAtualizacao: pdi.updated_at,
+          dataCriacao: pdiDataFromApi.created_at,
+          dataAtualizacao: pdiDataFromApi.updated_at,
         };
       }
+
       return null;
     } catch (error: any) {
       console.error('Erro ao carregar PDI:', error);

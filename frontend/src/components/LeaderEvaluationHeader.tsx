@@ -40,15 +40,15 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
 
   const getQuadrantDescription = (quadrant?: string) => {
     const descriptions: Record<string, string> = {
-      'A1': 'Alto Potencial - Alto Desempenho',
-      'A2': 'Alto Potencial - Médio Desempenho',
-      'A3': 'Alto Potencial - Baixo Desempenho',
-      'B1': 'Médio Potencial - Alto Desempenho',
-      'B2': 'Médio Potencial - Médio Desempenho',
-      'B3': 'Médio Potencial - Baixo Desempenho',
-      'C1': 'Baixo Potencial - Alto Desempenho',
-      'C2': 'Baixo Potencial - Médio Desempenho',
-      'C3': 'Baixo Potencial - Baixo Desempenho'
+      'A1': 'Alto Potencial - Alto performanceee',
+      'A2': 'Alto Potencial - Médio performanceee',
+      'A3': 'Alto Potencial - Baixo performanceee',
+      'B1': 'Médio Potencial - Alto performanceee',
+      'B2': 'Médio Potencial - Médio performanceee',
+      'B3': 'Médio Potencial - Baixo performanceee',
+      'C1': 'Baixo Potencial - Alto performanceee',
+      'C2': 'Baixo Potencial - Médio performanceee',
+      'C3': 'Baixo Potencial - Baixo performanceee'
     };
     return quadrant ? descriptions[quadrant] || 'Não avaliado' : 'Não avaliado';
   };

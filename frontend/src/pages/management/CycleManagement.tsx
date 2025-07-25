@@ -239,7 +239,7 @@ const CycleManagement: React.FC = () => {
               Gerenciamento de Ciclos de Avaliação
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Controle completo sobre os ciclos de avaliação de desempenho
+              Controle completo sobre os ciclos de avaliação de performance
             </p>
           </div>
           

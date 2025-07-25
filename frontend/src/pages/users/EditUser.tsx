@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { PermissionGuard } from '../../components/PermissionGuard';
 import { usePermissions } from '../../hooks/usePermissions';
+import UserProfileFields from '../../components/UserProfileFields';
 
 
 interface Track {

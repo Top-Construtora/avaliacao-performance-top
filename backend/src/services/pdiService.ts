@@ -20,6 +20,42 @@ export const pdiService = {
         throw new ApiError(400, 'O PDI deve conter pelo menos um item em algum prazo (curto, médio ou longo)');
       }
 
+      // Converter items para o formato da tabela development_plans
+      const goals: string[] = [];
+      const actions: string[] = [];
+      const resources: string[] = [];
+      const items: any[] = [];
+      
+      // Processar cada item do PDI
+      pdiData.items.forEach((item, index) => {
+        const prazoLabel = item.prazo === 'curto' ? 'Curto Prazo' : 
+                          item.prazo === 'medio' ? 'Médio Prazo' : 'Longo Prazo';
+        
+        goals.push(`${prazoLabel} - ${item.competencia}: ${item.resultadosEsperados}`);
+        actions.push(`${prazoLabel} - ${item.comoDesenvolver} (Prazo: ${item.calendarizacao})`);
+        
+        if (item.observacao && item.observacao.trim() !== '') {
+          resources.push(`${prazoLabel} - ${item.observacao}`);
+        }
+        
+        // Adicionar item com estrutura completa para o campo JSONB
+        items.push({
+          id: item.id || `${Date.now()}-${index}`,
+          competencia: item.competencia,
+          calendarizacao: item.calendarizacao,
+          comoDesenvolver: item.comoDesenvolver,
+          resultadosEsperados: item.resultadosEsperados,
+          status: item.status || '1',
+          observacao: item.observacao || '',
+          prazo: item.prazo
+        });
+      });
+      
+      // Verificar se temos pelo menos um item (devido à constraint)
+      if (items.length === 0) {
+        throw new ApiError(400, 'O PDI deve conter pelo menos um item');
+      }
+
       // Verificar se existe PDI ativo
       const { data: existingPDI } = await supabase
         .from('development_plans')
@@ -33,10 +69,12 @@ export const pdiService = {
         const { data, error } = await supabase
           .from('development_plans')
           .update({
-            items: pdiData.items,
-            cycle_id: pdiData.cycleId,
-            leader_evaluation_id: pdiData.leaderEvaluationId,
-            periodo: pdiData.periodo,
+            goals,
+            actions,
+            resources,
+            timeline: pdiData.periodo || 'Anual',
+            items: items,
+            periodo: pdiData.periodo || 'Anual',
             updated_at: new Date().toISOString()
           })
           .eq('id', existingPDI.id)
@@ -53,9 +91,14 @@ export const pdiService = {
             employee_id: pdiData.employeeId,
             cycle_id: pdiData.cycleId,
             leader_evaluation_id: pdiData.leaderEvaluationId,
-            items: pdiData.items,
-            periodo: pdiData.periodo,
-            status: 'active',
+            consensus_evaluation_id: null, // PDI criado manualmente
+            goals,
+            actions,
+            resources,
+            timeline: pdiData.periodo || 'Anual',
+            status: 'active' as const,
+            items: items,
+            periodo: pdiData.periodo || 'Anual',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             created_by: pdiData.createdBy
@@ -79,11 +122,7 @@ export const pdiService = {
         .from('development_plans')
         .select(`
           *,
-          employee:users!employee_id(id, name, position),
-          leader_evaluation:leader_evaluations!leader_evaluation_id(
-            id,
-            evaluator:users!evaluator_id(id, name)
-          )
+          employee:users!employee_id(id, name, position)
         `)
         .eq('employee_id', employeeId)
         .eq('status', 'active')
@@ -95,7 +134,64 @@ export const pdiService = {
         throw new ApiError(500, error.message);
       }
 
-      return data;
+      if (!data) return null;
+
+      // Converter dados do formato do banco para o formato do frontend
+      const items: PDIItem[] = [];
+      
+      // Se temos o campo items (novo formato), usar ele
+      if (data.items && Array.isArray(data.items)) {
+        console.log('PDI tem campo items:', data.items);
+        return {
+          ...data,
+          items: data.items,
+          periodo: data.periodo || data.timeline || 'Anual'
+        };
+      }
+      
+      // Se não tem items, tentar reconstruir dos campos goals/actions (formato antigo)
+      if (data.goals && data.actions) {
+        data.goals.forEach((goal: string, index: number) => {
+          const action = data.actions[index] || '';
+          const resource = data.resources?.[index] || '';
+          
+          // Extrair prazo da string
+          let prazo: 'curto' | 'medio' | 'longo' = 'curto';
+          if (goal.startsWith('Curto Prazo')) prazo = 'curto';
+          else if (goal.startsWith('Médio Prazo')) prazo = 'medio';
+          else if (goal.startsWith('Longo Prazo')) prazo = 'longo';
+          
+          // Extrair competência e resultados esperados
+          const goalParts = goal.replace(/^(Curto|Médio|Longo) Prazo - /, '').split(': ');
+          const competencia = goalParts[0] || '';
+          const resultadosEsperados = goalParts[1] || '';
+          
+          // Extrair como desenvolver e calendarização
+          const actionParts = action.replace(/^(Curto|Médio|Longo) Prazo - /, '').match(/(.+) \(Prazo: (.+)\)/);
+          const comoDesenvolver = actionParts?.[1] || action;
+          const calendarizacao = actionParts?.[2] || '';
+          
+          // Extrair observação
+          const observacao = resource.replace(/^(Curto|Médio|Longo) Prazo - /, '');
+          
+          items.push({
+            id: `item-${index}`,
+            competencia,
+            resultadosEsperados,
+            comoDesenvolver,
+            calendarizacao,
+            status: '1', // Default status
+            observacao,
+            prazo
+          });
+        });
+      }
+
+      return {
+        ...data,
+        items,
+        periodo: data.periodo || data.timeline || 'Anual'
+      };
     } catch (error: any) {
       console.error('Service error:', error);
       throw error;

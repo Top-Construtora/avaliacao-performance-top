@@ -474,17 +474,30 @@ export const evaluationService = {
         }
         
         console.log('Items preparados para JSONB com estrutura completa:', items);
+        
+        // Verificar se temos pelo menos um item (devido à constraint)
+        if (items.length === 0) {
+          console.log('Nenhum item estruturado encontrado, PDI não será salvo');
+          return evaluation;
+        }
+
+        // Primeiro, vamos desativar PDIs anteriores
+        await supabase
+          .from('development_plans')
+          .update({ status: 'completed' })
+          .eq('employee_id', evaluationData.employeeId)
+          .eq('status', 'active');
 
         const pdiInsertData = {
           employee_id: evaluationData.employeeId,
           cycle_id: evaluationData.cycleId,
           leader_evaluation_id: evaluation.id,
-          consensus_evaluation_id: null, // Explicitamente null já que é do líder
+          consensus_evaluation_id: null, // PDI criado pela avaliação do líder
           goals: evaluationData.pdi.goals?.filter((g: string) => g) || [],
           actions: evaluationData.pdi.actions?.filter((a: string) => a) || [],
           resources: evaluationData.pdi.resources?.filter((r: string) => r) || [],
           timeline: evaluationData.pdi.timeline || 'Anual',
-          status: 'active',
+          status: 'active' as const,
           items: items, // Adicionar items no formato JSONB
           periodo: evaluationData.pdi.timeline || 'Anual',
           created_at: new Date().toISOString(),
@@ -696,9 +709,9 @@ export const evaluationService = {
       'low-high': 'Enigma',
       'medium-low': 'Eficaz',
       'medium-medium': 'Mantenedor',
-      'medium-high': 'Forte Desempenho',
+      'medium-high': 'Forte performance',
       'high-low': 'Especialista',
-      'high-medium': 'Alto Desempenho',
+      'high-medium': 'Alto performance',
       'high-high': 'Estrela'
     };
     
@@ -709,7 +722,7 @@ export const evaluationService = {
   // PDI - PLANO DE DESENVOLVIMENTO INDIVIDUAL
   // ====================================
   
-  // Salvar PDI
+  // Salvar PDI (formato antigo)
   async savePDI(supabase: any, pdiData: any) {
     try {
       // Verificar se já existe um PDI ativo para o colaborador
@@ -752,19 +765,94 @@ export const evaluationService = {
     }
   },
 
+  // Salvar PDI com items (novo formato)
+  async savePDIWithItems(supabase: any, pdiData: any) {
+    try {
+      // Processar items para criar goals, actions e resources
+      const goals: string[] = [];
+      const actions: string[] = [];
+      const resources: string[] = [];
+      
+      pdiData.items.forEach((item: any) => {
+        goals.push(`Competência: ${item.competencia || 'N/A'}. Resultados Esperados: ${item.resultadosEsperados || 'N/A'}.`);
+        actions.push(`Como desenvolver: ${item.comoDesenvolver || 'N/A'} (Prazo: ${item.calendarizacao || 'N/A'}, Status: ${item.status || 'N/A'}, Observação: ${item.observacao || 'N/A'}).`);
+        if (item.observacao) {
+          resources.push(item.observacao);
+        }
+      });
+
+      // Verificar se já existe um PDI ativo para o colaborador
+      const { data: existingPDI } = await supabase
+        .from('development_plans')
+        .select('*')
+        .eq('employee_id', pdiData.employeeId)
+        .eq('status', 'active')
+        .single();
+
+      const pdiPayload = {
+        employee_id: pdiData.employeeId,
+        goals,
+        actions,
+        resources,
+        timeline: pdiData.periodo || null,
+        items: pdiData.items, // Salvar items como JSONB
+        status: 'active',
+        updated_at: new Date().toISOString()
+      };
+
+      if (existingPDI) {
+        // Atualizar PDI existente
+        const { data, error } = await supabase
+          .from('development_plans')
+          .update(pdiPayload)
+          .eq('id', existingPDI.id)
+          .select()
+          .single();
+
+        if (error) throw new ApiError(500, error.message);
+        return data;
+      } else {
+        // Criar novo PDI
+        const { data, error } = await supabase
+          .from('development_plans')
+          .insert({
+            ...pdiPayload,
+            created_at: new Date().toISOString(),
+            created_by: pdiData.createdBy
+          })
+          .select()
+          .single();
+
+        if (error) throw new ApiError(500, error.message);
+        return data;
+      }
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
   // Buscar PDI ativo do colaborador
   async getPDI(supabase: any, employeeId: string) {
     try {
+      console.log('Buscando PDI para employeeId:', employeeId);
+      
       const { data, error } = await supabase
         .from('development_plans')
-        .select('*')
+        .select(`
+          *,
+          employee:users!employee_id(id, name, position)
+        `)
         .eq('employee_id', employeeId)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
 
+      console.log('Resultado da busca do PDI:', { data, error });
+
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Erro ao buscar PDI:', error);
         throw new ApiError(500, error.message);
       }
 

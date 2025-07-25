@@ -358,31 +358,50 @@ export const evaluationController = {
   async savePDI(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      const { employeeId, goals, actions, resources, timeline } = req.body;
+      const { employeeId, goals, actions, resources, timeline, items } = req.body;
       
-      if (!employeeId || !goals || !actions) {
+      if (!employeeId || (!items && (!goals || !actions))) {
         return res.status(400).json({
           success: false,
-          error: 'Campos obrigatórios: employeeId, goals, actions'
+          error: 'Campos obrigatórios: employeeId e (items ou goals/actions)'
         });
       }
       
-      const pdi = await evaluationService.savePDI(
-        authReq.supabase,
-        {
-          employeeId,
-          goals,
-          actions,
-          resources,
-          timeline,
-          createdBy: authReq.user?.id
-        }
-      );
-      
-      res.json({
-        success: true,
-        data: pdi
-      });
+      // Se temos items, usar o novo formato
+      if (items && Array.isArray(items)) {
+        const pdi = await evaluationService.savePDIWithItems(
+          authReq.supabase,
+          {
+            employeeId,
+            items,
+            periodo: timeline,
+            createdBy: authReq.user?.id
+          }
+        );
+        
+        res.json({
+          success: true,
+          data: pdi
+        });
+      } else {
+        // Usar formato antigo
+        const pdi = await evaluationService.savePDI(
+          authReq.supabase,
+          {
+            employeeId,
+            goals,
+            actions,
+            resources,
+            timeline,
+            createdBy: authReq.user?.id
+          }
+        );
+        
+        res.json({
+          success: true,
+          data: pdi
+        });
+      }
     } catch (error) {
       console.error('Controller error:', error);
       next(error);

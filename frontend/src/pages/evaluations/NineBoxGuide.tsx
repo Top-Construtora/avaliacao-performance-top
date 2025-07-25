@@ -39,8 +39,8 @@ const NineBoxGuide = () => {
       gradient: 'from-yellow-400 to-amber-500 dark:from-yellow-600 dark:to-amber-700',
       details: {
         descricao: 'Excede expectativas quanto ao potencial. Pode estar na função errada ou ser iniciante.',
-        atribuicoes: 'Manter na atribuição atual enquanto trabalha para melhorar o desempenho',
-        mentoria: 'Designar mentor do Box 8 para aumentar desempenho rapidamente',
+        atribuicoes: 'Manter na atribuição atual enquanto trabalha para melhorar o performance',
+        mentoria: 'Designar mentor do Box 8 para aumentar performance rapidamente',
         desenvolvimento: 'Avaliar habilidades funcionais/técnicas. Plano detalhado para construir novas habilidades',
         recompensa: 'Baixo ou nenhum aumento no salário base. Incentivo simbólico se houver evolução',
         engajamento: 'Promover tarefas funcionais importantes. Participação em projetos especiais'
@@ -50,7 +50,7 @@ const NineBoxGuide = () => {
       id: '6',
       position: { row: 0, col: 1 },
       title: 'Crescimento',
-      subtitle: 'Progressão para alto desempenho',
+      subtitle: 'Progressão para alto performance',
       performance: 'médio',
       potential: 'alto',
       icon: TrendingUp,
@@ -157,7 +157,7 @@ const NineBoxGuide = () => {
       id: '1',
       position: { row: 2, col: 0 },
       title: 'Insuficiente',
-      subtitle: 'Risco com desempenho',
+      subtitle: 'Risco com performance',
       performance: 'baixo',
       potential: 'baixo',
       icon: TrendingDown,
@@ -191,8 +191,8 @@ const NineBoxGuide = () => {
         atribuicoes: 'Atividades de resolução de problemas. Revisão de produtos ou serviços',
         mentoria: 'Mentor do mesmo nível, preferencialmente do Box 7',
         desenvolvimento: 'Desenvolver especialização. Avaliações periódicas a cada 18-24 meses',
-        recompensa: 'Pagar salário-base. Incentivo somente por desempenho',
-        engajamento: 'Atividades onde conhecimentos sejam valorizados. Exposição a alto desempenho'
+        recompensa: 'Pagar salário-base. Incentivo somente por performance',
+        engajamento: 'Atividades onde conhecimentos sejam valorizados. Exposição a alto performance'
       }
     },
     {
@@ -350,9 +350,9 @@ const NineBoxGuide = () => {
               </div>
             </div>
 
-            {/* Footer - Desempenho label */}
+            {/* Footer - performance label */}
             <div className="text-center mt-2">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Desempenho →</span>
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">performance →</span>
             </div>
           </div>
         </div>
@@ -385,7 +385,7 @@ const NineBoxGuide = () => {
                     {/* Quick Info */}
                     <div className="grid grid-cols-2 gap-3">
                       <div className={`${box.bgColor} ${box.borderColor} border rounded-lg p-3`}>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Desempenho</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">performance</p>
                         <p className={`font-semibold capitalize ${box.textColor}`}>{box.performance}</p>
                       </div>
                       <div className={`${box.bgColor} ${box.borderColor} border rounded-lg p-3`}>
@@ -473,7 +473,7 @@ const NineBoxGuide = () => {
                 <span className="break-words">Guia Nine-Box</span>
               </h1>
               <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-                Compreenda o funcionamento da Matriz de avaliação de potencial e desempenho
+                Compreenda o funcionamento da Matriz de avaliação de potencial e performance
               </p>
             </div>
           </div>
@@ -500,15 +500,15 @@ const NineBoxGuide = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 bg-red-400 dark:bg-red-600 rounded"></div>
-                  <span className="text-gray-600 dark:text-gray-400">Baixo Desempenho: Investir no desenvolvimento</span>
+                  <span className="text-gray-600 dark:text-gray-400">Baixo performance: Investir no desenvolvimento</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 bg-yellow-400 dark:bg-yellow-600 rounded"></div>
-                  <span className="text-gray-600 dark:text-gray-400">Médio Desempenho: Focar no curto prazo</span>
+                  <span className="text-gray-600 dark:text-gray-400">Médio performance: Focar no curto prazo</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 bg-green-400 dark:bg-green-600 rounded"></div>
-                  <span className="text-gray-600 dark:text-gray-400">Alto Desempenho: Preparar para função maior</span>
+                  <span className="text-gray-600 dark:text-gray-400">Alto performance: Preparar para função maior</span>
                 </div>
               </div>
             </div>
@@ -518,15 +518,15 @@ const NineBoxGuide = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 bg-red-400 dark:bg-red-600 rounded"></div>
-                  <span className="text-gray-600 dark:text-gray-400">Baixo Desempenho: Avaliar adequação</span>
+                  <span className="text-gray-600 dark:text-gray-400">Baixo performance: Avaliar adequação</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 bg-yellow-400 dark:bg-yellow-600 rounded"></div>
-                  <span className="text-gray-600 dark:text-gray-400">Médio Desempenho: Investir para manter</span>
+                  <span className="text-gray-600 dark:text-gray-400">Médio performance: Investir para manter</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 bg-green-400 dark:bg-green-600 rounded"></div>
-                  <span className="text-gray-600 dark:text-gray-400">Alto Desempenho: Considerar promoção</span>
+                  <span className="text-gray-600 dark:text-gray-400">Alto performance: Considerar promoção</span>
                 </div>
               </div>
             </div>
@@ -536,15 +536,15 @@ const NineBoxGuide = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 bg-red-400 dark:bg-red-600 rounded"></div>
-                  <span className="text-gray-600 dark:text-gray-400">Baixo Desempenho: Avaliar movimentação</span>
+                  <span className="text-gray-600 dark:text-gray-400">Baixo performance: Avaliar movimentação</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 bg-yellow-400 dark:bg-yellow-600 rounded"></div>
-                  <span className="text-gray-600 dark:text-gray-400">Médio Desempenho: Movimentação horizontal</span>
+                  <span className="text-gray-600 dark:text-gray-400">Médio performance: Movimentação horizontal</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-3 h-3 bg-green-400 dark:bg-green-600 rounded"></div>
-                  <span className="text-gray-600 dark:text-gray-400">Alto Desempenho: Manter e revisar remuneração</span>
+                  <span className="text-gray-600 dark:text-gray-400">Alto performance: Manter e revisar remuneração</span>
                 </div>
               </div>
             </div>

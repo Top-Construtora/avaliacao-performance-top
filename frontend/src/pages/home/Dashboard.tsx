@@ -47,7 +47,7 @@ const Dashboard = () => {
     {
       id: 'autoavaliacao',
       title: 'Autoavaliação',
-      description: 'Avalie suas competências e desempenho de forma reflexiva',
+      description: 'Avalie suas competências e performance de forma reflexiva',
       action: 'Iniciar avaliação',
       icon: User,
       gradient: 'from-primary-500 to-primary-600',
@@ -61,7 +61,7 @@ const Dashboard = () => {
     {
       id: 'avaliacao-lider',
       title: 'Avaliação do Líder',
-      description: 'Avalie o desempenho dos seus colaboradores',
+      description: 'Avalie a performance dos seus colaboradores',
       action: 'Avaliar equipe',
       icon: Users,
       gradient: 'from-secondary-500 to-secondary-600',
@@ -140,7 +140,7 @@ const Dashboard = () => {
       >
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Bem-vindo(a), {firstName}!</h1>
         <p className="text-primary-100 dark:text-primary-200 text-base sm:text-lg">
-          Gerencie e acompanhe todas as avaliações de desempenho em um só lugar
+          Gerencie e acompanhe todas as avaliações de performance em um só lugar
         </p>
       </motion.div>
 

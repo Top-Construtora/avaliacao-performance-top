@@ -151,7 +151,7 @@ const LeaderEvaluation = () => {
     {
       id: 'pot1',
       name: 'Potencial para função subsequente',
-      description: 'O que você enxerga como potencial máximo deste parceiro do negócio: você acredita que ele consegue assumir uma função subsequente no prazo de 1 ano, dado o desempenho e a motivação sustentados até hoje?',
+      description: 'O que você enxerga como potencial máximo deste parceiro do negócio: você acredita que ele consegue assumir uma função subsequente no prazo de 1 ano, dado o performancee e a motivação sustentados até hoje?',
       score: undefined
     },
     {
@@ -681,7 +681,7 @@ const LeaderEvaluation = () => {
                 ? profile?.is_leader && !profile?.is_director
                   ? 'Você não possui colaboradores subordinados para avaliar.'
                   : 'Entre em contato com o RH para verificar suas permissões.'
-                : 'Selecione um colaborador acima para iniciar a avaliação de desempenho'}
+                : 'Selecione um colaborador acima para iniciar a avaliação de performancee'}
             </p>
           </div>
         </motion.div>

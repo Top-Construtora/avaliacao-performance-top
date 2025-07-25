@@ -197,7 +197,6 @@ export interface Database {
           potential_score: number | null
           consensus_performance_score: number | null
           consensus_potential_score: number | null
-          written_feedback: Json | null
         }
         Insert: {
           id?: string
@@ -220,7 +219,6 @@ export interface Database {
           potential_score?: number | null
           consensus_performance_score?: number | null
           consensus_potential_score?: number | null
-          written_feedback?: Json | null
         }
         Update: {
           id?: string
@@ -243,7 +241,6 @@ export interface Database {
           potential_score?: number | null
           consensus_performance_score?: number | null
           consensus_potential_score?: number | null
-          written_feedback?: Json | null
         }
       }
       evaluation_competencies: {

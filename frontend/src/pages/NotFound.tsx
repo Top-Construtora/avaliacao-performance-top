@@ -28,7 +28,7 @@ const NotFound = () => {
           </div>
 
           <p className="text-lg text-gray-600 max-w-md mx-auto px-4">
-            Parece que você tentou acessar uma página que não existe no sistema de avaliação de desempenho.
+            Parece que você tentou acessar uma página que não existe no sistema de avaliação de performance.
           </p>
 
           {/* Sugestões */}

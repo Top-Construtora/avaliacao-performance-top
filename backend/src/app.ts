@@ -16,8 +16,8 @@ const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3001',
-  'https://avaliacao-desempenho-six.vercel.app',
-  'https://avaliacao-desempenho-yns9.onrender.com', // URL do Render
+  'https://avaliacao-performance-six.vercel.app',
+  'https://avaliacao-performance-yns9.onrender.com', // URL do Render
 ];
 
 // Adiciona a URL do frontend a partir das variáveis de ambiente se ela existir
@@ -127,7 +127,7 @@ if (process.env.NODE_ENV === 'development') {
 // Rota raiz - página inicial da API
 app.get('/', (req, res) => {
   res.json({
-    message: 'API de Avaliação de Desempenho',
+    message: 'API de Avaliação de performance',
     status: 'online',
     version: '1.2.0',
     timestamp: new Date().toISOString(),

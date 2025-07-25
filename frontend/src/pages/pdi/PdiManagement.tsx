@@ -59,7 +59,7 @@ const PdiManagement: React.FC = () => {
         const employeeProfile = employees.find(emp => emp.id === selectedEmployeeId);
         
         // Reset PDI data before loading new one
-        setPdiData({
+        const initialPdiData = {
           colaboradorId: selectedEmployeeId,
           colaborador: employeeProfile?.name || '',
           cargo: employeeProfile?.position || '',
@@ -70,19 +70,33 @@ const PdiManagement: React.FC = () => {
           longosPrazos: [],
           dataCriacao: new Date().toISOString(),
           dataAtualizacao: new Date().toISOString(),
-        });
+        };
+        setPdiData(initialPdiData);
 
         try {
+          console.log('Carregando PDI para colaborador:', selectedEmployeeId);
           const loadedPdi = await loadPDI(selectedEmployeeId);
+          console.log('PDI carregado:', loadedPdi);
+          
           if (loadedPdi) {
-            setPdiData(loadedPdi);
+            // Mesclar os dados carregados com as informações do colaborador
+            const mergedPdiData = {
+              ...loadedPdi,
+              colaborador: employeeProfile?.name || loadedPdi.colaborador,
+              cargo: employeeProfile?.position || loadedPdi.cargo,
+              departamento: employeeProfile?.departments?.map(dep => dep.name).join(', ') || loadedPdi.departamento || 'Não definido',
+            };
+            setPdiData(mergedPdiData);
             toast.success('PDI carregado com sucesso!');
           } else {
-            toast('Nenhum PDI encontrado para este colaborador. Crie um novo!');
+            // Se não houver PDI, mantenha os dados iniciais e informe ao usuário
+            setPdiData(initialPdiData);
+            toast.info('Nenhum PDI encontrado para este colaborador. Crie um novo!');
           }
         } catch (error) {
           console.error('Erro ao carregar PDI:', error);
-          toast.error('Erro ao carregar PDI.');
+          setPdiData(initialPdiData);
+          toast.error('Erro ao carregar PDI. Você pode criar um novo.');
         } finally {
           setLoadingPDI(false);
         }
@@ -98,9 +112,9 @@ const PdiManagement: React.FC = () => {
     }
 
     const allPdiActionItems = [
-      ...pdiData.curtosPrazos,
-      ...pdiData.mediosPrazos,
-      ...pdiData.longosPrazos
+      ...pdiData.curtosPrazos.map(item => ({ ...item, prazo: 'curto' as const })),
+      ...pdiData.mediosPrazos.map(item => ({ ...item, prazo: 'medio' as const })),
+      ...pdiData.longosPrazos.map(item => ({ ...item, prazo: 'longo' as const }))
     ];
 
     if (allPdiActionItems.length === 0) {
@@ -108,6 +122,7 @@ const PdiManagement: React.FC = () => {
       return;
     }
 
+    // Criar arrays para o formato antigo (compatibilidade)
     const pdiGoals = allPdiActionItems.map(item => 
       `Competência: ${item.competencia || 'N/A'}. Resultados Esperados: ${item.resultadosEsperados || 'N/A'}.`
     );
@@ -122,12 +137,27 @@ const PdiManagement: React.FC = () => {
       actions: pdiActions,
       resources: [],
       timeline: pdiData.periodo,
+      items: allPdiActionItems, // Adicionar o campo items com os dados completos
     };
+
+    console.log('Salvando PDI com dados:', pdiToSave);
 
     setIsSavingPDI(true);
     try {
       await savePDI(pdiToSave);
       toast.success('PDI salvo/atualizado com sucesso!');
+      
+      // Recarregar o PDI após salvar para garantir sincronização
+      const reloadedPdi = await loadPDI(pdiData.colaboradorId);
+      if (reloadedPdi) {
+        const mergedPdiData = {
+          ...reloadedPdi,
+          colaborador: pdiData.colaborador,
+          cargo: pdiData.cargo,
+          departamento: pdiData.departamento,
+        };
+        setPdiData(mergedPdiData);
+      }
     } catch (error) {
       console.error('Erro ao salvar PDI:', error);
       toast.error('Erro ao salvar PDI.');

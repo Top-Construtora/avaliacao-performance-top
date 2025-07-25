@@ -142,7 +142,7 @@ export default function Sidebar({
       allowedRoles: ['director'],
     },
     {
-      label: 'Matriz 9 Box',
+      label: 'Comitê  de Gente',
       icon: Grid3X3,
       path: '/nine-box',
       allowedRoles: ['director'],
@@ -202,7 +202,7 @@ export default function Sidebar({
           <img 
             src={logo} 
             alt="Logo da empresa" 
-            className="h-14 w-auto object-contain"
+            className="h-22 w-auto object-contain"
           />
         </div>
       </div>
