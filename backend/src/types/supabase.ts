@@ -186,7 +186,7 @@ export interface Database {
           behavioral_score: number | null
           deliveries_score: number | null
           final_score: number | null
-          strengths: string | null
+          strengths_internal: string | null
           improvements: string | null
           observations: string | null
           evaluation_date: string
@@ -209,7 +209,7 @@ export interface Database {
           behavioral_score?: number | null
           deliveries_score?: number | null
           final_score?: number | null
-          strengths?: string | null
+          strengths_internal?: string | null
           improvements?: string | null
           observations?: string | null
           evaluation_date?: string
@@ -232,7 +232,7 @@ export interface Database {
           behavioral_score?: number | null
           deliveries_score?: number | null
           final_score?: number | null
-          strengths?: string | null
+          strengths_internal?: string | null
           improvements?: string | null
           observations?: string | null
           evaluation_date?: string

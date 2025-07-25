@@ -3,7 +3,6 @@ import type {
   EvaluationCycle,
   EvaluationExtended,
   EvaluationCompetency,
-  WrittenFeedback,
   ConsensusMeeting,
   CycleDashboard,
   NineBoxData,
@@ -125,13 +124,18 @@ export const evaluationService = {
     cycleId: string,
     employeeId: string,
     competencies: EvaluationCompetency[],
-    writtenFeedback: WrittenFeedback
+    toolkit?: {
+      knowledge?: string[];
+      tools?: string[];
+      strengths_internal?: string[];
+      qualities?: string[];
+    }
   ): Promise<SelfEvaluation> {
     const response = await api.post('/evaluations/self', {
       cycleId,
       employeeId,
       competencies,
-      writtenFeedback
+      toolkit
     });
     return response.data;
   },
@@ -160,9 +164,15 @@ export const evaluationService = {
     competencies: EvaluationCompetency[],
     potentialScore: number,
     feedback?: {
-      strengths?: string;
+      strengths_internal?: string;
       improvements?: string;
       observations?: string;
+    },
+    pdi?: {
+      goals: string[];
+      actions: string[];
+      resources?: string[];
+      timeline?: string;
     }
   ): Promise<LeaderEvaluation> {
     const response = await api.post('/evaluations/leader', {
@@ -171,7 +181,8 @@ export const evaluationService = {
       evaluatorId,
       competencies,
       potentialScore,
-      feedback
+      feedback,
+      pdi
     });
     return response.data;
   },

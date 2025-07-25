@@ -7,7 +7,6 @@ import type {
   ConsensusMeeting,
   CycleDashboard,
   NineBoxData,
-  WrittenFeedback
 } from '../types';
 
 export const evaluationService = {
@@ -318,10 +317,10 @@ export const evaluationService = {
           behavioral_score: behavioralScore,
           deliveries_score: deliveriesScore,
           final_score: finalScore,
-          strengths: evaluationData.writtenFeedback?.achievements || '',
-          improvements: evaluationData.writtenFeedback?.development_areas || '',
-          observations: evaluationData.writtenFeedback?.additional_comments || '',
-          written_feedback: evaluationData.writtenFeedback,
+          knowledge: evaluationData.toolkit?.knowledge || [],
+          tools: evaluationData.toolkit?.tools || [],
+          strengths_internal: evaluationData.toolkit?.strengths_internal || [],
+          qualities: evaluationData.toolkit?.qualities || [],
           evaluation_date: new Date().toISOString().split('T')[0],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -334,6 +333,7 @@ export const evaluationService = {
       // Salvar as competências avaliadas
       if (evaluationData.competencies && evaluationData.competencies.length > 0) {
         const competenciesToInsert = evaluationData.competencies.map((comp: any) => ({
+          evaluation_id: evaluation.id,
           self_evaluation_id: evaluation.id,
           criterion_name: comp.name,
           criterion_description: comp.description,
@@ -409,10 +409,6 @@ export const evaluationService = {
           deliveries_score: deliveriesScore,
           final_score: finalScore,
           potential_score: evaluationData.potentialScore,
-          strengths: evaluationData.feedback?.strengths || '',
-          improvements: evaluationData.feedback?.improvements || '',
-          observations: evaluationData.feedback?.observations || '',
-          written_feedback: evaluationData.feedback,
           evaluation_date: new Date().toISOString().split('T')[0],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -425,12 +421,12 @@ export const evaluationService = {
       // Salvar as competências avaliadas
       if (evaluationData.competencies && evaluationData.competencies.length > 0) {
         const competenciesToInsert = evaluationData.competencies.map((comp: any) => ({
+          evaluation_id: evaluation.id,
           leader_evaluation_id: evaluation.id,
-          criterion_name: comp.name,
-          criterion_description: comp.description,
+          criterion_name: comp.name || comp.criterion_name,
+          criterion_description: comp.description || comp.criterion_description,
           category: comp.category,
           score: comp.score,
-          written_response: comp.written_response || '',
           created_at: new Date().toISOString()
         }));
 
@@ -439,6 +435,87 @@ export const evaluationService = {
           .insert(competenciesToInsert);
 
         if (compError) throw new ApiError(500, compError.message);
+      }
+
+      // Salvar o PDI se fornecido
+      if (evaluationData.pdi && evaluationData.pdi.goals && evaluationData.pdi.goals.length > 0) {
+        console.log('Tentando salvar PDI com dados:', evaluationData.pdi);
+        console.log('ID da avaliação do líder:', evaluation.id);
+        
+        // Preparar os itens no formato JSONB com todos os campos obrigatórios
+        const items = [];
+        
+        // Extrair os dados estruturados dos arrays de strings
+        for (let i = 0; i < evaluationData.pdi.goals.length; i++) {
+          const goal = evaluationData.pdi.goals[i];
+          const action = evaluationData.pdi.actions[i] || '';
+          
+          // Extrair prazo e competência do goal
+          const prazoMatch = goal.match(/^(Curto|Médio|Longo) Prazo - (.+?):/);
+          const competencia = prazoMatch ? prazoMatch[2] : goal.split(':')[0];
+          const resultadosEsperados = goal.split(':')[1]?.trim() || '';
+          
+          // Extrair como desenvolver e calendarização da action
+          const actionMatch = action.match(/^(Curto|Médio|Longo) Prazo - (.+?) \(Prazo: (.+?)\)/);
+          const comoDesenvolver = actionMatch ? actionMatch[2] : action.split('(')[0]?.trim() || action;
+          const calendarizacao = actionMatch ? actionMatch[3] : 'A definir';
+          const prazo = prazoMatch ? prazoMatch[1].toLowerCase() : 'curto';
+          
+          items.push({
+            id: `${Date.now()}-${i}`,
+            competencia: competencia.trim(),
+            calendarizacao: calendarizacao,
+            comoDesenvolver: comoDesenvolver,
+            resultadosEsperados: resultadosEsperados,
+            status: '1', // Status inicial
+            observacao: evaluationData.pdi.resources && evaluationData.pdi.resources[i] ? evaluationData.pdi.resources[i] : '',
+            prazo: prazo
+          });
+        }
+        
+        console.log('Items preparados para JSONB com estrutura completa:', items);
+
+        const pdiInsertData = {
+          employee_id: evaluationData.employeeId,
+          cycle_id: evaluationData.cycleId,
+          leader_evaluation_id: evaluation.id,
+          consensus_evaluation_id: null, // Explicitamente null já que é do líder
+          goals: evaluationData.pdi.goals?.filter((g: string) => g) || [],
+          actions: evaluationData.pdi.actions?.filter((a: string) => a) || [],
+          resources: evaluationData.pdi.resources?.filter((r: string) => r) || [],
+          timeline: evaluationData.pdi.timeline || 'Anual',
+          status: 'active',
+          items: items, // Adicionar items no formato JSONB
+          periodo: evaluationData.pdi.timeline || 'Anual',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          created_by: evaluationData.evaluatorId
+        };
+        
+        console.log('Dados completos para inserir no PDI:', pdiInsertData);
+        
+        const { data: pdiData, error: pdiError } = await supabase
+          .from('development_plans')
+          .insert(pdiInsertData)
+          .select()
+          .single();
+
+        if (pdiError) {
+          console.error('Erro ao salvar PDI:', pdiError);
+          console.error('Dados enviados:', {
+            employee_id: evaluationData.employeeId,
+            cycle_id: evaluationData.cycleId,
+            leader_evaluation_id: evaluation.id,
+            goals: evaluationData.pdi.goals,
+            actions: evaluationData.pdi.actions,
+            resources: evaluationData.pdi.resources,
+            items: items
+          });
+          // Não vamos falhar a avaliação se o PDI falhar
+          // throw new ApiError(500, pdiError.message);
+        } else {
+          console.log('PDI salvo com sucesso:', pdiData);
+        }
       }
 
       return evaluation;

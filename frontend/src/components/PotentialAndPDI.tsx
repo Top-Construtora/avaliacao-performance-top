@@ -94,6 +94,15 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     prazo: ''
   });
 
+  // Calcular total de itens do PDI
+  const totalPdiItems = pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length;
+  
+  // Debug: Log quando o total de itens muda
+  React.useEffect(() => {
+    console.log('Total de itens do PDI mudou:', totalPdiItems);
+    console.log('Estado atual do PDI:', pdiData);
+  }, [totalPdiItems]);
+  
   const calculatePotentialScores = () => {
     const scores = potentialItems.filter(item => item.score !== undefined).map(item => item.score || 0);
     if (scores.length === 0) return { results: 0, agility: 0, relationships: 0, final: 0 };
@@ -129,22 +138,50 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
   };
 
   const addPdiItem = () => {
+    console.log('Tentando adicionar item PDI:', newPdiItem);
+    
     if (!newPdiItem.competencia.trim() || !newPdiItem.comoDesenvolver.trim() || !newPdiItem.resultadosEsperados.trim() || !newPdiItem.prazo) {
-      toast.error('Preencha todos os campos obrigatórios e selecione o prazo para o item de desenvolvimento.');
+      toast.error('Preencha todos os campos obrigatórios: Competência, Como Desenvolver e Resultados Esperados.');
       return;
     }
 
-    const newItem = { ...newPdiItem, id: Date.now().toString() };
+    const newItem: ActionItem = {
+      id: Date.now().toString(),
+      competencia: newPdiItem.competencia.trim(),
+      calendarizacao: newPdiItem.calendarizacao.trim() || 'A definir',
+      comoDesenvolver: newPdiItem.comoDesenvolver.trim(),
+      resultadosEsperados: newPdiItem.resultadosEsperados.trim(),
+      status: newPdiItem.status || '1',
+      observacao: newPdiItem.observacao.trim()
+    };
 
-    setPdiData((prev: PdiData) => { // Explicitly type prev
-      if (newItem.prazo === 'curto') {
-        return { ...prev, curtosPrazos: [...prev.curtosPrazos, newItem as ActionItem] };
-      } else if (newItem.prazo === 'medio') {
-        return { ...prev, mediosPrazos: [...prev.mediosPrazos, newItem as ActionItem] };
-      } else if (newItem.prazo === 'longo') {
-        return { ...prev, longosPrazos: [...prev.longosPrazos, newItem as ActionItem] };
+    const prazo = newPdiItem.prazo;
+    console.log('Adicionando item com prazo:', prazo, 'Item:', newItem);
+
+    setPdiData((prev: PdiData) => {
+      let updatedData = { ...prev };
+      
+      // Corrigir o prazo removendo o 's' se existir
+      const prazoCorrigido = prazo.replace(/s$/, ''); // Remove 's' do final
+      console.log('Prazo original:', prazo, 'Prazo corrigido:', prazoCorrigido);
+      
+      if (prazoCorrigido === 'curto' || prazo === 'curto') {
+        updatedData.curtosPrazos = [...prev.curtosPrazos, newItem];
+      } else if (prazoCorrigido === 'medio' || prazo === 'medio') {
+        updatedData.mediosPrazos = [...prev.mediosPrazos, newItem];
+      } else if (prazoCorrigido === 'longo' || prazo === 'longo') {
+        updatedData.longosPrazos = [...prev.longosPrazos, newItem];
       }
-      return prev;
+      
+      console.log('PDI atualizado:', {
+        curtos: updatedData.curtosPrazos.length,
+        medios: updatedData.mediosPrazos.length,
+        longos: updatedData.longosPrazos.length,
+        total: updatedData.curtosPrazos.length + updatedData.mediosPrazos.length + updatedData.longosPrazos.length,
+        dadosCompletos: updatedData
+      });
+      
+      return updatedData;
     });
 
     // Clear the form fields but keep it open
@@ -155,9 +192,10 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       resultadosEsperados: '',
       status: '1',
       observacao: '',
-      prazo: newPdiItem.prazo // Keep the selected prazo
+      prazo: prazo // Keep the prazo
     });
-    toast.success('Item de PDI adicionado com sucesso!');
+    
+    toast.success(`Item adicionado ao PDI de ${prazo === 'curto' ? 'Curto' : prazo === 'medio' ? 'Médio' : 'Longo'} Prazo!`);
   };
 
   const removePdiItem = (idToRemove: string, prazo: 'curto' | 'medio' | 'longo') => {
@@ -898,36 +936,45 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-            <Button
-              variant="outline"
-              onClick={handlePreviousStep}
-              icon={<ArrowLeft size={18} />}
-              size="lg"
-              className="w-full sm:w-auto"
-            >
-              Voltar
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleSave}
-              icon={<Save size={18} />}
-              size="lg"
-              disabled={isSaving || loading}
-              className="w-full sm:w-auto"
-            >
-              {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleSubmit}
-              icon={<Send size={18} />}
-              size="lg"
-              disabled={(pdiData.curtosPrazos.length === 0 && pdiData.mediosPrazos.length === 0 && pdiData.longosPrazos.length === 0) || isSaving || loading}
-              className="w-full sm:w-auto"
-            >
-              {isSaving ? 'Enviando...' : 'Enviar Avaliação'}
-            </Button>
+          <div className="space-y-4">
+            {totalPdiItems === 0 && (
+              <div className="flex items-center justify-center space-x-2 text-amber-600 dark:text-amber-400 text-sm">
+                <AlertCircle className="h-4 w-4" />
+                <span>Adicione pelo menos um item ao PDI para enviar a avaliação</span>
+              </div>
+            )}
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+              <Button
+                variant="outline"
+                onClick={handlePreviousStep}
+                icon={<ArrowLeft size={18} />}
+                size="lg"
+                className="w-full sm:w-auto"
+              >
+                Voltar
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleSave}
+                icon={<Save size={18} />}
+                size="lg"
+                disabled={isSaving || loading}
+                className="w-full sm:w-auto"
+              >
+                {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSubmit}
+                icon={<Send size={18} />}
+                size="lg"
+                disabled={totalPdiItems === 0 || isSaving || loading}
+                className="w-full sm:w-auto"
+                title={totalPdiItems === 0 ? 'Adicione pelo menos um item ao PDI' : 'Enviar avaliação'}
+              >
+                {isSaving ? 'Enviando...' : 'Enviar Avaliação'}
+              </Button>
+            </div>
           </div>
         </motion.div>
       )}

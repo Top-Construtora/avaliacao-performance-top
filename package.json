@@ -16,7 +16,9 @@
     "clean:install": "npm run clean && npm run install:all"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "supabase": "^2.31.8",
+    "vite": "^7.0.6"
   },
   "repository": {
     "type": "git",

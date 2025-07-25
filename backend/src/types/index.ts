@@ -116,7 +116,7 @@ export interface BaseEvaluation {
   behavioral_score?: number;
   deliveries_score?: number;
   final_score?: number;
-  strengths?: string;
+  strengths_internal?: string;
   improvements?: string;
   observations?: string;
   written_feedback?: WrittenFeedback;

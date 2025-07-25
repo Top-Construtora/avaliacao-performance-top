@@ -9,8 +9,7 @@ import type {
   CycleDashboard,
   NineBoxData,
   SelfEvaluation,
-  LeaderEvaluation,
-  WrittenFeedback
+  LeaderEvaluation
 } from '../types/evaluation.types';
 import type { UserWithDetails } from '../types/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -71,7 +70,12 @@ interface UseEvaluationReturn {
     cycleId: string;
     employeeId: string;
     competencies: EvaluationCompetency[];
-    writtenFeedback: WrittenFeedback;
+    toolkit?: {
+      knowledge?: string[];
+      tools?: string[];
+      strengths_internal?: string[];
+      qualities?: string[];
+    };
   }) => Promise<void>;
   
   saveLeaderEvaluation: (data: {
@@ -81,9 +85,15 @@ interface UseEvaluationReturn {
     competencies: EvaluationCompetency[];
     potentialScore: number;
     feedback?: {
-      strengths?: string;
+      strengths_internal?: string;
       improvements?: string;
       observations?: string;
+    };
+    pdi?: {
+      goals: string[];
+      actions: string[];
+      resources?: string[];
+      timeline?: string;
     };
   }) => Promise<void>;
   
@@ -247,7 +257,12 @@ export const useEvaluation = (): UseEvaluationReturn => {
     cycleId: string;
     employeeId: string;
     competencies: EvaluationCompetency[];
-    writtenFeedback: WrittenFeedback;
+    toolkit?: {
+      knowledge?: string[];
+      tools?: string[];
+      strengths_internal?: string[];
+      qualities?: string[];
+    };
   }) => {
     try {
       setLoading(true);
@@ -255,7 +270,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
         data.cycleId,
         data.employeeId,
         data.competencies,
-        data.writtenFeedback
+        data.toolkit
       );
       toast.success('Autoavaliação salva com sucesso!');
     } catch (error: any) {
@@ -274,9 +289,15 @@ export const useEvaluation = (): UseEvaluationReturn => {
     competencies: EvaluationCompetency[];
     potentialScore: number;
     feedback?: {
-      strengths?: string;
+      strengths_internal?: string;
       improvements?: string;
       observations?: string;
+    };
+    pdi?: {
+      goals: string[];
+      actions: string[];
+      resources?: string[];
+      timeline?: string;
     };
   }) => {
     try {
@@ -287,7 +308,8 @@ export const useEvaluation = (): UseEvaluationReturn => {
         data.evaluatorId,
         data.competencies,
         data.potentialScore,
-        data.feedback
+        data.feedback,
+        data.pdi
       );
       toast.success('Avaliação do líder salva com sucesso!');
     } catch (error) {

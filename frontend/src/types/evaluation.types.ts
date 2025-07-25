@@ -12,7 +12,7 @@ export interface BaseEvaluation {
   behavioral_score?: number;
   deliveries_score?: number;
   final_score?: number;
-  strengths?: string;
+  strengths_internal?: string;
   improvements?: string;
   observations?: string;
   written_feedback?: WrittenFeedback;
@@ -97,7 +97,7 @@ export interface EvaluationExtended {
   consensus_performance_score?: number;
   consensus_potential_score?: number;
   written_feedback?: WrittenFeedback;
-  strengths?: string;
+  strengths_internal?: string;
   improvements?: string;
   observations?: string;
   evaluation_date: string;
@@ -292,7 +292,7 @@ export interface Evaluation {
   performance_score?: number;
   potential_score?: number;
   final_score?: number;
-  strengths?: string;
+  strengths_internal?: string;
   improvements?: string;
   observations?: string;
   career_interests?: string;
@@ -324,7 +324,7 @@ export interface EvaluationFormData {
   writtenFeedback?: WrittenFeedback;
   potentialScore?: number;
   feedback?: {
-    strengths?: string;
+    strengths_internal?: string;
     improvements?: string;
     observations?: string;
   };

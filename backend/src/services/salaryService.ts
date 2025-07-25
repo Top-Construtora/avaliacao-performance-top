@@ -933,5 +933,73 @@ export const salaryService = {
 
   calculateAverage(values: number[]): number {
     return values.reduce((sum, val) => sum + val, 0) / values.length;
+  },
+
+  groupByDepartment(salaryData: any[]) {
+    const grouped: { [key: string]: any[] } = {};
+    salaryData.forEach(item => {
+      const dept = item.department || 'Sem Departamento';
+      if (!grouped[dept]) {
+        grouped[dept] = [];
+      }
+      grouped[dept].push(item);
+    });
+    return grouped;
+  },
+
+  groupBySeniority(salaryData: any[]) {
+    const grouped: { [key: string]: any[] } = {};
+    salaryData.forEach(item => {
+      const seniority = item.seniority || 'Não definido';
+      if (!grouped[seniority]) {
+        grouped[seniority] = [];
+      }
+      grouped[seniority].push(item);
+    });
+    return grouped;
+  },
+
+  calculateDepartmentVariance(byDepartment: { [key: string]: any[] }): number {
+    const avgSalaries = Object.values(byDepartment).map(dept => {
+      const salaries = dept.map(d => d.salary || 0);
+      return this.calculateAverage(salaries);
+    });
+    
+    if (avgSalaries.length === 0) return 0;
+    
+    const overallAvg = this.calculateAverage(avgSalaries);
+    const variance = avgSalaries.reduce((sum, avg) => {
+      return sum + Math.pow(avg - overallAvg, 2);
+    }, 0) / avgSalaries.length;
+    
+    return (Math.sqrt(variance) / overallAvg) * 100;
+  },
+
+  calculateSeniorityProgression(bySeniority: { [key: string]: any[] }): number {
+    const seniorityOrder = ['Júnior', 'Pleno', 'Sênior', 'Especialista'];
+    const avgBySeniority: { [key: string]: number } = {};
+    
+    seniorityOrder.forEach(level => {
+      if (bySeniority[level]) {
+        const salaries = bySeniority[level].map(s => s.salary || 0);
+        avgBySeniority[level] = this.calculateAverage(salaries);
+      }
+    });
+    
+    let totalProgression = 0;
+    let count = 0;
+    
+    for (let i = 1; i < seniorityOrder.length; i++) {
+      const prev = seniorityOrder[i - 1];
+      const curr = seniorityOrder[i];
+      
+      if (avgBySeniority[prev] && avgBySeniority[curr]) {
+        const progression = ((avgBySeniority[curr] - avgBySeniority[prev]) / avgBySeniority[prev]) * 100;
+        totalProgression += progression;
+        count++;
+      }
+    }
+    
+    return count > 0 ? totalProgression / count : 0;
   }
 };

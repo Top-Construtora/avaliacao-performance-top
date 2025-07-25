@@ -183,7 +183,7 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
               score: ec.score || 0
             })) || [],
             feedback: {
-              strengths: evaluation.strengths || '',
+              strengths_internal: evaluation.strengths_internal || '',
               improvements: evaluation.improvements || '',
               observations: evaluation.observations || ''
             },
@@ -214,7 +214,7 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
               score: ec.score || 0
             })) || [],
             feedback: {
-              strengths: evaluation.strengths || '',
+              strengths_internal: evaluation.strengths_internal || '',
               improvements: evaluation.improvements || '',
               observations: evaluation.observations || ''
             },

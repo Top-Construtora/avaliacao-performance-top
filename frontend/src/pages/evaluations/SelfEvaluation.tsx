@@ -27,7 +27,6 @@ import Button from '../../components/Button';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 import { EVALUATION_COMPETENCIES } from '../../types/evaluation.types';
-import type { WrittenFeedback } from '../../types/evaluation.types';
 import { evaluationService } from '../../services/evaluation.service';
 
 interface SelfEvaluationData {
@@ -244,21 +243,11 @@ const SelfEvaluation = () => {
           currentCycle.id,
           profile.id,
           competencies,
-          writtenFeedback
         );
         toast.success('Rascunho salvo!');
       } catch (error) {
         toast.error('Erro ao salvar rascunho');
       }
-    };
-
-    // Prepare written feedback from toolkit data
-    const writtenFeedback: WrittenFeedback = {
-      achievements: `Conhecimentos: ${cleanedData.conhecimentos.join(', ')}`,
-      challenges: `Ferramentas: ${cleanedData.ferramentas.join(', ')}`,
-      goals: `Forças Internas: ${cleanedData.forcasInternas.join(', ')}`,
-      development_areas: `Qualidades: ${cleanedData.qualidades.join(', ')}`,
-      additional_comments: ''
     };
 
     setIsSaving(true);
@@ -267,7 +256,12 @@ const SelfEvaluation = () => {
         cycleId: currentCycle.id,
         employeeId: user.id,
         competencies,
-        writtenFeedback
+        toolkit: {
+          knowledge: cleanedData.conhecimentos,
+          tools: cleanedData.ferramentas,
+          strengths_internal: cleanedData.forcasInternas,
+          qualities: cleanedData.qualidades
+        }
       });
       
       toast.success('Autoavaliação completa salva com sucesso!');
