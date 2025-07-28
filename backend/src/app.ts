@@ -17,7 +17,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3001',
   'https://avaliacao-performance.vercel.app',
-  'https://avaliacao-performance.onrender.com',
+  'https://avaliacao-performance-na6w.onrender.com',
 ];
 
 // Adiciona a URL do frontend a partir das variáveis de ambiente se ela existir
