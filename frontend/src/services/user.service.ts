@@ -44,7 +44,7 @@ export const userService = {
   },
 
   async createUserWithAuth(userData: any): Promise<User> {
-    const response = await api.post('/users/create-with-auth', userData);
+    const response = await api.post('/auth/register', userData);
     return response.data;
   }
 };

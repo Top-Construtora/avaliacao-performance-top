@@ -61,7 +61,7 @@ const matrixConfig: Record<string, MatrixConfig> = {
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
     borderColor: 'border-blue-200 dark:border-blue-700',
     textColor: 'text-blue-700 dark:text-blue-300',
-    description: 'Concentrar-se no performanceee de curto prazo. Avaliar oportunidades a longo prazo',
+    description: 'Concentrar-se no desempenho de curto prazo. Avaliar oportunidades a longo prazo',
     activeBorderColor: 'border-blue-500 dark:border-blue-400',
     gradient: 'from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/20',
   },
