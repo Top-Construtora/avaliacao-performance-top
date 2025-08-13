@@ -51,14 +51,14 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
   const notificationsRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Configuração dos tipos de notificação com a paleta de cores do sistema
+  // Configuração dos tipos de notificação com a paleta de cores NAUE
   const notificationTypeConfig = {
     success: {
-      bgColor: 'bg-primary-50 dark:bg-primary-900/20',
-      iconBg: 'bg-primary-100 dark:bg-primary-800/30',
-      iconColor: 'text-primary-600 dark:text-primary-400',
-      borderColor: 'border-primary-200 dark:border-primary-700',
-      dotColor: 'bg-primary-500'
+      bgColor: 'bg-status-success-50 dark:bg-status-success-900/20',
+      iconBg: 'bg-status-success-100 dark:bg-status-success-800/30',
+      iconColor: 'text-status-success-600 dark:text-status-success-400',
+      borderColor: 'border-status-success-200 dark:border-status-success-700',
+      dotColor: 'bg-status-success-500'
     },
     info: {
       bgColor: 'bg-secondary-50 dark:bg-secondary-900/20',
@@ -68,18 +68,18 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
       dotColor: 'bg-secondary-500'
     },
     warning: {
-      bgColor: 'bg-accent-50 dark:bg-accent-900/20',
-      iconBg: 'bg-accent-100 dark:bg-accent-800/30',
-      iconColor: 'text-accent-600 dark:text-accent-400',
-      borderColor: 'border-accent-200 dark:border-accent-700',
-      dotColor: 'bg-accent-500'
+      bgColor: 'bg-status-warning-50 dark:bg-status-warning-900/20',
+      iconBg: 'bg-status-warning-100 dark:bg-status-warning-800/30',
+      iconColor: 'text-status-warning-600 dark:text-status-warning-400',
+      borderColor: 'border-status-warning-200 dark:border-status-warning-700',
+      dotColor: 'bg-status-warning-500'
     },
     alert: {
-      bgColor: 'bg-red-50 dark:bg-red-900/20',
-      iconBg: 'bg-red-100 dark:bg-red-800/30',
-      iconColor: 'text-red-600 dark:text-red-400',
-      borderColor: 'border-red-200 dark:border-red-700',
-      dotColor: 'bg-red-500'
+      bgColor: 'bg-status-danger-50 dark:bg-status-danger-900/20',
+      iconBg: 'bg-status-danger-100 dark:bg-status-danger-800/30',
+      iconColor: 'text-status-danger-600 dark:text-status-danger-400',
+      borderColor: 'border-status-danger-200 dark:border-status-danger-700',
+      dotColor: 'bg-status-danger-500'
     },
     achievement: {
       bgColor: 'bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20',
@@ -239,43 +239,44 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
   };
 
   return (
-    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
-      <div className="flex items-center justify-between h-16 px-3 sm:px-4 md:px-6">
-        {/* Lado esquerdo - Menu mobile e Título */}
-        <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-1 min-w-0">
+    <header className="bg-primary-900 dark:bg-primary-900 border-b border-white/10 sticky top-0 z-20">
+      <div className="flex items-center justify-between h-[77px] px-3 sm:px-4 md:px-6">
+        {/* Lado esquerdo - Menu mobile */}
+        <div className="flex items-center flex-shrink-0">
           {/* Botão menu mobile */}
           <button
             onClick={() => setIsMobileMenuOpen?.(!isMobileMenuOpen)}
-            className="md:hidden p-1.5 sm:p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+            className="md:hidden p-1.5 sm:p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md flex-shrink-0"
             aria-label="Menu"
           >
             <Menu className="h-5 w-5" />
           </button>
+        </div>
 
-          <div className="min-w-0 flex-1">
-            <h1 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
-              <span className="hidden sm:inline">Sistema de Avaliação de Performance</span>
-              <span className="sm:hidden">Avaliação de Performance</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center">
-              <Calendar className="w-3 h-3 mr-1 flex-shrink-0" />
-              <span className="hidden md:inline">
-                {new Date().toLocaleDateString('pt-BR', { 
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </span>
-              <span className="md:hidden">
-                {new Date().toLocaleDateString('pt-BR', { 
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric'
-                })}
-              </span>
-            </p>
-          </div>
+        {/* Centro - Título */}
+        <div className="flex-1 flex flex-col items-center justify-center text-center">
+          <h1 className="text-base sm:text-lg md:text-xl font-semibold text-white truncate">
+            <span className="hidden sm:inline">Sistema de Avaliação de Performance</span>
+            <span className="sm:hidden">Avaliação de Performance</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-white/70 flex items-center">
+            <Calendar className="w-3 h-3 mr-1 flex-shrink-0" />
+            <span className="hidden md:inline">
+              {new Date().toLocaleDateString('pt-BR', { 
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </span>
+            <span className="md:hidden">
+              {new Date().toLocaleDateString('pt-BR', { 
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              })}
+            </span>
+          </p>
         </div>
 
         {/* Lado direito - Notificações e usuário */}
@@ -284,12 +285,12 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
           <div className="static sm:relative" ref={notificationsRef}>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-1.5 sm:p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-all duration-200"
+              className="relative p-1.5 sm:p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
               aria-label="Notificações"
             >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-4 w-4 sm:h-5 sm:w-5 bg-gradient-to-br from-accent-500 to-accent-600 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center font-medium shadow-sm">
+                <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-4 w-4 sm:h-5 sm:w-5 bg-gradient-to-br from-amber-500 to-amber-600 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center font-medium shadow-sm">
                   {unreadCount}
                 </span>
               )}
@@ -314,7 +315,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[72px] sm:top-auto sm:mt-2 w-auto sm:w-80 md:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50"
+                    className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[72px] sm:top-auto sm:mt-2 w-auto sm:w-80 md:w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-300 dark:border-gray-700 overflow-hidden z-50"
                     style={{ 
                       maxHeight: 'calc(100vh - 88px)',
                     }}
@@ -341,7 +342,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                       )}
                       <button
                         onClick={() => setShowNotifications(false)}
-                        className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-0.5 transition-colors"
+                        className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-0.5 transition-all duration-200"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -470,17 +471,17 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
           {/* Theme Toggle - ADICIONADO AQUI */}
           <ThemeToggle />
 
-          <div className="h-5 sm:h-6 w-px bg-gray-200 dark:bg-gray-600 hidden xs:block"></div>
+          <div className="h-5 sm:h-6 w-px bg-white/10 hidden xs:block"></div>
     
           {/* Menu do usuário */}
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-1.5 sm:space-x-2 md:space-x-3 p-1 sm:p-1.5 md:p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-all duration-200"
+              className="flex items-center space-x-1.5 sm:space-x-2 md:space-x-3 p-1 sm:p-1.5 md:p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
               aria-label="Menu do usuário"
             >
               <div className="text-right hidden lg:block">
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-[150px]">
+                <p className="text-sm font-medium text-white truncate max-w-[150px]">
                   {profile?.name || user?.email}
                 </p>
                 <div className="flex items-center justify-end space-x-1">
@@ -490,10 +491,10 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                   </span>
                 </div>
               </div>
-              <div className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0 shadow-md">
+              <div className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 bg-primary-900 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0 shadow-md">
                 {profile?.name ? profile.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
               </div>
-              <ChevronDown className={`h-3 w-3 sm:h-4 sm:w-4 text-gray-600 dark:text-gray-400 transition-transform hidden sm:block ${showUserMenu ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-3 w-3 sm:h-4 sm:w-4 text-white/70 transition-transform hidden sm:block ${showUserMenu ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Dropdown do menu do usuário */}
@@ -504,7 +505,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden"
+                  className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-300 dark:border-gray-700 overflow-hidden"
                 >
                   {/* Mobile/Tablet: Mostrar informações do usuário */}
                   <div className="lg:hidden px-4 py-3 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-gray-700 dark:to-gray-700 border-b border-gray-100 dark:border-gray-600">
@@ -525,7 +526,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                         navigate('/settings');
                         setShowUserMenu(false);
                       }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-gray-900 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-all duration-200"
                     >
                       <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                       <span>Meu Perfil</span>
@@ -536,7 +537,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                         navigate('/settings');
                         setShowUserMenu(false);
                       }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-gray-900 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-all duration-200"
                     >
                       <Settings className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                       <span>Configurações</span>
@@ -546,7 +547,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                   <div className="border-t border-gray-100 dark:border-gray-600 py-1">
                     <button
                       onClick={handleLogout}
-                      className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-3 transition-all duration-200"
                     >
                       <LogOut className="h-4 w-4" />
                       <span className="font-medium">Sair</span>

@@ -153,7 +153,7 @@ const Settings = () => {
         
         {/* Avatar e Nome */}
         <div className="flex items-center space-x-4 mb-8">
-          <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/20 flex items-center justify-center text-2xl font-bold text-primary-600 dark:text-primary-400">
+          <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-2xl font-bold text-green-800 dark:text-green-700">
             {profile?.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'US'}
           </div>
           <div>
@@ -166,7 +166,7 @@ const Settings = () => {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">Email</label>
               <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                 <Mail className="h-4 w-4" />
                 <span>{user?.email || 'email@exemplo.com'}</span>
@@ -174,7 +174,7 @@ const Settings = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Telefone</label>
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">Telefone</label>
               <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                 <Phone className="h-4 w-4" />
                 <span>{profile?.phone || 'Não informado'}</span>
@@ -182,7 +182,7 @@ const Settings = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Departamento</label>
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">Departamento</label>
               <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                 <Building className="h-4 w-4" />
                 <span>{profile?.department || 'Não informado'}</span>
@@ -190,7 +190,7 @@ const Settings = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Localização</label>
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">Localização</label>
               <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                 <MapPin className="h-4 w-4" />
                 <span>{profile?.location || 'São Paulo, SP'}</span>
@@ -198,7 +198,7 @@ const Settings = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cargo</label>
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">Cargo</label>
               <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                 <Briefcase className="h-4 w-4" />
                 <span>{profile?.position || 'Não informado'}</span>
@@ -206,7 +206,7 @@ const Settings = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data de Admissão</label>
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">Data de Admissão</label>
               <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                 <Calendar className="h-4 w-4" />
                 <span>{profile?.join_date ? new Date(profile.join_date).toLocaleDateString('pt-BR') : 'Não informado'}</span>
@@ -227,7 +227,7 @@ const Settings = () => {
         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Aparência</h2>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+          <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-4">
             Tema do Sistema
           </label>
           
@@ -241,19 +241,19 @@ const Settings = () => {
                 onClick={() => handleThemeChange(themeOption.value)}
                 className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${
                   theme === themeOption.value
-                    ? 'border-primary-500 dark:border-primary-400 bg-primary-50 dark:bg-primary-900/20'
+                    ? 'border-green-800 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800'
                 }`}
               >
                 <themeOption.icon className={`h-6 w-6 mb-2 ${
                   theme === themeOption.value 
-                    ? 'text-primary-600 dark:text-primary-400' 
+                    ? 'text-green-800 dark:text-green-700' 
                     : 'text-gray-600 dark:text-gray-400'
                 }`} />
                 <span className={`text-sm font-medium ${
                   theme === themeOption.value 
-                    ? 'text-primary-700 dark:text-primary-300' 
-                    : 'text-gray-700 dark:text-gray-300'
+                    ? 'text-green-800 dark:text-green-700' 
+                    : 'text-naue-black dark:text-gray-300 font-medium'
                 }`}>
                   {themeOption.label}
                 </span>
@@ -274,13 +274,13 @@ const Settings = () => {
         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Segurança</h2>
         
         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-4">
+          <h3 className="text-sm font-semibold text-naue-black dark:text-gray-300 font-medium uppercase tracking-wider mb-4">
             Alterar Senha
           </h3>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Senha Atual
               </label>
               <div className="relative">
@@ -288,7 +288,7 @@ const Settings = () => {
                   type={showPassword ? "text" : "password"}
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  className="w-full px-4 py-3 rounded-lg border border-naue-border-gray dark:border-gray-600 focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-green-800 dark:focus:border-green-700 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray"
                   placeholder="Digite sua senha atual"
                 />
                 <button
@@ -302,7 +302,7 @@ const Settings = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Nova Senha
               </label>
               <div className="relative">
@@ -310,7 +310,7 @@ const Settings = () => {
                   type={showNewPassword ? "text" : "password"}
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  className="w-full px-4 py-3 rounded-lg border border-naue-border-gray dark:border-gray-600 focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-green-800 dark:focus:border-green-700 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray"
                   placeholder="Digite sua nova senha"
                 />
                 <button
@@ -327,7 +327,7 @@ const Settings = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Confirmar Nova Senha
               </label>
               <div className="relative">
@@ -335,7 +335,7 @@ const Settings = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  className="w-full px-4 py-3 rounded-lg border border-naue-border-gray dark:border-gray-600 focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-green-800 dark:focus:border-green-700 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray"
                   placeholder="Confirme sua nova senha"
                 />
                 <button
@@ -392,7 +392,7 @@ const Settings = () => {
         <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-start md:space-y-0 mb-6">
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center flex-wrap">
-              <SettingsIcon className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-500 dark:text-primary-400 mr-2 sm:mr-3 flex-shrink-0" />
+              <SettingsIcon className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-green-800 dark:text-green-700 mr-2 sm:mr-3 flex-shrink-0" />
               <span className="break-words">Configurações</span>
             </h1>
             <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">Gerencie suas informações e preferências</p>
@@ -415,13 +415,13 @@ const Settings = () => {
                   onClick={() => setActiveSection(section.id)}
                   className={`w-full flex items-center px-3 py-2.5 rounded-lg transition-all ${
                     activeSection === section.id
-                      ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                      ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-700'
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
                   <section.icon className={`h-5 w-5 mr-3 ${
                     activeSection === section.id 
-                      ? 'text-primary-600 dark:text-primary-400' 
+                      ? 'text-green-800 dark:text-green-700' 
                       : 'text-gray-400 dark:text-gray-500'
                   }`} />
                   <div className="text-left">

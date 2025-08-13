@@ -593,12 +593,12 @@ const EditUser = () => {
                   gradient: 'from-gray-700 to-gray-800 dark:from-gray-600 dark:to-gray-700',
                   selectedBg: 'bg-gray-50 dark:bg-gray-900/20',
                   selectedBorder: 'border-gray-500 dark:border-gray-400',
-                  selectedText: 'text-gray-700 dark:text-gray-300'
+                  selectedText: 'text-naue-black dark:text-gray-300 font-medium'
                 }
               ].map((type) => (
                 <label 
                   key={type.value}
-                  className={`relative flex flex-col p-6 rounded-xl border-2 cursor-pointer transition-all transform hover:scale-[1.02] ${
+                  className={`relative flex flex-col p-6 rounded-lg border cursor-pointer transition-all transform hover:scale-[1.02] ${
                     formData.profileType === type.value 
                       ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
                       : 'bg-gray-50/50 dark:bg-gray-700/20 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
@@ -667,7 +667,7 @@ const EditUser = () => {
               ].map((type) => (
                 <label 
                   key={type.value}
-                  className={`relative flex flex-col p-6 rounded-xl border-2 cursor-pointer transition-all transform hover:scale-[1.02] ${
+                  className={`relative flex flex-col p-6 rounded-lg border cursor-pointer transition-all transform hover:scale-[1.02] ${
                     formData.contractType === type.value 
                       ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
                       : 'bg-gray-50/50 dark:bg-gray-700/20 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
@@ -712,7 +712,7 @@ const EditUser = () => {
             
             {/* Profile Image */}
             <div className="mb-6 pb-6 border-b border-gray-100 dark:border-gray-700">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-4">
                 Foto do Perfil
               </label>
               <div className="flex items-center space-x-4">
@@ -759,15 +759,15 @@ const EditUser = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   Nome completo *
                 </label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+                  className={`w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
                     formErrors.name 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -782,14 +782,14 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   Email corporativo *
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   <input
                     type="email"
-                    className="w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 cursor-not-allowed"
+                    className="w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 cursor-not-allowed"
                     value={formData.email}
                     disabled
                     title="Email não pode ser alterado"
@@ -802,17 +802,17 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   Telefone
                 </label>
                 <div className="relative">
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   <input
                     type="tel"
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+                    className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
                       formErrors.phone 
-                        ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                        : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                     }`}
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
@@ -828,17 +828,17 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   Data de nascimento
                 </label>
                 <div className="relative">
                   <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   <input
                     type="date"
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                    className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                       formErrors.birthDate 
-                        ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                        : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                     }`}
                     value={formData.birthDate}
                     onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
@@ -853,17 +853,17 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   Data de Admissão *
                 </label>
                 <div className="relative">
                   <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   <input
                     type="date"
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                    className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                       formErrors.joinDate 
-                        ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                        : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                     }`}
                     value={formData.joinDate}
                     onChange={(e) => setFormData({ ...formData, joinDate: e.target.value })}
@@ -889,17 +889,17 @@ const EditUser = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   Departamento *
                 </label>
                 <div className="relative">
                   <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                   <select
-                    className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                       formErrors.departmentId 
-                        ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                        : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                     }`}
                     value={formData.departmentId}
                     onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
@@ -920,17 +920,17 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   Trilha *
                 </label>
                 <div className="relative">
                   <Route className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                   <select
-                    className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                       formErrors.trackId 
-                        ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                        : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                     }`}
                     value={formData.trackId}
                     onChange={(e) => setFormData({ ...formData, trackId: e.target.value })}
@@ -953,17 +953,17 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   Cargo *
                 </label>
                 <div className="relative">
                   <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                   <select
-                    className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                       formErrors.positionId 
-                        ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                        : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                     }`}
                     value={formData.positionId}
                     onChange={(e) => setFormData({ ...formData, positionId: e.target.value })}
@@ -991,17 +991,17 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   Internível *
                 </label>
                 <div className="relative">
                   <Layers className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                   <select
-                    className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                       formErrors.internLevel 
-                        ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                        : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                     }`}
                     value={formData.internLevel}
                     onChange={(e) => setFormData({ ...formData, internLevel: e.target.value as 'A' | 'B' | 'C' | 'D' | 'E' })}
@@ -1092,17 +1092,17 @@ const EditUser = () => {
                 Hierarquia
               </h3>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   Reporta para *
                 </label>
                 <div className="relative">
                   <UserCog className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                   <select
-                    className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                       formErrors.reportsTo 
-                        ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                        : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                     }`}
                     value={formData.reportsTo}
                     onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
@@ -1203,12 +1203,12 @@ const EditUser = () => {
                     className="space-y-4"
                   >
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                         Nova senha
                       </label>
                       <input
                         type="password"
-                        className={`w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        className={`w-full px-4 py-3 text-base rounded-lg border transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                           formErrors.password 
                             ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
                             : 'border-gray-200 dark:border-gray-600'
@@ -1226,12 +1226,12 @@ const EditUser = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                         Confirmar senha
                       </label>
                       <input
                         type="password"
-                        className={`w-full px-4 py-3 text-base rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        className={`w-full px-4 py-3 text-base rounded-lg border transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                           formErrors.confirmPassword 
                             ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
                             : 'border-gray-200 dark:border-gray-600'

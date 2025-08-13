@@ -156,7 +156,7 @@ const SalaryAdminPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-800 dark:border-green-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-400">Carregando dados...</p>
         </div>
       </div>
@@ -176,7 +176,7 @@ const SalaryAdminPage = () => {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                  <Settings className="h-7 w-7 text-primary-600 mr-3" />
+                  <Settings className="h-7 w-7 text-green-800 dark:text-green-600 mr-3" />
                   Administração de Carreiras
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -204,7 +204,7 @@ const SalaryAdminPage = () => {
             className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 space-y-4"
           >
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-              <GitBranch className="text-primary-600" />
+              <GitBranch className="text-green-800 dark:text-green-600" />
               Trilhas de Carreira Criadas
             </h2>
             
@@ -272,7 +272,7 @@ const SalaryAdminPage = () => {
               </div>
             ) : (
               <div className="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg dark:border-gray-600">
-                <GitBranch className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <GitBranch className="h-12 w-12 text-green-600 dark:text-green-500 mx-auto mb-4" />
                 <p className="text-gray-500 dark:text-gray-400 font-medium">
                   Nenhuma trilha de carreira foi criada ainda.
                 </p>
@@ -351,13 +351,13 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
               Departamento *
             </label>
             <select
               value={formData.department_id}
               onChange={(e) => setFormData(prev => ({ ...prev, department_id: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-green-800 focus:border-transparent"
             >
               <option value="">Selecione um departamento</option>
               {departments.length > 0 ? (
@@ -380,39 +380,39 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
               Nome da Trilha *
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-green-800 focus:border-transparent"
               placeholder="Ex: Trilha de Engenharia, Trilha Comercial"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
               Código (opcional)
             </label>
             <input
               type="text"
               value={formData.code}
               onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-green-800 focus:border-transparent"
               placeholder="Ex: ENG, COM (será gerado automaticamente se vazio)"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
               Descrição (opcional)
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-green-800 focus:border-transparent"
               rows={3}
               placeholder="Descreva brevemente esta trilha de carreira"
             />

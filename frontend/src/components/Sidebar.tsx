@@ -191,12 +191,12 @@ export default function Sidebar({
   const sidebarContent = (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="h-16 flex items-center justify-between pl-2 pr-4 border-b border-gray-700/50">
+      <div className="h-[77px] flex items-center justify-between pl-2 pr-4 border-b border-white/10">
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : ''}`}>
           <img 
             src={logo} 
             alt="Logo da empresa" 
-            className="h-22 w-auto object-contain"
+            className="h-16 w-auto object-contain"
           />
         </div>
       </div>
@@ -213,8 +213,8 @@ export default function Sidebar({
                     className={`
                       w-full flex items-center justify-between px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
                       ${openDropdown === item.label
-                        ? 'bg-gray-800/50 text-white' 
-                        : 'text-white/70 hover:bg-gray-800/50 hover:text-white'
+                        ? 'bg-white/10 text-white' 
+                        : 'text-white/90 hover:bg-white/10 hover:text-white'
                       }
                     `}
                   >
@@ -246,8 +246,8 @@ export default function Sidebar({
                               className={({ isActive }) => `
                                 flex items-center px-4 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200
                                 ${isActive 
-                                  ? 'bg-gradient-to-r from-teal-500/20 to-teal-600/20 text-white border border-teal-500/40 shadow-lg shadow-teal-500/10' 
-                                  : 'text-white/60 hover:bg-gray-800/30 hover:text-white/90'
+                                  ? 'bg-white/15 text-white border-l-2 border-white' 
+                                  : 'text-white/80 hover:bg-white/10 hover:text-white'
                                 }
                               `}
                               onClick={() => setIsMobileMenuOpen(false)}
@@ -267,8 +267,8 @@ export default function Sidebar({
                   className={({ isActive }) => `
                     flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
                     ${isActive 
-                      ? 'bg-gradient-to-r from-teal-500/20 to-teal-600/20 text-white border border-teal-500/40 shadow-lg shadow-teal-500/10' 
-                      : 'text-white/70 hover:bg-gray-800/50 hover:text-white'
+                      ? 'bg-white/15 text-white' 
+                      : 'text-white/90 hover:bg-white/10 hover:text-white'
                     }
                   `}
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -283,15 +283,15 @@ export default function Sidebar({
       </nav>
 
       {/* Separador e opções inferiores */}
-      <div className="px-3 py-4 border-t border-gray-800">
+      <div className="px-3 py-4 border-t border-white/10">
         <div className="space-y-1">
           <NavLink
             to="/settings"
             className={({ isActive }) => `
               flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
               ${isActive 
-                ? 'bg-gradient-to-r from-teal-500/20 to-teal-600/20 text-white border border-teal-500/40 shadow-lg shadow-teal-500/10' 
-                : 'text-white/70 hover:bg-gray-800/50 hover:text-white'
+                ? 'bg-white/15 text-white' 
+                : 'text-white/90 hover:bg-white/10 hover:text-white'
               }
             `}
             onClick={() => setIsMobileMenuOpen(false)}
@@ -302,7 +302,7 @@ export default function Sidebar({
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center px-4 py-3 text-[15px] font-medium rounded-lg text-white/70 hover:bg-gray-800/50 hover:text-white transition-all duration-200"
+            className="w-full flex items-center px-4 py-3 text-[15px] font-medium rounded-lg text-white/90 hover:bg-white/10 hover:text-white transition-all duration-200"
           >
             <LogOut className="h-5 w-5 mr-3 flex-shrink-0" />
             <span>Sair</span>
@@ -315,7 +315,7 @@ export default function Sidebar({
   return (
     <>
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col bg-dark-navy w-64 fixed h-full z-30">
+      <aside className="hidden md:flex flex-col bg-primary-900 w-64 fixed h-full z-30">
         {sidebarContent}
       </aside>
 
@@ -338,7 +338,7 @@ export default function Sidebar({
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.3 }}
-              className="md:hidden flex flex-col bg-dark-navy fixed h-full w-64 z-50"
+              className="md:hidden flex flex-col bg-naue-green fixed h-full w-64 z-50"
             >
               {sidebarContent}
             </motion.aside>

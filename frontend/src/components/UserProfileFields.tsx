@@ -68,7 +68,7 @@ const UserProfileFields: React.FC<UserProfileFieldsProps> = ({ formData, onChang
             exit={{ opacity: 0, height: 0 }}
             className="space-y-3"
           >
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium">
               Faixa etária dos filhos
             </label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

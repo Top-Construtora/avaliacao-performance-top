@@ -336,7 +336,7 @@ const CareerTrackDetail = () => {
                         <div className="grid grid-cols-5 gap-2 text-center">
                           {['A', 'B', 'C', 'D', 'E'].map((level, idx) => (
                             <div key={level} className="text-xs">
-                              <div className="font-medium text-gray-700 dark:text-gray-300">
+                              <div className="font-medium text-naue-black dark:text-gray-300 font-medium">
                                 {level}
                               </div>
                               <div className="text-gray-600 dark:text-gray-400">
@@ -377,7 +377,7 @@ const CareerTrackDetail = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                   Cargo
                 </label>
                 <select
@@ -393,7 +393,7 @@ const CareerTrackDetail = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                   Classe Salarial
                 </label>
                 <select
@@ -411,7 +411,7 @@ const CareerTrackDetail = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                   Salário Base
                 </label>
                 <input
@@ -425,7 +425,7 @@ const CareerTrackDetail = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                   Ordem na Trilha
                 </label>
                 <input

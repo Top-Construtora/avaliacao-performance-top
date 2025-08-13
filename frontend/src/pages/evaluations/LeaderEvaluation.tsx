@@ -94,12 +94,12 @@ const LeaderEvaluation = () => {
       weight: 50,
       expanded: true,
       icon: BookOpen, // Added icon
-      gradient: 'from-primary-500 to-primary-600', // Added gradient
-      darkGradient: 'dark:from-primary-600 dark:to-primary-700', // Added dark gradient
-      bgColor: 'bg-primary-50', // Added background color
-      darkBgColor: 'dark:bg-primary-900/20', // Added dark background color
-      borderColor: 'border-primary-200', // Added border color
-      darkBorderColor: 'dark:border-primary-700', // Added dark border color
+      gradient: 'from-green-800 to-green-900', // Added gradient
+      darkGradient: 'dark:from-green-800 dark:to-green-900', // Added dark gradient
+      bgColor: 'bg-green-50', // Added background color
+      darkBgColor: 'dark:bg-green-800/20', // Added dark background color
+      borderColor: 'border-green-200', // Added border color
+      darkBorderColor: 'dark:border-green-700', // Added dark border color
       items: EVALUATION_COMPETENCIES.technical.map(comp => ({
         id: comp.name.toLowerCase().replace(/\s+/g, '-'),
         name: comp.name,
@@ -113,12 +113,12 @@ const LeaderEvaluation = () => {
       weight: 30,
       expanded: false,
       icon: Target, // Added icon
-      gradient: 'from-secondary-500 to-secondary-600', // Added gradient
-      darkGradient: 'dark:from-secondary-600 dark:to-secondary-700', // Added dark gradient
-      bgColor: 'bg-secondary-50', // Added background color
-      darkBgColor: 'dark:bg-secondary-900/20', // Added dark background color
-      borderColor: 'border-secondary-200', // Added border color
-      darkBorderColor: 'dark:border-secondary-700', // Added dark border color
+      gradient: 'from-gray-600 to-gray-700', // Added gradient
+      darkGradient: 'dark:from-gray-600 dark:to-gray-700', // Added dark gradient
+      bgColor: 'bg-gray-50', // Added background color
+      darkBgColor: 'dark:bg-gray-800/20', // Added dark background color
+      borderColor: 'border-gray-200', // Added border color
+      darkBorderColor: 'dark:border-gray-700', // Added dark border color
       items: EVALUATION_COMPETENCIES.behavioral.map(comp => ({
         id: comp.name.toLowerCase().replace(/\s+/g, '-'),
         name: comp.name,
@@ -132,12 +132,12 @@ const LeaderEvaluation = () => {
       weight: 20,
       expanded: false,
       icon: Award, // Added icon
-      gradient: 'from-accent-500 to-accent-600', // Added gradient
-      darkGradient: 'dark:from-accent-600 dark:to-accent-700', // Added dark gradient
-      bgColor: 'bg-accent-50', // Added background color
-      darkBgColor: 'dark:bg-accent-900/20', // Added dark background color
-      borderColor: 'border-accent-200', // Added border color
-      darkBorderColor: 'dark:border-accent-700', // Added dark border color
+      gradient: 'from-stone-700 to-stone-800', // Added gradient
+      darkGradient: 'dark:from-stone-700 dark:to-stone-800', // Added dark gradient
+      bgColor: 'bg-stone-50', // Added background color
+      darkBgColor: 'dark:bg-stone-800/20', // Added dark background color
+      borderColor: 'border-stone-200', // Added border color
+      darkBorderColor: 'dark:border-stone-700', // Added dark border color
       items: EVALUATION_COMPETENCIES.deliveries.map(comp => ({
         id: comp.name.toLowerCase().replace(/\s+/g, '-'),
         name: comp.name,
@@ -538,7 +538,7 @@ const LeaderEvaluation = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-800 dark:border-green-700"></div>
       </div>
     );
   }
@@ -547,7 +547,7 @@ const LeaderEvaluation = () => {
     const periodMessage = getCyclePeriodMessage();
     return (
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 text-center">
-        <AlertCircle className="h-12 w-12 text-primary-500 dark:text-primary-400 mx-auto mb-4" />
+        <AlertCircle className="h-12 w-12 text-green-800 dark:text-green-700 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
           {!currentCycle ? 'Nenhum ciclo de avaliação ativo' : 'Período de avaliação indisponível'}
         </h3>
@@ -557,7 +557,7 @@ const LeaderEvaluation = () => {
         {profile?.is_director && (
           <button
             onClick={() => window.location.href = '/cycle-management'}
-            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+            className="px-4 py-2 bg-green-800 text-white rounded-lg hover:bg-green-900 transition-colors"
           >
             Gerenciar Ciclos
           </button>
@@ -670,8 +670,8 @@ const LeaderEvaluation = () => {
           className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-8 sm:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-secondary-100 to-primary-100 dark:from-secondary-900/20 dark:to-primary-900/20 mb-4 sm:mb-6">
-              <Info className="h-8 w-8 sm:h-10 sm:w-10 text-secondary-600 dark:text-secondary-400" />
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-gray-100 to-green-100 dark:from-gray-900/20 dark:to-green-900/20 mb-4 sm:mb-6">
+              <Info className="h-8 w-8 sm:h-10 sm:w-10 text-gray-600 dark:text-gray-400" />
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               {subordinates.length === 0 && !loading ? 'Nenhum subordinado disponível' : 'Nenhum colaborador selecionado'}

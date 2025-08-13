@@ -264,14 +264,14 @@ const DepartmentManagement = () => {
         layout
         variants={itemVariants}
         whileHover={{ y: -4, transition: { duration: 0.2 } }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group"
+        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group"
       >
-        <div className="h-2 bg-gradient-to-r from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700" />
+        <div className="h-2 bg-gradient-to-r from-stone-700 to-stone-800 dark:from-stone-800 dark:to-stone-900" />
         
         <div className="p-6">
           <div className="flex items-start justify-between gap-2 mb-4">
             <div className="flex items-center space-x-4 flex-shrink-0">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700 shadow-md dark:shadow-lg">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-stone-700 to-stone-800 dark:from-stone-800 dark:to-stone-900 shadow-md dark:shadow-lg">
                 <Building className="h-6 w-6 text-white" />
               </div>
             </div>
@@ -286,7 +286,7 @@ const DepartmentManagement = () => {
               <ActionGuard can={permissions.canEditDepartment}>
                 <button
                   onClick={() => handleEdit(department)}
-                  className="p-2 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
+                  className="p-2 rounded-lg transition-all duration-200 hover:bg-stone-100 dark:hover:bg-stone-800/30 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-300 hover:shadow-sm"
                   title="Editar"
                 >
                   <Edit className="h-4 w-4" />
@@ -296,7 +296,7 @@ const DepartmentManagement = () => {
               <ActionGuard can={permissions.canDeleteDepartment}>
                 <button
                   onClick={() => handleDelete(department.id)}
-                  className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                  className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-stone-500 dark:text-stone-400 hover:text-red-600 dark:hover:text-red-400"
                   title="Excluir"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -307,25 +307,25 @@ const DepartmentManagement = () => {
 
           <div className="space-y-3">
             {responsible && (
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 group/item hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                <UserCog className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500 group-hover/item:text-primary-500 dark:group-hover/item:text-primary-400" />
+              <div className="flex items-center text-sm text-stone-600 dark:text-stone-400 group/item hover:text-stone-800 dark:hover:text-stone-300 transition-colors">
+                <UserCog className="h-4 w-4 mr-3 text-stone-400 dark:text-stone-500 group-hover/item:text-stone-700 dark:group-hover/item:text-stone-400" />
                 <span>Responsável: <span className="font-medium truncate">{responsible.name}</span></span>
               </div>
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                <UsersIcon className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500" />
+              <div className="flex items-center text-sm text-stone-600 dark:text-stone-400">
+                <UsersIcon className="h-4 w-4 mr-2 text-stone-400 dark:text-stone-500" />
                 <span className="font-medium">{deptTeams.length} {deptTeams.length === 1 ? 'time' : 'times'}</span>
               </div>
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                <UserRound className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500" />
+              <div className="flex items-center text-sm text-stone-600 dark:text-stone-400">
+                <UserRound className="h-4 w-4 mr-2 text-stone-400 dark:text-stone-500" />
                 <span className="font-medium">{deptUsers} {deptUsers === 1 ? 'pessoa' : 'pessoas'}</span>
               </div>
             </div>
 
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-              <Calendar className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
+            <div className="flex items-center text-sm text-stone-600 dark:text-stone-400">
+              <Calendar className="h-4 w-4 mr-3 text-stone-400 dark:text-stone-500" />
               <span>Criado em {new Date(department.created_at).toLocaleDateString('pt-BR')}</span>
             </div>
           </div>
@@ -338,7 +338,7 @@ const DepartmentManagement = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary-500 dark:text-primary-400 mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-stone-600 dark:text-stone-400 mx-auto mb-4" />
           <p className="text-gray-600 dark:text-gray-400">Carregando dados...</p>
         </div>
       </div>
@@ -351,13 +351,13 @@ const DepartmentManagement = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-8"
+          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
         >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                  <Database className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3 flex-shrink-0" />
+                  <Database className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-stone-600 dark:text-stone-400 mr-2 sm:mr-3 flex-shrink-0" />
                   Gerenciamento de Departamentos
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
@@ -384,12 +384,12 @@ const DepartmentManagement = () => {
             initial="hidden"
             animate="visible"
           >
-            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-accent-500 via-accent-600 to-accent-700 dark:from-accent-600 dark:via-accent-700 dark:to-accent-800 rounded-xl p-4 text-center shadow-lg">
+            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-stone-700 via-stone-800 to-stone-900 dark:from-stone-800 dark:via-stone-900 dark:to-black rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalDepartments}</p>
-                <p className="text-sm text-accent-100 font-medium">Departamentos</p>
+                <p className="text-sm text-stone-100 font-medium">Departamentos</p>
               </div>
-              <Building className="absolute -bottom-2 -right-2 h-16 w-16 text-accent-400 dark:text-accent-500 opacity-50" />
+              <Building className="absolute -bottom-2 -right-2 h-16 w-16 text-stone-400 dark:text-stone-500 opacity-50" />
             </motion.div>
             
             <motion.div 
@@ -404,17 +404,17 @@ const DepartmentManagement = () => {
               <UsersIcon className="absolute -bottom-2 -right-2 h-16 w-16 text-teal-300 opacity-50" />
             </motion.div>
             
-            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-secondary-500 via-secondary-600 to-secondary-700 dark:from-secondary-600 dark:via-secondary-700 dark:to-secondary-800 rounded-xl p-4 text-center shadow-lg">
+            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-stone-700 via-stone-800 to-stone-900 dark:from-stone-800 dark:via-stone-900 dark:to-black rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalMembers}</p>
-                <p className="text-sm text-secondary-100 font-medium">Pessoas Total</p>
+                <p className="text-sm text-stone-100 font-medium">Pessoas Total</p>
               </div>
-              <UserRound className="absolute -bottom-2 -right-2 h-16 w-16 text-secondary-400 dark:text-secondary-500 opacity-50" />
+              <UserRound className="absolute -bottom-2 -right-2 h-16 w-16 text-stone-400 dark:text-stone-500 opacity-50" />
             </motion.div>
           </motion.div>
         </motion.div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
+        <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-3">
               <div className="flex items-center bg-gray-100/80 dark:bg-gray-700/50 backdrop-blur-sm rounded-xl p-1.5">
@@ -422,8 +422,8 @@ const DepartmentManagement = () => {
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all ${
                     viewMode === 'grid'
-                      ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm dark:shadow-lg'
-                      : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                      ? 'bg-white dark:bg-stone-700 text-stone-700 dark:text-stone-300 shadow-sm dark:shadow-lg'
+                      : 'text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'
                   }`}
                   title="Visualização em grade"
                 >
@@ -433,8 +433,8 @@ const DepartmentManagement = () => {
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg transition-all ${
                     viewMode === 'list'
-                      ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm dark:shadow-lg'
-                      : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                      ? 'bg-white dark:bg-stone-700 text-stone-700 dark:text-stone-300 shadow-sm dark:shadow-lg'
+                      : 'text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'
                   }`}
                   title="Visualização em lista"
                 >
@@ -446,21 +446,21 @@ const DepartmentManagement = () => {
                 onClick={() => setShowFilters(!showFilters)}
                 className={`p-2.5 rounded-xl transition-all ${
                   showFilters 
-                    ? 'bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' 
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    ? 'bg-stone-200 dark:bg-stone-800/50 text-stone-800 dark:text-stone-300' 
+                    : 'bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-600'
                 }`}
               >
                 <Filter className="h-4 w-4" />
               </button>
 
               <div className="relative group">
-                <button className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">
+                <button className="p-2.5 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-600 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                   <MoreVertical className="h-4 w-4" />
                 </button>
                 <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-2xl border border-gray-100 dark:border-gray-700 py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                   <button
                     onClick={() => handleQuickAction('import')}
-                    className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
+                    className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
                   >
                     <Upload className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     <span>Importar dados</span>
@@ -468,7 +468,7 @@ const DepartmentManagement = () => {
                   <UIGuard show="showExportButton">
                     <button
                       onClick={() => handleQuickAction('export')}
-                      className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
                     >
                       <Download className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <span>Exportar lista</span>
@@ -478,7 +478,7 @@ const DepartmentManagement = () => {
                   <UIGuard show="showBulkActionsButton">
                     <button
                       onClick={() => handleQuickAction('bulk')}
-                      className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
                     >
                       <Copy className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <span>Ações em massa</span>
@@ -511,7 +511,7 @@ const DepartmentManagement = () => {
                 >
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-700/30 dark:to-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-700">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-semibold text-naue-black dark:text-gray-300 font-medium mb-2">
                         Ordenar por
                       </label>
                       <select
@@ -556,10 +556,10 @@ const DepartmentManagement = () => {
               className="text-center py-12"
             >
               <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 mb-6">
-                <Building className="h-10 w-10 text-gray-400 dark:text-gray-500" />
+                <Building className="h-10 w-10 text-stone-400 dark:text-stone-500" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Nenhum departamento encontrado</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">Crie o primeiro departamento da organização</p>
+              <p className="text-stone-500 dark:text-stone-400 mb-6">Crie o primeiro departamento da organização</p>
               <UIGuard show="showCreateDepartmentButton">
                 <Button
                   variant="primary"
@@ -586,11 +586,11 @@ const DepartmentManagement = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl dark:shadow-2xl"
+                className="bg-naue-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-md hover:shadow-lg border border-naue-border-gray dark:border-gray-700"
                 onClick={(e) => e.stopPropagation()}
               >
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-                  <Download className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+                  <Download className="h-5 w-5 mr-2 text-stone-600 dark:text-stone-400" />
                   Exportar Dados
                 </h2>
                 
@@ -608,7 +608,7 @@ const DepartmentManagement = () => {
 
                   <button
                     onClick={() => handleExport('notion')}
-                    className="w-full p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/20 dark:to-gray-600/20 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600/30 dark:hover:to-gray-500/30 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium text-left flex items-center space-x-3 transition-all"
+                    className="w-full p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/20 dark:to-gray-600/20 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600/30 dark:hover:to-gray-500/30 rounded-xl border border-gray-200 dark:border-gray-700 text-naue-black dark:text-gray-300 font-medium font-medium text-left flex items-center space-x-3 transition-all"
                   >
                     <FileText className="h-5 w-5" />
                     <div className="flex-1">

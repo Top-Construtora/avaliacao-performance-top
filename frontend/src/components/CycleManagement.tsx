@@ -62,18 +62,18 @@ const CycleManagement: React.FC = () => {
     const end = new Date(cycle.end_date);
 
     if (cycle.status === 'closed') {
-      return { color: 'bg-gray-100 text-gray-600', icon: Lock, text: 'Encerrado' };
+      return { color: 'bg-status-info/10 text-status-info border border-status-info/20', icon: Lock, text: 'Encerrado' };
     }
     if (cycle.status === 'draft') {
-      return { color: 'bg-yellow-100 text-yellow-700', icon: Edit, text: 'Rascunho' };
+      return { color: 'bg-status-warning/10 text-status-warning border border-status-warning/20', icon: Edit, text: 'Rascunho' };
     }
     if (isBefore(now, start)) {
-      return { color: 'bg-blue-100 text-blue-700', icon: Clock, text: 'Agendado' };
+      return { color: 'bg-status-info/10 text-status-info border border-status-info/20', icon: Clock, text: 'Agendado' };
     }
     if (isAfter(now, end)) {
-      return { color: 'bg-orange-100 text-orange-700', icon: AlertCircle, text: 'Expirado' };
+      return { color: 'bg-status-danger/10 text-status-danger border border-status-danger/20', icon: AlertCircle, text: 'Expirado' };
     }
-    return { color: 'bg-green-100 text-green-700', icon: CheckCircle, text: 'Ativo' };
+    return { color: 'bg-status-success/10 text-status-success border border-status-success/20', icon: CheckCircle, text: 'Ativo' };
   };
 
   return (
@@ -152,7 +152,7 @@ const CycleManagement: React.FC = () => {
                         <h3 className="text-lg font-semibold text-gray-800">
                           {cycle.title}
                         </h3>
-                        <span className={`ml-3 px-3 py-1 rounded-full text-xs font-medium flex items-center ${status.color}`}>
+                        <span className={`ml-3 px-3 py-1 rounded-md text-xs font-medium flex items-center ${status.color}`}>
                           <StatusIcon className="h-3 w-3 mr-1" />
                           {status.text}
                         </span>
@@ -190,7 +190,7 @@ const CycleManagement: React.FC = () => {
                           <>
                             <button
                               onClick={() => window.location.href = `/evaluation-dashboard/${cycle.id}`}
-                              className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                              className="p-2 bg-primary-50 text-primary rounded-lg hover:bg-primary-100 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                               title="Ver dashboard"
                             >
                               <BarChart3 className="h-5 w-5" />
@@ -254,7 +254,7 @@ const CycleManagement: React.FC = () => {
                 <h2 className="text-xl font-bold text-gray-800">Novo Ciclo de Avaliação</h2>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200"
                 >
                   <X className="h-5 w-5 text-gray-500" />
                 </button>

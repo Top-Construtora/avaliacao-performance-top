@@ -247,7 +247,7 @@ const Reports = () => {
       startY: 40,
       theme: 'grid',
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [18, 176, 160] }
+      headStyles: { fillColor: [22, 101, 52] }
     });
     
     doc.save('relatorio_avaliacoes.pdf');
@@ -303,33 +303,33 @@ const Reports = () => {
     const label = getStatusLabel(status);
     const statusConfig = {
       'Completo': { 
-        bgColor: 'bg-primary-100 dark:bg-primary-900/30',
-        textColor: 'text-primary-700 dark:text-primary-300',
-        borderColor: 'border-primary-200 dark:border-primary-700',
+        bgColor: 'bg-status-success/10',
+        textColor: 'text-status-success',
+        borderColor: 'border-status-success/20',
         icon: CheckCircle 
       },
       'Em Andamento': { 
-        bgColor: 'bg-secondary-100 dark:bg-secondary-900/30',
-        textColor: 'text-secondary-700 dark:text-secondary-300',
-        borderColor: 'border-secondary-200 dark:border-secondary-700',
+        bgColor: 'bg-status-warning/10',
+        textColor: 'text-status-warning',
+        borderColor: 'border-status-warning/20',
         icon: Clock 
       },
       'Pendente': { 
-        bgColor: 'bg-gray-100 dark:bg-gray-700',
-        textColor: 'text-gray-700 dark:text-gray-300',
-        borderColor: 'border-gray-300 dark:border-gray-600',
+        bgColor: 'bg-status-danger/10',
+        textColor: 'text-status-danger',
+        borderColor: 'border-status-danger/20',
         icon: AlertTriangle 
       },
       'Definido': { 
-        bgColor: 'bg-accent-100 dark:bg-accent-900/30',
-        textColor: 'text-accent-700 dark:text-accent-300',
-        borderColor: 'border-accent-200 dark:border-accent-700',
+        bgColor: 'bg-status-success/10',
+        textColor: 'text-status-success',
+        borderColor: 'border-status-success/20',
         icon: Target 
       },
       'Aguardando': { 
-        bgColor: 'bg-gray-50 dark:bg-gray-700/50',
-        textColor: 'text-gray-600 dark:text-gray-400',
-        borderColor: 'border-gray-200 dark:border-gray-600',
+        bgColor: 'bg-status-info/10',
+        textColor: 'text-status-info',
+        borderColor: 'border-status-info/20',
         icon: Clock 
       }
     };
@@ -338,7 +338,7 @@ const Reports = () => {
     const Icon = config.icon;
 
     return (
-      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.bgColor} ${config.textColor} border ${config.borderColor}`}>
+      <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium ${config.bgColor} ${config.textColor} border ${config.borderColor}`}>
         <Icon size={10} className="mr-1 flex-shrink-0" />
         <span className="truncate">{label}</span>
       </span>
@@ -353,10 +353,10 @@ const Reports = () => {
     }
 
     const getScoreColor = () => {
-      if (score >= 9) return 'text-primary-600 dark:text-primary-400';
-      if (score >= 7) return 'text-secondary-600 dark:text-secondary-400';
-      if (score >= 5) return 'text-warning-600 dark:text-warning-400';
-      return 'text-error-600 dark:text-error-400';
+      if (score >= 9) return 'text-green-800 dark:text-green-700';
+      if (score >= 7) return 'text-gray-600 dark:text-gray-500';
+      if (score >= 5) return 'text-yellow-600 dark:text-yellow-500';
+      return 'text-red-600 dark:text-red-500';
     };
 
     return (
@@ -369,7 +369,7 @@ const Reports = () => {
   if (loading || evaluationLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-800 dark:border-green-700"></div>
       </div>
     );
   }
@@ -387,11 +387,11 @@ const Reports = () => {
   return (
     <div className="space-y-4 sm:space-y-6 animate-fadeIn">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center flex-wrap">
-              <BarChart3 className="text-primary-500 dark:text-primary-400 mr-2 sm:mr-3 flex-shrink-0" />
+              <BarChart3 className="text-green-800 dark:text-green-700 mr-2 sm:mr-3 flex-shrink-0" />
               <span className="break-words">Central de Relatórios</span>
             </h1>
             <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
@@ -402,14 +402,14 @@ const Reports = () => {
           <div className="hidden md:flex items-center space-x-3">
             <button
               onClick={printReport}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-800 dark:hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200"
               title="Imprimir"
             >
               <Printer size={18} />
             </button>
             <button
               onClick={shareReport}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-800 dark:hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200"
               title="Compartilhar"
             >
               <Share2 size={18} />
@@ -435,7 +435,7 @@ const Reports = () => {
           <div className="md:hidden">
             <button
               onClick={() => setShowMobileActions(!showMobileActions)}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-800 dark:hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200"
             >
               {showMobileActions ? <X size={20} /> : <MoreVertical size={20} />}
             </button>
@@ -486,13 +486,13 @@ const Reports = () => {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 p-1 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="bg-naue-white dark:bg-gray-800 p-1 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700">
         <div className="flex space-x-1">
           <button
             onClick={() => setActiveTab('overview')}
             className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
               activeTab === 'overview'
-                ? 'bg-primary-500 text-white'
+                ? 'bg-green-800 text-white'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
@@ -503,7 +503,7 @@ const Reports = () => {
             onClick={() => setActiveTab('detailed')}
             className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
               activeTab === 'detailed'
-                ? 'bg-primary-500 text-white'
+                ? 'bg-green-800 text-white'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
@@ -524,7 +524,7 @@ const Reports = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-gradient-to-br from-primary-500 to-primary-600 p-6 rounded-xl shadow-lg text-white"
+              className="bg-gradient-to-br from-green-800 to-green-900 p-6 rounded-xl shadow-lg text-white"
             >
               <div className="flex items-center justify-between mb-2">
                 <Users className="w-8 h-8 opacity-80" />
@@ -538,10 +538,10 @@ const Reports = () => {
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700"
+              className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700"
             >
               <div className="flex items-center justify-between mb-2">
-                <CheckCircle className="w-8 h-8 text-primary-500" />
+                <CheckCircle className="w-8 h-8 text-green-800 dark:text-green-700" />
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                   0%
                 </span>
@@ -554,10 +554,10 @@ const Reports = () => {
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700"
+              className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700"
             >
               <div className="flex items-center justify-between mb-2">
-                <Clock className="w-8 h-8 text-secondary-500" />
+                <Clock className="w-8 h-8 text-gray-600 dark:text-gray-500" />
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                   0%
                 </span>
@@ -585,9 +585,9 @@ const Reports = () => {
           </div>
 
           {/* Progress by Department */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <BarChart3 className="mr-2 text-primary-500" size={20} />
+              <BarChart3 className="mr-2 text-green-800 dark:text-green-700" size={20} />
               Progresso por Departamento
             </h2>
             
@@ -610,11 +610,11 @@ const Reports = () => {
                         {dept.name}
                       </h3>
                       <div className="flex items-center space-x-4 text-sm">
-                        <span className="flex items-center text-primary-600 dark:text-primary-400">
+                        <span className="flex items-center text-green-800 dark:text-green-700">
                           <CheckCircle size={14} className="mr-1" />
                           {dept.completed} completos
                         </span>
-                        <span className="flex items-center text-secondary-600 dark:text-secondary-400">
+                        <span className="flex items-center text-gray-600 dark:text-gray-500">
                           <Clock size={14} className="mr-1" />
                           {dept.inProgress} em andamento
                         </span>
@@ -630,7 +630,7 @@ const Reports = () => {
                         initial={{ width: 0 }}
                         animate={{ width: `${completionRate}%` }}
                         transition={{ duration: 1, delay: index * 0.1 }}
-                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary-500 to-primary-600"
+                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-800 to-green-900"
                       />
                     </div>
                   </motion.div>
@@ -646,7 +646,7 @@ const Reports = () => {
           className="space-y-4"
         >
           {/* Filters */}
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="bg-naue-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -655,7 +655,7 @@ const Reports = () => {
                   placeholder="Buscar colaborador..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-green-800 focus:border-transparent transition-all duration-200"
                 />
               </div>
               
@@ -664,7 +664,7 @@ const Reports = () => {
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 appearance-none"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-800 focus:border-transparent transition-all duration-200 appearance-none"
                 >
                   <option value="">Todos os departamentos</option>
                   {departments.map(dept => (
@@ -678,7 +678,7 @@ const Reports = () => {
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 appearance-none"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-800 focus:border-transparent transition-all duration-200 appearance-none"
                 >
                   <option value="">Todos os status</option>
                   <option value="completed">Completo</option>
@@ -690,10 +690,10 @@ const Reports = () => {
           </div>
 
           {/* Desktop Table */}
-          <div className="hidden md:block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="hidden md:block bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-700">
+                <thead className="bg-naue-light-gray dark:bg-gray-700">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Colaborador
@@ -718,25 +718,25 @@ const Reports = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-naue-border-gray dark:divide-gray-700">
                   {filteredData.map((item: CycleDashboard) => {
                     const user = users.find(u => u.id === item.employee_id);
                     const deptName = user?.teams && user.teams[0] ? 
                       departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-';
                     
                     return (
-                      <tr key={item.employee_id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      <tr key={item.employee_id} className="hover:bg-green-50 dark:hover:bg-gray-700 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            <div className="text-sm font-medium text-naue-black dark:text-gray-100">
                               {user?.name || '-'}
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                            <div className="text-sm text-naue-text-gray dark:text-gray-400">
                               {user?.position || '-'}
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-naue-text-gray dark:text-gray-400">
                           {deptName}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -775,11 +775,11 @@ const Reports = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700"
+                  className="bg-naue-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700"
                 >
                   <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                    <div className="flex-shrink-0 w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-green-800 dark:text-green-700">
                         {user?.name?.charAt(0) || '?'}
                       </span>
                     </div>

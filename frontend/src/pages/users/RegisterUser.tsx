@@ -377,7 +377,7 @@ const RegisterUser = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary-500 dark:text-primary-400 mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-primary-900 dark:text-primary-400 mx-auto mb-4" />
           <p className="text-gray-600 dark:text-gray-400">Carregando dados...</p>
         </div>
       </div>
@@ -395,7 +395,7 @@ const RegisterUser = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div>            
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-              <UserPlus className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-500 dark:text-primary-400 mr-2 sm:mr-3 flex-shrink-0" />
+              <UserPlus className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-900 dark:text-primary-400 mr-2 sm:mr-3 flex-shrink-0" />
               Cadastrar Usuário
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
@@ -415,7 +415,7 @@ const RegisterUser = () => {
         {/* Profile Type Selection */}
         <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <Shield className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+            <Shield className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
             Tipo de Perfil
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -425,35 +425,35 @@ const RegisterUser = () => {
                 label: 'Colaborador',
                 description: 'Membro da equipe com acesso padrão',
                 icon: UserCheck,
-                gradient: 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
-                selectedBg: 'bg-secondary-50 dark:bg-secondary-900/20',
-                selectedBorder: 'border-secondary-500 dark:border-secondary-400',
-                selectedText: 'text-secondary-700 dark:text-secondary-300'
+                gradient: 'from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700',
+                selectedBg: 'bg-gray-50 dark:bg-gray-900/20',
+                selectedBorder: 'border-gray-500 dark:border-gray-400',
+                selectedText: 'text-gray-700 dark:text-gray-300'
               },
               {
                 value: 'leader',
                 label: 'Líder',
                 description: 'Gerencia equipes e avaliações',
                 icon: Crown,
-                gradient: 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
+                gradient: 'from-primary-900 to-primary-800 dark:from-primary-900 dark:to-primary-800',
                 selectedBg: 'bg-primary-50 dark:bg-primary-900/20',
-                selectedBorder: 'border-primary-500 dark:border-primary-400',
-                selectedText: 'text-primary-700 dark:text-primary-300'
+                selectedBorder: 'border-primary-900 dark:border-primary-800',
+                selectedText: 'text-primary-900 dark:text-primary-300'
               },
               {
                 value: 'director',
                 label: 'Diretor',
                 description: 'Acesso completo ao sistema',
                 icon: Sparkles,
-                gradient: 'from-gray-700 to-gray-800 dark:from-gray-600 dark:to-gray-700',
-                selectedBg: 'bg-gray-50 dark:bg-gray-900/20',
-                selectedBorder: 'border-gray-500 dark:border-gray-400',
-                selectedText: 'text-gray-700 dark:text-gray-300'
+                gradient: 'from-stone-800 to-stone-900 dark:from-stone-800 dark:to-stone-900',
+                selectedBg: 'bg-stone-50 dark:bg-stone-900/20',
+                selectedBorder: 'border-stone-800 dark:border-stone-700',
+                selectedText: 'text-stone-800 dark:text-stone-300 font-medium'
               }
             ].map((type) => (
               <label 
                 key={type.value}
-                className={`relative flex flex-col p-6 rounded-xl border-2 cursor-pointer transition-all transform hover:scale-[1.02] ${
+                className={`relative flex flex-col p-6 rounded-lg border cursor-pointer transition-all transform hover:scale-[1.02] ${
                   formData.profileType === type.value 
                     ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
                     : 'bg-gray-50/50 dark:bg-gray-700/20 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
@@ -478,7 +478,7 @@ const RegisterUser = () => {
                   </div>
                   {formData.profileType === type.value && (
                     <div className="bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-md">
-                      <Check className="h-4 w-4 text-secondary-600 dark:text-secondary-400" />
+                      <Check className="h-4 w-4 text-primary-900 dark:text-primary-400" />
                     </div>
                   )}
                 </div>
@@ -494,7 +494,7 @@ const RegisterUser = () => {
         {/* Contract Type Selection */}
         <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <FileText className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+            <FileText className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
             Tipo de Contrato
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -504,25 +504,25 @@ const RegisterUser = () => {
                 label: 'CLT',
                 description: 'Contrato de trabalho com carteira assinada',
                 icon: Shield,
-                gradient: 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
+                gradient: 'from-primary-900 to-primary-800 dark:from-primary-900 dark:to-primary-800',
                 selectedBg: 'bg-primary-50 dark:bg-primary-900/20',
-                selectedBorder: 'border-primary-500 dark:border-primary-400',
-                selectedText: 'text-primary-700 dark:text-primary-300'
+                selectedBorder: 'border-primary-900 dark:border-primary-800',
+                selectedText: 'text-primary-900 dark:text-primary-300'
               },
               {
                 value: 'PJ',
                 label: 'PJ',
                 description: 'Pessoa Jurídica - Prestador de serviços',
                 icon: Briefcase,
-                gradient: 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
-                selectedBg: 'bg-secondary-50 dark:bg-secondary-900/20',
-                selectedBorder: 'border-secondary-500 dark:border-secondary-400',
-                selectedText: 'text-secondary-700 dark:text-secondary-300'
+                gradient: 'from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700',
+                selectedBg: 'bg-gray-50 dark:bg-gray-900/20',
+                selectedBorder: 'border-gray-500 dark:border-gray-400',
+                selectedText: 'text-gray-700 dark:text-gray-300'
               }
             ].map((type) => (
               <label 
                 key={type.value}
-                className={`relative flex flex-col p-6 rounded-xl border-2 cursor-pointer transition-all transform hover:scale-[1.02] ${
+                className={`relative flex flex-col p-6 rounded-lg border cursor-pointer transition-all transform hover:scale-[1.02] ${
                   formData.contractType === type.value 
                     ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
                     : 'bg-gray-50/50 dark:bg-gray-700/20 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
@@ -545,7 +545,7 @@ const RegisterUser = () => {
                   </div>
                   {formData.contractType === type.value && (
                     <div className="bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-md">
-                      <Check className="h-4 w-4 text-secondary-600 dark:text-secondary-400" />
+                      <Check className="h-4 w-4 text-primary-900 dark:text-primary-400" />
                     </div>
                   )}
                 </div>
@@ -561,13 +561,13 @@ const RegisterUser = () => {
         {/* Basic Information */}
         <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <User className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+            <User className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
             Informações Básicas
           </h3>
           
           {/* Profile Image */}
           <div className="mb-6 pb-6 border-b border-gray-100 dark:border-gray-700">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-4">
               Foto do Perfil
             </label>
             <div className="flex items-center space-x-4">
@@ -614,15 +614,15 @@ const RegisterUser = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Nome completo *
               </label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+                className={`w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
                   formErrors.name 
-                    ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                    ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                    : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                 }`}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -637,17 +637,17 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Email corporativo *
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="email"
-                  className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
                     formErrors.email 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -663,16 +663,16 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Senha temporária *
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  className={`w-full px-4 py-3 pr-12 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+                  className={`w-full px-4 py-3 pr-12 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
                     formErrors.password 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -695,17 +695,17 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Telefone
               </label>
               <div className="relative">
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="tel"
-                  className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
                     formErrors.phone 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
@@ -721,17 +721,17 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Data de nascimento
               </label>
               <div className="relative">
                 <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="date"
-                  className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                     formErrors.birthDate 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.birthDate}
                   onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
@@ -746,17 +746,17 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Data de Admissão *
               </label>
               <div className="relative">
                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="date"
-                  className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                     formErrors.joinDate 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.joinDate}
                   onChange={(e) => setFormData({ ...formData, joinDate: e.target.value })}
@@ -776,23 +776,23 @@ const RegisterUser = () => {
         {/* Career Information */}
         <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <TrendingUp className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+            <TrendingUp className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
             Informações de Carreira
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Departamento *
               </label>
               <div className="relative">
                 <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                     formErrors.departmentId 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.departmentId}
                   onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
@@ -813,17 +813,17 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Trilha *
               </label>
               <div className="relative">
                 <Route className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                     formErrors.trackId 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.trackId}
                   onChange={(e) => setFormData({ ...formData, trackId: e.target.value })}
@@ -846,17 +846,17 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Cargo *
               </label>
               <div className="relative">
                 <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                     formErrors.positionId 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.positionId}
                   onChange={(e) => setFormData({ ...formData, positionId: e.target.value })}
@@ -884,17 +884,17 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Internível *
               </label>
               <div className="relative">
                 <Layers className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                     formErrors.internLevel 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.internLevel}
                   onChange={(e) => setFormData({ ...formData, internLevel: e.target.value as 'A' | 'B' | 'C' | 'D' | 'E' })}
@@ -924,7 +924,7 @@ const RegisterUser = () => {
         {formData.profileType !== 'director' && (
           <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <Users className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+              <Users className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
               Alocação em Times *
             </h3>
             <div className="max-h-64 overflow-y-auto pr-2 space-y-2">
@@ -936,7 +936,7 @@ const RegisterUser = () => {
                 }`}>
                   <input
                     type="checkbox"
-                    className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400"
+                    className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-primary-900 dark:text-primary-500 focus:ring-primary-900 dark:focus:ring-primary-400"
                     checked={formData.teamIds.includes(team.id)}
                     onChange={(e) => {
                       if (e.target.checked) {
@@ -955,7 +955,7 @@ const RegisterUser = () => {
                     )}
                   </div>
                   {formData.teamIds.includes(team.id) && (
-                    <CheckCircle2 className="h-5 w-5 text-primary-600 dark:text-primary-400 ml-2" />
+                    <CheckCircle2 className="h-5 w-5 text-primary-900 dark:text-primary-400 ml-2" />
                   )}
                 </label>
               ))}
@@ -973,21 +973,21 @@ const RegisterUser = () => {
         {(formData.profileType === 'regular' || formData.profileType === 'leader') && (
           <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <GitBranch className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+              <GitBranch className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
               Hierarquia
             </h3>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Reporta para *
               </label>
               <div className="relative">
                 <UserCog className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                     formErrors.reportsTo 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.reportsTo}
                   onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}

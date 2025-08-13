@@ -126,13 +126,13 @@ const NotificationHistory: React.FC = () => {
   const notificationConfig: Record<NotificationType, NotificationConfigItem> = {
     promotion: {
       icon: TrendingUp,
-      bgColor: 'bg-gradient-to-br from-primary-50 to-primary-100',
-      iconColor: 'text-primary-600',
-      borderColor: 'border-primary-200',
-      hoverBg: 'hover:bg-primary-50',
-      dotColor: 'bg-primary-500',
+      bgColor: 'bg-status-success/10 border border-status-success/20',
+      iconColor: 'text-status-success',
+      borderColor: 'border-status-success/20',
+      hoverBg: 'hover:bg-status-success/20',
+      dotColor: 'bg-status-success',
       label: 'Promoção',
-      gradient: 'from-primary-400 to-primary-600'
+      gradient: 'from-status-success to-status-success'
     },
     position_change: {
       icon: Briefcase,
@@ -226,13 +226,13 @@ const NotificationHistory: React.FC = () => {
     },
     deadline_warning: {
       icon: AlertCircle,
-      bgColor: 'bg-gradient-to-br from-accent-50 to-accent-100',
-      iconColor: 'text-accent-600',
-      borderColor: 'border-accent-200',
-      hoverBg: 'hover:bg-accent-50',
-      dotColor: 'bg-accent-500',
+      bgColor: 'bg-status-warning/10 border border-status-warning/20',
+      iconColor: 'text-status-warning',
+      borderColor: 'border-status-warning/20',
+      hoverBg: 'hover:bg-status-warning/20',
+      dotColor: 'bg-status-warning',
       label: 'Aviso de Prazo',
-      gradient: 'from-accent-400 to-accent-600'
+      gradient: 'from-status-warning to-status-warning'
     },
     team_update: {
       icon: Users,
@@ -639,9 +639,9 @@ const NotificationHistory: React.FC = () => {
                 }`}
               >
                 <span>{tab.label}</span>
-                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                <span className={`text-xs px-1.5 py-0.5 rounded-md ${
                   viewMode === tab.id
-                    ? 'bg-primary-100 text-primary-700'
+                    ? 'bg-status-success/10 text-status-success border border-status-success/20'
                     : 'bg-gray-200 text-gray-600'
                 }`}>
                   {tab.count}
@@ -917,7 +917,7 @@ const NotificationHistory: React.FC = () => {
                       </p>
 
                       <div className="flex items-center gap-3 text-xs">
-                        <span className={`px-2.5 py-1 rounded-full ${config.bgColor} ${config.iconColor} font-medium`}>
+                        <span className={`px-3 py-1 rounded-md ${config.bgColor} ${config.iconColor} font-medium`}>
                           {config.label}
                         </span>
                         <span className="text-gray-500 flex items-center">
@@ -932,7 +932,7 @@ const NotificationHistory: React.FC = () => {
                         )}
                         {notification.metadata?.deadline && (
                           <span className="flex items-center">
-                            <span className="flex items-center px-2.5 py-1 rounded-full bg-secondary-100 text-secondary-700 font-medium">
+                            <span className="flex items-center px-3 py-1 rounded-md bg-status-info/10 text-status-info border border-status-info/20 font-medium">
                               <Clock className="h-3 w-3 mr-1" />
                               {notification.metadata.deadline}
                             </span>

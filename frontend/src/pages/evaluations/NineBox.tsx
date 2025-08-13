@@ -50,12 +50,12 @@ const matrixConfig: Record<string, MatrixConfig> = {
     gradient: 'from-orange-100 to-orange-50 dark:from-orange-900/30 dark:to-orange-900/20',
   },
   '2,2': { 
-    bgColor: 'bg-primary-50 dark:bg-primary-900/20',
-    borderColor: 'border-primary-200 dark:border-primary-700',
-    textColor: 'text-primary-700 dark:text-primary-300',
+    bgColor: 'bg-green-50 dark:bg-green-900/20',
+    borderColor: 'border-green-200 dark:border-green-700',
+    textColor: 'text-green-700 dark:text-green-300',
     description: 'Verificar a causa. Local ou Chefe inadequado? Não há desenvolvimento',
-    activeBorderColor: 'border-primary-500 dark:border-primary-400',
-    gradient: 'from-primary-100 to-primary-50 dark:from-primary-900/30 dark:to-primary-900/20',
+    activeBorderColor: 'border-green-500 dark:border-green-400',
+    gradient: 'from-green-100 to-green-50 dark:from-green-900/30 dark:to-green-900/20',
   },
   '2,3': { 
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
@@ -82,12 +82,12 @@ const matrixConfig: Record<string, MatrixConfig> = {
     gradient: 'from-indigo-100 to-indigo-50 dark:from-indigo-900/30 dark:to-indigo-900/20',
   },
   '3,3': { 
-    bgColor: 'bg-gradient-to-br from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700',
-    borderColor: 'border-primary-500 dark:border-primary-400',
+    bgColor: 'bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900',
+    borderColor: 'border-green-800 dark:border-green-700',
     textColor: 'text-white',
     description: 'Dar mais atribuições. Preparar para função maior. Líder do futuro!',
-    activeBorderColor: 'border-primary-700 dark:border-primary-500',
-    gradient: 'from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700',
+    activeBorderColor: 'border-green-900 dark:border-green-800',
+    gradient: 'from-green-800 to-green-900 dark:from-green-800 dark:to-green-900',
   }
 };
 
@@ -246,13 +246,13 @@ const NineBoxMatrix = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
+        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 sm:mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-3 sm:space-x-4">
             <div className="flex-1">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                <Grid3x3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3" />
+                <Grid3x3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-gray-600 dark:text-gray-400 mr-2 sm:mr-3" />
                 <span className="break-words">Comitê de Gente</span>
               </h1>
               <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
@@ -281,11 +281,11 @@ const NineBoxMatrix = () => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Colaborador
               </label>
               <select
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-700 dark:text-gray-300 text-sm sm:text-base"
+                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-naue-black dark:text-gray-300 font-medium text-sm sm:text-base"
                 value={selectedEmployee}
                 onChange={(e) => setSelectedEmployee(e.target.value)}
               >
@@ -301,21 +301,21 @@ const NineBoxMatrix = () => {
             {selectedEmp && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                     <Briefcase className="inline h-4 w-4 mr-1" />
                     Cargo
                   </label>
-                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white dark:bg-gray-700 rounded-lg sm:rounded-xl text-gray-700 dark:text-gray-300 text-sm sm:text-base border border-gray-200 dark:border-gray-600">
+                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white dark:bg-gray-700 rounded-lg sm:rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm sm:text-base border border-gray-200 dark:border-gray-600">
                     {selectedEmp.position}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                     <Calendar className="inline h-4 w-4 mr-1" />
                     Data de Admissão
                   </label>
-                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white dark:bg-gray-700 rounded-lg sm:rounded-xl text-gray-700 dark:text-gray-300 text-sm sm:text-base border border-gray-200 dark:border-gray-600">
+                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white dark:bg-gray-700 rounded-lg sm:rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm sm:text-base border border-gray-200 dark:border-gray-600">
                     {formatJoinDate(selectedEmp.join_date)}
                   </div>
                 </div>
@@ -362,7 +362,7 @@ const NineBoxMatrix = () => {
           {/* Coluna Esquerda - Cards de Informação */}
           <div className="space-y-4">
             {/* Card de Avaliação */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
+            <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-6">
               <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center">
                 <Target className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600 dark:text-gray-400" />
                 Avaliação de {selectedEmp.name}
@@ -370,34 +370,34 @@ const NineBoxMatrix = () => {
               
               <div className="space-y-4">
                 {/* Card de Performance */}
-                <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-900/20 rounded-lg sm:rounded-xl p-4 border border-primary-200 dark:border-primary-700">
+                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-900/20 rounded-lg sm:rounded-xl p-4 border border-green-200 dark:border-green-700">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Performance</p>
-                    <TrendingUp className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                    <p className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Performance</p>
+                    <TrendingUp className="h-4 w-4 text-green-800 dark:text-green-700" />
                   </div>
-                  <p className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">
+                  <p className="text-2xl sm:text-3xl font-bold text-green-800 dark:text-green-700">
                     {selectedEvaluation.consensus_performance_score.toFixed(1)}
                   </p>
-                  <div className="mt-2 bg-primary-200 dark:bg-primary-900/50 rounded-full h-2">
+                  <div className="mt-2 bg-green-200 dark:bg-green-900/50 rounded-full h-2">
                     <div 
-                      className="bg-primary-600 dark:bg-primary-400 h-2 rounded-full transition-all duration-300"
+                      className="bg-green-800 dark:bg-green-700 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${(selectedEvaluation.consensus_performance_score / 4) * 100}%` }}
                     />
                   </div>
                 </div>
 
                 {/* Card de Potencial */}
-                <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/30 dark:to-secondary-900/20 rounded-lg sm:rounded-xl p-4 border border-secondary-200 dark:border-secondary-700">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/30 dark:to-gray-900/20 rounded-lg sm:rounded-xl p-4 border border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Potencial</p>
-                    <Target className="h-4 w-4 text-secondary-600 dark:text-secondary-400" />
+                    <p className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Potencial</p>
+                    <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                   </div>
-                  <p className="text-2xl sm:text-3xl font-bold text-secondary-600 dark:text-secondary-400">
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-600 dark:text-gray-400">
                     {selectedEvaluation.consensus_potential_score.toFixed(1)}
                   </p>
-                  <div className="mt-2 bg-secondary-200 dark:bg-secondary-900/50 rounded-full h-2">
+                  <div className="mt-2 bg-gray-200 dark:bg-gray-900/50 rounded-full h-2">
                     <div 
-                      className="bg-secondary-600 dark:bg-secondary-400 h-2 rounded-full transition-all duration-300"
+                      className="bg-gray-600 dark:bg-gray-400 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${(selectedEvaluation.consensus_potential_score / 4) * 100}%` }}
                     />
                   </div>
@@ -420,7 +420,7 @@ const NineBoxMatrix = () => {
 
           {/* Coluna Central e Direita - Matriz */}
           <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
+            <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8">
               <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
                 <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600 dark:text-gray-400" />
                 Posicionamento na Matriz
@@ -432,7 +432,7 @@ const NineBoxMatrix = () => {
                   
                   {/* Título do eixo Y (Potencial) */}
                   <div className="absolute -left-12 sm:-left-40 top-1/2 transform -translate-y-1/2 -rotate-90">
-                    <span className="text-sm sm:text-base font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest">
+                    <span className="text-sm sm:text-base font-bold text-naue-black dark:text-gray-300 font-medium uppercase tracking-widest">
                       POTENCIAL
                     </span>
                   </div>
@@ -486,7 +486,7 @@ const NineBoxMatrix = () => {
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                        className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700 rounded-full shadow-lg dark:shadow-xl z-20 ring-4 ring-white dark:ring-gray-800"
+                        className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 rounded-full shadow-lg dark:shadow-xl z-20 ring-4 ring-white dark:ring-gray-800"
                         style={{
                           left: `${getPointPosition(selectedEvaluation.consensus_performance_score, selectedEvaluation.consensus_potential_score).x}%`,
                           top: `${getPointPosition(selectedEvaluation.consensus_performance_score, selectedEvaluation.consensus_potential_score).y}%`,
@@ -505,7 +505,7 @@ const NineBoxMatrix = () => {
 
                   {/* Título do eixo X */}
                   <div className="flex justify-center w-72 sm:w-[420px] mt-3">
-                    <span className="text-sm sm:text-base font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest">
+                    <span className="text-sm sm:text-base font-bold text-naue-black dark:text-gray-300 font-medium uppercase tracking-widest">
                       performance
                     </span>
                   </div>
@@ -533,11 +533,11 @@ const NineBoxMatrix = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-8 sm:p-16 text-center"
+          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-16 text-center"
         >
           <div className="max-w-md mx-auto">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-900/30 dark:to-secondary-900/30 mb-4 sm:mb-6">
-              <Grid3x3 className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600 dark:text-primary-400" />
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-green-50 to-gray-50 dark:from-green-900/30 dark:to-gray-900/30 mb-4 sm:mb-6">
+              <Grid3x3 className="h-8 w-8 sm:h-10 sm:w-10 text-green-800 dark:text-green-700" />
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Nenhum colaborador selecionado

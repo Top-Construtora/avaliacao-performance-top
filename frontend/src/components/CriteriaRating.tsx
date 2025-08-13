@@ -22,7 +22,7 @@ const CriteriaRating = ({ criterion, onChange }: CriteriaRatingProps) => {
   ];
   
   return (
-    <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-white rounded-lg border border-gray-100 shadow-sm">
+    <div className="mb-6 p-6 bg-naue-white rounded-2xl border border-naue-border-gray shadow-sm hover:shadow-md transition-shadow duration-300">
       <div className="flex flex-col space-y-3 lg:flex-row lg:items-start lg:justify-between lg:space-y-0">
         <div className="flex-1 lg:pr-4">
           <h4 className="text-sm sm:text-md font-medium">{criterion.name}</h4>
@@ -37,11 +37,11 @@ const CriteriaRating = ({ criterion, onChange }: CriteriaRatingProps) => {
               className={`
                 w-8 h-8 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium
                 ${criterion.score === rating ? 
-                  'bg-blue-600 text-white' : 
-                  'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  'bg-primary text-white' : 
+                  'bg-naue-light-gray text-gray-700 hover:bg-gray-200'
                 }
-                ${hoveredRating && rating <= hoveredRating ? 'ring-2 ring-blue-300' : ''}
-                transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
+                ${hoveredRating && rating <= hoveredRating ? 'ring-2 ring-primary-light' : ''}
+                transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1
               `}
               onClick={() => handleRatingClick(rating)}
               onMouseEnter={() => setHoveredRating(rating)}

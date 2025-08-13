@@ -242,16 +242,16 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
   const potentialRatingLabels = {
     1: { label: 'Não atende o esperado', color: 'bg-red-500', darkColor: 'dark:bg-red-600' },
-    2: { label: 'Em desenvolvimento', color: 'bg-accent-500', darkColor: 'dark:bg-accent-600' },
-    3: { label: 'Atende ao esperado', color: 'bg-primary-500', darkColor: 'dark:bg-primary-600' },
+    2: { label: 'Em desenvolvimento', color: 'bg-stone-600', darkColor: 'dark:bg-stone-700' },
+    3: { label: 'Atende ao esperado', color: 'bg-primary-800', darkColor: 'dark:bg-primary-900' },
     4: { label: 'Supera', color: 'bg-green-500', darkColor: 'dark:bg-green-600' }
   };
 
   const statusOptions = [
-    { value: '1', label: 'Não iniciado', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600' },
-    { value: '2', label: 'Iniciado', color: 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-primary-300 dark:border-primary-700' },
-    { value: '3', label: 'Em andamento', color: 'bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-300 border-accent-300 dark:border-accent-700' },
-    { value: '4', label: 'Quase concluído', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' },
+    { value: '1', label: 'Não iniciado', color: 'bg-gray-100 dark:bg-gray-700 text-naue-black dark:text-gray-300 font-medium border-gray-300 dark:border-gray-600' },
+    { value: '2', label: 'Iniciado', color: 'bg-primary-100 dark:bg-primary-900/30 text-primary-900 dark:text-primary-300 border-primary-300 dark:border-primary-700' },
+    { value: '3', label: 'Em andamento', color: 'bg-stone-100 dark:bg-stone-900/30 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700' },
+    { value: '4', label: 'Quase concluído', color: 'bg-stone-100 dark:bg-stone-900/30 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700' },
     { value: '5', label: 'Concluído', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700' }
   ];
 
@@ -261,12 +261,12 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       title: 'Curto Prazo',
       subtitle: '0-6 meses',
       icon: BookOpen,
-      gradient: 'from-primary-500 to-primary-600',
-      darkGradient: 'dark:from-primary-600 dark:to-primary-700',
-      bgColor: 'bg-primary-50',
-      darkBgColor: 'dark:bg-primary-800',
-      borderColor: 'border-primary-200',
-      iconBg: 'bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
+      gradient: 'from-green-800 to-green-900',
+      darkGradient: 'dark:from-green-800 dark:to-green-900',
+      bgColor: 'bg-green-50',
+      darkBgColor: 'dark:bg-green-800',
+      borderColor: 'border-green-200',
+      iconBg: 'bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900',
       description: 'Ações imediatas e de rápido impacto'
     },
     {
@@ -274,12 +274,12 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       title: 'Médio Prazo',
       subtitle: '6-12 meses',
       icon: Target,
-      gradient: 'from-secondary-500 to-secondary-600',
-      darkGradient: 'dark:from-secondary-600 dark:to-secondary-700', // Added dark mode gradient
-      bgColor: 'bg-secondary-50',
-      darkBgColor: 'dark:bg-secondary-800', 
-      borderColor: 'border-secondary-200',
-      iconBg: 'bg-gradient-to-br from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
+      gradient: 'from-gray-500 to-gray-600',
+      darkGradient: 'dark:from-gray-600 dark:to-gray-700',
+      bgColor: 'bg-gray-50',
+      darkBgColor: 'dark:bg-gray-800', 
+      borderColor: 'border-gray-200',
+      iconBg: 'bg-gradient-to-br from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-700',
       description: 'Desenvolvimento contínuo e estruturado'
     },
     {
@@ -287,11 +287,11 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       title: 'Longo Prazo',
       subtitle: '12-24 meses',
       icon: Rocket,
-      gradient: 'from-accent-500 to-accent-600',
-      bgColor: 'bg-accent-50',
-      darkBgColor: 'dark:bg-accent-800',
-      borderColor: 'border-accent-200',
-      iconBg: 'bg-gradient-to-br from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700',
+      gradient: 'from-stone-700 to-stone-800',
+      bgColor: 'bg-stone-50',
+      darkBgColor: 'dark:bg-stone-800',
+      borderColor: 'border-stone-200',
+      iconBg: 'bg-gradient-to-br from-stone-700 to-stone-800 dark:from-stone-600 dark:to-stone-700',
       description: 'Visão estratégica e crescimento sustentável'
     }
   ];
@@ -315,7 +315,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
+        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden"
       >
         <button
           onClick={() => togglePdiSection(prazo)}
@@ -406,13 +406,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                         <div className="space-y-4 sm:space-y-6">
                           {/* Competência a desenvolver */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                              <Award className="h-4 w-4 mr-2 text-primary-600 dark:text-primary-400" />
+                            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
+                              <Award className="h-4 w-4 mr-2 text-primary-900 dark:text-primary-800" />
                               Competência a desenvolver
                             </label>
                             <input
                               type="text"
-                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-primary-800 dark:focus:border-primary-900 focus:ring-primary-800 dark:focus:ring-primary-900 text-naue-black dark:text-gray-300 font-medium transition-all duration-200 text-sm sm:text-base"
                               placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
                               value={item.competencia}
                               onChange={(e) => updateActionItem(category, item.id, 'competencia', e.target.value)}
@@ -421,13 +421,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                           {/* Calendarização */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                              <Calendar className="h-4 w-4 mr-2 text-secondary-600 dark:text-secondary-400" />
+                            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
+                              <Calendar className="h-4 w-4 mr-2 text-gray-600 dark:text-gray-400" />
                               Calendarização (Mês/Ano)
                             </label>
                             <input
                               type="month"
-                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-gray-500 dark:focus:border-gray-400 focus:ring-gray-500 dark:focus:ring-gray-400 text-naue-black dark:text-gray-300 font-medium transition-all duration-200 text-sm sm:text-base"
                               value={item.calendarizacao}
                               onChange={(e) => updateActionItem(category, item.id, 'calendarizacao', e.target.value)}
                             />
@@ -435,12 +435,12 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                           {/* Como desenvolver as competências */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                              <Lightbulb className="h-4 w-4 mr-2 text-accent-600 dark:text-accent-400" />
+                            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
+                              <Lightbulb className="h-4 w-4 mr-2 text-stone-700 dark:text-stone-600" />
                               Como desenvolver as competências
                             </label>
                             <textarea
-                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-accent-500 dark:focus:border-accent-400 focus:ring-accent-500 dark:focus:ring-accent-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-stone-600 dark:focus:border-stone-500 focus:ring-stone-600 dark:focus:ring-stone-500 text-naue-black dark:text-gray-300 font-medium transition-all duration-200 text-sm sm:text-base"
                               rows={3}
                               placeholder="Descreva as ações e métodos para desenvolver esta competência..."
                               value={item.comoDesenvolver}
@@ -450,12 +450,12 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                           {/* Resultados Esperados */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                              <Target className="h-4 w-4 mr-2 text-primary-600 dark:text-primary-400" />
+                            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
+                              <Target className="h-4 w-4 mr-2 text-primary-900 dark:text-primary-800" />
                               Resultados Esperados
                             </label>
                             <textarea
-                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-primary-800 dark:focus:border-primary-900 focus:ring-primary-800 dark:focus:ring-primary-900 text-naue-black dark:text-gray-300 font-medium transition-all duration-200 text-sm sm:text-base"
                               rows={3}
                               placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
                               value={item.resultadosEsperados}
@@ -466,12 +466,12 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-600">
                             {/* Status */}
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
                                 <CheckCircle className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
                                 Status
                               </label>
                               <select
-                                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-500 dark:focus:border-green-400 focus:ring-green-500 dark:focus:ring-green-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+                                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-500 dark:focus:border-green-400 focus:ring-green-500 dark:focus:ring-green-400 text-naue-black dark:text-gray-300 font-medium transition-all duration-200 text-sm sm:text-base"
                                 value={item.status}
                                 onChange={(e) => updateActionItem(category, item.id, 'status', e.target.value as any)}
                               >
@@ -485,12 +485,12 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                             {/* Observação */}
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                                <MessageSquare className="h-4 w-4 mr-2 text-secondary-600 dark:text-secondary-400" />
+                              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
+                                <MessageSquare className="h-4 w-4 mr-2 text-gray-600 dark:text-gray-400" />
                                 Observação
                               </label>
                               <textarea
-                                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+                                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-gray-500 dark:focus:border-gray-400 focus:ring-gray-500 dark:focus:ring-gray-400 text-naue-black dark:text-gray-300 font-medium transition-all duration-200 text-sm sm:text-base"
                                 rows={2}
                                 placeholder="Observações adicionais..."
                                 value={item.observacao}
@@ -531,7 +531,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                   >
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                        <Plus className="h-6 w-6 text-primary-600 dark:text-primary-400 mr-3" />
+                        <Plus className="h-6 w-6 text-primary-900 dark:text-primary-800 mr-3" />
                         Adicionar Novo Item de Desenvolvimento ({categoryData.title})
                       </h3>
                       <button
@@ -543,8 +543,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label htmlFor="competencia" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                          <Lightbulb size={16} className="mr-1 text-accent-500" />
+                        <label htmlFor="competencia" className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
+                          <Lightbulb size={16} className="mr-1 text-stone-700" />
                           Competência a desenvolver
                         </label>
                         <input
@@ -560,8 +560,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label htmlFor="calendarizacao" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                            <Calendar size={16} className="mr-1 text-primary-500" />
+                          <label htmlFor="calendarizacao" className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
+                            <Calendar size={16} className="mr-1 text-primary-900" />
                             Calendarização (Mês/Ano)
                           </label>
                           <input
@@ -576,8 +576,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                       </div>
 
                       <div>
-                        <label htmlFor="comoDesenvolver" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                          <FileText size={16} className="mr-1 text-secondary-500" />
+                        <label htmlFor="comoDesenvolver" className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
+                          <FileText size={16} className="mr-1 text-gray-600" />
                           Como desenvolver as competências
                         </label>
                         <textarea
@@ -592,7 +592,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                       </div>
 
                       <div>
-                        <label htmlFor="resultadosEsperados" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                        <label htmlFor="resultadosEsperados" className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
                           <TrendingUp size={16} className="mr-1 text-green-500" />
                           Resultados Esperados
                         </label>
@@ -609,7 +609,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                          <label htmlFor="status" className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
                             <CheckCircle size={16} className="mr-1 text-cyan-500" />
                             Status
                           </label>
@@ -628,7 +628,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                           </select>
                         </div>
                         <div>
-                          <label htmlFor="observacao" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                          <label htmlFor="observacao" className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
                             <MessageSquare size={16} className="mr-1 text-gray-500" />
                             Observação
                           </label>
@@ -693,27 +693,27 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
               const colorMap: { [key: string]: any } = {
                 'pot1': {
-                  gradient: 'from-primary-500 to-primary-600',
-                  darkGradient: 'dark:from-primary-600 dark:to-primary-700',
+                  gradient: 'from-primary-800 to-primary-900',
+                  darkGradient: 'dark:from-primary-800 dark:to-primary-900',
                   bgColor: 'bg-primary-50',
                   darkBgColor: 'dark:bg-primary-900/20',
                   borderColor: 'border-primary-200',
                   darkBorderColor: 'dark:border-primary-700'
                 },
                 'pot2': {
-                  gradient: 'from-secondary-500 to-secondary-600',
-                  darkGradient: 'dark:from-secondary-600 dark:to-secondary-700',
+                  gradient: 'from-gray-600 to-gray-700',
+                  darkGradient: 'dark:from-gray-600 dark:to-gray-700',
                   bgColor: 'bg-secondary-50',
                   darkBgColor: 'dark:bg-secondary-900/20',
                   borderColor: 'border-secondary-200',
                   darkBorderColor: 'dark:border-secondary-700'
                 },
                 'pot3': {
-                  gradient: 'from-accent-500 to-accent-600',
-                  darkGradient: 'dark:from-accent-600 dark:to-accent-700',
+                  gradient: 'from-stone-700 to-stone-800',
+                  darkGradient: 'dark:from-stone-700 dark:to-stone-800',
                   bgColor: 'bg-accent-50',
                   darkBgColor: 'dark:bg-accent-900/20',
-                  borderColor: 'border-accent-200',
+                  borderColor: 'border-stone-200',
                   darkBorderColor: 'dark:border-accent-700'
                 },
                 'pot4': {
@@ -734,7 +734,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 + index * 0.1 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
+                  className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden"
                 >
                   <div className={`p-4 sm:p-6 ${colors.bgColor} ${colors.darkBgColor} border-b ${colors.borderColor} ${colors.darkBorderColor}`}>
                     <div className="flex flex-col sm:flex-row sm:items-start space-y-3 sm:space-y-0 sm:space-x-4">
@@ -767,7 +767,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                           <button
                             key={rating}
                             onClick={() => handlePotentialScoreChange(item.id, rating)}
-                            className={`py-3 sm:py-4 px-2 sm:px-4 rounded-xl border-2 transition-all duration-200 ${
+                            className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
                               item.score === rating
                                 ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
                                 : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
@@ -794,20 +794,20 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-gradient-to-br from-accent-50 to-primary-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-accent-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
+            className="bg-gradient-to-br from-stone-50 to-primary-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-stone-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
           >
             <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
-            <Star className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-accent-600 dark:text-accent-400" />
+            <Star className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-stone-700 dark:text-stone-600" />
               Análise de Potencial
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-accent-200 dark:border-accent-700">
+              <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-stone-200 dark:border-stone-700">
                 <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Média Geral</h4>
-                <p className="text-2xl sm:text-3xl font-bold text-accent-600 dark:text-accent-400">{calculatePotentialScores().final.toFixed(1)}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-stone-700 dark:text-stone-600">{calculatePotentialScores().final.toFixed(1)}</p>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
                   <div
-                    className="bg-gradient-to-r from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700 h-2 rounded-full transition-all duration-300"
+                    className="bg-gradient-to-r from-stone-600 to-stone-700 dark:from-stone-700 dark:to-stone-800 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${(calculatePotentialScores().final / 4) * 100}%` }}
                   />
                 </div>
@@ -815,21 +815,21 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
               <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-primary-200 dark:border-primary-700">
                 <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Critérios Avaliados</h4>
-                <p className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">{potentialItems.filter(c => c.score).length}/{potentialItems.length}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-primary-900 dark:text-primary-800">{potentialItems.filter(c => c.score).length}/{potentialItems.length}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   {potentialItems.filter(c => c.score).length === potentialItems.length ? 'Avaliação completa' : 'Em andamento'}
                 </p>
               </div>
 
-              <div className="bg-gradient-to-br from-accent-500 to-primary-600 dark:from-accent-600 dark:to-accent-700 p-4 sm:p-6 rounded-lg sm:rounded-xl text-white sm:col-span-2 lg:col-span-1">
-                <h4 className="text-sm font-medium text-accent-100 dark:text-accent-200 mb-2">Classificação</h4>
+              <div className="bg-gradient-to-br from-stone-600 to-primary-900 dark:from-stone-700 dark:to-stone-800 p-4 sm:p-6 rounded-lg sm:rounded-xl text-white sm:col-span-2 lg:col-span-1">
+                <h4 className="text-sm font-medium text-stone-100 dark:text-stone-200 mb-2">Classificação</h4>
                 <p className="text-xl sm:text-2xl font-bold break-words">
                   {calculatePotentialScores().final >= 3.5 ? 'Alto Potencial' :
                    calculatePotentialScores().final >= 2.5 ? 'Potencial Médio' :
                    calculatePotentialScores().final >= 1.5 ? 'Potencial em Desenvolvimento' :
                    'Necessita Desenvolvimento'}
                 </p>
-                <p className="text-xs text-accent-100 dark:text-accent-200 mt-2">
+                <p className="text-xs text-stone-100 dark:text-stone-200 mt-2">
                   Baseado na média das avaliações
                 </p>
               </div>

@@ -89,7 +89,7 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
         <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
           <div className="min-w-0 flex-1">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-              <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3 flex-shrink-0" />
+              <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-gray-600 dark:text-gray-400 mr-2 sm:mr-3 flex-shrink-0" />
               <span className="truncate">Avaliação do Líder</span>
             </h1>
             <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
@@ -109,7 +109,7 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
           <div className={`mt-4 p-3 rounded-lg flex items-start space-x-2 ${
             periodMessage.type === 'error'
               ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-              : 'bg-accent-100 dark:bg-accent-900/20 text-accent-700 dark:text-accent-300'
+              : 'bg-stone-100 dark:bg-stone-900/20 text-stone-700 dark:text-stone-300'
           }`}>
             <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
             <p className="text-sm">{periodMessage.message}</p>
@@ -165,8 +165,8 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
               />
               <defs>
                 <linearGradient id="progressGradient">
-                  <stop offset="0%" stopColor="#1e6076" />
-                  <stop offset="100%" stopColor="#12b0a0" />
+                  <stop offset="0%" stopColor="#166534" />
+                  <stop offset="100%" stopColor="#15803d" />
                 </linearGradient>
               </defs>
             </svg>
@@ -176,7 +176,7 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="sm:col-span-2">
-          <label htmlFor="employee-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="employee-select" className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
             Selecione o Colaborador
           </label>
           <div className="relative">
@@ -184,7 +184,7 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
               id="employee-select"
               value={selectedEmployeeId}
               onChange={(e) => setSelectedEmployeeId(e.target.value)}
-              className="w-full px-4 py-3 pl-12 pr-10 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 text-sm sm:text-base appearance-none text-gray-700 dark:text-gray-200"
+              className="w-full px-4 py-3 pl-12 pr-10 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-green-800 dark:focus:border-green-700 text-sm sm:text-base appearance-none text-gray-700 dark:text-gray-200"
               disabled={loading}
             >
               <option value="">Escolha um colaborador...</option>
@@ -213,7 +213,7 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
         {selectedEmployee && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 <Briefcase className="inline h-4 w-4 mr-1" />
                 Cargo
               </label>
@@ -223,7 +223,7 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 <Building className="inline h-4 w-4 mr-1" />
                 Departamento
               </label>
@@ -236,7 +236,7 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 <Calendar className="inline h-4 w-4 mr-1" />
                 Data
               </label>
@@ -251,9 +251,9 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
       {selectedEmployee && employeeNineBox && (
         <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
           <div className="flex items-center space-x-3">
-            <Grid3x3 className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+            <Grid3x3 className="h-5 w-5 text-green-800 dark:text-green-700" />
             <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Resultado Nine Box</p>
+              <p className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Resultado Nine Box</p>
               <div className="flex items-center space-x-2 mt-1">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${getQuadrantColor(pdiData.nineBoxQuadrante)}`}>
                   {pdiData.nineBoxQuadrante}
@@ -269,13 +269,13 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
 
       {selectedEmployee && (
         <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+          <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2 flex items-center">
             <Calendar className="h-4 w-4 mr-1 text-gray-500 dark:text-gray-400" />
             Período do PDI
           </label>
           <input
             type="text"
-            className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+            className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-naue-black dark:text-gray-300 font-medium transition-all duration-200 text-sm sm:text-base"
             value={pdiData.periodo}
             onChange={(e) => setPdiData((prev: any) => ({ ...prev, periodo: e.target.value }))}
             placeholder="Ex: 2024-2025"
@@ -285,27 +285,27 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
 
       {selectedEmployeeId && (
         <div className="mt-6 flex items-center justify-center space-x-2">
-          <div className={`flex items-center ${currentStep >= 1 ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-600'}`}>
+          <div className={`flex items-center ${currentStep >= 1 ? 'text-green-800 dark:text-green-700' : 'text-gray-400 dark:text-gray-600'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep >= 1 ? 'bg-primary-600 dark:bg-primary-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+              currentStep >= 1 ? 'bg-green-800 dark:bg-green-700 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
             }`}>
               1
             </div>
             <span className="ml-2 text-sm font-medium">Competências</span>
           </div>
-          <div className={`w-16 h-0.5 ${currentStep >= 2 ? 'bg-primary-600 dark:bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
-          <div className={`flex items-center ${currentStep >= 2 ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-600'}`}>
+          <div className={`w-16 h-0.5 ${currentStep >= 2 ? 'bg-green-800 dark:bg-green-700' : 'bg-gray-300 dark:bg-gray-600'}`} />
+          <div className={`flex items-center ${currentStep >= 2 ? 'text-green-800 dark:text-green-700' : 'text-gray-400 dark:text-gray-600'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep >= 2 ? 'bg-primary-600 dark:bg-primary-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+              currentStep >= 2 ? 'bg-green-800 dark:bg-green-700 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
             }`}>
               2
             </div>
             <span className="ml-2 text-sm font-medium">Potencial</span>
           </div>
-          <div className={`w-16 h-0.5 ${currentStep >= 3 ? 'bg-primary-600 dark:bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
-          <div className={`flex items-center ${currentStep >= 3 ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-600'}`}>
+          <div className={`w-16 h-0.5 ${currentStep >= 3 ? 'bg-green-800 dark:bg-green-700' : 'bg-gray-300 dark:bg-gray-600'}`} />
+          <div className={`flex items-center ${currentStep >= 3 ? 'text-green-800 dark:text-green-700' : 'text-gray-400 dark:text-gray-600'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep >= 3 ? 'bg-primary-600 dark:bg-primary-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+              currentStep >= 3 ? 'bg-green-800 dark:bg-green-700 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
             }`}>
               3
             </div>

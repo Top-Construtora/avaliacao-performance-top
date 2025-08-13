@@ -59,21 +59,21 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a5d47] to-[#021a14] flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <div className="bg-white rounded-3xl shadow-xl p-8 space-y-6">
+        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-8 space-y-6 border border-gray-200">
           {/* Logo e Título */}
           <div className="text-center space-y-2">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-2xl shadow-lg"
+              className="inline-flex items-center justify-center w-16 h-16 bg-primary-800 rounded-xl shadow-lg"
             >
               <img src={logo}/>
             </motion.div>
@@ -99,9 +99,9 @@ export default function Login() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
-                    error ? 'border-red-300' : 'border-gray-300'
-                  } focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all`}
+                  className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                    error ? 'border-red-500' : 'border-gray-300'
+                  } focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all bg-white`}
                   placeholder="seu@email.com"
                   disabled={isLoading}
                 />
@@ -120,16 +120,16 @@ export default function Login() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full pl-10 pr-12 py-3 rounded-xl border ${
-                    error ? 'border-red-300' : 'border-gray-300'
-                  } focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all`}
+                  className={`w-full pl-10 pr-12 py-3 rounded-lg border ${
+                    error ? 'border-red-500' : 'border-gray-300'
+                  } focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all bg-white`}
                   placeholder="••••••••"
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-all duration-200"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -165,7 +165,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(true)}
-                className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                className="text-primary-600 hover:text-primary-800 font-medium transition-colors"
               >
                 Esqueceu a senha?
               </button>
@@ -175,10 +175,10 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-3 px-4 rounded-xl font-medium text-white transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-3 px-6 rounded-lg font-medium text-white transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-md ${
                 isLoading
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-primary-500 to-secondary-600 hover:shadow-lg hover:shadow-primary-500/25 active:scale-[0.98]'
+                  : 'bg-primary-600 hover:bg-primary-800 focus:ring-2 focus:ring-primary-500/20 active:scale-[0.98]'
               }`}
             >
               {isLoading ? (
@@ -218,7 +218,7 @@ export default function Login() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 max-w-sm w-full"
+              className="bg-naue-white rounded-2xl p-6 max-w-sm w-full shadow-md border border-naue-border-gray"
               onClick={(e) => e.stopPropagation()}
             >
               <h2 className="text-xl font-bold text-gray-900 mb-4">
@@ -231,7 +231,7 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 mb-4"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 mb-4 bg-white"
                 placeholder="seu@email.com"
               />
               <div className="flex gap-3">
@@ -244,7 +244,7 @@ export default function Login() {
                 <button
                   onClick={handleForgotPassword}
                   disabled={isLoading}
-                  className="flex-1 py-2 px-4 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors disabled:bg-gray-400"
+                  className="flex-1 py-2 px-4 rounded-lg bg-primary-600 text-white hover:bg-primary-800 transition-colors disabled:bg-gray-400"
                 >
                   {isLoading ? 'Enviando...' : 'Enviar'}
                 </button>

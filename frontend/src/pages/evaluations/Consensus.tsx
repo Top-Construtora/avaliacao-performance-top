@@ -194,22 +194,22 @@ const Consensus = () => {
 
   const categoryConfig = {
     'Técnica': {
-      color: 'text-primary-600 dark:text-primary-400',
-      bgColor: 'bg-primary-50 dark:bg-primary-900/20',
-      borderColor: 'border-primary-200 dark:border-primary-700',
-      gradient: 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700'
+      color: 'text-green-800 dark:text-green-700',
+      bgColor: 'bg-green-50 dark:bg-green-900/20',
+      borderColor: 'border-green-200 dark:border-green-700',
+      gradient: 'from-green-800 to-green-900 dark:from-green-800 dark:to-green-900'
     },
     'Comportamental': {
-      color: 'text-secondary-600 dark:text-secondary-400',
-      bgColor: 'bg-secondary-50 dark:bg-secondary-900/20',
-      borderColor: 'border-secondary-200 dark:border-secondary-700',
-      gradient: 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700'
+      color: 'text-gray-600 dark:text-gray-400',
+      bgColor: 'bg-gray-50 dark:bg-gray-900/20',
+      borderColor: 'border-gray-200 dark:border-gray-700',
+      gradient: 'from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700'
     },
     'Organizacional': {
-      color: 'text-accent-600 dark:text-accent-400',
-      bgColor: 'bg-accent-50 dark:bg-accent-900/20',
-      borderColor: 'border-accent-200 dark:border-accent-700',
-      gradient: 'from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700'
+      color: 'text-stone-700 dark:text-stone-600',
+      bgColor: 'bg-stone-50 dark:bg-stone-900/20',
+      borderColor: 'border-stone-200 dark:border-stone-700',
+      gradient: 'from-stone-700 to-stone-800 dark:from-stone-700 dark:to-stone-800'
     }
   };
 
@@ -629,8 +629,8 @@ const Consensus = () => {
       onClick={() => onClick(score)}
       className={`w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-200 transform hover:scale-105 ${
         isSelected 
-          ? 'bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 text-white shadow-lg ring-2 ring-primary-300 dark:ring-primary-600 ring-offset-2 dark:ring-offset-gray-800' 
-          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400 border-2 border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-600 shadow-sm'
+          ? 'bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 text-white shadow-lg ring-2 ring-green-300 dark:ring-green-600 ring-offset-2 dark:ring-offset-gray-800' 
+          : 'bg-white dark:bg-gray-700 text-naue-black dark:text-gray-300 font-medium hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-800 dark:hover:text-green-700 border-2 border-gray-200 dark:border-gray-600 hover:border-green-300 dark:hover:border-green-600 shadow-sm'
       }`}
       title={`Selecionar nota ${score}`}
       aria-label={`Nota ${score} ${isSelected ? '(selecionada)' : ''}`}
@@ -650,18 +650,18 @@ const Consensus = () => {
   }) => {
     const config = {
       self: { 
-        bg: 'bg-gradient-to-br from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700', 
+        bg: 'bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700', 
         label: 'Autoavaliação',
       },
       leader: { 
-        bg: 'bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700', 
+        bg: 'bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900', 
         label: 'Avaliação do Líder',
       }
     };
     
     return (
       <div className="flex flex-col items-center space-y-4 w-32">
-        <h6 className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center h-10 flex items-center justify-center">{config[type].label}</h6>
+        <h6 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium text-center h-10 flex items-center justify-center">{config[type].label}</h6>
         <div 
           className={`w-14 h-14 rounded-xl ${config[type].bg} flex items-center justify-center text-white text-xl font-bold shadow-lg dark:shadow-xl`}
           title={`${config[type].label}: ${score}`}
@@ -691,13 +691,13 @@ const Consensus = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-8"
+        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                <Handshake className="h-6 w-6 sm:h-8 sm:w-8 text-primary-500 dark:text-primary-400 mr-3" />
+                <Handshake className="h-6 w-6 sm:h-8 sm:w-8 text-green-800 dark:text-green-700 mr-3" />
                 Reunião de Consenso
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">Definição colaborativa das notas finais</p>
@@ -724,9 +724,9 @@ const Consensus = () => {
                   />
                   <defs>
                     <linearGradient id="consensusGradient">
-                      <stop offset="0%" stopColor="#12b0a0" />
-                      <stop offset="50%" stopColor="#1e6076" />
-                      <stop offset="100%" stopColor="#baa673" />
+                      <stop offset="0%" stopColor="#166534" />
+                      <stop offset="50%" stopColor="#4b5563" />
+                      <stop offset="100%" stopColor="#78716c" />
                     </linearGradient>
                   </defs>
                 </svg>
@@ -739,13 +739,13 @@ const Consensus = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Leader Selection */}
           <div className="sm:col-span-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
               <Users className="inline h-4 w-4 mr-1" />
               Selecione o Líder
             </label>
             <div className="relative">
               <select
-                className="w-full pl-10 pr-10 py-3 rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 appearance-none cursor-pointer"
+                className="w-full pl-10 pr-10 py-3 rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 appearance-none cursor-pointer"
                 value={selectedLeaderId}
                 onChange={(e) => setSelectedLeaderId(e.target.value)}
                 disabled={loading}
@@ -768,12 +768,12 @@ const Consensus = () => {
 
           {/* Employee Selection */}
           <div className="sm:col-span-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
               Selecione o Colaborador
             </label>
             <div className="relative">
               <select
-                className="w-full pl-10 pr-10 py-3 rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 appearance-none cursor-pointer"
+                className="w-full pl-10 pr-10 py-3 rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 appearance-none cursor-pointer"
                 value={selectedEmployeeId}
                 onChange={(e) => setSelectedEmployeeId(e.target.value)}
                 disabled={!selectedLeaderId || loading}
@@ -799,21 +799,21 @@ const Consensus = () => {
           {selectedEmployee && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   <Briefcase className="inline h-4 w-4 mr-1" />
                   Cargo
                 </label>
-                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-300 text-sm">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
                   {selectedEmployee.position}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   <Calendar className="inline h-4 w-4 mr-1" />
                   Data
                 </label>
-                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-300 text-sm">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
                   {new Date().toLocaleDateString('pt-BR')}
                 </div>
               </div>
@@ -825,7 +825,7 @@ const Consensus = () => {
       {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-800 dark:border-green-700"></div>
         </div>
       )}
 
@@ -844,7 +844,7 @@ const Consensus = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: categoryIndex * 0.1 }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
+                  className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden"
                 >
                   <div className={`px-4 sm:px-8 py-4 sm:py-6 ${config.bgColor} border-b ${config.borderColor}`}>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
@@ -895,7 +895,7 @@ const Consensus = () => {
                                 {/* Avaliações Auto e Líder */}
                                 <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                                   <div className="flex items-center justify-between mb-4">
-                                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
+                                    <h5 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium flex items-center">
                                       <Sparkles className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
                                       Avaliações
                                     </h5>
@@ -916,10 +916,10 @@ const Consensus = () => {
                                 </div>
 
                                 {/* Consenso */}
-                                <div className="bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-lg p-4 border border-primary-200 dark:border-primary-700">
+                                <div className="bg-gradient-to-r from-green-50 to-gray-50 dark:from-green-900/20 dark:to-gray-900/20 rounded-lg p-4 border border-green-200 dark:border-green-700">
                                   <div className="flex items-center justify-between mb-4">
-                                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
-                                      <Handshake className="h-4 w-4 mr-2 text-primary-500 dark:text-primary-400" />
+                                    <h5 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium flex items-center">
+                                      <Handshake className="h-4 w-4 mr-2 text-green-800 dark:text-green-700" />
                                       Nota de Consenso
                                     </h5>
                                     {consensusScore > 0 && (
@@ -950,7 +950,7 @@ const Consensus = () => {
                                 Observações
                               </label>
                               <textarea
-                                className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent resize-none transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500"
+                                className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent resize-none transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500"
                                 rows={2}
                                 placeholder="Adicione observações sobre esta competência..."
                                 value={consensusObservations[criterion.id] || ''}
@@ -973,11 +973,11 @@ const Consensus = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6"
+                  className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-6"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <FileText className="h-6 w-6 text-accent-600 dark:text-accent-400" />
+                      <FileText className="h-6 w-6 text-stone-700 dark:text-stone-600" />
                       <div>
                         <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">
                           Plano de Desenvolvimento Individual (PDI)
@@ -1017,11 +1017,11 @@ const Consensus = () => {
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-8"
+                          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
                         >
                           <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                              <FileText className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-accent-600 dark:text-accent-400" />
+                              <FileText className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-stone-700 dark:text-stone-600" />
                               {pdiViewMode === 'edit' ? 'Editar PDI' : 'Criar PDI'}
                             </h3>
                             {pdiViewMode === 'edit' && (
@@ -1064,39 +1064,39 @@ const Consensus = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-primary-100 dark:border-gray-700 p-4 sm:p-8"
+                className="bg-gradient-to-br from-green-50 via-gray-50 to-stone-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-green-100 dark:border-gray-700 p-4 sm:p-8"
               >
                 <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
-                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary-600 dark:text-primary-400" />
+                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-green-800 dark:text-green-700" />
                   Resumo do Consenso
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-primary-200 dark:border-primary-700">
+                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-green-200 dark:border-green-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Técnicas</h4>
-                    <p className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">{calculateCategoryAverage('Técnica').toFixed(1)}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-green-800 dark:text-green-700">{calculateCategoryAverage('Técnica').toFixed(1)}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 40%</p>
                   </div>
                   
-                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-secondary-200 dark:border-secondary-700">
+                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Comportamentais</h4>
-                    <p className="text-2xl sm:text-3xl font-bold text-secondary-600 dark:text-secondary-400">{calculateCategoryAverage('Comportamental').toFixed(1)}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-gray-600 dark:text-gray-400">{calculateCategoryAverage('Comportamental').toFixed(1)}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 30%</p>
                   </div>
                   
-                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-accent-200 dark:border-accent-700">
+                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-stone-200 dark:border-stone-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Organizacionais</h4>
-                    <p className="text-2xl sm:text-3xl font-bold text-accent-600 dark:text-accent-400">{calculateCategoryAverage('Organizacional').toFixed(1)}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-stone-700 dark:text-stone-600">{calculateCategoryAverage('Organizacional').toFixed(1)}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 30%</p>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-primary-700 p-4 sm:p-6 rounded-xl text-white">
-                    <h4 className="text-xs sm:text-sm font-medium text-primary-100 dark:text-primary-200 mb-1">Nota Final</h4>
+                  <div className="bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 p-4 sm:p-6 rounded-xl text-white">
+                    <h4 className="text-xs sm:text-sm font-medium text-green-100 dark:text-green-200 mb-1">Nota Final</h4>
                     <p className="text-2xl sm:text-3xl font-bold">{calculateOverallAverage().toFixed(1)}</p>
-                    <p className="text-xs text-primary-100 dark:text-primary-200 mt-1">Média Ponderada</p>
+                    <p className="text-xs text-green-100 dark:text-green-200 mt-1">Média Ponderada</p>
                   </div>
 
                   {/* Adicionar indicador do PDI */}
-                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-accent-200 dark:border-accent-700">
+                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-stone-200 dark:border-stone-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Status PDI</h4>
                     <div className="flex items-center space-x-2">
                       {pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length > 0 ? (
@@ -1177,8 +1177,8 @@ const Consensus = () => {
           className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-8 sm:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/20 dark:to-secondary-900/20 mb-6">
-              <Users className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600 dark:text-primary-400" />
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-green-100 to-gray-100 dark:from-green-900/20 dark:to-gray-900/20 mb-6">
+              <Users className="h-8 w-8 sm:h-10 sm:w-10 text-green-800 dark:text-green-700" />
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Nenhum colaborador selecionado

@@ -100,7 +100,7 @@ const PDIViewer: React.FC<PDIViewerProps> = ({ pdiData }) => {
                     <span>Prazo: {item.calendarizacao}</span>
                   </div>
                 </div>
-                <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(item.status)}`}>
+                <div className={`flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium ${getStatusColor(item.status)}`}>
                   {getStatusIcon(item.status)}
                   <span>{getStatusLabel(item.status)}</span>
                 </div>
@@ -188,9 +188,9 @@ const PDIViewer: React.FC<PDIViewerProps> = ({ pdiData }) => {
 
       {/* Action Items */}
       <div className="bg-gray-50 rounded-lg p-6">
-        {renderActionItems(pdiData.curtosPrazos, 'Ações de Curto Prazo (0-6 meses)', 'bg-blue-100 text-blue-800')}
-        {renderActionItems(pdiData.mediosPrazos, 'Ações de Médio Prazo (6-12 meses)', 'bg-purple-100 text-purple-800')}
-        {renderActionItems(pdiData.longosPrazos, 'Ações de Longo Prazo (12+ meses)', 'bg-green-100 text-green-800')}
+        {renderActionItems(pdiData.curtosPrazos, 'Ações de Curto Prazo (0-6 meses)', 'bg-status-info/10 text-status-info border border-status-info/20')}
+        {renderActionItems(pdiData.mediosPrazos, 'Ações de Médio Prazo (6-12 meses)', 'bg-status-warning/10 text-status-warning border border-status-warning/20')}
+        {renderActionItems(pdiData.longosPrazos, 'Ações de Longo Prazo (12+ meses)', 'bg-status-success/10 text-status-success border border-status-success/20')}
       </div>
 
       {/* Footer */}

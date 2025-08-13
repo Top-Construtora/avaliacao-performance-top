@@ -50,12 +50,12 @@ const Dashboard = () => {
       description: 'Avalie suas competências e performance de forma reflexiva',
       action: 'Iniciar avaliação',
       icon: User,
-      gradient: 'from-primary-500 to-primary-600',
-      darkGradient: 'dark:from-primary-600 dark:to-primary-700',
+      gradient: 'from-primary-900 to-primary-800',
+      darkGradient: 'dark:from-primary-900 dark:to-primary-800',
       shadowColor: 'shadow-primary-500/20',
       darkShadowColor: 'dark:shadow-secondary-600/30',
-      iconBg: 'from-primary-500 to-primary-600',
-      darkIconBg: 'dark:from-primary-600 dark:to-primary-700',
+      iconBg: 'from-primary-900 to-primary-800',
+      darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
       onClick: () => navigate('/self-evaluation'),
     },
     {
@@ -64,12 +64,12 @@ const Dashboard = () => {
       description: 'Avalie a performance dos seus colaboradores',
       action: 'Avaliar equipe',
       icon: Users,
-      gradient: 'from-secondary-500 to-secondary-600',
-      darkGradient: 'dark:from-secondary-600 dark:to-secondary-700',
+      gradient: 'from-primary-900 to-primary-800',
+      darkGradient: 'dark:from-primary-900 dark:to-primary-800',
       shadowColor: 'shadow-secondary-500/20',
       darkShadowColor: 'dark:shadow-secondary-600/30',
-      iconBg: 'from-secondary-500 to-secondary-600',
-      darkIconBg: 'dark:from-secondary-600 dark:to-secondary-700',
+      iconBg: 'from-primary-900 to-primary-800',
+      darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
       onClick: () => navigate('/leader-evaluation'),
     },
     {
@@ -78,12 +78,12 @@ const Dashboard = () => {
       description: 'Defina as notas finais em reunião de consenso',
       action: 'Definir consenso',
       icon: Target,
-      gradient: 'from-accent-500 to-accent-600',
-      darkGradient: 'dark:from-accent-600 dark:to-accent-700',
+      gradient: 'from-primary-900 to-primary-800',
+      darkGradient: 'dark:from-primary-900 dark:to-primary-800',
       shadowColor: 'shadow-accent-500/20',
       darkShadowColor: 'dark:shadow-secondary-600/30',
-      iconBg: 'from-accent-500 to-accent-600',
-      darkIconBg: 'dark:from-accent-600 dark:to-accent-700',
+      iconBg: 'from-primary-900 to-primary-800',
+      darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
       onClick: () => navigate('/consensus'),
     },
     {
@@ -92,12 +92,12 @@ const Dashboard = () => {
       description: 'Visualize o posicionamento na matriz de potencial',
       action: 'Ver matriz',
       icon: BarChart3,
-      gradient: 'from-primary-600 to-secondary-600',
-      darkGradient: 'dark:from-primary-700 dark:to-secondary-700',
+      gradient: 'from-primary-900 to-primary-800',
+      darkGradient: 'dark:from-primary-900 dark:to-primary-800',
       shadowColor: 'shadow-primary-500/20',
       darkShadowColor: 'dark:shadow-secondary-600/30',
-      iconBg: 'from-primary-600 to-secondary-600',
-      darkIconBg: 'dark:from-primary-700 dark:to-secondary-700',
+      iconBg: 'from-primary-900 to-primary-800',
+      darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
       onClick: () => navigate('/nine-box'),
     },
     {
@@ -106,12 +106,12 @@ const Dashboard = () => {
       description: 'Crie planos de desenvolvimento individual',
       action: 'Criar plano',
       icon: FileText,
-      gradient: 'from-secondary-600 to-accent-600',
-      darkGradient: 'dark:from-secondary-700 dark:to-accent-700',
+      gradient: 'from-primary-900 to-primary-800',
+      darkGradient: 'dark:from-primary-900 dark:to-primary-800',
       shadowColor: 'shadow-secondary-500/20',
       darkShadowColor: 'dark:shadow-secondary-600/30',
-      iconBg: 'from-secondary-600 to-accent-600',
-      darkIconBg: 'dark:from-secondary-700 dark:to-accent-700',
+      iconBg: 'from-primary-900 to-primary-800',
+      darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
       onClick: () => navigate('/action-plan'),
     },
     {
@@ -120,12 +120,12 @@ const Dashboard = () => {
       description: 'Acompanhe o progresso e resultados gerais',
       action: 'Ver relatórios',
       icon: Award,
-      gradient: 'from-accent-600 to-primary-600',
-      darkGradient: 'dark:from-accent-700 dark:to-primary-700',
+      gradient: 'from-primary-900 to-primary-800',
+      darkGradient: 'dark:from-primary-900 dark:to-primary-800',
       shadowColor: 'shadow-accent-500/20',
       darkShadowColor: 'dark:shadow-secondary-600/30',
-      iconBg: 'from-accent-600 to-primary-600',
-      darkIconBg: 'dark:from-accent-700 dark:to-primary-700',
+      iconBg: 'from-primary-900 to-primary-800',
+      darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
       onClick: () => navigate('/reports'),
     },
   ];
@@ -136,7 +136,7 @@ const Dashboard = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-white shadow-xl dark:shadow-2xl"
+        className="bg-gradient-to-br from-primary-900 to-primary-800 dark:from-primary-900 dark:to-primary-800 rounded-2xl p-8 text-white shadow-md hover:shadow-lg transition-shadow duration-300"
       >
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Bem-vindo(a), {firstName}!</h1>
         <p className="text-primary-100 dark:text-primary-200 text-base sm:text-lg">
@@ -158,7 +158,7 @@ const Dashboard = () => {
               key={card.id}
               variants={itemVariants}
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              className={`relative bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-lg dark:shadow-xl hover:shadow-xl dark:hover:shadow-2xl ${card.shadowColor} ${card.darkShadowColor} transition-all duration-300 cursor-pointer group overflow-hidden border border-gray-100 dark:border-gray-700`}
+              className={`relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md ${card.shadowColor} ${card.darkShadowColor} transition-all duration-300 cursor-pointer group overflow-hidden border border-gray-300 dark:border-gray-700`}
               onClick={card.onClick}
             >
               {/* Background Gradient Decoration */}
@@ -179,13 +179,13 @@ const Dashboard = () => {
                 
                 <div className={`inline-flex items-center text-sm font-semibold bg-gradient-to-r ${card.gradient} ${card.darkGradient} bg-clip-text text-transparent group-hover:gap-2 sm:group-hover:gap-3 transition-all duration-300`}>
                   <span>{card.action}</span>
-                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-primary-500 dark:text-primary-400 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-primary-900 dark:text-primary-800 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
               
               {/* Hover Effect Border */}
               <div 
-                className={`absolute inset-0 rounded-xl border-2 border-transparent bg-gradient-to-br ${card.gradient} ${card.darkGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} 
+                className={`absolute inset-0 rounded-lg border border-transparent bg-gradient-to-br ${card.gradient} ${card.darkGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} 
                 style={{ 
                   padding: '2px', 
                   background: `linear-gradient(to bottom right, var(--tw-gradient-from), var(--tw-gradient-to))`, 

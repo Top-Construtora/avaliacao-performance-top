@@ -11,24 +11,24 @@ const StatusBadge = ({ status, className = '' }: StatusBadgeProps) => {
 
   switch (status) {
     case 'pending':
-      badgeClass = 'bg-red-100 text-red-800';
+      badgeClass = 'bg-red-500/10 text-red-500 border border-red-500/20';
       label = 'Pendente';
       break;
     case 'in-progress':
-      badgeClass = 'bg-yellow-100 text-yellow-800';
+      badgeClass = 'bg-amber-500/10 text-amber-500 border border-amber-500/20';
       label = 'Em Andamento';
       break;
     case 'completed':
-      badgeClass = 'bg-green-100 text-green-800';
+      badgeClass = 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20';
       label = 'Concluída';
       break;
     default:
-      badgeClass = 'bg-gray-100 text-gray-800';
+      badgeClass = 'bg-blue-500/10 text-blue-500 border border-blue-500/20';
       label = status;
   }
 
   return (
-    <span className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs sm:text-xs font-medium ${badgeClass} ${className} whitespace-nowrap`}>
+    <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium ${badgeClass} ${className} whitespace-nowrap`}>
       {label}
     </span>
   );

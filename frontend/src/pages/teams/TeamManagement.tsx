@@ -266,28 +266,28 @@ const TeamManagement = () => {
         layout
         variants={itemVariants}
         whileHover={{ y: -4, transition: { duration: 0.2 } }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group"
+        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-900 overflow-hidden dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-800 transition-all duration-300 group"
       >
-        <div className="h-2 bg-gradient-to-r from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700" />
+        <div className="h-2 bg-gradient-to-r from-gray-600 to-gray-800 dark:from-gray-700 dark:to-gray-900" />
         
         <div className="p-6">
           <div className="flex items-start justify-between gap-2 mb-4">
             <div className="flex items-center space-x-4 flex-shrink-0">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 shadow-md dark:shadow-lg">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-700 dark:to-gray-800 shadow-md dark:shadow-lg">
                 <UsersIcon className="h-6 w-6 text-white" />
               </div>
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate">{team.name}</h3>
               {team.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{team.description}</p>
+                <p className="text-sm text-gray-800 dark:text-gray-400 mt-1 line-clamp-2">{team.description}</p>
               )}
             </div>
             <div className="flex flex-col space-y-1 ml-2 flex-shrink-0">
               <ActionGuard can={() => permissions.canEditTeam(team.id, team.responsible_id ?? undefined)}>
                 <button
                   onClick={() => handleEdit(team)}
-                  className="p-2 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
+                  className="p-2 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300"
                   title="Editar"
                 >
                   <Edit className="h-4 w-4" />
@@ -297,7 +297,7 @@ const TeamManagement = () => {
               <ActionGuard can={permissions.canDeleteTeam}>
                 <button
                   onClick={() => handleDelete(team.id)}
-                  className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                  className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-600 dark:text-gray-400 hover:text-red-800 dark:hover:text-red-400"
                   title="Excluir"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -308,27 +308,27 @@ const TeamManagement = () => {
 
           <div className="space-y-3">
             {department && (
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 group/item hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                <Building className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500 group-hover/item:text-primary-500 dark:group-hover/item:text-primary-400" />
+              <div className="flex items-center text-sm text-gray-800 dark:text-gray-400 group/item hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                <Building className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-600 group-hover/item:text-gray-600 dark:group-hover/item:text-gray-400" />
                 <span className="font-medium truncate">{department.name}</span>
               </div>
             )}
 
             {responsible && (
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 group/item hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                <UserCog className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500 group-hover/item:text-primary-500 dark:group-hover/item:text-primary-400" />
+              <div className="flex items-center text-sm text-gray-800 dark:text-gray-400 group/item hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                <UserCog className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-600 group-hover/item:text-gray-600 dark:group-hover/item:text-gray-400" />
                 <span>Líder: <span className="font-medium truncate">{responsible.name}</span></span>
               </div>
             )}
 
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-              <Users className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
+            <div className="flex items-center text-sm text-gray-800 dark:text-gray-400">
+              <Users className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-600" />
               <span className="font-medium">{members.length} {members.length === 1 ? 'membro' : 'membros'}</span>
             </div>
           </div>
 
           {members.length > 0 && (
-            <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-700">
+            <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-900">
               <div className="flex -space-x-2">
                 {members.slice(0, 5).map((member) => (
                   <div
@@ -343,14 +343,14 @@ const TeamManagement = () => {
                         className="h-9 w-9 rounded-full border-2 border-white dark:border-gray-800 shadow-sm group-hover/avatar:z-10 transition-all"
                       />
                     ) : (
-                      <div className="h-9 w-9 rounded-full border-2 border-white dark:border-gray-800 bg-gradient-to-br from-secondary-400 to-secondary-600 flex items-center justify-center text-xs font-bold text-white shadow-sm group-hover/avatar:z-10 transition-all">
+                      <div className="h-9 w-9 rounded-full border-2 border-white dark:border-gray-800 bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-xs font-bold text-white shadow-sm group-hover/avatar:z-10 transition-all">
                         {member.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
                       </div>
                     )}
                   </div>
                 ))}
                 {members.length > 5 && (
-                  <div className="h-9 w-9 rounded-full border-2 border-white dark:border-gray-800 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300 shadow-sm">
+                  <div className="h-9 w-9 rounded-full border-2 border-white dark:border-gray-800 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center text-xs font-bold text-gray-800 dark:text-gray-300 shadow-sm">
                     +{members.length - 5}
                   </div>
                 )}
@@ -366,8 +366,8 @@ const TeamManagement = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary-500 dark:text-primary-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Carregando dados...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-gray-600 dark:text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-800 dark:text-gray-400">Carregando dados...</p>
         </div>
       </div>
     );
@@ -379,16 +379,16 @@ const TeamManagement = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-8"
+          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-900 p-8"
         >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                  <Database className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3 flex-shrink-0" />
+                  <Database className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-gray-600 dark:text-gray-400 mr-2 sm:mr-3 flex-shrink-0" />
                   Gerenciamento de Times
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
+                <p className="text-gray-800 dark:text-gray-400 mt-1 text-sm sm:text-base">
                   Visualize e gerencie times da organização
                 </p>
               </div>
@@ -415,7 +415,7 @@ const TeamManagement = () => {
             <motion.div 
               variants={itemVariants} 
               className="relative overflow-hidden rounded-xl p-4 text-center shadow-lg"
-              style={{ background: 'linear-gradient(to bottom right, #247B7B, #1B5B5B)' }}
+              style={{ background: 'linear-gradient(to bottom right,rgb(8, 70, 40),rgb(7, 55, 21))' }}
             >
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalTeams}</p>
@@ -424,35 +424,35 @@ const TeamManagement = () => {
               <UsersIcon className="absolute -bottom-2 -right-2 h-16 w-16 text-teal-300 opacity-50" />
             </motion.div>
             
-            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 dark:from-primary-600 dark:via-primary-700 dark:to-primary-800 rounded-xl p-4 text-center shadow-lg">
+            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-gray-800 via-gray-800 to-gray-900 dark:from-gray-800 dark:via-gray-900 dark:to-primary-800 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalMembers}</p>
-                <p className="text-sm text-primary-100 font-medium">Membros Total</p>
+                <p className="text-sm text-gray-100 font-medium">Membros Total</p>
               </div>
-              <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-primary-400 dark:text-primary-500 opacity-50" />
+              <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-400 dark:text-gray-700 opacity-50" />
             </motion.div>
         
             
-            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-gray-500 via-gray-600 to-gray-700 dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 rounded-xl p-4 text-center shadow-lg">
+            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-stone-700 via-stone-800 to-stone-900 dark:from-stone-800 dark:via-stone-900 dark:to-stone-800 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.teamsWithoutResponsible}</p>
                 <p className="text-sm text-gray-200 font-medium">Sem Líder</p>
               </div>
-              <UserCog className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-400 dark:text-gray-500 opacity-50" />
+              <UserCog className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-400 dark:text-gray-700 opacity-50" />
             </motion.div>
           </motion.div>
         </motion.div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
+        <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-900 p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-3">
-              <div className="flex items-center bg-gray-100/80 dark:bg-gray-700/50 backdrop-blur-sm rounded-xl p-1.5">
+              <div className="flex items-center bg-gray-100/80 dark:bg-gray-900/50 backdrop-blur-sm rounded-xl p-1.5">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all ${
                     viewMode === 'grid'
-                      ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm dark:shadow-lg'
-                      : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                      ? 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 shadow-sm dark:shadow-lg'
+                      : 'text-gray-400 dark:text-gray-700 hover:text-gray-800 dark:hover:text-gray-300'
                   }`}
                   title="Visualização em grade"
                 >
@@ -462,8 +462,8 @@ const TeamManagement = () => {
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg transition-all ${
                     viewMode === 'list'
-                      ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm dark:shadow-lg'
-                      : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                      ? 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 shadow-sm dark:shadow-lg'
+                      : 'text-gray-400 dark:text-gray-700 hover:text-gray-800 dark:hover:text-gray-300'
                   }`}
                   title="Visualização em lista"
                 >
@@ -475,41 +475,41 @@ const TeamManagement = () => {
                 onClick={() => setShowFilters(!showFilters)}
                 className={`p-2.5 rounded-xl transition-all ${
                   showFilters 
-                    ? 'bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' 
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    ? 'bg-gray-200 dark:bg-gray-700/50 text-gray-800 dark:text-gray-300' 
+                    : 'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'
                 }`}
               >
                 <Filter className="h-4 w-4" />
               </button>
 
               <div className="relative group">
-                <button className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">
+                <button className="p-2.5 rounded-lg bg-naue-light-gray dark:bg-gray-900 text-naue-text-gray dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                   <MoreVertical className="h-4 w-4" />
                 </button>
-                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-2xl border border-gray-100 dark:border-gray-700 py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-2xl border border-gray-100 dark:border-gray-900 py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                   <button
                     onClick={() => handleQuickAction('import')}
-                    className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
+                    className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-900 flex items-center space-x-3 transition-colors"
                   >
-                    <Upload className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                    <Upload className="h-4 w-4 text-gray-400 dark:text-gray-700" />
                     <span>Importar dados</span>
                   </button>
                   <UIGuard show="showExportButton">
                     <button
                       onClick={() => handleQuickAction('export')}
-                      className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-900 flex items-center space-x-3 transition-colors"
                     >
-                      <Download className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                      <Download className="h-4 w-4 text-gray-400 dark:text-gray-700" />
                       <span>Exportar lista</span>
                     </button>
                   </UIGuard>
-                  <div className="border-t border-gray-100 dark:border-gray-700 my-2" />
+                  <div className="border-t border-gray-100 dark:border-gray-900 my-2" />
                   <UIGuard show="showBulkActionsButton">
                     <button
                       onClick={() => handleQuickAction('bulk')}
-                      className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-900 flex items-center space-x-3 transition-colors"
                     >
-                      <Copy className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                      <Copy className="h-4 w-4 text-gray-400 dark:text-gray-700" />
                       <span>Ações em massa</span>
                     </button>
                   </UIGuard>
@@ -520,13 +520,13 @@ const TeamManagement = () => {
 
           <div className="space-y-4">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-700" />
               <input
                 type="text"
                 placeholder="Buscar times..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border-gray-200 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 bg-gray-50/50 dark:bg-gray-700/50 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100"
+                className="w-full pl-12 pr-4 py-3 rounded-xl border-gray-200 dark:border-gray-800 focus:border-primary-700 dark:focus:border-primary-400 focus:ring-primary-700 dark:focus:ring-primary-400 bg-gray-50/50 dark:bg-gray-900/50 placeholder-gray-700 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100"
               />
             </div>
 
@@ -538,15 +538,15 @@ const TeamManagement = () => {
                   exit={{ opacity: 0, height: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-700/30 dark:to-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-900/30 dark:to-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-900">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-semibold text-naue-black dark:text-gray-300 font-medium mb-2">
                         Departamento
                       </label>
                       <select
                         value={selectedDepartment}
                         onChange={(e) => setSelectedDepartment(e.target.value)}
-                        className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        className="w-full rounded-xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                       >
                         <option value="">Todos</option>
                         {departments.map(dept => (
@@ -556,13 +556,13 @@ const TeamManagement = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-semibold text-naue-black dark:text-gray-300 font-medium mb-2">
                         Ordenar por
                       </label>
                       <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value as any)}
-                        className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        className="w-full rounded-xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                       >
                         <option value="name">Nome</option>
                         <option value="members">Quantidade de membros</option>
@@ -600,11 +600,11 @@ const TeamManagement = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-12"
             >
-              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 mb-6">
-                <UsersIcon className="h-10 w-10 text-gray-400 dark:text-gray-500" />
+              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 mb-6">
+                <UsersIcon className="h-10 w-10 text-gray-400 dark:text-gray-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Nenhum time encontrado</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">Crie o primeiro time da organização</p>
+              <p className="text-gray-700 dark:text-gray-400 mb-6">Crie o primeiro time da organização</p>
               <UIGuard show="showCreateTeamButton">
                 <Button
                   variant="primary"
@@ -631,52 +631,52 @@ const TeamManagement = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl dark:shadow-2xl"
+                className="bg-naue-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-md hover:shadow-lg border border-naue-border-gray dark:border-gray-900"
                 onClick={(e) => e.stopPropagation()}
               >
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-                  <Download className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+                  <Download className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-400" />
                   Exportar Dados
                 </h2>
                 
                 <div className="space-y-3">
                   <button
                     onClick={() => handleExport('excel')}
-                    className="w-full p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 hover:from-green-100 hover:to-green-200 dark:hover:from-green-800/30 dark:hover:to-green-700/30 rounded-xl border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 font-medium text-left flex items-center space-x-3 transition-all"
+                    className="w-full p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 hover:from-green-100 hover:to-green-200 dark:hover:from-green-800/30 dark:hover:to-green-900/30 rounded-xl border border-green-200 dark:border-green-900 text-green-900 dark:text-green-300 font-medium text-left flex items-center space-x-3 transition-all"
                   >
                     <FileSpreadsheet className="h-5 w-5" />
                     <div className="flex-1">
                       <p className="font-semibold">Excel</p>
-                      <p className="text-xs text-green-600 dark:text-green-400">Arquivo .xlsx para análises</p>
+                      <p className="text-xs text-green-800 dark:text-green-400">Arquivo .xlsx para análises</p>
                     </div>
                   </button>
 
                   <button
                     onClick={() => handleExport('notion')}
-                    className="w-full p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/20 dark:to-gray-600/20 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600/30 dark:hover:to-gray-500/30 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium text-left flex items-center space-x-3 transition-all"
+                    className="w-full p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-800/30 dark:hover:to-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-900 text-naue-black dark:text-gray-300 font-medium font-medium text-left flex items-center space-x-3 transition-all"
                   >
                     <FileText className="h-5 w-5" />
                     <div className="flex-1">
                       <p className="font-semibold">Notion</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Markdown para importar</p>
+                      <p className="text-xs text-gray-800 dark:text-gray-400">Markdown para importar</p>
                     </div>
                   </button>
 
                   <button
                     onClick={() => handleExport('pdf')}
-                    className="w-full p-4 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 hover:from-red-100 hover:to-red-200 dark:hover:from-red-800/30 dark:hover:to-red-700/30 rounded-xl border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 font-medium text-left flex items-center space-x-3 transition-all"
+                    className="w-full p-4 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 hover:from-red-100 hover:to-red-200 dark:hover:from-red-800/30 dark:hover:to-red-900/30 rounded-xl border border-red-200 dark:border-red-900 text-red-900 dark:text-red-300 font-medium text-left flex items-center space-x-3 transition-all"
                   >
                     <FileDown className="h-5 w-5" />
                     <div className="flex-1">
                       <p className="font-semibold">PDF</p>
-                      <p className="text-xs text-red-600 dark:text-red-400">Documento para impressão</p>
+                      <p className="text-xs text-red-800 dark:text-red-400">Documento para impressão</p>
                     </div>
                   </button>
                 </div>
 
                 <button
                   onClick={() => setShowExportMenu(false)}
-                  className="w-full mt-4 p-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="w-full mt-4 p-3 rounded-xl border border-gray-200 dark:border-gray-900 text-gray-800 dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
                 >
                   Cancelar
                 </button>

@@ -106,7 +106,7 @@ const RegisterTeam = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary-500 dark:text-primary-400 mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-gray-600 dark:text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600 dark:text-gray-400">Carregando dados...</p>
         </div>
       </div>
@@ -124,7 +124,7 @@ const RegisterTeam = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div>            
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-              <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-secondary-500 dark:text-secondary-400 mr-2 sm:mr-3 flex-shrink-0" />
+              <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-gray-600 dark:text-gray-400 mr-2 sm:mr-3 flex-shrink-0" />
               Cadastrar Time
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
@@ -143,20 +143,20 @@ const RegisterTeam = () => {
       >
         <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <Users className="h-5 w-5 mr-2 text-secondary-500 dark:text-secondary-400" />
+            <Users className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-400" />
             Informações do Time
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Nome do Time *
               </label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+                className={`w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
                   formErrors.teamName 
-                    ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400'
+                    ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                    : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                 }`}
                 value={formData.teamName}
                 onChange={(e) => setFormData({ ...formData, teamName: e.target.value })}
@@ -171,17 +171,17 @@ const RegisterTeam = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Departamento *
               </label>
               <div className="relative">
                 <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                     formErrors.department 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.teamDepartmentId}
                   onChange={(e) => setFormData({ ...formData, teamDepartmentId: e.target.value })}
@@ -201,17 +201,17 @@ const RegisterTeam = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Responsável pelo Time *
               </label>
               <div className="relative">
                 <Crown className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                     formErrors.responsible 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400'
+                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
+                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.teamResponsibleId}
                   onChange={(e) => setFormData({ ...formData, teamResponsibleId: e.target.value })}
@@ -235,11 +235,11 @@ const RegisterTeam = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                 Descrição do Time
               </label>
               <textarea
-                className="w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-secondary-500 dark:focus:border-secondary-400 focus:ring-secondary-500 dark:focus:ring-secondary-400"
+                className="w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400"
                 rows={4}
                 value={formData.teamDescription}
                 onChange={(e) => setFormData({ ...formData, teamDescription: e.target.value })}
@@ -251,7 +251,7 @@ const RegisterTeam = () => {
 
         <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <UserCheck className="h-5 w-5 mr-2 text-secondary-500 dark:text-secondary-400" />
+            <UserCheck className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-400" />
             Membros do Time *
           </h3>
           <div className="max-h-64 overflow-y-auto pr-2 space-y-2">
@@ -263,7 +263,7 @@ const RegisterTeam = () => {
               }`}>
                 <input
                   type="checkbox"
-                  className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 dark:text-secondary-500 focus:ring-secondary-500 dark:focus:ring-secondary-400"
+                  className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-500 focus:ring-gray-500 dark:focus:ring-gray-400"
                   checked={formData.teamMemberIds.includes(user.id)}
                   onChange={(e) => {
                     if (e.target.checked) {
@@ -278,7 +278,7 @@ const RegisterTeam = () => {
                   <span className="text-sm text-gray-500 dark:text-gray-400">{user.position}</span>
                 </div>
                 {formData.teamMemberIds.includes(user.id) && (
-                  <CheckCircle2 className="h-5 w-5 text-secondary-600 dark:text-secondary-400 ml-2" />
+                  <CheckCircle2 className="h-5 w-5 text-gray-600 dark:text-gray-400 ml-2" />
                 )}
               </label>
             ))}

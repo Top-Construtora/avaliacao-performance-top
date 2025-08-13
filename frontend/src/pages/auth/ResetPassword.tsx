@@ -126,9 +126,9 @@ export default function ResetPassword() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full pl-10 pr-12 py-3 rounded-xl border ${
-                    error ? 'border-red-300' : 'border-gray-300'
-                  } focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all`}
+                  className={`w-full pl-10 pr-12 py-3 rounded-lg border ${
+                    error ? 'border-status-danger' : 'border-naue-border-gray'
+                  } focus:border-primary focus:ring-2 focus:ring-primary-light transition-all bg-white placeholder-naue-text-gray`}
                   placeholder="••••••••"
                   disabled={isLoading}
                 />
@@ -188,9 +188,9 @@ export default function ResetPassword() {
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`w-full pl-10 pr-12 py-3 rounded-xl border ${
-                    error && confirmPassword ? 'border-red-300' : 'border-gray-300'
-                  } focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all`}
+                  className={`w-full pl-10 pr-12 py-3 rounded-lg border ${
+                    error && confirmPassword ? 'border-status-danger' : 'border-naue-border-gray'
+                  } focus:border-primary focus:ring-2 focus:ring-primary-light transition-all bg-white placeholder-naue-text-gray`}
                   placeholder="••••••••"
                   disabled={isLoading}
                 />
@@ -208,7 +208,7 @@ export default function ResetPassword() {
                 </button>
               </div>
               {confirmPassword && password !== confirmPassword && (
-                <p className="text-xs text-red-600 mt-1 flex items-center">
+                <p className="text-xs text-status-danger mt-1 flex items-center">
                   <AlertCircle className="h-3 w-3 mr-1" />
                   As senhas não coincidem
                 </p>
@@ -220,7 +220,7 @@ export default function ResetPassword() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg"
+                className="flex items-center gap-2 text-sm text-status-danger bg-red-50 p-3 rounded-lg"
               >
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 <span>{error}</span>
@@ -231,10 +231,10 @@ export default function ResetPassword() {
             <button
               type="submit"
               disabled={isLoading || !isPasswordValid() || password !== confirmPassword}
-              className={`w-full py-3 px-4 rounded-xl font-medium text-white transition-all ${
+              className={`w-full px-6 py-3 rounded-lg font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                 isLoading || !isPasswordValid() || password !== confirmPassword
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-primary-500 to-secondary-600 hover:shadow-lg hover:shadow-primary-500/25 active:scale-[0.98]'
+                  ? 'bg-naue-text-gray cursor-not-allowed hover:transform-none hover:shadow-none focus:ring-naue-text-gray'
+                  : 'bg-primary hover:bg-primary-hover focus:ring-primary-500'
               }`}
             >
               {isLoading ? (

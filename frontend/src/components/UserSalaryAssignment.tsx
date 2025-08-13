@@ -240,7 +240,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
         {activeTab === 'assign' && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                 Trilha de Carreira
               </label>
               <select
@@ -259,7 +259,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
 
             {trackPositions.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                   Cargo na Trilha
                 </label>
                 <select
@@ -278,7 +278,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                 Internível
               </label>
               <div className="grid grid-cols-5 gap-2">

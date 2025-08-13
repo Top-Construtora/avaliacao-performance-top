@@ -21,24 +21,24 @@ const Button = ({
   className = '',
   icon,
 }: ButtonProps) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-sm hover:shadow-md';
+  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:-translate-y-0.5 hover:shadow-md';
   
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white focus:ring-primary-500',
-    secondary: 'bg-gradient-to-r from-secondary-500 to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white focus:ring-secondary-500',
-    success: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white focus:ring-green-500',
-    danger: 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white focus:ring-red-500',
-    warning: 'bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white focus:ring-accent-500',
-    outline: 'border-2 border-primary-500 bg-white text-primary-600 hover:bg-primary-50 focus:ring-primary-500',
+    primary: 'bg-primary-900 hover:bg-primary-900 text-white focus:ring-primary-500',
+    secondary: 'bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-500',
+    success: 'bg-emerald-500 hover:bg-emerald-600 text-white focus:ring-emerald-500',
+    danger: 'bg-red-500 hover:bg-red-600 text-white focus:ring-red-500',
+    warning: 'bg-amber-500 hover:bg-amber-600 text-white focus:ring-amber-500',
+    outline: 'border-2 border-primary-600 bg-white text-primary-600 hover:bg-primary-50 focus:ring-primary-500',
   };
   
   const sizeClasses = {
-    sm: 'px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm',
-    md: 'px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base',
-    lg: 'px-4 sm:px-6 py-2 sm:py-3 text-base sm:text-lg',
+    sm: 'px-4 py-2 text-sm',
+    md: 'px-6 py-3 text-base',
+    lg: 'px-6 py-3 text-lg',
   };
   
-  const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed' : '';
+  const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed hover:transform-none hover:shadow-none' : '';
   
   return (
     <button
@@ -53,7 +53,7 @@ const Button = ({
         ${className}
       `}
     >
-      {icon && <span className="mr-1 sm:mr-2 flex-shrink-0">{icon}</span>}
+      {icon && <span className="mr-2 flex-shrink-0">{icon}</span>}
       <span className="truncate">{children}</span>
     </button>
   );

@@ -54,15 +54,15 @@ const EvaluationDashboard: React.FC = () => {
 
   const getStatusBadge = (employee: CycleDashboard) => {
     if (employee.consensus_status === 'completed') {
-      return { color: 'bg-primary-100 text-primary-700', icon: CheckCircle, text: 'Concluído' };
+      return { color: 'bg-status-success/10 text-status-success border border-status-success/20', icon: CheckCircle, text: 'Concluído' };
     }
     if (employee.leader_evaluation_id) {
-      return { color: 'bg-yellow-100 text-yellow-700', icon: Clock, text: 'Aguardando Consenso' };
+      return { color: 'bg-status-warning/10 text-status-warning border border-status-warning/20', icon: Clock, text: 'Aguardando Consenso' };
     }
     if (employee.self_evaluation_id) {
-      return { color: 'bg-blue-100 text-blue-700', icon: Clock, text: 'Em Avaliação' };
+      return { color: 'bg-status-info/10 text-status-info border border-status-info/20', icon: Clock, text: 'Em Avaliação' };
     }
-    return { color: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-100', icon: AlertCircle, text: 'Pendente' };
+    return { color: 'bg-status-danger/10 text-status-danger border border-status-danger/20', icon: AlertCircle, text: 'Pendente' };
   };
 
   const getNineBoxColor = (position?: number) => {
@@ -99,7 +99,7 @@ const EvaluationDashboard: React.FC = () => {
           </div>
           
           <div className="flex items-center space-x-3">
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
               <Download className="h-5 w-5 text-gray-600" />
             </button>
             <button 
@@ -259,38 +259,38 @@ const EvaluationDashboard: React.FC = () => {
       </div>
 
         {/* Employees Table */}
-        <div className="bg-white dark:bg-gray-900 dark:border-gray-700 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div className="bg-naue-white dark:bg-gray-900 dark:border-gray-700 rounded-xl shadow-sm border border-naue-border-gray dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
             <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-600">
+            <thead className="bg-naue-light-gray dark:bg-gray-800 border-b border-naue-border-gray dark:border-gray-600">
                 <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
                     Colaborador
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
                     Status
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
                     Autoavaliação
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
                     Avaliação Líder
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
                     Performance
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
                     Potencial
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
                     9-Box
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
                     Ações
                 </th>
                 </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="bg-naue-white dark:bg-gray-900 divide-y divide-naue-border-gray dark:divide-gray-700">
                 {filteredEmployees.map((employee) => {
                 const status = getStatusBadge(employee);
                 const StatusIcon = status.icon;
@@ -300,21 +300,21 @@ const EvaluationDashboard: React.FC = () => {
                     key={employee.employee_id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="hover:bg-primary-light dark:hover:bg-gray-800 transition-colors"
                     >
                     <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        <div className="text-sm font-medium text-naue-black dark:text-white">
                             {employee.employee_name}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="text-sm text-naue-text-gray dark:text-gray-400">
                             {employee.position}
                         </div>
                         </div>
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium ${status.color}`}>
                         <StatusIcon className="h-3 w-3 mr-1" />
                         {status.text}
                         </span>
@@ -337,13 +337,13 @@ const EvaluationDashboard: React.FC = () => {
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        <span className="text-sm font-medium text-naue-black dark:text-white">
                         {employee.consensus_performance_score?.toFixed(2) || '-'}
                         </span>
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        <span className="text-sm font-medium text-naue-black dark:text-white">
                         {employee.consensus_potential_score?.toFixed(2) || '-'}
                         </span>
                     </td>

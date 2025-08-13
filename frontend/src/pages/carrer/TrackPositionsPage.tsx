@@ -320,7 +320,7 @@ const TrackPositionsPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-800 dark:border-green-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-400">Carregando...</p>
         </div>
       </div>
@@ -353,13 +353,13 @@ const TrackPositionsPage = () => {
             <div className="flex items-center gap-4 mb-4">
               <button
                 onClick={() => navigate('/salary')}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </button>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
-                  <GitBranch className="h-7 w-7 text-primary-600" />
+                  <GitBranch className="h-7 w-7 text-green-800 dark:text-green-600" />
                   {track.name}
                 </h1>
                 <div className="flex items-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -386,7 +386,7 @@ const TrackPositionsPage = () => {
             className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
           >
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
-              <Briefcase className="h-5 w-5 text-primary-600" />
+              <Briefcase className="h-5 w-5 text-green-800 dark:text-green-600" />
               Cargos na Trilha
             </h2>
 
@@ -433,7 +433,7 @@ const TrackPositionsPage = () => {
                               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 {position?.name || 'Cargo não encontrado'}
                               </h3>
-                              <span className="px-2 py-1 text-xs bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 rounded-full">
+                              <span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full">
                                 {salaryClass?.name}
                               </span>
                               {!trackPos.active && (
@@ -455,7 +455,7 @@ const TrackPositionsPage = () => {
                         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => handleViewLevels(trackPos)}
-                            className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg"
+                            className="p-2 text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg"
                             title="Ver níveis salariais"
                           >
                             <Layers className="h-4 w-4" />
@@ -482,7 +482,7 @@ const TrackPositionsPage = () => {
               </div>
             ) : (
               <div className="text-center py-10 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-                <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <Briefcase className="h-12 w-12 text-green-600 dark:text-green-500 mx-auto mb-4" />
                 <p className="text-gray-500 dark:text-gray-400 font-medium">
                   Nenhum cargo adicionado a esta trilha ainda.
                 </p>
@@ -498,11 +498,11 @@ const TrackPositionsPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4"
+            className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4"
           >
             <div className="flex items-start gap-3">
-              <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-              <div className="text-sm text-blue-800 dark:text-blue-300">
+              <Info className="h-5 w-5 text-green-800 dark:text-green-600 mt-0.5" />
+              <div className="text-sm text-green-800 dark:text-green-300">
                 <p className="font-semibold mb-1">Dicas para configurar a trilha:</p>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Adicione os cargos em ordem hierárquica (do mais júnior ao mais sênior)</li>
@@ -557,7 +557,7 @@ const TrackPositionsPage = () => {
                   {!showNewPositionForm ? (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                           Cargo *
                         </label>
                         <div className="flex gap-2">
@@ -591,7 +591,7 @@ const TrackPositionsPage = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                           Classe Salarial *
                         </label>
                         <select
@@ -609,7 +609,7 @@ const TrackPositionsPage = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                           Salário Base (R$) *
                         </label>
                         <input
@@ -629,7 +629,7 @@ const TrackPositionsPage = () => {
                       {/* Preview dos níveis */}
                       {formData.base_salary > 0 && (
                         <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          <h4 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                             Preview dos Níveis Salariais:
                           </h4>
                           <div className="space-y-1 text-sm">
@@ -658,7 +658,7 @@ const TrackPositionsPage = () => {
                             onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
                             className="rounded border-gray-300"
                           />
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <span className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">
                             Cargo ativo
                           </span>
                         </label>
@@ -666,14 +666,14 @@ const TrackPositionsPage = () => {
                     </>
                   ) : (
                     <>
-                      <div className="bg-primary-50 dark:bg-primary-900/20 rounded-lg p-3 mb-4">
+                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 mb-4">
                         <div className="flex items-center justify-between">
-                          <p className="text-sm text-primary-800 dark:text-primary-300 font-medium">
+                          <p className="text-sm text-green-800 dark:text-green-300 font-medium">
                             Criar novo cargo e adicionar à trilha
                           </p>
                           <button
                             onClick={() => setShowNewPositionForm(false)}
-                            className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300"
+                            className="text-green-700 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
                           >
                             <X className="h-4 w-4" />
                           </button>
@@ -681,7 +681,7 @@ const TrackPositionsPage = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                           Nome do Cargo *
                         </label>
                         <input
@@ -695,7 +695,7 @@ const TrackPositionsPage = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                           Descrição (opcional)
                         </label>
                         <textarea
@@ -715,20 +715,20 @@ const TrackPositionsPage = () => {
                             onChange={(e) => setNewPositionData({ ...newPositionData, is_multifunctional: e.target.checked })}
                             className="rounded border-gray-300"
                           />
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <span className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">
                             Cargo multifuncional
                           </span>
                         </label>
                       </div>
 
                       <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        <h3 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-3">
                           Configuração na Trilha
                         </h3>
 
                         <div className="space-y-3">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                               Classe Salarial *
                             </label>
                             <select
@@ -746,7 +746,7 @@ const TrackPositionsPage = () => {
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
                               Salário Base (R$) *
                             </label>
                             <input
@@ -763,7 +763,7 @@ const TrackPositionsPage = () => {
                           {/* Preview dos níveis */}
                           {formData.base_salary > 0 && (
                             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              <h4 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                                 Preview dos Níveis:
                               </h4>
                               <div className="space-y-1 text-sm">
@@ -854,7 +854,7 @@ const TrackPositionsPage = () => {
                         className={`
                           flex items-center justify-between p-3 rounded-lg border
                           ${index === 0 
-                            ? 'border-primary-200 bg-primary-50 dark:border-primary-800 dark:bg-primary-900/20' 
+                            ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20' 
                             : 'border-gray-200 dark:border-gray-700'
                           }
                         `}
@@ -863,7 +863,7 @@ const TrackPositionsPage = () => {
                           <div className={`
                             w-10 h-10 rounded-full flex items-center justify-center font-bold
                             ${index === 0 
-                              ? 'bg-primary-200 text-primary-700 dark:bg-primary-800 dark:text-primary-300' 
+                              ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-300' 
                               : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                             }
                           `}>
