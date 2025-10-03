@@ -375,11 +375,12 @@ const Consensus = () => {
         .from('users')
         .select('*')
         .eq('active', true)
+        .eq('is_admin', false)
         .or('is_leader.eq.true,is_director.eq.true')
         .order('name');
 
       if (error) throw error;
-      
+
       setLeaders(data || []);
     } catch (error) {
       console.error('Error fetching leaders:', error);

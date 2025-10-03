@@ -24,6 +24,7 @@ import EditDepartment from './pages/departments/EditDepartment';
 import Consensus from './pages/evaluations/Consensus';
 import Reports from './pages/reports/Reports';
 import Settings from './pages/settings/Settings';
+import HelpPage from './pages/help/HelpPage';
 import NotFound from './pages/NotFound';
 import NineBoxMatrix from './pages/evaluations/NineBox';
 import NotificationHistory from './pages/notifications/NotificationHistory';
@@ -92,7 +93,7 @@ function App() {
                     <Route
                       path="self-evaluation"
                       element={
-                        <ProtectedRoute allowedRoles={['collaborator', 'leader']}>
+                        <ProtectedRoute allowedRoles={['collaborator', 'leader', 'director']}>
                           <SelfEvaluation />
                         </ProtectedRoute>
                       }
@@ -153,6 +154,7 @@ function App() {
                     />
 
                     <Route path="settings" element={<Settings />} />
+                    <Route path="help" element={<HelpPage />} />
                     <Route path="notifications" element={<NotificationHistory />} />
 
                     <Route
@@ -316,6 +318,7 @@ function App() {
                     <Route path="nine-box" element={<NineBoxMatrix />} />
                     <Route path="reports" element={<Reports />} />
                     <Route path="settings" element={<Settings />} />
+                    <Route path="help" element={<HelpPage />} />
                     <Route path="notifications" element={<NotificationHistory />} />
                     <Route path="users" element={<UserManagement />} />
 

@@ -309,7 +309,6 @@ interface CreateTrackModalProps {
 const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProps) => {
   const [formData, setFormData] = useState({
     name: '',
-    code: '',
     department_id: '',
     description: ''
   });
@@ -389,19 +388,6 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-green-800 focus:border-transparent"
               placeholder="Ex: Trilha de Engenharia, Trilha Comercial"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
-              Código (opcional)
-            </label>
-            <input
-              type="text"
-              value={formData.code}
-              onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-green-800 focus:border-transparent"
-              placeholder="Ex: ENG, COM (será gerado automaticamente se vazio)"
             />
           </div>
 

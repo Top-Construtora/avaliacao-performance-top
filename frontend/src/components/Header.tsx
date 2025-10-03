@@ -44,7 +44,7 @@ interface Notification {
 export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: HeaderProps) {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
-  const { isDirector, isLeader } = useUserRole();
+  const { isDirector, isLeader, isAdmin } = useUserRole();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [expandedNotifications, setExpandedNotifications] = useState<{ [key: number]: boolean }>({});
@@ -173,18 +173,21 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
   };
 
   const getRoleIcon = () => {
+    if (isAdmin) return <Crown className="h-3 w-3 sm:h-4 sm:w-4" />;
     if (isDirector) return <Crown className="h-3 w-3 sm:h-4 sm:w-4" />;
     if (isLeader) return <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />;
     return <Users className="h-3 w-3 sm:h-4 sm:w-4" />;
   };
 
   const getRoleLabel = () => {
+    if (isAdmin) return 'Admin';
     if (isDirector) return 'Diretor';
     if (isLeader) return 'Líder';
     return 'Colaborador';
   };
 
   const getRoleBadgeColor = () => {
+    if (isAdmin) return 'bg-gradient-to-r from-amber-100 to-amber-200 dark:from-amber-900/30 dark:to-amber-800/30 text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-600 shadow-sm';
     if (isDirector) return 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600';
     if (isLeader) return 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 text-primary-700 dark:text-primary-300 border-primary-200 dark:border-primary-700';
     return 'bg-gradient-to-r from-secondary-50 to-secondary-100 dark:from-secondary-900/20 dark:to-secondary-800/20 text-secondary-700 dark:text-secondary-300 border-secondary-200 dark:border-secondary-700';

@@ -46,6 +46,7 @@ export interface Database {
           email: string
           name: string
           position: string
+          is_admin: boolean
           is_leader: boolean
           is_director: boolean
           phone: string | null
@@ -66,7 +67,7 @@ export interface Database {
           intern_level: string | null
           created_at: string
           updated_at: string
-          
+
           has_children: boolean
           children_age_ranges: string[] | null
         }
@@ -75,6 +76,7 @@ export interface Database {
           email: string
           name: string
           position: string
+          is_admin?: boolean
           is_leader?: boolean
           is_director?: boolean
           phone?: string | null
@@ -104,6 +106,7 @@ export interface Database {
           email?: string
           name?: string
           position?: string
+          is_admin?: boolean
           is_leader?: boolean
           is_director?: boolean
           phone?: string | null

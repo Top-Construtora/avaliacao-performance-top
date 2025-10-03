@@ -6,6 +6,7 @@ export interface User {
   position: string;
   is_leader: boolean;
   is_director: boolean;
+  is_admin: boolean;
   active: boolean;
   phone?: string | null;
   birth_date?: string | null;
@@ -19,14 +20,14 @@ export interface User {
   admission_date?: string;
   position_start_date?: string;
   intern_level?: string;
-  
+
   // Campos de trilha/salário (opcionais)
   current_track_position_id?: string;
   current_salary_level_id?: string;
   current_salary?: number;
   track_id?: string;
   position_id?: string;
-  
+
   // Relacionamentos (opcionais, preenchidos em algumas queries)
   department?: Department;
   teams?: Team[];
@@ -60,19 +61,19 @@ export interface Team {
 
 // Helper para determinar o "role" baseado nos booleans
 export function getUserRole(user: User): 'admin' | 'director' | 'leader' | 'employee' {
-  // Admin é um caso especial - diretor com email específico
-  if (user.email === 'admin@empresa.com' && user.is_director) {
+  // Admin tem acesso total ao sistema
+  if (user.is_admin) {
     return 'admin';
   }
-  
+
   if (user.is_director) {
     return 'director';
   }
-  
+
   if (user.is_leader) {
     return 'leader';
   }
-  
+
   return 'employee';
 }
 
@@ -138,6 +139,7 @@ export interface UpdateUserRequest {
   department_id?: string;
   is_leader?: boolean;
   is_director?: boolean;
+  is_admin?: boolean;
   active?: boolean;
 }
 

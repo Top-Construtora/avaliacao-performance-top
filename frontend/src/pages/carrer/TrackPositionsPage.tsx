@@ -21,6 +21,11 @@ interface PositionFormData {
   active: boolean;
 }
 
+interface SalaryInputState {
+  displayValue: string;
+  numericValue: number;
+}
+
 interface NewPositionData {
   name: string;
   code: string;
@@ -56,8 +61,10 @@ const TrackPositionsPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showNewPositionForm, setShowNewPositionForm] = useState(false);
   const [showLevelsModal, setShowLevelsModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<TrackPosition | null>(null);
   const [selectedTrackPosition, setSelectedTrackPosition] = useState<TrackPosition | null>(null);
+  const [positionToDelete, setPositionToDelete] = useState<TrackPosition | null>(null);
   const [levelSalaries, setLevelSalaries] = useState<LevelSalary[]>([]);
   
   const [formData, setFormData] = useState<PositionFormData>({
@@ -67,6 +74,7 @@ const TrackPositionsPage = () => {
     order_index: 0,
     active: true
   });
+  const [salaryInput, setSalaryInput] = useState<string>('');
   const [newPositionData, setNewPositionData] = useState<NewPositionData>({
     name: '',
     code: '',
@@ -122,8 +130,8 @@ const TrackPositionsPage = () => {
   };
 
   const handleAddPosition = () => {
-    const nextIndex = trackPositions.length > 0 
-      ? Math.max(...trackPositions.map(p => p.order_index)) + 1 
+    const nextIndex = trackPositions.length > 0
+      ? Math.max(...trackPositions.map(p => p.order_index)) + 1
       : 0;
 
     setFormData({
@@ -133,6 +141,7 @@ const TrackPositionsPage = () => {
       order_index: nextIndex,
       active: true
     });
+    setSalaryInput('');
     setNewPositionData({
       name: '',
       code: '',
@@ -153,6 +162,7 @@ const TrackPositionsPage = () => {
       order_index: position.order_index,
       active: position.active
     });
+    setSalaryInput(formatCurrencyInput(position.base_salary));
     setShowEditModal(true);
   };
 
@@ -265,17 +275,29 @@ const TrackPositionsPage = () => {
     }
   };
 
-  const handleDeletePosition = async (positionId: string) => {
-    if (!confirm('Tem certeza que deseja remover este cargo da trilha?')) return;
+  const handleOpenDeleteModal = (trackPosition: TrackPosition) => {
+    setPositionToDelete(trackPosition);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!positionToDelete) return;
 
     try {
-      await salaryService.deleteTrackPosition(positionId);
+      await salaryService.deleteTrackPosition(positionToDelete.id);
       toast.success('Cargo removido da trilha');
+      setShowDeleteModal(false);
+      setPositionToDelete(null);
       loadData();
     } catch (error) {
       console.error('Erro ao remover cargo:', error);
       toast.error('Erro ao remover cargo da trilha');
     }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setPositionToDelete(null);
   };
 
   const handleReorderPosition = async (positionId: string, direction: 'up' | 'down') => {
@@ -308,12 +330,64 @@ const TrackPositionsPage = () => {
   };
 
   const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', { 
-      style: 'currency', 
+    return value.toLocaleString('pt-BR', {
+      style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
+  };
+
+  const formatCurrencyInput = (value: number): string => {
+    if (!value || value === 0) return '';
+    const strValue = value.toFixed(2);
+    const [integerPart, decimalPart] = strValue.split('.');
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${formattedInteger},${decimalPart}`;
+  };
+
+  const parseCurrencyInput = (value: string): number => {
+    if (!value) return 0;
+    const cleanValue = value.replace(/\./g, '').replace(',', '.');
+    const numberValue = parseFloat(cleanValue);
+    return isNaN(numberValue) ? 0 : numberValue;
+  };
+
+  const handleSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+
+    // Permite campo vazio
+    if (value === '') {
+      setSalaryInput('');
+      setFormData({ ...formData, base_salary: 0 });
+      return;
+    }
+
+    // Remove tudo exceto números e vírgula
+    value = value.replace(/[^\d,]/g, '');
+
+    // Garante apenas uma vírgula
+    const commaCount = (value.match(/,/g) || []).length;
+    if (commaCount > 1) {
+      const parts = value.split(',');
+      value = parts[0] + ',' + parts.slice(1).join('');
+    }
+
+    // Limita a duas casas decimais após a vírgula
+    const parts = value.split(',');
+    if (parts.length > 1 && parts[1].length > 2) {
+      parts[1] = parts[1].substring(0, 2);
+      value = parts.join(',');
+    }
+
+    // Atualiza o input visual (string)
+    setSalaryInput(value);
+
+    // Converte para número e atualiza formData
+    const numericValue = parseCurrencyInput(value);
+    if (!isNaN(numericValue) && numericValue >= 0) {
+      setFormData({ ...formData, base_salary: numericValue });
+    }
   };
 
   if (loading) {
@@ -468,7 +542,7 @@ const TrackPositionsPage = () => {
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleDeletePosition(trackPos.id)}
+                            onClick={() => handleOpenDeleteModal(trackPos)}
                             className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
                             title="Remover cargo"
                           >
@@ -613,13 +687,11 @@ const TrackPositionsPage = () => {
                           Salário Base (R$) *
                         </label>
                         <input
-                          type="number"
-                          value={formData.base_salary}
-                          onChange={(e) => setFormData({ ...formData, base_salary: parseFloat(e.target.value) || 0 })}
+                          type="text"
+                          value={salaryInput}
+                          onChange={handleSalaryChange}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-                          min="0"
-                          step="100"
-                          placeholder="0.00"
+                          placeholder="0,00"
                         />
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           Este é o salário base (nível A). Os demais níveis serão calculados automaticamente.
@@ -750,13 +822,11 @@ const TrackPositionsPage = () => {
                               Salário Base (R$) *
                             </label>
                             <input
-                              type="number"
-                              value={formData.base_salary}
-                              onChange={(e) => setFormData({ ...formData, base_salary: parseFloat(e.target.value) || 0 })}
+                              type="text"
+                              value={salaryInput}
+                              onChange={handleSalaryChange}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-                              min="0"
-                              step="100"
-                              placeholder="0.00"
+                              placeholder="0,00"
                             />
                           </div>
 
@@ -913,6 +983,82 @@ const TrackPositionsPage = () => {
                     onClick={() => setShowLevelsModal(false)}
                   >
                     Fechar
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Modal de Confirmação de Exclusão */}
+        <AnimatePresence>
+          {showDeleteModal && positionToDelete && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50"
+              onClick={handleCancelDelete}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-md w-full"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                      <Trash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                      Confirmar Exclusão
+                    </h2>
+                  </div>
+                  <button
+                    onClick={handleCancelDelete}
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="mb-6">
+                  <p className="text-gray-700 dark:text-gray-300 mb-4">
+                    Tem certeza que deseja remover este cargo da trilha?
+                  </p>
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">
+                      {positions.find(p => p.id === positionToDelete.position_id)?.name || 'Cargo'}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Classe: {classes.find(c => c.id === positionToDelete.class_id)?.name}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Salário Base: {formatCurrency(positionToDelete.base_salary)}
+                    </p>
+                  </div>
+                  <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 border border-yellow-200 dark:border-yellow-800">
+                    <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                      <strong>Atenção:</strong> Esta ação não pode ser desfeita. O cargo será removido apenas desta trilha.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <Button
+                    variant="secondary"
+                    onClick={handleCancelDelete}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleConfirmDelete}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Sim, Remover
                   </Button>
                 </div>
               </motion.div>

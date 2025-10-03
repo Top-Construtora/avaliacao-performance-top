@@ -24,7 +24,6 @@ const EditDepartment = () => {
   const [formData, setFormData] = useState({
     departmentName: '',
     departmentDescription: '',
-    departmentGoals: '', // Este campo não está no DB, mas mantido para consistência do formulário
     departmentResponsibleId: '',
   });
 
@@ -52,7 +51,6 @@ const EditDepartment = () => {
       const deptData = {
         departmentName: department.name,
         departmentDescription: department.description || '',
-        departmentGoals: '', // Não há um campo direto para "goals" no DB, apenas na interface do RegisterDepartment
         departmentResponsibleId: department.responsible_id || '',
       };
 
@@ -92,7 +90,6 @@ const EditDepartment = () => {
     const errors: Record<string, string> = {};
 
     if (!formData.departmentName.trim()) errors.departmentName = 'Nome do departamento é obrigatório';
-    if (!formData.departmentResponsibleId) errors.responsible = 'Selecione um responsável';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -115,7 +112,7 @@ const EditDepartment = () => {
       await updateDepartment(id!, {
         name: formData.departmentName.trim(),
         description: formData.departmentDescription.trim() || null,
-        responsible_id: formData.departmentResponsibleId,
+        responsible_id: formData.departmentResponsibleId || null,
       });
 
       await reloadDeps();
@@ -204,23 +201,19 @@ const EditDepartment = () => {
 
             <div>
               <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                Responsável pelo Departamento *
+                Responsável pelo Departamento (Opcional)
               </label>
               <div className="relative">
                 <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
-                    formErrors.responsible
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger'
-                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
-                  }`}
+                  className="w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400"
                   value={formData.departmentResponsibleId}
                   onChange={(e) => setFormData({ ...formData, departmentResponsibleId: e.target.value })}
                 >
-                  <option value="">Selecione um responsável</option>
+                  <option value="">Sem responsável</option>
                   {users
-                    .filter(u => u.is_director)
+                    .filter(u => !u.is_admin && u.is_director)
                     .map(user => (
                       <option key={user.id} value={user.id}>
                         {user.name} - {user.position}
@@ -228,12 +221,6 @@ const EditDepartment = () => {
                     ))}
                 </select>
               </div>
-              {formErrors.responsible && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.responsible}
-                </p>
-              )}
             </div>
 
             <div>
@@ -249,22 +236,6 @@ const EditDepartment = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                <Target className="inline h-4 w-4 mr-1 text-gray-400 dark:text-gray-500" />
-                Metas e Objetivos
-              </label>
-              <textarea
-                className="w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400"
-                rows={4}
-                value={formData.departmentGoals} // Este campo não é persistido no DB, apenas para UI
-                onChange={(e) => setFormData({ ...formData, departmentGoals: e.target.value })}
-                placeholder="Liste as principais metas do departamento..."
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Este campo é apenas para referência na interface.
-              </p>
-            </div>
           </div>
         </motion.div>
       </motion.div>

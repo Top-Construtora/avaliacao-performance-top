@@ -32,6 +32,7 @@ backend/.env
 # Deployment
 .vercel
 SUPABASE_SETUP.md
+*.sql
 
 # Editor directories and files
 .vscode/*

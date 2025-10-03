@@ -1112,6 +1112,9 @@ const EditUser = () => {
                     </option>
                     {users
                       .filter(u => {
+                        // Não mostrar admins na lista
+                        if (u.is_admin) return false;
+
                         if (formData.profileType === 'regular') {
                           return (u.is_leader || u.is_director) && u.id !== id;
                         }

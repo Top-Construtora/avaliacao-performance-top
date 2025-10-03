@@ -6,17 +6,17 @@ import { useAuthNavigation } from '../hooks/useAuthNavigation';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: Array<'director' | 'leader' | 'collaborator'>;
+  allowedRoles?: Array<'admin' | 'director' | 'leader' | 'collaborator'>;
   requireActive?: boolean;
 }
 
-export default function ProtectedRoute({ 
-  children, 
+export default function ProtectedRoute({
+  children,
   allowedRoles,
-  requireActive = true 
+  requireActive = true
 }: ProtectedRouteProps) {
   const { user, loading, profile } = useAuth();
-  const { role, isActive } = useUserRole();
+  const { role, isActive, isAdmin } = useUserRole();
   const location = useLocation();
   const { signOut } = useAuthNavigation();
 
@@ -91,8 +91,8 @@ export default function ProtectedRoute({
     );
   }
 
-  // Verificar permissões de papel
-  if (allowedRoles && !allowedRoles.includes(role as 'director' | 'leader' | 'collaborator')) {
+  // Verificar permissões de papel (admin bypassa essa verificação)
+  if (allowedRoles && !isAdmin && !allowedRoles.includes(role as 'admin' | 'director' | 'leader' | 'collaborator')) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <motion.div
@@ -127,9 +127,17 @@ export default function ProtectedRoute({
 }
 
 // Componente auxiliar para rotas específicas de cada papel
+export function AdminRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute allowedRoles={['admin']}>
+      {children}
+    </ProtectedRoute>
+  );
+}
+
 export function DirectorRoute({ children }: { children: React.ReactNode }) {
   return (
-    <ProtectedRoute allowedRoles={['director']}>
+    <ProtectedRoute allowedRoles={['admin', 'director']}>
       {children}
     </ProtectedRoute>
   );
@@ -137,7 +145,7 @@ export function DirectorRoute({ children }: { children: React.ReactNode }) {
 
 export function LeaderRoute({ children }: { children: React.ReactNode }) {
   return (
-    <ProtectedRoute allowedRoles={['director', 'leader']}>
+    <ProtectedRoute allowedRoles={['admin', 'director', 'leader']}>
       {children}
     </ProtectedRoute>
   );
@@ -145,7 +153,7 @@ export function LeaderRoute({ children }: { children: React.ReactNode }) {
 
 export function CollaboratorRoute({ children }: { children: React.ReactNode }) {
   return (
-    <ProtectedRoute allowedRoles={['director', 'leader', 'collaborator']}>
+    <ProtectedRoute allowedRoles={['admin', 'director', 'leader', 'collaborator']}>
       {children}
     </ProtectedRoute>
   );

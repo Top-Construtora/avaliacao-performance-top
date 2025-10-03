@@ -49,8 +49,8 @@ export const useUserRole = (): UserRole => {
   }
 
   let role: 'admin' | 'director' | 'leader' | 'collaborator' = 'collaborator';
-  
-  if (profile.email === 'admin@empresa.com' && profile.is_director) {
+
+  if (profile.is_admin) {
     role = 'admin';
   } else if (profile.is_director) {
     role = 'director';
@@ -59,10 +59,10 @@ export const useUserRole = (): UserRole => {
   }
 
   return {
-    isAdmin: role === 'admin',
+    isAdmin: profile.is_admin || false,
     isLeader: profile.is_leader || false,
     isDirector: profile.is_director || false,
-    isEmployee: !profile.is_leader && !profile.is_director,
+    isEmployee: !profile.is_admin && !profile.is_leader && !profile.is_director,
     isActive: profile.active !== false,
     role
   };

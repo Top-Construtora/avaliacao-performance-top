@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Building,
   User,
+  HelpCircle,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import logo from '../../assets/images/logo.png';
@@ -35,8 +36,8 @@ interface NavItem {
   label: string;
   icon: any;
   path?: string;
-  allowedRoles?: Array<'director' | 'leader' | 'collaborator'>;
-  hideForRoles?: Array<'director' | 'leader' | 'collaborator'>;
+  allowedRoles?: Array<'admin' | 'director' | 'leader' | 'collaborator'>;
+  hideForRoles?: Array<'admin' | 'director' | 'leader' | 'collaborator'>;
   hasDropdown?: boolean;
   subItems?: NavItem[];
 }
@@ -49,7 +50,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
-  const { isDirector, isLeader, role } = useUserRole();
+  const { isDirector, isLeader, isAdmin, role } = useUserRole();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   // Definir itens de navegação com permissões
@@ -63,7 +64,7 @@ export default function Sidebar({
       label: 'Cadastrar',
       icon: Plus,
       hasDropdown: true,
-      allowedRoles: ['director'],
+      allowedRoles: ['admin', 'director'],
       subItems: [
         {
           label: 'Cadastrar Usuário',
@@ -86,7 +87,7 @@ export default function Sidebar({
       label: 'Gerenciar',
       icon: Layers,
       hasDropdown: true,
-      allowedRoles: ['director'],
+      allowedRoles: ['admin', 'director'],
       subItems: [
         {
           label: 'Gerenciar Usuários',
@@ -109,68 +110,76 @@ export default function Sidebar({
       label: 'Cargos e Salários',
       icon: DollarSign,
       path: '/salary',
-      allowedRoles: ['director']
+      allowedRoles: ['admin', 'director']
     },
     {
       label: 'Gerenciar PDI',
       icon: BookOpen,
       path: 'pdi',
-      allowedRoles: ['director', 'leader']
+      allowedRoles: ['admin', 'director', 'leader']
     },
     {
       label: 'Gerenciar Ciclos',
       icon: RotateCcw,
       path: '/cycle',
-      allowedRoles: ['director'],
+      allowedRoles: ['admin', 'director'],
     },
     {
       label: 'Autoavaliação',
       icon: FileText,
       path: '/self-evaluation',
-      hideForRoles: ['director'],
+      hideForRoles: ['admin', 'director'],
     },
     {
       label: 'Avaliação do Líder',
       icon: Users,
       path: '/leader-evaluation',
-      allowedRoles: ['leader', 'director'],
+      allowedRoles: ['admin', 'leader', 'director'],
     },
     {
       label: 'Consenso',
       icon: Handshake,
       path: '/consensus',
-      allowedRoles: ['director'],
+      allowedRoles: ['admin', 'director'],
     },
     {
       label: 'Comitê  de Gente',
       icon: Grid3X3,
       path: '/nine-box',
-      allowedRoles: ['director'],
+      allowedRoles: ['admin', 'director'],
     },
     {
       label: 'Relatórios',
       icon: PieChart,
       path: '/reports',
-      allowedRoles: ['director'],
+      allowedRoles: ['admin', 'director'],
     },
     {
       label: 'Guia NineBox',
       icon: BookOpen,
       path: '/nine-box-guide',
-      allowedRoles: ['director', 'leader'],
+      allowedRoles: ['admin', 'director', 'leader'],
     },
   ];
 
   // Filtrar itens baseado no papel do usuário
   const filteredNavItems = navItems.filter(item => {
-    if (item.hideForRoles && item.hideForRoles.includes(role as 'director' | 'leader' | 'collaborator')) {
+    // Admin tem acesso a tudo, exceto itens em hideForRoles
+    if (isAdmin) {
+      if (item.hideForRoles && item.hideForRoles.includes('admin')) {
+        return false;
+      }
+      return true;
+    }
+
+    if (item.hideForRoles && item.hideForRoles.includes(role as 'admin' | 'director' | 'leader' | 'collaborator')) {
       return false;
     }
-    
-    if (item.allowedRoles && !item.allowedRoles.includes(role as 'director' | 'leader' | 'collaborator')) {
+
+    if (item.allowedRoles && !item.allowedRoles.includes(role as 'admin' | 'director' | 'leader' | 'collaborator')) {
       return false;
     }
-    
+
     return true;
   });
 
@@ -289,8 +298,8 @@ export default function Sidebar({
             to="/settings"
             className={({ isActive }) => `
               flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
-              ${isActive 
-                ? 'bg-white/15 text-white' 
+              ${isActive
+                ? 'bg-white/15 text-white'
                 : 'text-white/90 hover:bg-white/10 hover:text-white'
               }
             `}
@@ -298,6 +307,21 @@ export default function Sidebar({
           >
             <Settings className="h-5 w-5 mr-3 flex-shrink-0" />
             <span>Configurações</span>
+          </NavLink>
+
+          <NavLink
+            to="/help"
+            className={({ isActive }) => `
+              flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
+              ${isActive
+                ? 'bg-white/15 text-white'
+                : 'text-white/90 hover:bg-white/10 hover:text-white'
+              }
+            `}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <HelpCircle className="h-5 w-5 mr-3 flex-shrink-0" />
+            <span>Ajuda</span>
           </NavLink>
 
           <button

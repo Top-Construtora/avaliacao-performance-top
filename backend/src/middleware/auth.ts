@@ -82,15 +82,21 @@ export const authenticateToken = async (
 export const authorizeRoles = (allowedRoles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Usuário não autenticado' 
+      return res.status(401).json({
+        success: false,
+        error: 'Usuário não autenticado'
       });
     }
 
     // Verificar se o usuário tem uma das roles permitidas
     const userRoles: string[] = [];
-    
+
+    // Admin tem acesso a tudo
+    if (req.user.is_admin) {
+      userRoles.push('admin');
+      return next(); // Admin bypassa todas as verificações
+    }
+
     if (req.user.is_director) userRoles.push('director');
     if (req.user.is_leader) userRoles.push('leader');
     if (!req.user.is_director && !req.user.is_leader) userRoles.push('employee');
@@ -98,9 +104,9 @@ export const authorizeRoles = (allowedRoles: string[]) => {
     const hasPermission = allowedRoles.some(role => userRoles.includes(role));
 
     if (!hasPermission) {
-      return res.status(403).json({ 
-        success: false, 
-        error: 'Você não tem permissão para acessar este recurso' 
+      return res.status(403).json({
+        success: false,
+        error: 'Você não tem permissão para acessar este recurso'
       });
     }
 

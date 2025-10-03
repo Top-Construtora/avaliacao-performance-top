@@ -608,7 +608,7 @@ const TeamManagement = () => {
               <UIGuard show="showCreateTeamButton">
                 <Button
                   variant="primary"
-                  onClick={() => navigate('/register/teams')}
+                  onClick={() => navigate('/register/team')}
                   icon={<Plus size={18} />}
                 >
                   Criar Time

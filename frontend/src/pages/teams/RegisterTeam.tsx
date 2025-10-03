@@ -53,12 +53,10 @@ const RegisterTeam = () => {
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!formData.teamName.trim()) errors.teamName = 'Nome do time é obrigatório';
     if (!formData.teamDepartmentId) errors.department = 'Selecione um departamento';
-    if (!formData.teamResponsibleId) errors.responsible = 'Selecione um responsável';
-    if (formData.teamMemberIds.length === 0) errors.members = 'Selecione pelo menos um membro';
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -69,14 +67,15 @@ const RegisterTeam = () => {
     setIsLoading(true);
 
     try {
-      if (!formData.teamMemberIds.includes(formData.teamResponsibleId)) {
+      // Se tem responsável, adicionar aos membros se não estiver
+      if (formData.teamResponsibleId && !formData.teamMemberIds.includes(formData.teamResponsibleId)) {
         formData.teamMemberIds.push(formData.teamResponsibleId);
       }
 
       await createTeam({
         name: formData.teamName.trim(),
         department_id: formData.teamDepartmentId,
-        responsible_id: formData.teamResponsibleId,
+        responsible_id: formData.teamResponsibleId || null,
         description: formData.teamDescription.trim() || null,
       });
 
@@ -202,23 +201,19 @@ const RegisterTeam = () => {
 
             <div>
               <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                Responsável pelo Time *
+                Responsável pelo Time (Opcional)
               </label>
               <div className="relative">
                 <Crown className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
-                    formErrors.responsible 
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
-                  }`}
+                  className="w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400"
                   value={formData.teamResponsibleId}
                   onChange={(e) => setFormData({ ...formData, teamResponsibleId: e.target.value })}
                 >
-                  <option value="">Selecione um responsável</option>
+                  <option value="">Sem responsável</option>
                   {users
-                    .filter(u => u.is_leader || u.is_director)
+                    .filter(u => !u.is_admin && (u.is_leader || u.is_director))
                     .map(user => (
                       <option key={user.id} value={user.id}>
                         {user.name} - {user.position}
@@ -226,12 +221,6 @@ const RegisterTeam = () => {
                     ))}
                 </select>
               </div>
-              {formErrors.responsible && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.responsible}
-                </p>
-              )}
             </div>
 
             <div>
@@ -252,10 +241,13 @@ const RegisterTeam = () => {
         <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
             <UserCheck className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-400" />
-            Membros do Time *
+            Membros do Time (Opcional)
           </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Você pode adicionar membros agora ou depois de criar o time
+          </p>
           <div className="max-h-64 overflow-y-auto pr-2 space-y-2">
-            {users.map(user => (
+            {users.filter(u => !u.is_admin).map(user => (
               <label key={user.id} className={`flex items-center p-4 rounded-xl cursor-pointer transition-all group ${
                 formData.teamMemberIds.includes(user.id)
                   ? 'bg-secondary-50 dark:bg-secondary-900/20 border-2 border-secondary-500 dark:border-secondary-400'
@@ -283,12 +275,6 @@ const RegisterTeam = () => {
               </label>
             ))}
           </div>
-          {formErrors.members && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
-              <AlertCircle className="h-4 w-4 mr-1" />
-              {formErrors.members}
-            </p>
-          )}
         </motion.div>
       </motion.div>
 
