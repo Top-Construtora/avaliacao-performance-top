@@ -20,6 +20,7 @@ const allowedOrigins = [
   'https://avaliacao-performance-na6w.onrender.com',
   'https://avaliacao-performance-naue.vercel.app',
   'https://avaliacao-performance-naue.onrender.com',
+  'https://avaliacao-performance-lusah.vercel.app',
 ];
 
 // Adiciona a URL do frontend a partir das variáveis de ambiente se ela existir
