@@ -294,6 +294,16 @@ export const usersService = {
     if (error) throw error;
   },
 
+  // Deletar usuário
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  },
+
   // Buscar líderes
   async getLeaders(): Promise<User[]> {
     const { data, error } = await supabase

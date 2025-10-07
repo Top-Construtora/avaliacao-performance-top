@@ -100,10 +100,10 @@ const UserManagement = () => {
         data: targetData,
         callback: async () => {
           try {
-            await actions.users.deactivate(id);
-            toast.success('Usuário desativado com sucesso!');
+            await actions.users.delete(id);
+            toast.success('Usuário deletado com sucesso!');
           } catch (error) {
-            toast.error('Erro ao desativar usuário');
+            toast.error('Erro ao deletar usuário');
           }
         }
       });
@@ -111,12 +111,12 @@ const UserManagement = () => {
       return;
     }
 
-    if (window.confirm('Tem certeza que deseja desativar este usuário?')) {
+    if (window.confirm('Tem certeza que deseja deletar este usuário? Esta ação não pode ser desfeita.')) {
       try {
-        await actions.users.deactivate(id);
-        toast.success('Usuário desativado com sucesso!');
+        await actions.users.delete(id);
+        toast.success('Usuário deletado com sucesso!');
       } catch (error) {
-        toast.error('Erro ao desativar usuário');
+        toast.error('Erro ao deletar usuário');
       }
     }
   };
@@ -397,7 +397,7 @@ const UserManagement = () => {
                 <button
                   onClick={() => handleDelete(user.id)}
                   className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                  title="Desativar"
+                  title="Deletar usuário"
                 >
                   <UserX className="h-4 w-4" />
                 </button>

@@ -160,6 +160,19 @@ export function useSupabaseUsers() {
     }
   }, [loadUsers]);
 
+  // Deletar usuário
+  const deleteUser = useCallback(async (id: string) => {
+
+    try {
+      await usersService.delete(id);
+      await loadUsers(); // Recarregar lista
+      toast.success('Usuário deletado com sucesso!');
+    } catch (err) {
+      toast.error('Erro ao deletar usuário');
+      throw err;
+    }
+  }, [loadUsers]);
+
   // Carregar ao montar
   useEffect(() => {
     loadUsers();
@@ -173,6 +186,7 @@ export function useSupabaseUsers() {
     updateUser,
     deactivateUser,
     activateUser,
+    deleteUser,
   };
 }
 
@@ -298,6 +312,7 @@ export function useSupabaseData() {
         update: users.updateUser,
         deactivate: users.deactivateUser,
         activate: users.activateUser,
+        delete: users.deleteUser,
         reload: users.reload,
       },
       teams: {
