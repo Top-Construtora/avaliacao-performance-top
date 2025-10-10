@@ -113,6 +113,7 @@ interface UseEvaluationReturn {
 export const useEvaluation = (): UseEvaluationReturn => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [cyclesLoading, setCyclesLoading] = useState(false);
   const [currentCycle, setCurrentCycle] = useState<EvaluationCycle | null>(null);
   const [cycles, setCycles] = useState<EvaluationCycle[]>([]);
   const [dashboard, setDashboard] = useState<CycleDashboard[]>([]);
@@ -146,14 +147,15 @@ export const useEvaluation = (): UseEvaluationReturn => {
   // Load all cycles
   const loadAllCycles = useCallback(async () => {
     try {
-      setLoading(true);
+      setCyclesLoading(true);
       const data = await evaluationService.getAllCycles();
-      setCycles(data);
+      setCycles(data || []);
     } catch (error) {
       console.error('Erro ao carregar ciclos:', error);
+      setCycles([]);
       toast.error('Erro ao carregar ciclos de avaliação');
     } finally {
-      setLoading(false);
+      setCyclesLoading(false);
     }
   }, []);
 
@@ -547,8 +549,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
   // Load initial data
   useEffect(() => {
     loadCurrentCycle();
-    loadAllCycles();
-    
+
     const loadEmployees = async () => {
       try {
         const data = await usersService.getAll();
@@ -557,12 +558,12 @@ export const useEvaluation = (): UseEvaluationReturn => {
         console.error('Erro ao carregar colaboradores:', error);
       }
     };
-    
+
     loadEmployees();
-  }, [loadCurrentCycle, loadAllCycles]);
+  }, [loadCurrentCycle]);
 
   return {
-    loading,
+    loading: cyclesLoading || loading,
     currentCycle,
     cycles,
     dashboard,

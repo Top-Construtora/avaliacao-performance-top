@@ -23,7 +23,7 @@ interface CycleStats {
 }
 
 const CycleManagement: React.FC = () => {
-  const { isDirector } = useUserRole();
+  const { isDirector, isAdmin } = useUserRole();
   const { 
     cycles, 
     currentCycle, 
@@ -51,18 +51,22 @@ const CycleManagement: React.FC = () => {
     end_date: ''
   });
 
-  // Redirect if not director
+  // Check if user has permission (admin or director)
+  const hasPermission = isAdmin || isDirector;
+
   useEffect(() => {
-    if (!isDirector) {
-      toast.error('Acesso restrito a diretores');
-      window.location.href = '/';
+    if (!hasPermission) {
+      toast.error('Acesso restrito a administradores e diretores');
+      // Não redireciona automaticamente, apenas mostra a mensagem
     }
-  }, [isDirector]);
+  }, [hasPermission]);
 
   // Load cycles on mount
   useEffect(() => {
-    loadAllCycles();
-  }, [loadAllCycles]);
+    if (hasPermission) {
+      loadAllCycles();
+    }
+  }, []); // Remover loadAllCycles das dependências para evitar loop infinito
 
   // Calculate cycle statistics
   const calculateCycleStats = async (cycleId: string) => {
@@ -223,6 +227,23 @@ const CycleManagement: React.FC = () => {
     
     return false;
   });
+
+  // Se o usuário não tiver permissão, mostra mensagem apropriada
+  if (!hasPermission) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <Lock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            Acesso Restrito
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400">
+            Esta página está disponível apenas para administradores e diretores.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
