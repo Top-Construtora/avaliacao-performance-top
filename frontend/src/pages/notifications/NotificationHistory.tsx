@@ -317,7 +317,7 @@ const NotificationHistory: React.FC = () => {
       timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       read: true,
       department: 'RH',
-      actionUrl: '/action-plan'
+      actionUrl: '/pdi'
     },
     {
       id: 7,

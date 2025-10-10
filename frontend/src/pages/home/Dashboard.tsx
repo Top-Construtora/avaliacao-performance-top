@@ -112,7 +112,7 @@ const Dashboard = () => {
       darkShadowColor: 'dark:shadow-secondary-600/30',
       iconBg: 'from-primary-900 to-primary-800',
       darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
-      onClick: () => navigate('/action-plan'),
+      onClick: () => navigate('/pdi'),
     },
     {
       id: 'relatorios',

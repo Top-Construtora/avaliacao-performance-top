@@ -111,7 +111,7 @@ export const ROUTE_ACCESS: Record<string, AccessControl> = {
     requireRoles: ['admin', 'director'],
     requireActive: true
   },
-  '/action-plan': {
+  '/pdi': {
     requireAuth: true,
     requireRoles: ['admin', 'director'],
     requireActive: true

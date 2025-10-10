@@ -264,7 +264,7 @@ const NineBoxMatrix = () => {
           <Button
             variant="primary"
             icon={<Download size={18} />}
-            onClick={() => navigate('/action-plan')}
+            onClick={() => navigate('/pdi')}
             size="lg"
             className="w-full sm:w-auto"
           >

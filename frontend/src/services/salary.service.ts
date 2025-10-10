@@ -26,7 +26,6 @@ export interface JobPosition {
 export interface SalaryLevel {
   id: string;
   name: string;
-  percentage: number;
   order_index: number;
   created_at: string;
   updated_at: string;
@@ -57,6 +56,7 @@ export interface TrackPosition {
   active: boolean;
   created_at: string;
   updated_at: string;
+  custom_level_percentages?: Record<string, number>;
   track?: CareerTrack;
   position?: JobPosition;
   class?: SalaryClass;

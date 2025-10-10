@@ -227,7 +227,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
         navigate('/self-evaluation');
         break;
       case 'Revisar PDI':
-        navigate('/action-plan');
+        navigate('/action-pdi');
         break;
       case 'Revisar Avaliações':
         navigate('/leader-evaluation');

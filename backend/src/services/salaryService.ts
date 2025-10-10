@@ -301,9 +301,15 @@ export const salaryService = {
   },
 
   async createTrackPosition(supabase: SupabaseClient<Database>, positionData: any) {
+    // Extract custom_level_percentages if provided
+    const insertData = {
+      ...positionData,
+      custom_level_percentages: positionData.custom_level_percentages || {}
+    };
+
     const { data, error } = await supabase
       .from('track_positions')
-      .insert(positionData)
+      .insert(insertData)
       .select()
       .single();
 
@@ -312,9 +318,17 @@ export const salaryService = {
   },
 
   async updateTrackPosition(supabase: SupabaseClient<Database>, id: string, updates: any) {
+    // Include custom_level_percentages in updates if provided
+    const updateData = {
+      ...updates,
+      ...(updates.custom_level_percentages !== undefined && {
+        custom_level_percentages: updates.custom_level_percentages
+      })
+    };
+
     const { data, error } = await supabase
       .from('track_positions')
-      .update(updates)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();

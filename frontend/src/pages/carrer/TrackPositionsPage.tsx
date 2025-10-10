@@ -154,10 +154,11 @@ const TrackPositionsPage = () => {
     setSelectedPosition(null);
     setShowNewPositionForm(false);
 
-    // Inicializar porcentagens com valores padrão dos níveis
+    // Inicializar porcentagens com valores sugeridos (0%, 15%, 30%, 50%, 50%)
     const initialPercentages: Record<string, number> = {};
-    levels.forEach(level => {
-      initialPercentages[level.id] = level.percentage;
+    const suggestedPercentages = [0, 15, 30, 50, 50]; // A, B, C, D, E
+    levels.forEach((level, index) => {
+      initialPercentages[level.id] = suggestedPercentages[index] || 0;
     });
     setCustomLevelPercentages(initialPercentages);
 
@@ -174,20 +175,37 @@ const TrackPositionsPage = () => {
       active: position.active
     });
     setSalaryInput(formatCurrencyInput(position.base_salary));
+
+    // Load custom percentages if they exist, otherwise use suggested values
+    if (position.custom_level_percentages && Object.keys(position.custom_level_percentages).length > 0) {
+      setCustomLevelPercentages(position.custom_level_percentages);
+    } else {
+      const initialPercentages: Record<string, number> = {};
+      const suggestedPercentages = [0, 15, 30, 50, 50]; // A, B, C, D, E
+      levels.forEach((level, index) => {
+        initialPercentages[level.id] = suggestedPercentages[index] || 0;
+      });
+      setCustomLevelPercentages(initialPercentages);
+    }
+
     setShowEditModal(true);
   };
 
   const handleViewLevels = (trackPosition: TrackPosition) => {
     setSelectedTrackPosition(trackPosition);
-    
-    // Calcular salários para cada nível
-    const calculatedLevels = levels.map(level => ({
-      level_id: level.id,
-      level_name: level.name,
-      percentage: level.percentage,
-      calculated_salary: trackPosition.base_salary * (1 + level.percentage / 100)
-    }));
-    
+
+    // Calcular salários para cada nível usando as porcentagens customizadas do cargo
+    const customPercentages = trackPosition.custom_level_percentages || {};
+    const calculatedLevels = levels.map(level => {
+      const percentage = customPercentages[level.id] || 0;
+      return {
+        level_id: level.id,
+        level_name: level.name,
+        percentage: percentage,
+        calculated_salary: trackPosition.base_salary * (1 + percentage / 100)
+      };
+    });
+
     setLevelSalaries(calculatedLevels);
     setShowLevelsModal(true);
   };
@@ -197,6 +215,16 @@ const TrackPositionsPage = () => {
     if (showNewPositionForm) {
       if (!newPositionData.name) {
         toast.error('Digite o nome do cargo');
+        return;
+      }
+
+      // Verificar se já existe um cargo com esse nome
+      const existingPosition = positions.find(
+        p => p.name.toLowerCase().trim() === newPositionData.name.toLowerCase().trim()
+      );
+
+      if (existingPosition) {
+        toast.error('Já existe um cargo com este nome. Selecione o cargo existente na lista ou use um nome diferente.');
         return;
       }
 
@@ -228,7 +256,8 @@ const TrackPositionsPage = () => {
           class_id: formData.class_id,
           base_salary: formData.base_salary,
           order_index: formData.order_index,
-          active: formData.active
+          active: formData.active,
+          custom_level_percentages: customLevelPercentages
         });
 
         toast.success('Cargo criado e adicionado à trilha!');
@@ -262,14 +291,16 @@ const TrackPositionsPage = () => {
         // Atualizar posição existente
         await salaryService.updateTrackPosition(selectedPosition.id, {
           ...formData,
-          track_id: trackId
+          track_id: trackId,
+          custom_level_percentages: customLevelPercentages
         });
         toast.success('Cargo atualizado com sucesso!');
       } else {
         // Criar nova posição
         await salaryService.createTrackPosition({
           ...formData,
-          track_id: trackId
+          track_id: trackId,
+          custom_level_percentages: customLevelPercentages
         });
         toast.success('Cargo adicionado à trilha com sucesso!');
       }
@@ -723,7 +754,7 @@ const TrackPositionsPage = () => {
 
                           <div className="space-y-2">
                             {levels.map((level) => {
-                              const percentage = customLevelPercentages[level.id] ?? level.percentage;
+                              const percentage = customLevelPercentages[level.id] ?? 0;
                               const calculatedSalary = formData.base_salary * (1 + percentage / 100);
 
                               return (
@@ -894,7 +925,7 @@ const TrackPositionsPage = () => {
 
                               <div className="space-y-2">
                                 {levels.map((level) => {
-                                  const percentage = customLevelPercentages[level.id] ?? level.percentage;
+                                  const percentage = customLevelPercentages[level.id] ?? 0;
                                   const calculatedSalary = formData.base_salary * (1 + percentage / 100);
 
                                   return (
