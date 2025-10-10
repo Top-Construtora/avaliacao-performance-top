@@ -19,6 +19,7 @@ const allowedOrigins = [
   'https://avaliacao-performance.vercel.app',
   'https://avaliacao-performance-naue.vercel.app',
   'https://avaliacao-performance-lusah.vercel.app',
+  'https://avaliacao-performance-haura.vercel.app',
 ];
 
 // Adiciona a URL do frontend a partir das variáveis de ambiente se ela existir
@@ -165,6 +166,17 @@ app.use('*', (req, res) => {
 app.use(errorHandler);
 
 // --- INICIALIZAÇÃO DO SERVIDOR ---
+
+// Handler de erros não capturados
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  console.error('Stack:', error.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise);
+  console.error('Reason:', reason);
+});
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);

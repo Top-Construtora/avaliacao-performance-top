@@ -33,7 +33,6 @@
   "homepage": "https://github.com/Top-Construtora/avaliacao-performance#readme",
   "description": "",
   "dependencies": {
-    "date-fns": "^4.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "date-fns": "^4.1.0"
   }
 }

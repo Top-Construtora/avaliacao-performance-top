@@ -20,8 +20,11 @@ export const evaluationService = {
   async getAllCycles(): Promise<EvaluationCycle[]> {
     try {
       const response = await api.get('/evaluations/cycles');
-      // A API retorna os dados diretamente, não em response.data.data
-      return response.data || [];
+      // O backend retorna { success: true, data: ... }
+      if (response && response.success) {
+        return response.data || [];
+      }
+      return response || [];
     } catch (error) {
       console.error('Erro ao buscar ciclos:', error);
       return [];
@@ -31,8 +34,11 @@ export const evaluationService = {
   async getCurrentCycle(): Promise<EvaluationCycle | null> {
     try {
       const response = await api.get('/evaluations/cycles/current');
-      // A API retorna os dados diretamente
-      return response.data || null;
+      // O backend retorna { success: true, data: ... }
+      if (response && response.success) {
+        return response.data || null;
+      }
+      return response || null;
     } catch (error) {
       console.error('Erro ao buscar ciclo atual:', error);
       return null;
@@ -41,7 +47,11 @@ export const evaluationService = {
 
   async createCycle(cycle: Partial<EvaluationCycle>): Promise<EvaluationCycle> {
     const response = await api.post('/evaluations/cycles', cycle);
-    return response.data;
+    // O backend retorna { success: true, data: ... }
+    if (response && response.success) {
+      return response.data;
+    }
+    return response;
   },
 
   async openCycle(cycleId: string): Promise<void> {
@@ -58,7 +68,11 @@ export const evaluationService = {
   async getCycleDashboard(cycleId: string): Promise<CycleDashboard[]> {
     try {
       const response = await api.get(`/evaluations/cycles/${cycleId}/dashboard`);
-      return response.data || [];
+      // O backend retorna { success: true, data: ... }
+      if (response && response.success) {
+        return response.data || [];
+      }
+      return response || [];
     } catch (error) {
       console.error('Erro ao buscar dashboard:', error);
       return [];
@@ -68,7 +82,11 @@ export const evaluationService = {
   async getNineBoxData(cycleId: string): Promise<NineBoxData[]> {
     try {
       const response = await api.get(`/evaluations/cycles/${cycleId}/nine-box`);
-      return response.data || [];
+      // O backend retorna { success: true, data: ... }
+      if (response && response.success) {
+        return response.data || [];
+      }
+      return response || [];
     } catch (error) {
       console.error('Erro ao buscar nine box:', error);
       return [];

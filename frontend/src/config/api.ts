@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// Em desenvolvimento, usar path relativo para aproveitar o proxy do Vite
+// Em produção, usar a URL completa da API
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 export const api = {
   baseURL: API_BASE_URL,
