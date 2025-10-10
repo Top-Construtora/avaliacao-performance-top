@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Edit, Trash2, Save, X, DollarSign,
   Briefcase, Layers, Hash, Move, ChevronUp, ChevronDown,
-  Info, Settings, GitBranch, Building, Target, Percent
+  Info, Settings, GitBranch, Building, Target, Percent, TrendingUp
 } from 'lucide-react';
 import Button from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
@@ -82,6 +82,9 @@ const TrackPositionsPage = () => {
     is_multifunctional: false
   });
 
+  // Estado para porcentagens editáveis dos níveis
+  const [customLevelPercentages, setCustomLevelPercentages] = useState<Record<string, number>>({});
+
   useEffect(() => {
     if (trackId) {
       loadData();
@@ -150,6 +153,14 @@ const TrackPositionsPage = () => {
     });
     setSelectedPosition(null);
     setShowNewPositionForm(false);
+
+    // Inicializar porcentagens com valores padrão dos níveis
+    const initialPercentages: Record<string, number> = {};
+    levels.forEach(level => {
+      initialPercentages[level.id] = level.percentage;
+    });
+    setCustomLevelPercentages(initialPercentages);
+
     setShowAddModal(true);
   };
 
@@ -684,15 +695,20 @@ const TrackPositionsPage = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
-                          Salário Base (R$) *
+                          Salário Base *
                         </label>
-                        <input
-                          type="text"
-                          value={salaryInput}
-                          onChange={handleSalaryChange}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-                          placeholder="0,00"
-                        />
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">
+                            R$
+                          </span>
+                          <input
+                            type="text"
+                            value={salaryInput}
+                            onChange={handleSalaryChange}
+                            className="w-full pl-12 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                            placeholder="0,00"
+                          />
+                        </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           Este é o salário base (nível A). Os demais níveis serão calculados automaticamente.
                         </p>
@@ -700,24 +716,58 @@ const TrackPositionsPage = () => {
 
                       {/* Preview dos níveis */}
                       {formData.base_salary > 0 && (
-                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                            Preview dos Níveis Salariais:
+                        <div className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
+                            Níveis Salariais
                           </h4>
-                          <div className="space-y-1 text-sm">
-                            {levels.map(level => (
-                              <div key={level.id} className="flex justify-between text-gray-600 dark:text-gray-400">
-                                <span>Nível {level.name}:</span>
-                                <span className="font-medium">
-                                  {formatCurrency(formData.base_salary * (1 + level.percentage / 100))}
-                                  {level.percentage > 0 && (
-                                    <span className="text-xs text-gray-500 ml-1">
-                                      (+{level.percentage}%)
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                            ))}
+
+                          <div className="space-y-2">
+                            {levels.map((level) => {
+                              const percentage = customLevelPercentages[level.id] ?? level.percentage;
+                              const calculatedSalary = formData.base_salary * (1 + percentage / 100);
+
+                              return (
+                                <div
+                                  key={level.id}
+                                  className="flex items-center gap-3 bg-white dark:bg-gray-700 rounded p-3"
+                                >
+                                  {/* Badge do Nível */}
+                                  <div className="flex-shrink-0 w-8 h-8 bg-green-600 dark:bg-green-700 rounded flex items-center justify-center">
+                                    <span className="text-white font-semibold text-sm">{level.name}</span>
+                                  </div>
+
+                                  {/* Inputs */}
+                                  <div className="flex-1 grid grid-cols-2 gap-2">
+                                    {/* Porcentagem */}
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        value={percentage}
+                                        onChange={(e) => {
+                                          const newValue = parseFloat(e.target.value) || 0;
+                                          setCustomLevelPercentages({
+                                            ...customLevelPercentages,
+                                            [level.id]: newValue
+                                          });
+                                        }}
+                                        className="w-full pl-2 pr-7 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-800 dark:text-gray-100"
+                                        placeholder="0"
+                                        step="0.5"
+                                        min="0"
+                                      />
+                                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400">
+                                        %
+                                      </span>
+                                    </div>
+
+                                    {/* Salário */}
+                                    <div className="px-2 py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-sm font-semibold text-green-700 dark:text-green-400">
+                                      {formatCurrency(calculatedSalary)}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -819,32 +869,76 @@ const TrackPositionsPage = () => {
 
                           <div>
                             <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
-                              Salário Base (R$) *
+                              Salário Base *
                             </label>
-                            <input
-                              type="text"
-                              value={salaryInput}
-                              onChange={handleSalaryChange}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-                              placeholder="0,00"
-                            />
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">
+                                R$
+                              </span>
+                              <input
+                                type="text"
+                                value={salaryInput}
+                                onChange={handleSalaryChange}
+                                className="w-full pl-12 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                                placeholder="0,00"
+                              />
+                            </div>
                           </div>
 
                           {/* Preview dos níveis */}
                           {formData.base_salary > 0 && (
-                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                              <h4 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                                Preview dos Níveis:
+                            <div className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                              <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
+                                Níveis Salariais
                               </h4>
-                              <div className="space-y-1 text-sm">
-                                {levels.map(level => (
-                                  <div key={level.id} className="flex justify-between text-gray-600 dark:text-gray-400">
-                                    <span>Nível {level.name}:</span>
-                                    <span className="font-medium">
-                                      {formatCurrency(formData.base_salary * (1 + level.percentage / 100))}
-                                    </span>
-                                  </div>
-                                ))}
+
+                              <div className="space-y-2">
+                                {levels.map((level) => {
+                                  const percentage = customLevelPercentages[level.id] ?? level.percentage;
+                                  const calculatedSalary = formData.base_salary * (1 + percentage / 100);
+
+                                  return (
+                                    <div
+                                      key={level.id}
+                                      className="flex items-center gap-3 bg-white dark:bg-gray-700 rounded p-3"
+                                    >
+                                      {/* Badge do Nível */}
+                                      <div className="flex-shrink-0 w-8 h-8 bg-green-600 dark:bg-green-700 rounded flex items-center justify-center">
+                                        <span className="text-white font-semibold text-sm">{level.name}</span>
+                                      </div>
+
+                                      {/* Inputs */}
+                                      <div className="flex-1 grid grid-cols-2 gap-2">
+                                        {/* Porcentagem */}
+                                        <div className="relative">
+                                          <input
+                                            type="number"
+                                            value={percentage}
+                                            onChange={(e) => {
+                                              const newValue = parseFloat(e.target.value) || 0;
+                                              setCustomLevelPercentages({
+                                                ...customLevelPercentages,
+                                                [level.id]: newValue
+                                              });
+                                            }}
+                                            className="w-full pl-2 pr-7 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-800 dark:text-gray-100"
+                                            placeholder="0"
+                                            step="0.5"
+                                            min="0"
+                                          />
+                                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400">
+                                            %
+                                          </span>
+                                        </div>
+
+                                        {/* Salário */}
+                                        <div className="px-2 py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-sm font-semibold text-green-700 dark:text-green-400">
+                                          {formatCurrency(calculatedSalary)}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           )}

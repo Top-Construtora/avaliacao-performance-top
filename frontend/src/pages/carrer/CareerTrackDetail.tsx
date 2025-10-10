@@ -43,6 +43,15 @@ const CareerTrackDetail = () => {
     order_index: 1
   });
 
+  // Estados para porcentagens dos interníveis
+  const [levelPercentages, setLevelPercentages] = useState({
+    A: 0,
+    B: 3,
+    C: 5,
+    D: 10,
+    E: 15
+  });
+
   useEffect(() => {
     if (trackId) {
       loadTrackData();
@@ -127,6 +136,11 @@ const CareerTrackDetail = () => {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  const calculateSalaryByLevel = (baseSalary: number, level: keyof typeof levelPercentages) => {
+    const percentage = levelPercentages[level];
+    return baseSalary * (1 + percentage / 100);
   };
 
   if (loading) {
@@ -369,7 +383,7 @@ const CareerTrackDetail = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full"
+            className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           >
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Adicionar Cargo à Trilha
@@ -436,6 +450,56 @@ const CareerTrackDetail = () => {
                   min="1"
                 />
               </div>
+
+              {/* Configuração de Interníveis */}
+              {formData.base_salary && parseFloat(formData.base_salary) > 0 && (
+                <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-3">
+                    Interníveis - Configure as Porcentagens
+                  </label>
+                  <div className="space-y-3">
+                    {(['A', 'B', 'C', 'D', 'E'] as const).map((level) => (
+                      <div key={level} className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                        <div className="flex items-center gap-4">
+                          <div className="flex-shrink-0 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                            {level}
+                          </div>
+                          <div className="flex-1 grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                                Porcentagem (%)
+                              </label>
+                              <input
+                                type="number"
+                                value={levelPercentages[level]}
+                                onChange={(e) => setLevelPercentages({
+                                  ...levelPercentages,
+                                  [level]: parseFloat(e.target.value) || 0
+                                })}
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-800"
+                                placeholder="0"
+                                step="0.1"
+                                min="0"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                                Salário Calculado
+                              </label>
+                              <div className="px-2 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded font-medium text-green-600 dark:text-green-400">
+                                {formatCurrency(calculateSalaryByLevel(parseFloat(formData.base_salary), level))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                    Os salários são calculados automaticamente com base no salário base e nas porcentagens configuradas.
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 mt-6">
