@@ -46,6 +46,7 @@ interface PdiData {
 interface UseEvaluationReturn {
   // States
   loading: boolean;
+  cyclesLoading: boolean;
   currentCycle: EvaluationCycle | null;
   cycles: EvaluationCycle[];
   dashboard: CycleDashboard[];
@@ -146,15 +147,19 @@ export const useEvaluation = (): UseEvaluationReturn => {
 
   // Load all cycles
   const loadAllCycles = useCallback(async () => {
+    console.log('loadAllCycles iniciado');
     try {
       setCyclesLoading(true);
+      console.log('Chamando evaluationService.getAllCycles()');
       const data = await evaluationService.getAllCycles();
+      console.log('Dados recebidos:', data);
       setCycles(data || []);
     } catch (error) {
       console.error('Erro ao carregar ciclos:', error);
       setCycles([]);
       toast.error('Erro ao carregar ciclos de avaliação');
     } finally {
+      console.log('Finalizando loadAllCycles, definindo loading como false');
       setCyclesLoading(false);
     }
   }, []);
@@ -563,7 +568,8 @@ export const useEvaluation = (): UseEvaluationReturn => {
   }, [loadCurrentCycle]);
 
   return {
-    loading: cyclesLoading || loading,
+    loading,
+    cyclesLoading,
     currentCycle,
     cycles,
     dashboard,

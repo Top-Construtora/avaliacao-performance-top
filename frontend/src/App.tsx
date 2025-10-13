@@ -118,6 +118,15 @@ function App() {
                     />
 
                     <Route
+                      path="evaluation-dashboard/:cycleId"
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <EvaluationDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    <Route
                       path="consensus"
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
@@ -334,6 +343,7 @@ function App() {
 
                     <Route path="cycle" element={<CycleManagement />} />
                     <Route path="leader-evaluations" element={<EvaluationDashboard />} />
+                    <Route path="evaluation-dashboard/:cycleId" element={<EvaluationDashboard />} />
                     <Route path="nine-box-guide" element={<NineBoxGuide />} />
                     <Route path="salary" element={<SalaryAdminPage />} />
                     <Route path="salary/tracks/:trackId" element={<TrackPositionsPage />} />

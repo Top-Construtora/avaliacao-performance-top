@@ -24,12 +24,13 @@ interface CycleStats {
 
 const CycleManagement: React.FC = () => {
   const { isDirector, isAdmin } = useUserRole();
-  const { 
-    cycles, 
-    currentCycle, 
-    loading, 
-    createCycle, 
-    openCycle, 
+  const {
+    cycles,
+    currentCycle,
+    loading,
+    cyclesLoading,
+    createCycle,
+    openCycle,
     closeCycle,
     loadAllCycles,
     loadDashboard,
@@ -64,9 +65,10 @@ const CycleManagement: React.FC = () => {
   // Load cycles on mount
   useEffect(() => {
     if (hasPermission) {
+      console.log('Chamando loadAllCycles...');
       loadAllCycles();
     }
-  }, []); // Remover loadAllCycles das dependências para evitar loop infinito
+  }, [hasPermission]); // Adicionar hasPermission como dependência
 
   // Calculate cycle statistics
   const calculateCycleStats = async (cycleId: string) => {
@@ -268,8 +270,8 @@ const CycleManagement: React.FC = () => {
             <Button
               variant="outline"
               onClick={() => loadAllCycles()}
-              icon={<RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />}
-              disabled={loading}
+              icon={<RefreshCw className={`h-5 w-5 ${cyclesLoading ? 'animate-spin' : ''}`} />}
+              disabled={cyclesLoading}
             >
               Atualizar
             </Button>
@@ -371,7 +373,7 @@ const CycleManagement: React.FC = () => {
 
       {/* Cycles List */}
       <div className="space-y-4">
-        {loading ? (
+        {cyclesLoading ? (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-800 dark:border-green-700 mx-auto"></div>
