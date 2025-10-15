@@ -147,19 +147,15 @@ export const useEvaluation = (): UseEvaluationReturn => {
 
   // Load all cycles
   const loadAllCycles = useCallback(async () => {
-    console.log('loadAllCycles iniciado');
     try {
       setCyclesLoading(true);
-      console.log('Chamando evaluationService.getAllCycles()');
       const data = await evaluationService.getAllCycles();
-      console.log('Dados recebidos:', data);
       setCycles(data || []);
     } catch (error) {
       console.error('Erro ao carregar ciclos:', error);
       setCycles([]);
       toast.error('Erro ao carregar ciclos de avaliação');
     } finally {
-      console.log('Finalizando loadAllCycles, definindo loading como false');
       setCyclesLoading(false);
     }
   }, []);
@@ -169,11 +165,6 @@ export const useEvaluation = (): UseEvaluationReturn => {
     try {
       setLoading(true);
       const data = await evaluationService.getCycleDashboard(cycleId);
-      console.log('Dashboard data received in hook:', data.map(emp => ({
-        name: emp.employee_name,
-        leader_potential_score: emp.leader_potential_score,
-        ninebox_position: emp.ninebox_position
-      })));
       setDashboard(data);
       if (!data || data.length === 0) {
         toast('Nenhum dado encontrado para este ciclo', {
@@ -447,8 +438,6 @@ export const useEvaluation = (): UseEvaluationReturn => {
     try {
       setLoading(true);
       const pdiDataFromApi = await evaluationService.getPDI(employeeId);
-      
-      console.log('PDI recebido da API:', pdiDataFromApi);
 
       if (pdiDataFromApi) {
         const curtosPrazos: ActionItem[] = [];
@@ -457,8 +446,6 @@ export const useEvaluation = (): UseEvaluationReturn => {
 
         // Primeiro verificar se temos o campo items (novo formato)
         if (pdiDataFromApi.items && Array.isArray(pdiDataFromApi.items)) {
-          console.log('Processando items do PDI:', pdiDataFromApi.items);
-          
           pdiDataFromApi.items.forEach((item: any) => {
             const actionItem: ActionItem = {
               id: item.id || `item-${Date.now()}-${Math.random()}`,
@@ -482,20 +469,14 @@ export const useEvaluation = (): UseEvaluationReturn => {
                 longosPrazos.push(actionItem);
                 break;
               default:
-                console.warn(`Prazo desconhecido: ${item.prazo}`);
                 curtosPrazos.push(actionItem); // Default para curto prazo
             }
           });
         }
         // Se não tem items, tentar processar goals e actions (formato antigo)
         else if (pdiDataFromApi.goals && Array.isArray(pdiDataFromApi.goals)) {
-          console.log('Processando formato antigo - goals:', pdiDataFromApi.goals);
-          console.log('Processando formato antigo - actions:', pdiDataFromApi.actions);
-          
           pdiDataFromApi.goals.forEach((goal: string, index: number) => {
             const action = pdiDataFromApi.actions?.[index] || '';
-            
-            console.log(`Processando item ${index}:`, { goal, action });
             
             // Extrair competência e resultados esperados do goal
             const competenciaMatch = goal.match(/Competência: (.+?)\. Resultados Esperados: (.+)/);

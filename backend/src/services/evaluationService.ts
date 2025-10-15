@@ -141,11 +141,6 @@ export const evaluationService = {
   // Dashboard do ciclo
   async getCycleDashboard(supabase: any, cycleId: string) {
     try {
-      console.log('\n=================================================');
-      console.log('=== getCycleDashboard CALLED - VERSION 2.0 ===');
-      console.log('Cycle ID:', cycleId);
-      console.log('=================================================\n');
-
       // Buscar autoavaliações
       const { data: selfEvals, error: selfError } = await supabase
         .from('self_evaluations')
@@ -155,11 +150,8 @@ export const evaluationService = {
         `)
         .eq('cycle_id', cycleId);
 
-      console.log('📝 SELF EVALUATIONS:');
-      console.log('  - Found:', selfEvals?.length || 0);
-      if (selfError) console.error('  - Error:', selfError);
-      if (selfEvals?.length > 0) {
-        console.log('  - Sample employee_ids:', selfEvals.slice(0, 3).map((e: any) => e.employee_id));
+      if (selfError) {
+        console.error('Error fetching self evaluations:', selfError);
       }
 
       // Buscar avaliações de líder
@@ -172,17 +164,8 @@ export const evaluationService = {
         `)
         .eq('cycle_id', cycleId);
 
-      console.log('\n👔 LEADER EVALUATIONS:');
-      console.log('  - Found:', leaderEvals?.length || 0);
-      if (leaderError) console.error('  - Error:', leaderError);
-      if (leaderEvals?.length > 0) {
-        console.log('  - Sample employee_ids:', leaderEvals.slice(0, 3).map((e: any) => e.employee_id));
-        console.log('  - Sample data:', JSON.stringify({
-          employee_id: leaderEvals[0].employee_id,
-          employee_name: leaderEvals[0].employee?.name,
-          potential_score: leaderEvals[0].potential_score,
-          final_score: leaderEvals[0].final_score
-        }, null, 2));
+      if (leaderError) {
+        console.error('Error fetching leader evaluations:', leaderError);
       }
 
       // Buscar avaliações de consenso
@@ -194,22 +177,8 @@ export const evaluationService = {
         `)
         .eq('cycle_id', cycleId);
 
-      console.log('\n🤝 CONSENSUS EVALUATIONS:');
-      console.log('  - Found:', consensusEvals?.length || 0);
-      if (consensusError) console.error('  - Error:', consensusError);
-      if (consensusEvals?.length > 0) {
-        console.log('  - Sample employee_ids:', consensusEvals.slice(0, 5).map((e: any) => e.employee_id));
-        console.log('  - FULL RAW DATA FROM SUPABASE:');
-        consensusEvals.forEach((ce: any, index: number) => {
-          console.log(`    [${index + 1}] ${JSON.stringify(ce, null, 2)}`);
-          console.log(`    Employee: ${ce.employee?.name || 'Unknown'}`);
-          console.log(`        - employee_id: ${ce.employee_id}`);
-          console.log(`        - consensus_score (from DB): ${ce.consensus_score}`);
-          console.log(`        - potential_score (from DB): ${ce.potential_score}`);
-          console.log(`        - cycle_id: ${ce.cycle_id}`);
-          console.log(`        - typeof consensus_score: ${typeof ce.consensus_score}`);
-          console.log(`        - typeof potential_score: ${typeof ce.potential_score}`);
-        });
+      if (consensusError) {
+        console.error('Error fetching consensus evaluations:', consensusError);
       }
 
       // Combinar dados para o dashboard
@@ -247,12 +216,6 @@ export const evaluationService = {
 
       // Processar avaliações de líder
       leaderEvals?.forEach((le: any) => {
-        console.log('Leader evaluation data:', {
-          employee_id: le.employee_id,
-          potential_score: le.potential_score,
-          final_score: le.final_score
-        });
-
         const empId = le.employee_id;
         if (!employeeMap.has(empId)) {
           employeeMap.set(empId, {
@@ -286,14 +249,8 @@ export const evaluationService = {
       consensusEvals?.forEach((ce: any) => {
         const empId = ce.employee_id;
 
-        console.log(`\n🔍 Processing consensus for employee: ${ce.employee?.name || empId}`);
-        console.log(`   - ce.consensus_score: ${ce.consensus_score} (type: ${typeof ce.consensus_score})`);
-        console.log(`   - ce.potential_score: ${ce.potential_score} (type: ${typeof ce.potential_score})`);
-        console.log(`   - Employee exists in map: ${employeeMap.has(empId)}`);
-
         // Se o colaborador NÃO está no mapa, criar entrada para ele
         if (!employeeMap.has(empId)) {
-          console.log(`   ➕ Creating new entry in map`);
           employeeMap.set(empId, {
             employee_id: empId,
             employee_name: ce.employee?.name || '',
@@ -314,24 +271,16 @@ export const evaluationService = {
           });
         } else {
           // Se já existe, atualizar os dados de consenso
-          console.log(`   ✏️ Updating existing entry`);
           const emp = employeeMap.get(empId)!;
-          console.log(`   - Before update: consensus_performance_score = ${emp.consensus_performance_score}, consensus_potential_score = ${emp.consensus_potential_score}`);
           emp.consensus_id = ce.id;
           emp.consensus_status = 'completed';
           emp.consensus_performance_score = ce.consensus_score;
           emp.consensus_potential_score = ce.potential_score;
           emp.ninebox_position = ce.nine_box_position;
-          console.log(`   - After update: consensus_performance_score = ${emp.consensus_performance_score}, consensus_potential_score = ${emp.consensus_potential_score}`);
-          console.log(`   - Verification: employeeMap.get(${empId}).consensus_performance_score = ${employeeMap.get(empId)?.consensus_performance_score}`);
         }
       });
 
       const result = Array.from(employeeMap.values());
-
-      console.log('\n📊 PROCESSING RESULTS:');
-      console.log('  - Total employees in map:', result.length);
-      console.log('  - Employee IDs:', result.map(e => e.employee_id));
 
       // Garantir que todos os campos estão presentes
       const finalResult = result.map(emp => ({
@@ -339,21 +288,6 @@ export const evaluationService = {
         leader_potential_score: emp.leader_potential_score ?? null,
         ninebox_position: emp.ninebox_position ?? null
       }));
-
-      console.log('\n✅ FINAL DASHBOARD DATA:');
-      console.log('  - Total employees:', finalResult.length);
-      finalResult.forEach((emp, index) => {
-        console.log(`  [${index + 1}] ${emp.employee_name}`);
-        console.log(`      - employee_id: ${emp.employee_id}`);
-        console.log(`      - self_evaluation_status: ${emp.self_evaluation_status}`);
-        console.log(`      - leader_evaluation_status: ${emp.leader_evaluation_status}`);
-        console.log(`      - consensus_status: ${emp.consensus_status}`);
-        console.log(`      - consensus_performance_score: ${emp.consensus_performance_score}`);
-        console.log(`      - consensus_potential_score: ${emp.consensus_potential_score}`);
-        console.log(`      - Has valid consensus scores: ${emp.consensus_performance_score !== null && emp.consensus_potential_score !== null}`);
-      });
-
-      console.log('\n=================================================\n');
 
       return finalResult;
     } catch (error: any) {
@@ -569,28 +503,25 @@ export const evaluationService = {
 
       // Salvar o PDI se fornecido
       if (evaluationData.pdi && evaluationData.pdi.goals && evaluationData.pdi.goals.length > 0) {
-        console.log('Tentando salvar PDI com dados:', evaluationData.pdi);
-        console.log('ID da avaliação do líder:', evaluation.id);
-        
         // Preparar os itens no formato JSONB com todos os campos obrigatórios
         const items = [];
-        
+
         // Extrair os dados estruturados dos arrays de strings
         for (let i = 0; i < evaluationData.pdi.goals.length; i++) {
           const goal = evaluationData.pdi.goals[i];
           const action = evaluationData.pdi.actions[i] || '';
-          
+
           // Extrair prazo e competência do goal
           const prazoMatch = goal.match(/^(Curto|Médio|Longo) Prazo - (.+?):/);
           const competencia = prazoMatch ? prazoMatch[2] : goal.split(':')[0];
           const resultadosEsperados = goal.split(':')[1]?.trim() || '';
-          
+
           // Extrair como desenvolver e calendarização da action
           const actionMatch = action.match(/^(Curto|Médio|Longo) Prazo - (.+?) \(Prazo: (.+?)\)/);
           const comoDesenvolver = actionMatch ? actionMatch[2] : action.split('(')[0]?.trim() || action;
           const calendarizacao = actionMatch ? actionMatch[3] : 'A definir';
           const prazo = prazoMatch ? prazoMatch[1].toLowerCase() : 'curto';
-          
+
           items.push({
             id: `${Date.now()}-${i}`,
             competencia: competencia.trim(),
@@ -602,12 +533,9 @@ export const evaluationService = {
             prazo: prazo
           });
         }
-        
-        console.log('Items preparados para JSONB com estrutura completa:', items);
-        
+
         // Verificar se temos pelo menos um item (devido à constraint)
         if (items.length === 0) {
-          console.log('Nenhum item estruturado encontrado, PDI não será salvo');
           return evaluation;
         }
 
@@ -634,9 +562,7 @@ export const evaluationService = {
           updated_at: new Date().toISOString(),
           created_by: evaluationData.evaluatorId
         };
-        
-        console.log('Dados completos para inserir no PDI:', pdiInsertData);
-        
+
         const { data: pdiData, error: pdiError } = await supabase
           .from('development_plans')
           .insert(pdiInsertData)
@@ -644,20 +570,8 @@ export const evaluationService = {
           .single();
 
         if (pdiError) {
-          console.error('Erro ao salvar PDI:', pdiError);
-          console.error('Dados enviados:', {
-            employee_id: evaluationData.employeeId,
-            cycle_id: evaluationData.cycleId,
-            leader_evaluation_id: evaluation.id,
-            goals: evaluationData.pdi.goals,
-            actions: evaluationData.pdi.actions,
-            resources: evaluationData.pdi.resources,
-            items: items
-          });
+          console.error('Error saving PDI:', pdiError);
           // Não vamos falhar a avaliação se o PDI falhar
-          // throw new ApiError(500, pdiError.message);
-        } else {
-          console.log('PDI salvo com sucesso:', pdiData);
         }
       }
 
@@ -919,8 +833,6 @@ export const evaluationService = {
   // Buscar PDI ativo do colaborador
   async getPDI(supabase: any, employeeId: string) {
     try {
-      console.log('Buscando PDI para employeeId:', employeeId);
-      
       const { data, error } = await supabase
         .from('development_plans')
         .select(`
@@ -933,17 +845,14 @@ export const evaluationService = {
         .limit(1)
         .single();
 
-      console.log('Resultado da busca do PDI:', { data, error });
-
       // Se não encontrou PDI (PGRST116 = no rows returned), retorna null
       if (error && error.code === 'PGRST116') {
-        console.log('Nenhum PDI ativo encontrado para o colaborador');
         return null;
       }
 
       // Se houve outro tipo de erro, lança exceção
       if (error) {
-        console.error('Erro ao buscar PDI:', error);
+        console.error('Error fetching PDI:', error);
         throw new ApiError(500, error.message);
       }
 

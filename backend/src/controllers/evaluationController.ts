@@ -121,11 +121,6 @@ export const evaluationController = {
         cycleId
       );
 
-      // Debug: Log what we're sending
-      console.log('Controller sending dashboard with fields:',
-        dashboard.length > 0 ? Object.keys(dashboard[0]) : 'no data'
-      );
-
       res.json({
         success: true,
         data: dashboard

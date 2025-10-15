@@ -110,22 +110,7 @@ const NineBoxMatrix = () => {
 
   // Filtrar colaboradores com avaliações de consenso completas
   useEffect(() => {
-    console.log('\n🎯 ===== NINE BOX - FILTERING EMPLOYEES =====');
-    console.log('📦 Dashboard data:', dashboard);
-    console.log('👥 Users data:', users);
-
     if (dashboard && users) {
-      console.log(`\n📊 Processing ${dashboard.length} employees from dashboard`);
-
-      // Log de cada colaborador antes do filtro
-      dashboard.forEach((d, index) => {
-        console.log(`\n  [${index + 1}] Employee: ${d.employee_name || 'Unknown'}`);
-        console.log(`      - employee_id: ${d.employee_id}`);
-        console.log(`      - consensus_performance_score: ${d.consensus_performance_score}`);
-        console.log(`      - consensus_potential_score: ${d.consensus_potential_score}`);
-        console.log(`      - Has valid scores: ${d.consensus_performance_score !== null && d.consensus_performance_score !== undefined && d.consensus_potential_score !== null && d.consensus_potential_score !== undefined}`);
-      });
-
       const eligible = dashboard
         .filter(d => {
           // Apenas incluir colaboradores que tenham avaliação de consenso com notas reais
@@ -136,20 +121,10 @@ const NineBoxMatrix = () => {
                  d.consensus_potential_score !== null &&
                  d.consensus_potential_score !== undefined;
 
-          if (!hasValidScores) {
-            console.log(`    ❌ FILTERED OUT: ${d.employee_name} - Missing consensus scores`);
-          } else {
-            console.log(`    ✅ PASSED: ${d.employee_name}`);
-          }
-
           return hasValidScores;
         })
         .map(d => {
           const user = users.find(u => u && u.id === d.employee_id);
-
-          if (!user) {
-            console.log(`    ⚠️ WARNING: User not found for employee_id: ${d.employee_id}`);
-          }
 
           return {
             ...d,
@@ -164,25 +139,9 @@ const NineBoxMatrix = () => {
           };
         })
         // Filtra apenas os que têm dados completos
-        .filter(d => {
-          const hasUser = d.user !== null;
-          if (!hasUser) {
-            console.log(`    ❌ FILTERED OUT (no user): ${d.employee_name}`);
-          }
-          return hasUser;
-        });
-
-      console.log(`\n✅ FINAL RESULT: ${eligible.length} eligible employees`);
-      eligible.forEach((e, index) => {
-        console.log(`  [${index + 1}] ${e.employee_name} (${e.consensus_score} / ${e.potential_score})`);
-      });
-      console.log('🎯 ==========================================\n');
+        .filter(d => d.user !== null);
 
       setEligibleEmployees(eligible);
-    } else {
-      console.log('⚠️ Dashboard or users data is missing');
-      console.log('  - Dashboard:', dashboard ? 'present' : 'missing');
-      console.log('  - Users:', users ? 'present' : 'missing');
     }
   }, [dashboard, users]);
 
