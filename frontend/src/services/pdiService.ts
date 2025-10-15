@@ -13,7 +13,11 @@ export const pdiService = {
   // Salvar PDI
   async savePDI(params: SavePDIParams) {
     try {
-      const response = await fetch('/api/evaluations/pdi', {
+      console.log('🚀 Frontend - Enviando PDI para API:', params);
+      console.log('📊 Total de items a enviar:', params.items?.length || 0);
+
+      // Verificar a rota correta
+      const response = await fetch('/api/pdi', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -21,21 +25,24 @@ export const pdiService = {
         },
         body: JSON.stringify({
           employeeId: params.employeeId,
-          goals: [],
-          actions: [],
-          resources: [],
-          timeline: params.periodo || 'Anual'
+          cycleId: params.cycleId,
+          leaderEvaluationId: params.leaderEvaluationId,
+          items: params.items,
+          periodo: params.periodo || 'Anual'
         })
       });
 
       if (!response.ok) {
         const error = await response.json();
+        console.error('❌ Erro na resposta da API:', error);
         throw new Error(error.error || 'Erro ao salvar PDI');
       }
 
-      return await response.json();
+      const result = await response.json();
+      console.log('✅ PDI salvo com sucesso:', result);
+      return result;
     } catch (error: any) {
-      console.error('Erro ao salvar PDI:', error);
+      console.error('❌ Erro ao salvar PDI:', error);
       throw error;
     }
   },
@@ -44,9 +51,9 @@ export const pdiService = {
   async getPDI(employeeId: string) {
     console.log('pdiService.getPDI chamado para employeeId:', employeeId);
     try {
-      const url = `/api/evaluations/pdi/${employeeId}`;
+      const url = `/api/pdi/${employeeId}`;
       console.log('Fazendo requisição para:', url);
-      
+
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
@@ -105,39 +112,79 @@ export const pdiService = {
 
   // Transformar dados do PDI do formato do componente para o formato da API
   transformPDIDataForAPI(pdiData: any, cycleId?: string, leaderEvaluationId?: string): SavePDIParams {
+    console.log('🔄 transformPDIDataForAPI - Dados de entrada:', pdiData);
     const items: PDIItem[] = [];
 
     // Adicionar itens de curto prazo
-    pdiData.curtosPrazos.forEach((item: any) => {
-      items.push({
-        ...item,
-        prazo: 'curto' as const
+    if (pdiData.curtosPrazos && pdiData.curtosPrazos.length > 0) {
+      console.log(`➕ Adicionando ${pdiData.curtosPrazos.length} itens de curto prazo`);
+      pdiData.curtosPrazos.forEach((item: any) => {
+        const pdiItem = {
+          id: item.id || `curto-${Date.now()}-${Math.random()}`,
+          competencia: item.competencia,
+          calendarizacao: item.calendarizacao || '',
+          comoDesenvolver: item.comoDesenvolver,
+          resultadosEsperados: item.resultadosEsperados,
+          status: item.status || '1',
+          observacao: item.observacao || '',
+          prazo: 'curto' as const
+        };
+        console.log('  Item curto prazo:', pdiItem);
+        items.push(pdiItem);
       });
-    });
+    }
 
     // Adicionar itens de médio prazo
-    pdiData.mediosPrazos.forEach((item: any) => {
-      items.push({
-        ...item,
-        prazo: 'medio' as const
+    if (pdiData.mediosPrazos && pdiData.mediosPrazos.length > 0) {
+      console.log(`➕ Adicionando ${pdiData.mediosPrazos.length} itens de médio prazo`);
+      pdiData.mediosPrazos.forEach((item: any) => {
+        const pdiItem = {
+          id: item.id || `medio-${Date.now()}-${Math.random()}`,
+          competencia: item.competencia,
+          calendarizacao: item.calendarizacao || '',
+          comoDesenvolver: item.comoDesenvolver,
+          resultadosEsperados: item.resultadosEsperados,
+          status: item.status || '1',
+          observacao: item.observacao || '',
+          prazo: 'medio' as const
+        };
+        console.log('  Item médio prazo:', pdiItem);
+        items.push(pdiItem);
       });
-    });
+    }
 
     // Adicionar itens de longo prazo
-    pdiData.longosPrazos.forEach((item: any) => {
-      items.push({
-        ...item,
-        prazo: 'longo' as const
+    if (pdiData.longosPrazos && pdiData.longosPrazos.length > 0) {
+      console.log(`➕ Adicionando ${pdiData.longosPrazos.length} itens de longo prazo`);
+      pdiData.longosPrazos.forEach((item: any) => {
+        const pdiItem = {
+          id: item.id || `longo-${Date.now()}-${Math.random()}`,
+          competencia: item.competencia,
+          calendarizacao: item.calendarizacao || '',
+          comoDesenvolver: item.comoDesenvolver,
+          resultadosEsperados: item.resultadosEsperados,
+          status: item.status || '1',
+          observacao: item.observacao || '',
+          prazo: 'longo' as const
+        };
+        console.log('  Item longo prazo:', pdiItem);
+        items.push(pdiItem);
       });
-    });
+    }
 
-    return {
+    console.log('📊 Total de items processados:', items.length);
+    console.log('📋 Items finais para envio:', items);
+
+    const result = {
       employeeId: pdiData.colaboradorId,
       cycleId,
       leaderEvaluationId,
       items,
-      periodo: pdiData.periodo
+      periodo: pdiData.periodo || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`
     };
+
+    console.log('📦 Payload final:', result);
+    return result;
   },
 
   // Transformar dados do PDI do formato da API para o formato do componente

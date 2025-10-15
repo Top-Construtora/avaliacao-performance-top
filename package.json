@@ -13,7 +13,8 @@
     "build:backend": "cd backend && npm install && npm run build",
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ..",
     "clean": "rm -rf frontend/node_modules backend/node_modules node_modules",
-    "clean:install": "npm run clean && npm run install:all"
+    "clean:install": "npm run clean && npm run install:all",
+    "switch-env": "node switch-env.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

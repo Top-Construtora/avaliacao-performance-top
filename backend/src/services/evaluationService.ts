@@ -1,10 +1,9 @@
 import { ApiError } from '../middleware/errorHandler';
-import type { 
-  EvaluationCycle, 
+import type {
+  EvaluationCycle,
   SelfEvaluation,
   LeaderEvaluation,
   EvaluationCompetency,
-  ConsensusMeeting,
   CycleDashboard,
   NineBoxData,
 } from '../types';
@@ -63,13 +62,23 @@ export const evaluationService = {
   // Criar novo ciclo
   async createCycle(supabase: any, cycleData: any) {
     try {
+      // Garantir que as datas sejam salvas no formato correto (YYYY-MM-DD) sem conversão de timezone
+      // Se a data vier como string "YYYY-MM-DD", manter esse formato
+      const start_date = cycleData.start_date.includes('T')
+        ? cycleData.start_date.split('T')[0]
+        : cycleData.start_date;
+
+      const end_date = cycleData.end_date.includes('T')
+        ? cycleData.end_date.split('T')[0]
+        : cycleData.end_date;
+
       const { data, error } = await supabase
         .from('evaluation_cycles')
         .insert({
           title: cycleData.title,
           description: cycleData.description,
-          start_date: cycleData.start_date,
-          end_date: cycleData.end_date,
+          start_date: start_date,
+          end_date: end_date,
           status: cycleData.status || 'draft',
           is_editable: true,
           created_by: cycleData.created_by,
@@ -132,8 +141,13 @@ export const evaluationService = {
   // Dashboard do ciclo
   async getCycleDashboard(supabase: any, cycleId: string) {
     try {
+      console.log('\n=================================================');
+      console.log('=== getCycleDashboard CALLED - VERSION 2.0 ===');
+      console.log('Cycle ID:', cycleId);
+      console.log('=================================================\n');
+
       // Buscar autoavaliações
-      const { data: selfEvals } = await supabase
+      const { data: selfEvals, error: selfError } = await supabase
         .from('self_evaluations')
         .select(`
           *,
@@ -141,8 +155,15 @@ export const evaluationService = {
         `)
         .eq('cycle_id', cycleId);
 
+      console.log('📝 SELF EVALUATIONS:');
+      console.log('  - Found:', selfEvals?.length || 0);
+      if (selfError) console.error('  - Error:', selfError);
+      if (selfEvals?.length > 0) {
+        console.log('  - Sample employee_ids:', selfEvals.slice(0, 3).map((e: any) => e.employee_id));
+      }
+
       // Buscar avaliações de líder
-      const { data: leaderEvals } = await supabase
+      const { data: leaderEvals, error: leaderError } = await supabase
         .from('leader_evaluations')
         .select(`
           *,
@@ -151,14 +172,45 @@ export const evaluationService = {
         `)
         .eq('cycle_id', cycleId);
 
-      // Buscar reuniões de consenso
-      const { data: consensusMeetings } = await supabase
-        .from('consensus_meetings')
+      console.log('\n👔 LEADER EVALUATIONS:');
+      console.log('  - Found:', leaderEvals?.length || 0);
+      if (leaderError) console.error('  - Error:', leaderError);
+      if (leaderEvals?.length > 0) {
+        console.log('  - Sample employee_ids:', leaderEvals.slice(0, 3).map((e: any) => e.employee_id));
+        console.log('  - Sample data:', JSON.stringify({
+          employee_id: leaderEvals[0].employee_id,
+          employee_name: leaderEvals[0].employee?.name,
+          potential_score: leaderEvals[0].potential_score,
+          final_score: leaderEvals[0].final_score
+        }, null, 2));
+      }
+
+      // Buscar avaliações de consenso
+      const { data: consensusEvals, error: consensusError } = await supabase
+        .from('consensus_evaluations')
         .select(`
           *,
-          employee:users!employee_id(id, name)
+          employee:users!employee_id(id, name, email, position)
         `)
         .eq('cycle_id', cycleId);
+
+      console.log('\n🤝 CONSENSUS EVALUATIONS:');
+      console.log('  - Found:', consensusEvals?.length || 0);
+      if (consensusError) console.error('  - Error:', consensusError);
+      if (consensusEvals?.length > 0) {
+        console.log('  - Sample employee_ids:', consensusEvals.slice(0, 5).map((e: any) => e.employee_id));
+        console.log('  - FULL RAW DATA FROM SUPABASE:');
+        consensusEvals.forEach((ce: any, index: number) => {
+          console.log(`    [${index + 1}] ${JSON.stringify(ce, null, 2)}`);
+          console.log(`    Employee: ${ce.employee?.name || 'Unknown'}`);
+          console.log(`        - employee_id: ${ce.employee_id}`);
+          console.log(`        - consensus_score (from DB): ${ce.consensus_score}`);
+          console.log(`        - potential_score (from DB): ${ce.potential_score}`);
+          console.log(`        - cycle_id: ${ce.cycle_id}`);
+          console.log(`        - typeof consensus_score: ${typeof ce.consensus_score}`);
+          console.log(`        - typeof potential_score: ${typeof ce.potential_score}`);
+        });
+      }
 
       // Combinar dados para o dashboard
       const employeeMap = new Map<string, CycleDashboard>();
@@ -172,16 +224,22 @@ export const evaluationService = {
             employee_name: se.employee?.name || '',
             employee_email: se.employee?.email || '',
             employee_position: se.employee?.position || '',
+            self_evaluation_id: se.id,
             self_evaluation_status: se.status,
             self_evaluation_score: se.final_score || null,
+            leader_evaluation_id: null,
             leader_evaluation_status: 'pending',
             leader_evaluation_score: null,
+            leader_potential_score: null,
+            consensus_id: null,
             consensus_status: 'pending',
             consensus_performance_score: null,
-            consensus_potential_score: null
+            consensus_potential_score: null,
+            ninebox_position: null
           });
         } else {
           const emp = employeeMap.get(empId)!;
+          emp.self_evaluation_id = se.id;
           emp.self_evaluation_status = se.status;
           emp.self_evaluation_score = se.final_score || null;
         }
@@ -189,6 +247,12 @@ export const evaluationService = {
 
       // Processar avaliações de líder
       leaderEvals?.forEach((le: any) => {
+        console.log('Leader evaluation data:', {
+          employee_id: le.employee_id,
+          potential_score: le.potential_score,
+          final_score: le.final_score
+        });
+
         const empId = le.employee_id;
         if (!employeeMap.has(empId)) {
           employeeMap.set(empId, {
@@ -196,35 +260,102 @@ export const evaluationService = {
             employee_name: le.employee?.name || '',
             employee_email: le.employee?.email || '',
             employee_position: le.employee?.position || '',
+            self_evaluation_id: null,
             self_evaluation_status: 'pending',
             self_evaluation_score: null,
+            leader_evaluation_id: le.id,
             leader_evaluation_status: le.status,
             leader_evaluation_score: le.final_score || null,
+            leader_potential_score: le.potential_score || null, // Adicionar nota de potencial do líder
+            consensus_id: null,
             consensus_status: 'pending',
             consensus_performance_score: null,
-            consensus_potential_score: null
+            consensus_potential_score: null,
+            ninebox_position: null
           });
         } else {
           const emp = employeeMap.get(empId)!;
+          emp.leader_evaluation_id = le.id;
           emp.leader_evaluation_status = le.status;
           emp.leader_evaluation_score = le.final_score || null;
+          emp.leader_potential_score = le.potential_score || null; // Adicionar nota de potencial do líder
         }
       });
 
-      // Processar reuniões de consenso
-      consensusMeetings?.forEach((cm: any) => {
-        const empId = cm.employee_id;
-        if (employeeMap.has(empId)) {
+      // Processar avaliações de consenso
+      consensusEvals?.forEach((ce: any) => {
+        const empId = ce.employee_id;
+
+        console.log(`\n🔍 Processing consensus for employee: ${ce.employee?.name || empId}`);
+        console.log(`   - ce.consensus_score: ${ce.consensus_score} (type: ${typeof ce.consensus_score})`);
+        console.log(`   - ce.potential_score: ${ce.potential_score} (type: ${typeof ce.potential_score})`);
+        console.log(`   - Employee exists in map: ${employeeMap.has(empId)}`);
+
+        // Se o colaborador NÃO está no mapa, criar entrada para ele
+        if (!employeeMap.has(empId)) {
+          console.log(`   ➕ Creating new entry in map`);
+          employeeMap.set(empId, {
+            employee_id: empId,
+            employee_name: ce.employee?.name || '',
+            employee_email: ce.employee?.email || '',
+            employee_position: ce.employee?.position || '',
+            self_evaluation_id: null,
+            self_evaluation_status: 'pending',
+            self_evaluation_score: null,
+            leader_evaluation_id: null,
+            leader_evaluation_status: 'pending',
+            leader_evaluation_score: null,
+            leader_potential_score: null,
+            consensus_id: ce.id,
+            consensus_status: 'completed',
+            consensus_performance_score: ce.consensus_score,
+            consensus_potential_score: ce.potential_score,
+            ninebox_position: ce.nine_box_position
+          });
+        } else {
+          // Se já existe, atualizar os dados de consenso
+          console.log(`   ✏️ Updating existing entry`);
           const emp = employeeMap.get(empId)!;
-          emp.consensus_status = cm.status;
-          if (cm.status === 'completed') {
-            emp.consensus_performance_score = cm.consensus_performance_score;
-            emp.consensus_potential_score = cm.consensus_potential_score;
-          }
+          console.log(`   - Before update: consensus_performance_score = ${emp.consensus_performance_score}, consensus_potential_score = ${emp.consensus_potential_score}`);
+          emp.consensus_id = ce.id;
+          emp.consensus_status = 'completed';
+          emp.consensus_performance_score = ce.consensus_score;
+          emp.consensus_potential_score = ce.potential_score;
+          emp.ninebox_position = ce.nine_box_position;
+          console.log(`   - After update: consensus_performance_score = ${emp.consensus_performance_score}, consensus_potential_score = ${emp.consensus_potential_score}`);
+          console.log(`   - Verification: employeeMap.get(${empId}).consensus_performance_score = ${employeeMap.get(empId)?.consensus_performance_score}`);
         }
       });
 
-      return Array.from(employeeMap.values());
+      const result = Array.from(employeeMap.values());
+
+      console.log('\n📊 PROCESSING RESULTS:');
+      console.log('  - Total employees in map:', result.length);
+      console.log('  - Employee IDs:', result.map(e => e.employee_id));
+
+      // Garantir que todos os campos estão presentes
+      const finalResult = result.map(emp => ({
+        ...emp,
+        leader_potential_score: emp.leader_potential_score ?? null,
+        ninebox_position: emp.ninebox_position ?? null
+      }));
+
+      console.log('\n✅ FINAL DASHBOARD DATA:');
+      console.log('  - Total employees:', finalResult.length);
+      finalResult.forEach((emp, index) => {
+        console.log(`  [${index + 1}] ${emp.employee_name}`);
+        console.log(`      - employee_id: ${emp.employee_id}`);
+        console.log(`      - self_evaluation_status: ${emp.self_evaluation_status}`);
+        console.log(`      - leader_evaluation_status: ${emp.leader_evaluation_status}`);
+        console.log(`      - consensus_status: ${emp.consensus_status}`);
+        console.log(`      - consensus_performance_score: ${emp.consensus_performance_score}`);
+        console.log(`      - consensus_potential_score: ${emp.consensus_potential_score}`);
+        console.log(`      - Has valid consensus scores: ${emp.consensus_performance_score !== null && emp.consensus_potential_score !== null}`);
+      });
+
+      console.log('\n=================================================\n');
+
+      return finalResult;
     } catch (error: any) {
       console.error('Service error:', error);
       throw error;
@@ -235,18 +366,17 @@ export const evaluationService = {
   async getNineBoxData(supabase: any, cycleId: string) {
     try {
       const { data, error } = await supabase
-        .from('consensus_meetings')
+        .from('consensus_evaluations')
         .select(`
           *,
           employee:users!employee_id(
-            id, 
-            name, 
+            id,
+            name,
             position,
             department:departments(name)
           )
         `)
-        .eq('cycle_id', cycleId)
-        .eq('status', 'completed');
+        .eq('cycle_id', cycleId);
 
       if (error) throw new ApiError(500, error.message);
 
@@ -255,11 +385,11 @@ export const evaluationService = {
         employee_name: item.employee?.name || '',
         position: item.employee?.position || '',
         department: item.employee?.department?.name || '',
-        performance_score: item.consensus_performance_score,
-        potential_score: item.consensus_potential_score,
+        performance_score: item.consensus_score,
+        potential_score: item.potential_score,
         nine_box_position: this.calculateNineBoxPosition(
-          item.consensus_performance_score,
-          item.consensus_potential_score
+          item.consensus_score,
+          item.potential_score
         )
       })) || [];
     } catch (error: any) {
@@ -597,87 +727,6 @@ export const evaluationService = {
   },
 
   // ====================================
-  // CONSENSO
-  // ====================================
-  
-  // Criar reunião de consenso
-  async createConsensusMeeting(supabase: any, meetingData: any) {
-    try {
-      const { data, error } = await supabase
-        .from('consensus_meetings')
-        .insert({
-          cycle_id: meetingData.cycleId,
-          employee_id: meetingData.employeeId,
-          self_evaluation_id: meetingData.selfEvaluationId,
-          leader_evaluation_id: meetingData.leaderEvaluationId,
-          meeting_date: meetingData.meetingDate,
-          consensus_performance_score: meetingData.performanceScore || 0,
-          consensus_potential_score: meetingData.potentialScore || 0,
-          meeting_notes: meetingData.notes || '',
-          participants: meetingData.participants || [],
-          status: 'scheduled',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          created_by: meetingData.createdBy
-        })
-        .select()
-        .single();
-
-      if (error) throw new ApiError(500, error.message);
-      return data;
-    } catch (error: any) {
-      console.error('Service error:', error);
-      throw error;
-    }
-  },
-
-  // Completar consenso
-  async completeConsensusMeeting(supabase: any, meetingId: string, data: any) {
-    try {
-      const { data: meeting, error } = await supabase
-        .from('consensus_meetings')
-        .update({
-          consensus_performance_score: data.performanceScore,
-          consensus_potential_score: data.potentialScore,
-          meeting_notes: data.notes,
-          status: 'completed',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', meetingId)
-        .select()
-        .single();
-
-      if (error) throw new ApiError(500, error.message);
-
-      // Criar registro na tabela consensus_evaluations
-      const { error: consensusError } = await supabase
-        .from('consensus_evaluations')
-        .insert({
-          employee_id: meeting.employee_id,
-          self_evaluation_id: meeting.self_evaluation_id,
-          leader_evaluation_id: meeting.leader_evaluation_id,
-          consensus_score: data.performanceScore,
-          potential_score: data.potentialScore,
-          nine_box_position: this.calculateNineBoxPosition(
-            data.performanceScore,
-            data.potentialScore
-          ),
-          notes: data.notes,
-          evaluation_date: new Date().toISOString().split('T')[0],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
-
-      if (consensusError) throw new ApiError(500, consensusError.message);
-
-      return meeting;
-    } catch (error: any) {
-      console.error('Service error:', error);
-      throw error;
-    }
-  },
-
-  // ====================================
   // FUNÇÕES AUXILIARES
   // ====================================
   
@@ -702,7 +751,7 @@ export const evaluationService = {
   calculateNineBoxPosition(performance: number, potential: number): string {
     const perfLevel = performance <= 2 ? 'low' : performance <= 3 ? 'medium' : 'high';
     const potLevel = potential <= 2 ? 'low' : potential <= 3 ? 'medium' : 'high';
-    
+
     const positions: { [key: string]: string } = {
       'low-low': 'Questionável',
       'low-medium': 'Novo/Desenvolvimento',
@@ -714,8 +763,43 @@ export const evaluationService = {
       'high-medium': 'Alto performance',
       'high-high': 'Estrela'
     };
-    
+
     return positions[`${perfLevel}-${potLevel}`] || 'Não classificado';
+  },
+
+  // Calcular posição no Nine Box no formato B1-B9
+  calculateNineBoxCode(performance: number, potential: number): string {
+    // Performance: 1-2 = baixo (B1, B2, B3), 2.01-3 = médio (B4, B5, B6), 3.01-4 = alto (B7, B8, B9)
+    // Potential: 1-2 = baixo (coluna 1), 2.01-3 = médio (coluna 2), 3.01-4 = alto (coluna 3)
+
+    let perfRow: number;
+    let potCol: number;
+
+    // Determinar linha (baseado em performance)
+    if (performance <= 2) {
+      perfRow = 0; // Linha inferior (B1, B2, B3)
+    } else if (performance <= 3) {
+      perfRow = 1; // Linha do meio (B4, B5, B6)
+    } else {
+      perfRow = 2; // Linha superior (B7, B8, B9)
+    }
+
+    // Determinar coluna (baseado em potencial)
+    if (potential <= 2) {
+      potCol = 0; // Coluna esquerda
+    } else if (potential <= 3) {
+      potCol = 1; // Coluna do meio
+    } else {
+      potCol = 2; // Coluna direita
+    }
+
+    // Mapear para B1-B9
+    // B1 B2 B3
+    // B4 B5 B6
+    // B7 B8 B9
+    const boxNumber = (perfRow * 3) + potCol + 1;
+
+    return `B${boxNumber}`;
   },
 
   // ====================================

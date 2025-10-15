@@ -68,10 +68,15 @@ export const evaluationService = {
   async getCycleDashboard(cycleId: string): Promise<CycleDashboard[]> {
     try {
       const response = await api.get(`/evaluations/cycles/${cycleId}/dashboard`);
+      console.log('Raw response from API:', response);
+      console.log('Response data sample:', response?.data?.[0]);
+
       // O backend retorna { success: true, data: ... }
       if (response && response.success) {
+        console.log('Using response.data:', response.data?.[0]);
         return response.data || [];
       }
+      console.log('Using response directly:', response?.[0]);
       return response || [];
     } catch (error) {
       console.error('Erro ao buscar dashboard:', error);

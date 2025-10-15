@@ -227,9 +227,9 @@ const Reports = () => {
     
     const tableData = filteredData.map((item: CycleDashboard) => {
       const user = users.find(u => u.id === item.employee_id);
-      const deptName = user?.teams && user.teams[0] ? 
+      const deptName = user?.teams && user.teams[0] ?
         departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-';
-      
+
       return [
         user?.name || '-',
         user?.position || '-',
@@ -237,12 +237,12 @@ const Reports = () => {
         getStatusLabel(item.self_evaluation_status),
         getStatusLabel(item.leader_evaluation_status),
         getStatusLabel(item.consensus_status),
-        item.consensus_performance_score ? item.consensus_performance_score.toFixed(1) : '-'
+        item.ninebox_position || 'Pendente'
       ];
     });
-    
+
     doc.autoTable({
-      head: [['Nome', 'Cargo', 'Departamento', 'Autoavaliação', 'Líder', 'Consenso', 'Nota']],
+      head: [['Nome', 'Cargo', 'Departamento', 'Autoavaliação', 'Líder', 'Consenso', 'Nine Box']],
       body: tableData,
       startY: 40,
       theme: 'grid',
@@ -257,9 +257,9 @@ const Reports = () => {
   const exportExcel = () => {
     const data = filteredData.map((item: CycleDashboard) => {
       const user = users.find(u => u.id === item.employee_id);
-      const deptName = user?.teams && user.teams[0] ? 
+      const deptName = user?.teams && user.teams[0] ?
         departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-';
-      
+
       return {
         'Nome': user?.name || '-',
         'Cargo': user?.position || '-',
@@ -268,7 +268,7 @@ const Reports = () => {
         'Avaliação do Líder': getStatusLabel(item.leader_evaluation_status),
         'Consenso': getStatusLabel(item.consensus_status),
         'PDI': item.ninebox_position ? 'Definido' : 'Pendente',
-        'Nota Final': item.consensus_performance_score || '-'
+        'Posição Nine Box': item.ninebox_position || 'Pendente'
       };
     });
     
@@ -362,6 +362,39 @@ const Reports = () => {
     return (
       <span className={`text-lg font-bold ${getScoreColor()}`}>
         {score.toFixed(1)}
+      </span>
+    );
+  };
+
+  const getNineBoxBadge = (position: string | null | undefined) => {
+    if (!position) {
+      return (
+        <span className="text-sm text-gray-400 dark:text-gray-600">Pendente</span>
+      );
+    }
+
+    // Configuração de cores baseada na posição
+    const positionConfig: Record<string, { bg: string; text: string; border: string }> = {
+      'B1': { bg: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-700' },
+      'B2': { bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-700 dark:text-orange-300', border: 'border-orange-200 dark:border-orange-700' },
+      'B3': { bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-700' },
+      'B4': { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-700' },
+      'B5': { bg: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-700 dark:text-yellow-300', border: 'border-yellow-200 dark:border-yellow-700' },
+      'B6': { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-700' },
+      'B7': { bg: 'bg-rose-50 dark:bg-rose-900/20', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-700' },
+      'B8': { bg: 'bg-indigo-50 dark:bg-indigo-900/20', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-200 dark:border-indigo-700' },
+      'B9': { bg: 'bg-green-800 dark:bg-green-800', text: 'text-white', border: 'border-green-800 dark:border-green-700' },
+    };
+
+    const config = positionConfig[position] || {
+      bg: 'bg-gray-50 dark:bg-gray-900/20',
+      text: 'text-gray-700 dark:text-gray-300',
+      border: 'border-gray-200 dark:border-gray-700'
+    };
+
+    return (
+      <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-bold ${config.bg} ${config.text} border ${config.border}`}>
+        {position}
       </span>
     );
   };
@@ -714,7 +747,7 @@ const Reports = () => {
                       PDI
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Nota Final
+                      Posição Nine Box
                     </th>
                   </tr>
                 </thead>
@@ -752,7 +785,7 @@ const Reports = () => {
                           {getStatusBadge(item.ninebox_position ? 'completed' : 'pending')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getScoreBadge(item.consensus_performance_score)}
+                          {getNineBoxBadge(item.ninebox_position)}
                         </td>
                       </tr>
                     );
@@ -794,7 +827,7 @@ const Reports = () => {
                           </p>
                         </div>
                         <div className="ml-3 text-right">
-                          {getScoreBadge(item.consensus_performance_score)}
+                          {getNineBoxBadge(item.ninebox_position)}
                         </div>
                       </div>
                       

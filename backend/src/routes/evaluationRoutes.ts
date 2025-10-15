@@ -39,12 +39,6 @@ router.get('/leader-evaluations/:employeeId', evaluationController.getLeaderEval
 router.post('/leader', evaluationController.createLeaderEvaluation);
 
 // ====================================
-// ROTAS DE CONSENSO
-// ====================================
-router.post('/consensus', evaluationController.createConsensusMeeting);
-router.put('/consensus/:meetingId/complete', evaluationController.completeConsensusMeeting);
-
-// ====================================
 // ROTAS DE PDI (NOVO)
 // ====================================
 router.post('/pdi', evaluationController.savePDI);

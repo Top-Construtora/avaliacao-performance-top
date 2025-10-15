@@ -169,10 +169,22 @@ export const useEvaluation = (): UseEvaluationReturn => {
     try {
       setLoading(true);
       const data = await evaluationService.getCycleDashboard(cycleId);
+      console.log('Dashboard data received in hook:', data.map(emp => ({
+        name: emp.employee_name,
+        leader_potential_score: emp.leader_potential_score,
+        ninebox_position: emp.ninebox_position
+      })));
       setDashboard(data);
+      if (!data || data.length === 0) {
+        toast('Nenhum dado encontrado para este ciclo', {
+          icon: 'ℹ️',
+          duration: 3000
+        });
+      }
     } catch (error) {
       console.error('Erro ao carregar dashboard:', error);
       toast.error('Erro ao carregar dados do dashboard');
+      setDashboard([]);
     } finally {
       setLoading(false);
     }

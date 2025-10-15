@@ -201,8 +201,8 @@ export interface ConsensusMeeting {
   self_evaluation_id?: string;
   leader_evaluation_id?: string;
   meeting_date?: string;
-  consensus_performance_score: number;
-  consensus_potential_score: number;
+  consensus_score: number;
+  potential_score: number;
   meeting_notes?: string;
   participants?: any;
   status?: 'scheduled' | 'completed' | 'cancelled';
@@ -217,13 +217,18 @@ export interface CycleDashboard {
   employee_name: string;
   employee_email: string;
   employee_position: string;
+  self_evaluation_id?: string | null;
   self_evaluation_status: string;
   self_evaluation_score?: number | null;
+  leader_evaluation_id?: string | null;
   leader_evaluation_status: string;
   leader_evaluation_score?: number | null;
+  leader_potential_score?: number | null; // Nota de potencial da avaliação do líder
+  consensus_id?: string | null;
   consensus_status: string;
   consensus_performance_score?: number | null;
   consensus_potential_score?: number | null;
+  ninebox_position?: string | null; // Posição Nine Box (B1-B9)
 }
 
 // Dados do Nine Box

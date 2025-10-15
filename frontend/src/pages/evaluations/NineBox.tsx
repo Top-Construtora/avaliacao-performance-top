@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, BarChart3, Download, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3 } from 'lucide-react';
+import { User, BarChart3, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3, Mail, Cake } from 'lucide-react';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useSupabaseUsers } from '../../hooks/useSupabaseData';
-import Button from '../../components/Button';
 
 interface MatrixConfig {
   bgColor: string;
@@ -92,11 +90,10 @@ const matrixConfig: Record<string, MatrixConfig> = {
 };
 
 const NineBoxMatrix = () => {
-  const navigate = useNavigate();
-  const { 
-    currentCycle, 
-    dashboard, 
-    loadDashboard 
+  const {
+    currentCycle,
+    dashboard,
+    loadDashboard
   } = useEvaluation();
   const { users } = useSupabaseUsers();
   
@@ -111,36 +108,81 @@ const NineBoxMatrix = () => {
     }
   }, [currentCycle, loadDashboard]);
 
-  // Filtrar colaboradores e adicionar notas simuladas quando necessário
+  // Filtrar colaboradores com avaliações de consenso completas
   useEffect(() => {
+    console.log('\n🎯 ===== NINE BOX - FILTERING EMPLOYEES =====');
+    console.log('📦 Dashboard data:', dashboard);
+    console.log('👥 Users data:', users);
+
     if (dashboard && users) {
+      console.log(`\n📊 Processing ${dashboard.length} employees from dashboard`);
+
+      // Log de cada colaborador antes do filtro
+      dashboard.forEach((d, index) => {
+        console.log(`\n  [${index + 1}] Employee: ${d.employee_name || 'Unknown'}`);
+        console.log(`      - employee_id: ${d.employee_id}`);
+        console.log(`      - consensus_performance_score: ${d.consensus_performance_score}`);
+        console.log(`      - consensus_potential_score: ${d.consensus_potential_score}`);
+        console.log(`      - Has valid scores: ${d.consensus_performance_score !== null && d.consensus_performance_score !== undefined && d.consensus_potential_score !== null && d.consensus_potential_score !== undefined}`);
+      });
+
       const eligible = dashboard
-        .filter(d => d && d.employee_id) // Garante que o objeto existe e tem employee_id
+        .filter(d => {
+          // Apenas incluir colaboradores que tenham avaliação de consenso com notas reais
+          const hasValidScores = d &&
+                 d.employee_id &&
+                 d.consensus_performance_score !== null &&
+                 d.consensus_performance_score !== undefined &&
+                 d.consensus_potential_score !== null &&
+                 d.consensus_potential_score !== undefined;
+
+          if (!hasValidScores) {
+            console.log(`    ❌ FILTERED OUT: ${d.employee_name} - Missing consensus scores`);
+          } else {
+            console.log(`    ✅ PASSED: ${d.employee_name}`);
+          }
+
+          return hasValidScores;
+        })
         .map(d => {
           const user = users.find(u => u && u.id === d.employee_id);
-          
-          // Gera notas simuladas se não existirem
-          const performanceScore = d.consensus_performance_score || 
-            (Math.random() * 3 + 1); // Nota entre 1.0 e 4.0
-          
-          const potentialScore = d.consensus_potential_score || 
-            (Math.random() * 3 + 1); // Nota entre 1.0 e 4.0
-          
+
+          if (!user) {
+            console.log(`    ⚠️ WARNING: User not found for employee_id: ${d.employee_id}`);
+          }
+
           return {
             ...d,
             user: user || null,
-            // Usa notas reais ou simuladas
-            consensus_performance_score: performanceScore,
-            consensus_potential_score: potentialScore,
+            // Usa notas reais do banco de dados (consensus_evaluations)
+            // Os dados já vêm com os nomes corretos do backend
+            consensus_score: d.consensus_performance_score,
+            potential_score: d.consensus_potential_score,
             // Garante que outros campos necessários existam
             employee_name: d.employee_name || user?.name || 'Sem nome',
             position: d.position || user?.position || 'Sem cargo'
           };
         })
-        // Filtra apenas os que têm dados mínimos necessários
-        .filter(d => d.user !== null);
-        
+        // Filtra apenas os que têm dados completos
+        .filter(d => {
+          const hasUser = d.user !== null;
+          if (!hasUser) {
+            console.log(`    ❌ FILTERED OUT (no user): ${d.employee_name}`);
+          }
+          return hasUser;
+        });
+
+      console.log(`\n✅ FINAL RESULT: ${eligible.length} eligible employees`);
+      eligible.forEach((e, index) => {
+        console.log(`  [${index + 1}] ${e.employee_name} (${e.consensus_score} / ${e.potential_score})`);
+      });
+      console.log('🎯 ==========================================\n');
+
       setEligibleEmployees(eligible);
+    } else {
+      console.log('⚠️ Dashboard or users data is missing');
+      console.log('  - Dashboard:', dashboard ? 'present' : 'missing');
+      console.log('  - Users:', users ? 'present' : 'missing');
     }
   }, [dashboard, users]);
 
@@ -213,8 +255,8 @@ const NineBoxMatrix = () => {
     if (!selectedEvaluation) return false;
     
     const quadrant = getQuadrant(
-      selectedEvaluation.consensus_performance_score, 
-      selectedEvaluation.consensus_potential_score
+      selectedEvaluation.consensus_score, 
+      selectedEvaluation.potential_score
     );
     return quadrant.row === row && quadrant.col === col;
   };
@@ -222,8 +264,8 @@ const NineBoxMatrix = () => {
   const getActiveQuadrantInfo = () => {
     if (!selectedEvaluation) return null;
     const quadrant = getQuadrant(
-      selectedEvaluation.consensus_performance_score, 
-      selectedEvaluation.consensus_potential_score
+      selectedEvaluation.consensus_score, 
+      selectedEvaluation.potential_score
     );
     const key = `${quadrant.row},${quadrant.col}`;
     return matrixConfig[key];
@@ -233,11 +275,26 @@ const NineBoxMatrix = () => {
   const formatJoinDate = (date: string | null | undefined) => {
     if (!date) return '-';
     const dateObj = new Date(date);
-    return dateObj.toLocaleDateString('pt-BR', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric' 
+    return dateObj.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
     });
+  };
+
+  // Calcular idade a partir da data de nascimento
+  const calculateAge = (birthDate: string | null | undefined) => {
+    if (!birthDate) return '-';
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+
+    return `${age} anos`;
   };
 
   return (
@@ -248,28 +305,14 @@ const NineBoxMatrix = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
       >
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 sm:mb-6 space-y-4 lg:space-y-0">
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            <div className="flex-1">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                <Grid3x3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-gray-600 dark:text-gray-400 mr-2 sm:mr-3" />
-                <span className="break-words">Comitê de Gente</span>
-              </h1>
-              <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-                Análise de Performance vs Potencial 
-              </p>
-            </div>
-          </div>
-          
-          <Button
-            variant="primary"
-            icon={<Download size={18} />}
-            onClick={() => navigate('/pdi')}
-            size="lg"
-            className="w-full sm:w-auto"
-          >
-            Gerar Plano de Ação
-          </Button>
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+            <Grid3x3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-gray-600 dark:text-gray-400 mr-2 sm:mr-3" />
+            <span className="break-words">Comitê de Gente</span>
+          </h1>
+          <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
+            Análise de Performance vs Potencial
+          </p>
         </div>
 
         {/* Seleção de Colaborador */}
@@ -279,33 +322,52 @@ const NineBoxMatrix = () => {
             Selecionar Colaborador
           </h3>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                Colaborador
-              </label>
-              <select
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-naue-black dark:text-gray-300 font-medium text-sm sm:text-base"
-                value={selectedEmployee}
-                onChange={(e) => setSelectedEmployee(e.target.value)}
-              >
-                <option value="">Selecione um colaborador</option>
-                {eligibleEmployees.map((employee) => (
-                  <option key={employee.employee_id} value={employee.employee_id}>
-                    {employee.employee_name}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              Colaborador
+            </label>
+            <select
+              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-naue-black dark:text-gray-300 font-medium text-sm sm:text-base"
+              value={selectedEmployee}
+              onChange={(e) => setSelectedEmployee(e.target.value)}
+            >
+              <option value="">Selecione um colaborador</option>
+              {eligibleEmployees.map((employee) => (
+                <option key={employee.employee_id} value={employee.employee_id}>
+                  {employee.employee_name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-            {selectedEmp && (
-              <>
+          {/* Informações do colaborador com foto à esquerda e dados à direita */}
+          {selectedEmp && (
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Foto do colaborador */}
+              <div className="flex-shrink-0">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-600 shadow-md">
+                  {selectedEmp.profile_image ? (
+                    <img
+                      src={selectedEmp.profile_image}
+                      alt={selectedEmp.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 dark:text-gray-500" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Grid 2x2 com informações */}
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                     <Briefcase className="inline h-4 w-4 mr-1" />
                     Cargo
                   </label>
-                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white dark:bg-gray-700 rounded-lg sm:rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm sm:text-base border border-gray-200 dark:border-gray-600">
+                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
                     {selectedEmp.position}
                   </div>
                 </div>
@@ -315,37 +377,30 @@ const NineBoxMatrix = () => {
                     <Calendar className="inline h-4 w-4 mr-1" />
                     Data de Admissão
                   </label>
-                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white dark:bg-gray-700 rounded-lg sm:rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm sm:text-base border border-gray-200 dark:border-gray-600">
+                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
                     {formatJoinDate(selectedEmp.join_date)}
                   </div>
                 </div>
-              </>
-            )}
-          </div>
 
-          {/* Foto do colaborador */}
-          {selectedEmp && (
-            <div className="mt-4 flex items-center space-x-4">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-600">
-                {selectedEmp.profile_image ? (
-                  <img 
-                    src={selectedEmp.profile_image} 
-                    alt={selectedEmp.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <User className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 dark:text-gray-500" />
+                <div>
+                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                    <Mail className="inline h-4 w-4 mr-1" />
+                    Email
+                  </label>
+                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600 truncate">
+                    {selectedEmp.email || '-'}
                   </div>
-                )}
-              </div>
-              <div>
-                <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                  {selectedEmp.name}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {selectedEvaluation.position}
-                </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                    <Cake className="inline h-4 w-4 mr-1" />
+                    Idade
+                  </label>
+                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                    {calculateAge(selectedEmp.birth_date)}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -376,12 +431,12 @@ const NineBoxMatrix = () => {
                     <TrendingUp className="h-4 w-4 text-green-800 dark:text-green-700" />
                   </div>
                   <p className="text-2xl sm:text-3xl font-bold text-green-800 dark:text-green-700">
-                    {selectedEvaluation.consensus_performance_score.toFixed(1)}
+                    {selectedEvaluation.consensus_score}
                   </p>
                   <div className="mt-2 bg-green-200 dark:bg-green-900/50 rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-green-800 dark:bg-green-700 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${(selectedEvaluation.consensus_performance_score / 4) * 100}%` }}
+                      style={{ width: `${(selectedEvaluation.consensus_score / 4) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -393,12 +448,12 @@ const NineBoxMatrix = () => {
                     <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                   </div>
                   <p className="text-2xl sm:text-3xl font-bold text-gray-600 dark:text-gray-400">
-                    {selectedEvaluation.consensus_potential_score.toFixed(1)}
+                    {selectedEvaluation.potential_score}
                   </p>
                   <div className="mt-2 bg-gray-200 dark:bg-gray-900/50 rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-gray-600 dark:bg-gray-400 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${(selectedEvaluation.consensus_potential_score / 4) * 100}%` }}
+                      style={{ width: `${(selectedEvaluation.potential_score / 4) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -488,8 +543,8 @@ const NineBoxMatrix = () => {
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
                         className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 rounded-full shadow-lg dark:shadow-xl z-20 ring-4 ring-white dark:ring-gray-800"
                         style={{
-                          left: `${getPointPosition(selectedEvaluation.consensus_performance_score, selectedEvaluation.consensus_potential_score).x}%`,
-                          top: `${getPointPosition(selectedEvaluation.consensus_performance_score, selectedEvaluation.consensus_potential_score).y}%`,
+                          left: `${getPointPosition(selectedEvaluation.consensus_score, selectedEvaluation.potential_score).x}%`,
+                          top: `${getPointPosition(selectedEvaluation.consensus_score, selectedEvaluation.potential_score).y}%`,
                           transform: 'translate(-50%, -50%)'
                         }}
                       />
@@ -528,8 +583,8 @@ const NineBoxMatrix = () => {
         </motion.div>
       )}
 
-      {/* Empty State */}
-      {!selectedEmployee && (
+      {/* Empty State - Nenhum colaborador selecionado */}
+      {!selectedEmployee && eligibleEmployees.length > 0 && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -544,6 +599,30 @@ const NineBoxMatrix = () => {
             </h3>
             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
               Selecione um colaborador acima para visualizar sua posição na Matriz 9-Box
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Empty State - Nenhum colaborador com avaliação de consenso */}
+      {eligibleEmployees.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-16 text-center"
+        >
+          <div className="max-w-md mx-auto">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 mb-4 sm:mb-6">
+              <Info className="h-8 w-8 sm:h-10 sm:w-10 text-amber-600 dark:text-amber-500" />
+            </div>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              Nenhuma avaliação de consenso encontrada
+            </h3>
+            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4">
+              Para visualizar o Comitê de Gente, é necessário que haja avaliações de consenso completas com notas de performance e potencial.
+            </p>
+            <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-500">
+              Complete as avaliações de consenso na página de <strong>Consenso</strong> para que os colaboradores apareçam aqui.
             </p>
           </div>
         </motion.div>

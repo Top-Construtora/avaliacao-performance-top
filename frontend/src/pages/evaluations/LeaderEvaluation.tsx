@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 import { EVALUATION_COMPETENCIES } from '../../types/evaluation.types';
+import { pdiService } from '../../services/pdiService';
 import LeaderEvaluationHeader from '../../components/LeaderEvaluationHeader';
 import EvaluationSection from '../../components/EvaluationSection';
 import PotentialAndPDI from '../../components/PotentialAndPDI';
@@ -195,6 +196,27 @@ const LeaderEvaluation = () => {
     loadData();
   }, [loadSubordinates]);
 
+  // Load existing PDI when employee is selected
+  const loadExistingPDI = async (employeeId: string) => {
+    try {
+      const existingPDI = await pdiService.getPDI(employeeId);
+
+      if (existingPDI) {
+        const transformedPDI = pdiService.transformPDIDataFromAPI(existingPDI);
+        setPdiData(prev => ({
+          ...transformedPDI,
+          colaboradorId: employeeId,
+          colaborador: prev.colaborador || transformedPDI.colaborador,
+          cargo: prev.cargo || transformedPDI.cargo,
+          departamento: prev.departamento || transformedPDI.departamento,
+        }));
+        toast('PDI existente carregado para edição');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar PDI:', error);
+      // Não mostrar erro se não houver PDI, é esperado
+    }
+  };
 
   // Check for existing evaluation and populate PDI data when employee is selected
   useEffect(() => {
@@ -207,6 +229,9 @@ const LeaderEvaluation = () => {
           setSelectedEmployeeId('');
           return;
         }
+
+        // Load existing PDI
+        await loadExistingPDI(selectedEmployeeId);
       }
 
       if (selectedEmployeeId) {
@@ -314,8 +339,6 @@ const LeaderEvaluation = () => {
   };
 
   const handleSubmit = async () => {
-    console.log('handleSubmit chamado, PDI atual:', pdiData);
-    
     if (!currentCycle || !selectedEmployeeId || !profile?.id) {
       toast.error('Dados incompletos para enviar');
       return;
@@ -358,45 +381,30 @@ const LeaderEvaluation = () => {
 
     setIsSaving(true);
     try {
-      // Preparar dados do PDI apenas se houver itens
-      let pdiToSend = undefined;
-      
-      if (totalPdiItems > 0) {
-        const pdiGoals: string[] = [];
-        const pdiActions: string[] = [];
-        
-        // Combinar todos os itens do PDI
-        const allPdiItems = [
-          ...pdiData.curtosPrazos.map(item => ({ ...item, prazo: 'Curto Prazo' })),
-          ...pdiData.mediosPrazos.map(item => ({ ...item, prazo: 'Médio Prazo' })),
-          ...pdiData.longosPrazos.map(item => ({ ...item, prazo: 'Longo Prazo' }))
-        ];
-        
-        // Formatar os dados do PDI
-        allPdiItems.forEach(item => {
-          pdiGoals.push(`${item.prazo} - ${item.competencia}: ${item.resultadosEsperados}`);
-          pdiActions.push(`${item.prazo} - ${item.comoDesenvolver} (Prazo: ${item.calendarizacao})`);
-        });
-
-        pdiToSend = {
-          goals: pdiGoals,
-          actions: pdiActions,
-          timeline: pdiData.periodo || 'Anual',
-          resources: allPdiItems.map(item => item.observacao).filter(obs => obs && obs.trim() !== '')
-        };
-      }
-
-      // Salvar avaliação com PDI (se houver)
+      // 1. Criar a avaliação do líder
       await saveLeaderEvaluation({
         cycleId: currentCycle.id,
         employeeId: selectedEmployeeId,
         evaluatorId: profile.id,
         competencies,
         potentialScore: calculatePotentialScores().final,
-        pdi: pdiToSend
+        feedback: {
+          strengths_internal: 'Avaliação completa',
+          improvements: '',
+          observations: `Potencial: ${potentialItems.map(item => `${item.name}: ${item.score}`).join(', ')}`
+        }
       });
 
-      toast.success(totalPdiItems > 0 ? 'Avaliação e PDI salvos com sucesso!' : 'Avaliação salva com sucesso!');
+      // 2. Salvar o PDI usando o novo serviço
+      const pdiParams = pdiService.transformPDIDataForAPI(
+        pdiData,
+        currentCycle.id,
+        undefined // leaderEvaluationId será undefined por enquanto
+      );
+
+      await pdiService.savePDI(pdiParams);
+
+      toast.success('Avaliação e PDI salvos com sucesso!');
       setTimeout(() => {
         navigate('/');
       }, 2000);
@@ -446,33 +454,6 @@ const LeaderEvaluation = () => {
 
     setIsSaving(true);
     try {
-      // Preparar dados do PDI se houver
-      let pdiToSave = undefined;
-      if (totalPdiItems > 0) {
-        const pdiGoals: string[] = [];
-        const pdiActions: string[] = [];
-        
-        // Combinar todos os itens do PDI
-        const allPdiItems = [
-          ...pdiData.curtosPrazos.map(item => ({ ...item, prazo: 'Curto Prazo' })),
-          ...pdiData.mediosPrazos.map(item => ({ ...item, prazo: 'Médio Prazo' })),
-          ...pdiData.longosPrazos.map(item => ({ ...item, prazo: 'Longo Prazo' }))
-        ];
-        
-        // Formatar os dados do PDI
-        allPdiItems.forEach(item => {
-          pdiGoals.push(`${item.prazo} - ${item.competencia}: ${item.resultadosEsperados}`);
-          pdiActions.push(`${item.prazo} - ${item.comoDesenvolver} (Prazo: ${item.calendarizacao})`);
-        });
-
-        pdiToSave = {
-          goals: pdiGoals,
-          actions: pdiActions,
-          timeline: pdiData.periodo || 'Anual',
-          resources: allPdiItems.map(item => item.observacao).filter(obs => obs && obs.trim() !== '')
-        };
-      }
-
       // Salvar avaliação como rascunho
       await saveLeaderEvaluation({
         cycleId: currentCycle.id,
@@ -484,9 +465,19 @@ const LeaderEvaluation = () => {
           strengths_internal: '',
           improvements: '',
           observations: 'Avaliação salva como rascunho'
-        },
-        pdi: pdiToSave
+        }
       });
+
+      // Se houver itens no PDI, salvar também
+      if (totalPdiItems > 0) {
+        const pdiParams = pdiService.transformPDIDataForAPI(
+          pdiData,
+          currentCycle.id,
+          undefined // Sem ID da avaliação por enquanto
+        );
+
+        await pdiService.savePDI(pdiParams);
+      }
 
       toast.success('Rascunho salvo com sucesso');
     } catch (error) {

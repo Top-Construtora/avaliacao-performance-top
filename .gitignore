@@ -28,6 +28,8 @@ dist-ssr
 */.env.local
 frontend/.env.local
 backend/.env
+env-config.json
+switch-env.js
 
 # Deployment
 .vercel

@@ -115,12 +115,17 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const { cycleId } = req.params;
-      
+
       const dashboard = await evaluationService.getCycleDashboard(
         authReq.supabase,
         cycleId
       );
-      
+
+      // Debug: Log what we're sending
+      console.log('Controller sending dashboard with fields:',
+        dashboard.length > 0 ? Object.keys(dashboard[0]) : 'no data'
+      );
+
       res.json({
         success: true,
         data: dashboard
@@ -286,63 +291,6 @@ export const evaluationController = {
       res.json({
         success: true,
         data: evaluation
-      });
-    } catch (error) {
-      console.error('Controller error:', error);
-      next(error);
-    }
-  },
-
-  // ====================================
-  // CONSENSO
-  // ====================================
-  
-  // Criar reunião de consenso
-  async createConsensusMeeting(req: Request, res: Response, next: NextFunction) {
-    try {
-      const authReq = req as AuthRequest;
-      
-      const meeting = await evaluationService.createConsensusMeeting(
-        authReq.supabase,
-        {
-          ...req.body,
-          createdBy: authReq.user?.id
-        }
-      );
-      
-      res.json({
-        success: true,
-        data: meeting
-      });
-    } catch (error) {
-      console.error('Controller error:', error);
-      next(error);
-    }
-  },
-
-  // Completar consenso
-  async completeConsensusMeeting(req: Request, res: Response, next: NextFunction) {
-    try {
-      const authReq = req as AuthRequest;
-      const { meetingId } = req.params;
-      const { performanceScore, potentialScore, notes } = req.body;
-      
-      if (!performanceScore || !potentialScore) {
-        return res.status(400).json({
-          success: false,
-          error: 'Missing required fields: performanceScore, potentialScore'
-        });
-      }
-      
-      const meeting = await evaluationService.completeConsensusMeeting(
-        authReq.supabase,
-        meetingId,
-        { performanceScore, potentialScore, notes }
-      );
-      
-      res.json({
-        success: true,
-        data: meeting
       });
     } catch (error) {
       console.error('Controller error:', error);

@@ -85,6 +85,12 @@ const Consensus = () => {
   const [showMatrix, setShowMatrix] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingPDI, setLoadingPDI] = useState(false);
+
+  // Estados para armazenar IDs das avaliações e nota de potencial
+  const [selfEvaluationId, setSelfEvaluationId] = useState<string | null>(null);
+  const [leaderEvaluationId, setLeaderEvaluationId] = useState<string | null>(null);
+  const [potentialScore, setPotentialScore] = useState<number | null>(null);
+  const [hasExistingConsensus, setHasExistingConsensus] = useState<boolean>(false);
   
   // Novos estados para controle do PDI
   const [showPDI, setShowPDI] = useState(false);
@@ -162,33 +168,33 @@ const Consensus = () => {
       icon: Users 
     },
     // Competências Organizacionais
-    { 
-      id: 'missao-dada-cumprida', 
-      name: 'MERITOCRACIA E MISSÃO COMPARTILHADA', 
+    {
+      id: 'missao-dada-cumprida',
+      name: 'MERITOCRACIA E MISSÃO COMPARTILHADA',
       description: 'Reconhecimento por mérito e alinhamento com os valores da empresa',
-      category: 'Organizacional', 
-      icon: Award 
+      category: 'Organizacional',
+      icon: Award
     },
-    { 
-      id: 'senso-dono', 
-      name: 'ESPIRAL DE PASSOS', 
+    {
+      id: 'senso-dono',
+      name: 'ESPIRAL DE PASSOS',
       description: 'Evolução contínua através de pequenos passos consistentes',
-      category: 'Organizacional', 
-      icon: Award 
+      category: 'Organizacional',
+      icon: Award
     },
-    { 
-      id: 'planejar-preco', 
-      name: 'PLANEJAR É PREÇO', 
+    {
+      id: 'planejar-preciso',
+      name: 'PLANEJAR É PRECISO',
       description: 'Valorização do planejamento e organização como fator crítico de sucesso',
-      category: 'Organizacional', 
-      icon: Award 
+      category: 'Organizacional',
+      icon: Award
     },
-    { 
-      id: 'melhoria-continua', 
-      name: 'MELHORIA CONTÍNUA', 
+    {
+      id: 'melhoria-continua',
+      name: 'MELHORIA CONTÍNUA',
       description: 'Busca constante por aperfeiçoamento e inovação em processos e resultados',
-      category: 'Organizacional', 
-      icon: Award 
+      category: 'Organizacional',
+      icon: Award
     }
   ];
 
@@ -411,6 +417,31 @@ const Consensus = () => {
 
     setLoading(true);
     try {
+      // Verificar se já existe consenso para este colaborador no ciclo atual
+      const currentCycle = await evaluationService.getCurrentCycle();
+      if (currentCycle) {
+        const { data: existingConsensus, error: consensusCheckError } = await supabase
+          .from('consensus_evaluations')
+          .select('id, consensus_score, potential_score, nine_box_position, evaluation_date')
+          .eq('employee_id', selectedEmployeeId)
+          .eq('cycle_id', currentCycle.id)
+          .single();
+
+        if (consensusCheckError && consensusCheckError.code !== 'PGRST116') {
+          console.error('Erro ao verificar consenso existente:', consensusCheckError);
+        }
+
+        if (existingConsensus) {
+          setHasExistingConsensus(true);
+          toast.error(
+            `Este colaborador já possui um consenso salvo neste ciclo (Nota: ${existingConsensus.consensus_score?.toFixed(1)}, Posição: ${existingConsensus.nine_box_position}). Selecione outro colaborador.`,
+            { duration: 5000 }
+          );
+        } else {
+          setHasExistingConsensus(false);
+        }
+      }
+
       // Buscar a autoavaliação mais recente
       const { data: selfEval, error: selfError } = await supabase
         .from('self_evaluations')
@@ -456,43 +487,53 @@ const Consensus = () => {
         // Organizacionais
         'MERITOCRACIA E MISSÃO COMPARTILHADA': 'missao-dada-cumprida',
         'ESPIRAL DE PASSOS': 'senso-dono',
-        'PLANEJAR É PREÇO': 'planejar-preco',
+        'PLANEJAR É PRECISO': 'planejar-preciso',
         'MELHORIA CONTÍNUA': 'melhoria-continua'
       };
 
       // Processar scores da autoavaliação
       if (selfEval && !selfError && selfEval.evaluation_competencies) {
+        console.log('📊 Autoavaliação encontrada - Competências:', selfEval.evaluation_competencies);
+        setSelfEvaluationId(selfEval.id); // Armazenar o ID da autoavaliação
+
         selfEval.evaluation_competencies.forEach((comp: any) => {
+          console.log(`  - ${comp.criterion_name}: ${comp.score} (categoria: ${comp.category})`);
           const criterionId = criterionNameToId[comp.criterion_name.toUpperCase()];
-          if (criterionId) {
+          if (criterionId && comp.score !== null) {
             selfScoresMap[criterionId] = comp.score;
+            console.log(`    ✅ Mapeado para ID: ${criterionId}`);
+          } else if (!criterionId) {
+            console.warn(`    ⚠️ Competência não mapeada: ${comp.criterion_name}`);
           }
         });
+      } else {
+        console.log('❌ Nenhuma autoavaliação encontrada para este colaborador');
+        setSelfEvaluationId(null);
       }
-
-      // Preencher com valores padrão para critérios sem score
-      criteria.forEach(criterion => {
-        if (!selfScoresMap[criterion.id]) {
-          selfScoresMap[criterion.id] = 3;
-        }
-      });
 
       // Processar scores da avaliação do líder
       if (leaderEval && !leaderError && leaderEval.evaluation_competencies) {
+        console.log('👔 Avaliação do Líder encontrada - Competências:', leaderEval.evaluation_competencies);
+        setLeaderEvaluationId(leaderEval.id); // Armazenar o ID da avaliação do líder
+        setPotentialScore(leaderEval.potential_score || null); // Armazenar a nota de potencial
+
+        console.log('📈 Nota de Potencial do Líder:', leaderEval.potential_score);
+
         leaderEval.evaluation_competencies.forEach((comp: any) => {
+          console.log(`  - ${comp.criterion_name}: ${comp.score} (categoria: ${comp.category})`);
           const criterionId = criterionNameToId[comp.criterion_name.toUpperCase()];
-          if (criterionId) {
+          if (criterionId && comp.score !== null) {
             leaderScoresMap[criterionId] = comp.score;
+            console.log(`    ✅ Mapeado para ID: ${criterionId}`);
+          } else if (!criterionId) {
+            console.warn(`    ⚠️ Competência não mapeada: ${comp.criterion_name}`);
           }
         });
+      } else {
+        console.log('❌ Nenhuma avaliação do líder encontrada para este colaborador');
+        setLeaderEvaluationId(null);
+        setPotentialScore(null);
       }
-
-      // Preencher com valores padrão para critérios sem score
-      criteria.forEach(criterion => {
-        if (!leaderScoresMap[criterion.id]) {
-          leaderScoresMap[criterion.id] = 3;
-        }
-      });
 
       setSelfScores(selfScoresMap);
       setLeaderScores(leaderScoresMap);
@@ -553,13 +594,41 @@ const Consensus = () => {
     return (technical * 0.4) + (behavioral * 0.3) + (organizational * 0.3);
   };
 
+  // Função para calcular o código Nine Box (B1-B9)
+  const calculateNineBoxCode = (performance: number, potential: number): string => {
+    let perfRow: number;
+    let potCol: number;
+
+    // Determinar linha baseada na performance (consensus_score)
+    if (performance <= 2) {
+      perfRow = 0; // B1, B2, B3
+    } else if (performance <= 3) {
+      perfRow = 1; // B4, B5, B6
+    } else {
+      perfRow = 2; // B7, B8, B9
+    }
+
+    // Determinar coluna baseada no potencial
+    if (potential <= 2) {
+      potCol = 0; // Coluna 1
+    } else if (potential <= 3) {
+      potCol = 1; // Coluna 2
+    } else {
+      potCol = 2; // Coluna 3
+    }
+
+    // Calcular o número do box (1-9)
+    const boxNumber = (perfRow * 3) + potCol + 1;
+    return `B${boxNumber}`;
+  };
+
   const handleSaveConsensus = async (): Promise<void> => {
     if (!selectedEmployeeId) {
       toast.error('Selecione um colaborador');
       return;
     }
 
-    const hasUnratedCriteria = criteria.some(criterion => 
+    const hasUnratedCriteria = criteria.some(criterion =>
       !consensusScores[criterion.id] || consensusScores[criterion.id] === 0
     );
 
@@ -568,11 +637,45 @@ const Consensus = () => {
       return;
     }
 
+    if (!potentialScore) {
+      toast.error('Nota de potencial não encontrada. Certifique-se de que o líder fez a avaliação.');
+      return;
+    }
+
     setLoading(true);
     try {
+      // Get current cycle
+      const currentCycle = await evaluationService.getCurrentCycle();
+      if (!currentCycle) {
+        toast.error('Nenhum ciclo ativo encontrado');
+        return;
+      }
+
+      // Verificar se já existe um consenso para este colaborador neste ciclo
+      const { data: existingConsensus, error: checkError } = await supabase
+        .from('consensus_evaluations')
+        .select('id')
+        .eq('employee_id', selectedEmployeeId)
+        .eq('cycle_id', currentCycle.id)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        // PGRST116 = no rows found, que é o esperado
+        throw checkError;
+      }
+
+      if (existingConsensus) {
+        toast.error('Já existe um consenso salvo para este colaborador neste ciclo. Não é possível alterar.');
+        return;
+      }
+
       // Calculate final score
       const finalScore = calculateOverallAverage();
-      
+
+      // Calculate nine box position
+      const nineBoxPosition = calculateNineBoxCode(finalScore, potentialScore);
+      console.log('📊 Posição Nine Box calculada:', nineBoxPosition, '(Performance:', finalScore, '/ Potencial:', potentialScore, ')');
+
       // Create notes with all observations and scores
       const notesContent = {
         criterionScores: consensusScores,
@@ -587,10 +690,17 @@ const Consensus = () => {
       // Prepare the consensus data matching your table structure
       const consensusData = {
         employee_id: selectedEmployeeId,
+        cycle_id: currentCycle.id,
+        self_evaluation_id: selfEvaluationId,
+        leader_evaluation_id: leaderEvaluationId,
         consensus_score: finalScore,
+        potential_score: potentialScore, // Usar a nota de potencial da avaliação do líder
+        nine_box_position: nineBoxPosition, // Adicionar a posição Nine Box
         notes: JSON.stringify(notesContent),
         evaluation_date: new Date().toISOString().split('T')[0]
       };
+
+      console.log('💾 Salvando consenso com dados:', consensusData);
 
       // Insert consensus evaluation
       const { data: evaluation, error: evalError } = await supabase
@@ -602,12 +712,15 @@ const Consensus = () => {
       if (evalError) throw evalError;
 
       toast.success('Consenso salvo com sucesso!');
-      
+
       // Reset form
       setSelectedEmployeeId('');
       setSelectedLeaderId('');
       setConsensusScores({});
       setConsensusObservations({});
+      setSelfEvaluationId(null);
+      setLeaderEvaluationId(null);
+      setPotentialScore(null);
     } catch (error) {
       console.error('Error saving consensus:', error);
       toast.error('Erro ao salvar consenso');
@@ -640,34 +753,37 @@ const Consensus = () => {
     </button>
   );
 
-  const ScoreIndicator = ({ 
-    score, 
-    type, 
-    criterionId 
-  }: { 
-    score: number; 
+  const ScoreIndicator = ({
+    score,
+    type,
+    criterionId
+  }: {
+    score: number | null | undefined;
     type: 'self' | 'leader';
     criterionId: string;
   }) => {
     const config = {
-      self: { 
-        bg: 'bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700', 
+      self: {
+        bg: 'bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700',
         label: 'Autoavaliação',
       },
-      leader: { 
-        bg: 'bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900', 
+      leader: {
+        bg: 'bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900',
         label: 'Avaliação do Líder',
       }
     };
-    
+
+    const hasScore = score !== null && score !== undefined && score > 0;
+    const displayScore = hasScore ? score : '-';
+
     return (
       <div className="flex flex-col items-center space-y-4 w-32">
         <h6 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium text-center h-10 flex items-center justify-center">{config[type].label}</h6>
-        <div 
-          className={`w-14 h-14 rounded-xl ${config[type].bg} flex items-center justify-center text-white text-xl font-bold shadow-lg dark:shadow-xl`}
-          title={`${config[type].label}: ${score}`}
+        <div
+          className={`w-14 h-14 rounded-xl ${hasScore ? config[type].bg : 'bg-gray-300 dark:bg-gray-600'} flex items-center justify-center text-white text-xl font-bold shadow-lg dark:shadow-xl`}
+          title={`${config[type].label}: ${hasScore ? score : 'Não avaliado'}`}
         >
-          {score}
+          {displayScore}
         </div>
       </div>
     );
@@ -830,9 +946,30 @@ const Consensus = () => {
         </div>
       )}
 
+      {/* Warning Banner for Existing Consensus */}
+      {hasExistingConsensus && selectedEmployeeId && !loading && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-600 rounded-lg p-4 shadow-sm"
+        >
+          <div className="flex items-start">
+            <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
+            <div>
+              <h3 className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
+                Consenso Já Registrado
+              </h3>
+              <p className="text-sm text-red-700 dark:text-red-400">
+                Este colaborador já possui um consenso salvo no ciclo atual. Não é possível criar ou modificar consensos já salvos. Selecione outro colaborador para continuar.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Criteria by Category */}
       <AnimatePresence>
-        {selectedEmployeeId && !loading && (
+        {selectedEmployeeId && !loading && !hasExistingConsensus && (
           <>
             {Object.entries(groupedCriteria).map(([category, categoryCriteria], categoryIndex) => {
               const config = categoryConfig[category as keyof typeof categoryConfig];
@@ -880,8 +1017,8 @@ const Consensus = () => {
                   <div className="p-4 sm:p-6">
                     <div className="space-y-4">
                       {categoryCriteria.map((criterion) => {
-                        const selfScore = selfScores[criterion.id] || 0;
-                        const leaderScore = leaderScores[criterion.id] || 0;
+                        const selfScore = selfScores[criterion.id];
+                        const leaderScore = leaderScores[criterion.id];
                         const consensusScore = consensusScores[criterion.id] || 0;
 
                         return (
@@ -1151,9 +1288,9 @@ const Consensus = () => {
                   onClick={handleSaveConsensus}
                   icon={<Save size={18} />}
                   size="lg"
-                  disabled={progress < 100 || loading}
+                  disabled={progress < 100 || loading || hasExistingConsensus}
                 >
-                  Salvar Consenso
+                  {hasExistingConsensus ? 'Consenso Já Salvo' : 'Salvar Consenso'}
                 </Button>
                 <Button
                   variant="primary"

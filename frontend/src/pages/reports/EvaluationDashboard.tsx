@@ -23,6 +23,17 @@ const EvaluationDashboard: React.FC = () => {
     }
   }, [cycleId, loadDashboard]);
 
+  // Debug: Log dashboard data when it changes
+  useEffect(() => {
+    if (dashboard.length > 0) {
+      console.log('Dashboard state in component:', dashboard.map(emp => ({
+        name: emp.employee_name,
+        leader_potential_score: emp.leader_potential_score,
+        ninebox_position: emp.ninebox_position
+      })));
+    }
+  }, [dashboard]);
+
   // Calculate statistics
   const stats = {
     totalEmployees: dashboard.length,
@@ -30,13 +41,13 @@ const EvaluationDashboard: React.FC = () => {
     leaderCompleted: dashboard.filter(d => d.leader_evaluation_status === 'completed').length,
     consensusCompleted: dashboard.filter(d => d.consensus_status === 'completed').length,
     avgPerformance: dashboard
-      .filter(d => d.consensus_performance_score)
-      .reduce((sum, d) => sum + (d.consensus_performance_score || 0), 0) / 
-      (dashboard.filter(d => d.consensus_performance_score).length || 1),
+      .filter(d => d.consensus_score)
+      .reduce((sum, d) => sum + (d.consensus_score || 0), 0) /
+      (dashboard.filter(d => d.consensus_score).length || 1),
     avgPotential: dashboard
-      .filter(d => d.consensus_potential_score)
-      .reduce((sum, d) => sum + (d.consensus_potential_score || 0), 0) / 
-      (dashboard.filter(d => d.consensus_potential_score).length || 1)
+      .filter(d => d.leader_potential_score)
+      .reduce((sum, d) => sum + (d.leader_potential_score || 0), 0) /
+      (dashboard.filter(d => d.leader_potential_score).length || 1)
   };
 
   // Filter employees
@@ -321,7 +332,7 @@ const EvaluationDashboard: React.FC = () => {
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {employee.self_evaluation_id ? (
+                        {employee.self_evaluation_status === 'completed' ? (
                         <CheckCircle className="h-5 w-5 text-primary-500 mx-auto" />
                         ) : (
                         <div className="h-5 w-5 rounded-full border-2 border-gray-300 dark:border-gray-600 mx-auto" />
@@ -329,38 +340,42 @@ const EvaluationDashboard: React.FC = () => {
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {employee.leader_evaluation_id ? (
+                        {employee.leader_evaluation_status === 'completed' ? (
                         <CheckCircle className="h-5 w-5 text-primary-500 mx-auto" />
                         ) : (
-                        <div className="h-5 w-5 rounded-full border-2 border-gray-300 dark:border-gray-600 mx-auto" />
+                        <div className="h-5 w-5 rounded-full border-2 border-gray-300 dark-gray-600 mx-auto" />
                         )}
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                         <span className="text-sm font-medium text-naue-black dark:text-white">
-                        {employee.consensus_performance_score?.toFixed(2) || '-'}
+                        {employee.consensus_score?.toFixed(2) ||
+                         employee.leader_evaluation_score?.toFixed(2) ||
+                         employee.self_evaluation_score?.toFixed(2) || '-'}
                         </span>
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                         <span className="text-sm font-medium text-naue-black dark:text-white">
-                        {employee.consensus_potential_score?.toFixed(2) || '-'}
+                        {employee.leader_potential_score?.toFixed(2) || '-'}
                         </span>
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {employee.ninebox_position && (
-                        <div className={`inline-flex items-center justify-center w-8 h-8 rounded-lg ${getNineBoxColor(employee.ninebox_position)}`}>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-100">
+                        {employee.ninebox_position ? (
+                        <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${getNineBoxColor(parseInt(employee.ninebox_position.replace('B', '')))} border-2 border-gray-300 dark:border-gray-600`}>
+                            <span className="text-sm font-bold text-gray-700 dark:text-gray-100">
                             {employee.ninebox_position}
                             </span>
                         </div>
+                        ) : (
+                        <span className="text-sm text-gray-400 dark:text-gray-500">-</span>
                         )}
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
-                        onClick={() => navigate(`/evaluation-details/${cycleId}/${employee.employee_id}`)}
+                        onClick={() => navigate('/reports')}
                         className="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300 flex items-center ml-auto"
                         >
                         Ver detalhes

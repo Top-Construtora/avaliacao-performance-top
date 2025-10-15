@@ -93,8 +93,8 @@ export interface EvaluationExtended {
   deliveries_score?: number;
   final_score?: number;
   potential_score?: number;
-  consensus_performance_score?: number;
-  consensus_potential_score?: number;
+  consensus_score?: number;
+  potential_score?: number;
   strengths_internal?: string;
   improvements?: string;
   observations?: string;
@@ -122,8 +122,8 @@ export interface ConsensusMeeting {
   self_evaluation_id?: string; // Agora opcional
   leader_evaluation_id?: string; // Agora opcional
   meeting_date?: string;
-  consensus_performance_score: number;
-  consensus_potential_score: number;
+  consensus_score: number;
+  potential_score: number;
   meeting_notes?: string;
   participants?: string[];
   status: 'scheduled' | 'completed' | 'cancelled';
@@ -142,9 +142,11 @@ export interface CycleDashboard {
   self_evaluation_score?: number | null;
   leader_evaluation_status: string;
   leader_evaluation_score?: number | null;
+  leader_potential_score?: number | null; // Nota de potencial da avaliação do líder
   consensus_status: string;
-  consensus_performance_score?: number | null;
-  consensus_potential_score?: number | null;
+  consensus_score?: number | null;
+  potential_score?: number | null;
+  ninebox_position?: string | null; // Posição Nine Box (B1-B9)
   // Campos extras do tipo original
   cycle_id?: string;
   cycle_title?: string;
@@ -157,7 +159,6 @@ export interface CycleDashboard {
   leader_score?: number;
   potential_score?: number;
   consensus_id?: string;
-  ninebox_position?: number;
 }
 
 export interface NineBoxData {
@@ -227,17 +228,17 @@ export const EVALUATION_COMPETENCIES = {
     },
     {
       name: 'Espiral de Passos',
-      description: 'Desenvolvimento contínuo e progressão estruturada na carreira',
+      description: 'Evolução contínua através de pequenos passos consistentes',
       category: 'deliveries' as const
     },
     {
-      name: 'Cooperação',
-      description: 'Trabalho colaborativo e contribuição para o sucesso coletivo',
+      name: 'Planejar é Preciso',
+      description: 'Valorização do planejamento e organização como fator crítico de sucesso',
       category: 'deliveries' as const
     },
     {
-      name: 'Cliente em 1° Lugar',
-      description: 'Foco na satisfação e necessidades do cliente interno e externo',
+      name: 'Melhoria Contínua',
+      description: 'Busca constante por aperfeiçoamento e inovação em processos e resultados',
       category: 'deliveries' as const
     }
   ]

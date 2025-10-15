@@ -198,8 +198,8 @@ export interface Database {
           cycle_id: string | null
           evaluation_type: 'self' | 'leader' | 'consensus' | null
           potential_score: number | null
-          consensus_performance_score: number | null
-          consensus_potential_score: number | null
+          consensus_score: number | null
+          potential_score: number | null
         }
         Insert: {
           id?: string
@@ -220,8 +220,8 @@ export interface Database {
           cycle_id?: string | null
           evaluation_type?: 'self' | 'leader' | 'consensus' | null
           potential_score?: number | null
-          consensus_performance_score?: number | null
-          consensus_potential_score?: number | null
+          consensus_score?: number | null
+          potential_score?: number | null
         }
         Update: {
           id?: string
@@ -242,8 +242,8 @@ export interface Database {
           cycle_id?: string | null
           evaluation_type?: 'self' | 'leader' | 'consensus' | null
           potential_score?: number | null
-          consensus_performance_score?: number | null
-          consensus_potential_score?: number | null
+          consensus_score?: number | null
+          potential_score?: number | null
         }
       }
       evaluation_competencies: {
@@ -323,6 +323,7 @@ export interface Database {
         Row: {
           id: string
           employee_id: string
+          cycle_id: string | null
           self_evaluation_id: string | null
           leader_evaluation_id: string | null
           consensus_score: number | null
@@ -336,6 +337,7 @@ export interface Database {
         Insert: {
           id?: string
           employee_id: string
+          cycle_id?: string | null
           self_evaluation_id?: string | null
           leader_evaluation_id?: string | null
           consensus_score?: number | null
@@ -349,6 +351,7 @@ export interface Database {
         Update: {
           id?: string
           employee_id?: string
+          cycle_id?: string | null
           self_evaluation_id?: string | null
           leader_evaluation_id?: string | null
           consensus_score?: number | null
