@@ -217,6 +217,7 @@ export interface CycleDashboard {
   employee_name: string;
   employee_email: string;
   employee_position: string;
+  department_name?: string; // Nome do departamento
   self_evaluation_id?: string | null;
   self_evaluation_status: string;
   self_evaluation_score?: number | null;

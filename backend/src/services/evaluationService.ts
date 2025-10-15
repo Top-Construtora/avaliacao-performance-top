@@ -141,6 +141,25 @@ export const evaluationService = {
   // Dashboard do ciclo
   async getCycleDashboard(supabase: any, cycleId: string) {
     try {
+      // Buscar TODOS os usuários ativos (exceto admins)
+      const { data: allUsers, error: usersError } = await supabase
+        .from('users')
+        .select(`
+          id,
+          name,
+          email,
+          position,
+          is_director,
+          department_id,
+          departments:department_id(id, name)
+        `)
+        .eq('active', true)
+        .eq('is_admin', false);
+
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+      }
+
       // Buscar autoavaliações
       const { data: selfEvals, error: selfError } = await supabase
         .from('self_evaluations')
@@ -184,29 +203,43 @@ export const evaluationService = {
       // Combinar dados para o dashboard
       const employeeMap = new Map<string, CycleDashboard>();
 
-      // Processar autoavaliações
+      // Primeiro, adicionar TODOS os usuários ativos (exceto admins) ao mapa
+      allUsers?.forEach((user: any) => {
+        // Diretores não têm autoavaliação nem consenso, apenas avaliação de líder
+        const isDirector = user.is_director === true;
+
+        if (isDirector) {
+          console.log(`🔍 Director detected: ${user.name} (${user.id}) - Setting self and consensus to 'n/a'`);
+        }
+
+        // Tentar obter o nome do departamento do relacionamento ou usar department_id
+        const departmentName = user.departments?.name || user.department_id || '';
+
+        employeeMap.set(user.id, {
+          employee_id: user.id,
+          employee_name: user.name || '',
+          employee_email: user.email || '',
+          employee_position: user.position || '',
+          department_name: departmentName, // Adicionar nome do departamento
+          self_evaluation_id: null,
+          self_evaluation_status: isDirector ? 'n/a' : 'pending',
+          self_evaluation_score: null,
+          leader_evaluation_id: null,
+          leader_evaluation_status: 'pending',
+          leader_evaluation_score: null,
+          leader_potential_score: null,
+          consensus_id: null,
+          consensus_status: isDirector ? 'n/a' : 'pending',
+          consensus_performance_score: null,
+          consensus_potential_score: null,
+          ninebox_position: null
+        });
+      });
+
+      // Processar autoavaliações (apenas atualizar os dados existentes)
       selfEvals?.forEach((se: any) => {
         const empId = se.employee_id;
-        if (!employeeMap.has(empId)) {
-          employeeMap.set(empId, {
-            employee_id: empId,
-            employee_name: se.employee?.name || '',
-            employee_email: se.employee?.email || '',
-            employee_position: se.employee?.position || '',
-            self_evaluation_id: se.id,
-            self_evaluation_status: se.status,
-            self_evaluation_score: se.final_score || null,
-            leader_evaluation_id: null,
-            leader_evaluation_status: 'pending',
-            leader_evaluation_score: null,
-            leader_potential_score: null,
-            consensus_id: null,
-            consensus_status: 'pending',
-            consensus_performance_score: null,
-            consensus_potential_score: null,
-            ninebox_position: null
-          });
-        } else {
+        if (employeeMap.has(empId)) {
           const emp = employeeMap.get(empId)!;
           emp.self_evaluation_id = se.id;
           emp.self_evaluation_status = se.status;
@@ -214,63 +247,22 @@ export const evaluationService = {
         }
       });
 
-      // Processar avaliações de líder
+      // Processar avaliações de líder (apenas atualizar os dados existentes)
       leaderEvals?.forEach((le: any) => {
         const empId = le.employee_id;
-        if (!employeeMap.has(empId)) {
-          employeeMap.set(empId, {
-            employee_id: empId,
-            employee_name: le.employee?.name || '',
-            employee_email: le.employee?.email || '',
-            employee_position: le.employee?.position || '',
-            self_evaluation_id: null,
-            self_evaluation_status: 'pending',
-            self_evaluation_score: null,
-            leader_evaluation_id: le.id,
-            leader_evaluation_status: le.status,
-            leader_evaluation_score: le.final_score || null,
-            leader_potential_score: le.potential_score || null, // Adicionar nota de potencial do líder
-            consensus_id: null,
-            consensus_status: 'pending',
-            consensus_performance_score: null,
-            consensus_potential_score: null,
-            ninebox_position: null
-          });
-        } else {
+        if (employeeMap.has(empId)) {
           const emp = employeeMap.get(empId)!;
           emp.leader_evaluation_id = le.id;
           emp.leader_evaluation_status = le.status;
           emp.leader_evaluation_score = le.final_score || null;
-          emp.leader_potential_score = le.potential_score || null; // Adicionar nota de potencial do líder
+          emp.leader_potential_score = le.potential_score || null;
         }
       });
 
-      // Processar avaliações de consenso
+      // Processar avaliações de consenso (apenas atualizar os dados existentes)
       consensusEvals?.forEach((ce: any) => {
         const empId = ce.employee_id;
-
-        // Se o colaborador NÃO está no mapa, criar entrada para ele
-        if (!employeeMap.has(empId)) {
-          employeeMap.set(empId, {
-            employee_id: empId,
-            employee_name: ce.employee?.name || '',
-            employee_email: ce.employee?.email || '',
-            employee_position: ce.employee?.position || '',
-            self_evaluation_id: null,
-            self_evaluation_status: 'pending',
-            self_evaluation_score: null,
-            leader_evaluation_id: null,
-            leader_evaluation_status: 'pending',
-            leader_evaluation_score: null,
-            leader_potential_score: null,
-            consensus_id: ce.id,
-            consensus_status: 'completed',
-            consensus_performance_score: ce.consensus_score,
-            consensus_potential_score: ce.potential_score,
-            ninebox_position: ce.nine_box_position
-          });
-        } else {
-          // Se já existe, atualizar os dados de consenso
+        if (employeeMap.has(empId)) {
           const emp = employeeMap.get(empId)!;
           emp.consensus_id = ce.id;
           emp.consensus_status = 'completed';
@@ -288,6 +280,15 @@ export const evaluationService = {
         leader_potential_score: emp.leader_potential_score ?? null,
         ninebox_position: emp.ninebox_position ?? null
       }));
+
+      // Log para verificar diretores
+      const directors = finalResult.filter(emp => emp.self_evaluation_status === 'n/a');
+      if (directors.length > 0) {
+        console.log(`✅ Found ${directors.length} director(s) with n/a status:`);
+        directors.forEach(d => {
+          console.log(`  - ${d.employee_name}: self=${d.self_evaluation_status}, consensus=${d.consensus_status}`);
+        });
+      }
 
       return finalResult;
     } catch (error: any) {

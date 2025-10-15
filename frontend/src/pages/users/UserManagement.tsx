@@ -43,6 +43,7 @@ const UserManagement = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('');
   const [showOnlyLeaders, setShowOnlyLeaders] = useState(false);
+  const [showInactiveUsers, setShowInactiveUsers] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'department'>('name');
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -95,15 +96,20 @@ const UserManagement = () => {
 
     const warnings = operationValidator.getValidationWarnings('deactivate_user', targetData);
     if (warnings.length > 0) {
+      const isActive = targetData?.active !== false;
       setPendingOperation({
         type: 'deactivate_user',
         data: targetData,
         callback: async () => {
           try {
             await actions.users.delete(id);
-            toast.success('Usuário deletado com sucesso!');
+            if (isActive) {
+              toast.success('Usuário desativado com sucesso!');
+            } else {
+              toast.success('Usuário excluído permanentemente!');
+            }
           } catch (error) {
-            toast.error('Erro ao deletar usuário');
+            toast.error(isActive ? 'Erro ao desativar usuário' : 'Erro ao excluir usuário');
           }
         }
       });
@@ -111,12 +117,22 @@ const UserManagement = () => {
       return;
     }
 
-    if (window.confirm('Tem certeza que deseja deletar este usuário? Esta ação não pode ser desfeita.')) {
+    // Verificar se o usuário está ativo ou inativo
+    const isActive = targetData?.active !== false;
+    const confirmMessage = isActive
+      ? 'Tem certeza que deseja desativar este usuário? Ele será movido para usuários desativados.'
+      : 'Este usuário já está desativado. Tem certeza que deseja EXCLUIR PERMANENTEMENTE todos os seus dados? Esta ação não pode ser desfeita!';
+
+    if (window.confirm(confirmMessage)) {
       try {
         await actions.users.delete(id);
-        toast.success('Usuário deletado com sucesso!');
+        if (isActive) {
+          toast.success('Usuário desativado com sucesso!');
+        } else {
+          toast.success('Usuário excluído permanentemente!');
+        }
       } catch (error) {
-        toast.error('Erro ao deletar usuário');
+        toast.error(isActive ? 'Erro ao desativar usuário' : 'Erro ao excluir usuário');
       }
     }
   };
@@ -242,16 +258,28 @@ const UserManagement = () => {
   const filteredUsers = useMemo(() => {
     return users
       .filter(user => {
+        // Excluir usuários admin
+        if (user.is_admin) return false;
+
+        // Filtrar por status ativo/inativo
+        if (showInactiveUsers) {
+          // Mostrar apenas usuários inativos
+          if (user.active !== false) return false;
+        } else {
+          // Mostrar apenas usuários ativos (comportamento padrão)
+          if (user.active === false) return false;
+        }
+
         const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                              user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                              user.position.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesDepartment = !selectedDepartment || 
+
+        const matchesDepartment = !selectedDepartment ||
           user.department_id === selectedDepartment;
-        
-        const matchesTeam = !selectedTeam || 
+
+        const matchesTeam = !selectedTeam ||
           user.teams?.some(t => t.id === selectedTeam);
-        
+
         const matchesLeader = !showOnlyLeaders || user.is_leader || user.is_director;
 
         return matchesSearch && matchesDepartment && matchesTeam && matchesLeader;
@@ -270,14 +298,17 @@ const UserManagement = () => {
             return 0;
         }
       });
-  }, [users, searchTerm, selectedDepartment, selectedTeam, showOnlyLeaders, sortBy]);
+  }, [users, searchTerm, selectedDepartment, selectedTeam, showOnlyLeaders, showInactiveUsers, sortBy]);
 
-  const stats = useMemo(() => ({
-    totalUsers: users.length,
-    totalLeaders: users.filter(u => u.is_leader && !u.is_director).length,
-    totalDirectors: users.filter(u => u.is_director).length,
-    totalCollaborators: users.filter(u => !u.is_leader && !u.is_director).length,
-  }), [users]);
+  const stats = useMemo(() => {
+    const nonAdminUsers = users.filter(u => !u.is_admin);
+    return {
+      totalUsers: nonAdminUsers.length,
+      totalLeaders: nonAdminUsers.filter(u => u.is_leader && !u.is_director).length,
+      totalDirectors: nonAdminUsers.filter(u => u.is_director).length,
+      totalCollaborators: nonAdminUsers.filter(u => !u.is_leader && !u.is_director).length,
+    };
+  }, [users]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -397,7 +428,7 @@ const UserManagement = () => {
                 <button
                   onClick={() => handleDelete(user.id)}
                   className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                  title="Deletar usuário"
+                  title={user.active === false ? "Excluir permanentemente" : "Desativar usuário"}
                 >
                   <UserX className="h-4 w-4" />
                 </button>
@@ -703,7 +734,7 @@ const UserManagement = () => {
                       </select>
                     </div>
 
-                    <div className="flex items-end">
+                    <div className="flex flex-col space-y-2">
                       <label className="flex items-center cursor-pointer">
                         <input
                           type="checkbox"
@@ -712,6 +743,15 @@ const UserManagement = () => {
                           className="rounded border-gray-300 dark:border-gray-600 text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400 mr-3"
                         />
                         <span className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Apenas líderes</span>
+                      </label>
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={showInactiveUsers}
+                          onChange={(e) => setShowInactiveUsers(e.target.checked)}
+                          className="rounded border-gray-300 dark:border-gray-600 text-red-600 dark:text-red-500 focus:ring-red-500 dark:focus:ring-red-400 mr-3"
+                        />
+                        <span className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Usuários desativados</span>
                       </label>
                     </div>
                   </div>

@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
+import {
   BarChart3, Users, FileText, Target, CheckCircle, Clock,
-  AlertCircle, TrendingUp, Grid3x3, Calendar, Filter,
+  AlertCircle, AlertTriangle, TrendingUp, Grid3x3, Calendar, Filter,
   Download, Search, ChevronRight, Info, Award
 } from 'lucide-react';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useUserRole } from '../../context/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import { usersService, departmentsService } from '../../services/supabase.service';
 import type { CycleDashboard } from '../../types/evaluation.types';
+import type { UserWithDetails, Department } from '../../types/supabase';
 
 const EvaluationDashboard: React.FC = () => {
   const { cycleId } = useParams<{ cycleId: string }>();
@@ -16,12 +18,31 @@ const EvaluationDashboard: React.FC = () => {
   const { dashboard, currentCycle, loading, loadDashboard } = useEvaluation();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [users, setUsers] = useState<UserWithDetails[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
 
   useEffect(() => {
     if (cycleId) {
       loadDashboard(cycleId);
     }
   }, [cycleId, loadDashboard]);
+
+  // Carregar usuários e departamentos
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [allUsers, allDepts] = await Promise.all([
+          usersService.getAll(),
+          departmentsService.getAll()
+        ]);
+        setUsers(allUsers.filter(u => u.active));
+        setDepartments(allDepts);
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      }
+    };
+    loadData();
+  }, []);
 
   // Debug: Log dashboard data when it changes
   useEffect(() => {
@@ -36,54 +57,134 @@ const EvaluationDashboard: React.FC = () => {
 
   // Calculate statistics
   const stats = {
-    totalEmployees: dashboard.length,
-    selfCompleted: dashboard.filter(d => d.self_evaluation_status === 'completed').length,
+    // Total: apenas colaboradores e líderes (sem diretores)
+    totalEmployees: dashboard.filter(d => d.self_evaluation_status !== 'n/a').length,
+
+    // Autoavaliações: apenas colaboradores e líderes (excluir diretores que têm status n/a)
+    selfCompleted: dashboard.filter(d =>
+      d.self_evaluation_status === 'completed' && d.consensus_status !== 'n/a'
+    ).length,
+
+    // Avaliações de Líder: todos (colaboradores, líderes e diretores)
     leaderCompleted: dashboard.filter(d => d.leader_evaluation_status === 'completed').length,
-    consensusCompleted: dashboard.filter(d => d.consensus_status === 'completed').length,
-    avgPerformance: dashboard
-      .filter(d => d.consensus_score)
-      .reduce((sum, d) => sum + (d.consensus_score || 0), 0) /
-      (dashboard.filter(d => d.consensus_score).length || 1),
-    avgPotential: dashboard
-      .filter(d => d.leader_potential_score)
-      .reduce((sum, d) => sum + (d.leader_potential_score || 0), 0) /
-      (dashboard.filter(d => d.leader_potential_score).length || 1)
+
+    // Consenso: apenas colaboradores e líderes (excluir diretores)
+    consensusCompleted: dashboard.filter(d =>
+      d.consensus_status === 'completed' && d.consensus_status !== 'n/a'
+    ).length
   };
 
-  // Filter employees
+  // Filter employees (excluir diretores)
   const filteredEmployees = dashboard.filter(employee => {
+    // Não mostrar diretores na tabela
+    if (employee.self_evaluation_status === 'n/a' && employee.consensus_status === 'n/a') {
+      return false;
+    }
+
     const matchesSearch = employee.employee_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         employee.position.toLowerCase().includes(searchTerm.toLowerCase());
-    
+                         employee.employee_position.toLowerCase().includes(searchTerm.toLowerCase());
+
     if (filterStatus === 'all') return matchesSearch;
     if (filterStatus === 'pending') return matchesSearch && !employee.self_evaluation_id;
     if (filterStatus === 'in-progress') return matchesSearch && employee.self_evaluation_id && !employee.consensus_id;
     if (filterStatus === 'completed') return matchesSearch && employee.consensus_status === 'completed';
-    
+
     return matchesSearch;
   });
 
-  const getStatusBadge = (employee: CycleDashboard) => {
-    if (employee.consensus_status === 'completed') {
-      return { color: 'bg-status-success/10 text-status-success border border-status-success/20', icon: CheckCircle, text: 'Concluído' };
+  const getStatusLabel = (status: string | null | undefined): string => {
+    switch (status) {
+      case 'completed': return 'Completo';
+      case 'in-progress': return 'Em Andamento';
+      case 'pending': return 'Pendente';
+      case 'n/a': return 'N/A';
+      default: return 'Aguardando';
     }
-    if (employee.leader_evaluation_id) {
-      return { color: 'bg-status-warning/10 text-status-warning border border-status-warning/20', icon: Clock, text: 'Aguardando Consenso' };
-    }
-    if (employee.self_evaluation_id) {
-      return { color: 'bg-status-info/10 text-status-info border border-status-info/20', icon: Clock, text: 'Em Avaliação' };
-    }
-    return { color: 'bg-status-danger/10 text-status-danger border border-status-danger/20', icon: AlertCircle, text: 'Pendente' };
   };
 
-  const getNineBoxColor = (position?: number) => {
-    if (!position) return 'bg-gray-100';
-    const colors = {
-      1: 'bg-red-100', 2: 'bg-accent-100', 3: 'bg-yellow-100',
-      4: 'bg-indigo-100', 5: 'bg-blue-100', 6: 'bg-primary-100',
-      7: 'bg-secondary-100', 8: 'bg-teal-100', 9: 'bg-emerald-100'
+  const getStatusBadge = (status: string | null | undefined) => {
+    const label = getStatusLabel(status);
+    const statusConfig = {
+      'Completo': {
+        bgColor: 'bg-status-success/10',
+        textColor: 'text-status-success',
+        borderColor: 'border-status-success/20',
+        icon: CheckCircle
+      },
+      'Em Andamento': {
+        bgColor: 'bg-status-warning/10',
+        textColor: 'text-status-warning',
+        borderColor: 'border-status-warning/20',
+        icon: Clock
+      },
+      'Pendente': {
+        bgColor: 'bg-status-danger/10',
+        textColor: 'text-status-danger',
+        borderColor: 'border-status-danger/20',
+        icon: AlertTriangle
+      },
+      'N/A': {
+        bgColor: 'bg-gray-100 dark:bg-gray-700',
+        textColor: 'text-gray-500 dark:text-gray-400',
+        borderColor: 'border-gray-300 dark:border-gray-600',
+        icon: Target
+      },
+      'Aguardando': {
+        bgColor: 'bg-status-info/10',
+        textColor: 'text-status-info',
+        borderColor: 'border-status-info/20',
+        icon: Clock
+      }
     };
-    return colors[position as keyof typeof colors] || 'bg-gray-100';
+
+    const config = statusConfig[label as keyof typeof statusConfig] || statusConfig['Pendente'];
+    const Icon = config.icon;
+
+    return (
+      <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium ${config.bgColor} ${config.textColor} border ${config.borderColor}`}>
+        <Icon size={10} className="mr-1 flex-shrink-0" />
+        <span className="truncate">{label}</span>
+      </span>
+    );
+  };
+
+  const getNineBoxBadge = (position: string | null | undefined, item?: CycleDashboard) => {
+    if (!position) {
+      // Se for diretor (autoavaliação e consenso são n/a), mostrar N/A ao invés de Pendente
+      if (item && item.self_evaluation_status === 'n/a' && item.consensus_status === 'n/a') {
+        return (
+          <span className="text-sm text-gray-500 dark:text-gray-400">N/A</span>
+        );
+      }
+      return (
+        <span className="text-sm text-gray-400 dark:text-gray-600">Pendente</span>
+      );
+    }
+
+    // Configuração de cores baseada na posição
+    const positionConfig: Record<string, { bg: string; text: string; border: string }> = {
+      'B1': { bg: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-700' },
+      'B2': { bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-700 dark:text-orange-300', border: 'border-orange-200 dark:border-orange-700' },
+      'B3': { bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-700' },
+      'B4': { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-700' },
+      'B5': { bg: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-700 dark:text-yellow-300', border: 'border-yellow-200 dark:border-yellow-700' },
+      'B6': { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-700' },
+      'B7': { bg: 'bg-rose-50 dark:bg-rose-900/20', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-700' },
+      'B8': { bg: 'bg-indigo-50 dark:bg-indigo-900/20', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-200 dark:border-indigo-700' },
+      'B9': { bg: 'bg-green-800 dark:bg-green-800', text: 'text-white', border: 'border-green-800 dark:border-green-700' },
+    };
+
+    const config = positionConfig[position] || {
+      bg: 'bg-gray-50 dark:bg-gray-900/20',
+      text: 'text-gray-700 dark:text-gray-300',
+      border: 'border-gray-200 dark:border-gray-700'
+    };
+
+    return (
+      <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-bold ${config.bg} ${config.text} border ${config.border}`}>
+        {position}
+      </span>
+    );
   };
 
   if (loading) {
@@ -208,33 +309,6 @@ const EvaluationDashboard: React.FC = () => {
             </div>
           </motion.div>
         </div>
-
-        {/* Average Scores */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <div className="bg-gradient-to-r from-gray-600 to-gray-700 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white text-sm">Média de Performance</p>
-                <p className="text-3xl font-bold text-white mt-1">
-                  {stats.avgPerformance.toFixed(2)}
-                </p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-primary-500" />
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-r from-gray-600 to-gray-700 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white text-sm">Média de Potencial</p>
-                <p className="text-3xl font-bold text-white mt-1">
-                  {stats.avgPotential.toFixed(2)}
-                </p>
-              </div>
-              <Target className="h-8 w-8 text-primary-500" />
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Filters and Search */}
@@ -269,124 +343,79 @@ const EvaluationDashboard: React.FC = () => {
         </div>
       </div>
 
-        {/* Employees Table */}
-        <div className="bg-naue-white dark:bg-gray-900 dark:border-gray-700 rounded-xl shadow-sm border border-naue-border-gray dark:border-gray-700 overflow-hidden">
+      {/* Employees Table */}
+      <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
-            <table className="w-full">
-            <thead className="bg-naue-light-gray dark:bg-gray-800 border-b border-naue-border-gray dark:border-gray-600">
-                <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
-                    Colaborador
+          <table className="w-full">
+            <thead className="bg-naue-light-gray dark:bg-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Colaborador
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
-                    Status
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Departamento
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
-                    Autoavaliação
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Autoavaliação
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
-                    Avaliação Líder
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Líder
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
-                    Performance
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Consenso
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
-                    Potencial
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  PDI
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
-                    9-Box
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Posição Nine Box
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-naue-text-gray dark:text-gray-300 uppercase tracking-wider">
-                    Ações
-                </th>
-                </tr>
+              </tr>
             </thead>
-            <tbody className="bg-naue-white dark:bg-gray-900 divide-y divide-naue-border-gray dark:divide-gray-700">
-                {filteredEmployees.map((employee) => {
-                const status = getStatusBadge(employee);
-                const StatusIcon = status.icon;
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-naue-border-gray dark:divide-gray-700">
+              {filteredEmployees.map((item: CycleDashboard) => {
+                const user = users.find(u => u.id === item.employee_id);
+                const deptName = item.department_name ||
+                  (user?.teams && user.teams[0] ?
+                    departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-');
 
                 return (
-                    <motion.tr
-                    key={employee.employee_id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="hover:bg-primary-light dark:hover:bg-gray-800 transition-colors"
-                    >
+                  <tr key={item.employee_id} className="hover:bg-green-50 dark:hover:bg-gray-700 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                        <div className="text-sm font-medium text-naue-black dark:text-white">
-                            {employee.employee_name}
+                      <div>
+                        <div className="text-sm font-medium text-naue-black dark:text-gray-100">
+                          {item.employee_name || '-'}
                         </div>
                         <div className="text-sm text-naue-text-gray dark:text-gray-400">
-                            {employee.position}
+                          {item.employee_position || '-'}
                         </div>
-                        </div>
+                      </div>
                     </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium ${status.color}`}>
-                        <StatusIcon className="h-3 w-3 mr-1" />
-                        {status.text}
-                        </span>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-naue-text-gray dark:text-gray-400">
+                      {deptName}
                     </td>
-
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {employee.self_evaluation_status === 'completed' ? (
-                        <CheckCircle className="h-5 w-5 text-primary-500 mx-auto" />
-                        ) : (
-                        <div className="h-5 w-5 rounded-full border-2 border-gray-300 dark:border-gray-600 mx-auto" />
-                        )}
+                      {getStatusBadge(item.self_evaluation_status)}
                     </td>
-
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {employee.leader_evaluation_status === 'completed' ? (
-                        <CheckCircle className="h-5 w-5 text-primary-500 mx-auto" />
-                        ) : (
-                        <div className="h-5 w-5 rounded-full border-2 border-gray-300 dark-gray-600 mx-auto" />
-                        )}
+                      {getStatusBadge(item.leader_evaluation_status)}
                     </td>
-
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className="text-sm font-medium text-naue-black dark:text-white">
-                        {employee.consensus_score?.toFixed(2) ||
-                         employee.leader_evaluation_score?.toFixed(2) ||
-                         employee.self_evaluation_score?.toFixed(2) || '-'}
-                        </span>
+                      {getStatusBadge(item.consensus_status)}
                     </td>
-
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className="text-sm font-medium text-naue-black dark:text-white">
-                        {employee.leader_potential_score?.toFixed(2) || '-'}
-                        </span>
+                      {item.self_evaluation_status === 'n/a' && item.consensus_status === 'n/a'
+                        ? getStatusBadge('n/a')
+                        : getStatusBadge(item.ninebox_position ? 'completed' : 'pending')}
                     </td>
-
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {employee.ninebox_position ? (
-                        <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${getNineBoxColor(parseInt(employee.ninebox_position.replace('B', '')))} border-2 border-gray-300 dark:border-gray-600`}>
-                            <span className="text-sm font-bold text-gray-700 dark:text-gray-100">
-                            {employee.ninebox_position}
-                            </span>
-                        </div>
-                        ) : (
-                        <span className="text-sm text-gray-400 dark:text-gray-500">-</span>
-                        )}
+                      {getNineBoxBadge(item.ninebox_position, item)}
                     </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                        onClick={() => navigate('/reports')}
-                        className="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300 flex items-center ml-auto"
-                        >
-                        Ver detalhes
-                        <ChevronRight className="h-4 w-4 ml-1" />
-                        </button>
-                    </td>
-                    </motion.tr>
+                  </tr>
                 );
-                })}
+              })}
             </tbody>
-            </table>
+          </table>
         </div>
 
         {filteredEmployees.length === 0 && (

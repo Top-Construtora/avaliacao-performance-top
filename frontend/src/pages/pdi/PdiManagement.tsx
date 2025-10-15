@@ -207,11 +207,13 @@ const PdiManagement: React.FC = () => {
                 disabled={loadingPDI}
               >
                 <option value="">Escolha um colaborador...</option>
-                {employees.map((employee) => (
-                  <option key={employee.id} value={employee.id}>
-                    {employee.name} - {employee.position}
-                  </option>
-                ))}
+                {employees
+                  .filter(employee => !employee.is_admin && !employee.is_director)
+                  .map((employee) => (
+                    <option key={employee.id} value={employee.id}>
+                      {employee.name} - {employee.position}
+                    </option>
+                  ))}
               </select>
               <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">

@@ -109,6 +109,21 @@ const Reports = () => {
   const loadDashboardData = async (cycleId: string) => {
     try {
       const dashboardData = await evaluationService.getCycleDashboard(cycleId);
+
+      // Log para verificar diretores
+      const directors = dashboardData.filter((d: CycleDashboard) => d.self_evaluation_status === 'n/a');
+      console.log('🔍 REPORTS PAGE - Directors in dashboard:', directors.length);
+      directors.forEach((d: CycleDashboard) => {
+        console.log(`  📊 ${d.employee_name}:`);
+        console.log(`     - self_evaluation_status: "${d.self_evaluation_status}"`);
+        console.log(`     - consensus_status: "${d.consensus_status}"`);
+        console.log(`     - leader_evaluation_status: "${d.leader_evaluation_status}"`);
+        console.log(`     - ninebox_position: "${d.ninebox_position}"`);
+      });
+
+      // Log de todos os dados para debug
+      console.log('📋 Sample dashboard item (first):', dashboardData[0]);
+
       setDashboard(dashboardData);
     } catch (error) {
       console.error('Erro ao carregar dashboard:', error);
@@ -120,29 +135,45 @@ const Reports = () => {
   useEffect(() => {
     if (dashboard && dashboard.length > 0) {
       const totalEmployees = dashboard.length;
-      
-      // Contar avaliações completas (self e leader)
+
+      // Contar avaliações completas
+      // Para diretores (n/a em self e consensus): apenas leader completo
+      // Para outros: self e leader completos
       const completedEvaluations = dashboard.filter(
-        (d: CycleDashboard) => d.self_evaluation_status === 'completed' && 
-            d.leader_evaluation_status === 'completed'
-      ).length;
-      
-      // Contar em andamento (pelo menos uma iniciada mas não ambas completas)
-      const inProgress = dashboard.filter(
-        (d: CycleDashboard) => (d.self_evaluation_status === 'in-progress' || 
-              d.leader_evaluation_status === 'in-progress') &&
-             !(d.self_evaluation_status === 'completed' && 
-               d.leader_evaluation_status === 'completed')
-      ).length;
-      
-      // Contar pendentes (nenhuma iniciada)
-      const pending = dashboard.filter(
-        (d: CycleDashboard) => d.self_evaluation_status === 'pending' && 
-             d.leader_evaluation_status === 'pending'
+        (d: CycleDashboard) => {
+          const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+          if (isDirector) {
+            return d.leader_evaluation_status === 'completed';
+          }
+          return d.self_evaluation_status === 'completed' && d.leader_evaluation_status === 'completed';
+        }
       ).length;
 
-      const completionRate = totalEmployees > 0 
-        ? Math.round((completedEvaluations / totalEmployees) * 100) 
+      // Contar em andamento
+      const inProgress = dashboard.filter(
+        (d: CycleDashboard) => {
+          const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+          if (isDirector) {
+            return d.leader_evaluation_status === 'in-progress';
+          }
+          return (d.self_evaluation_status === 'in-progress' || d.leader_evaluation_status === 'in-progress') &&
+                 !(d.self_evaluation_status === 'completed' && d.leader_evaluation_status === 'completed');
+        }
+      ).length;
+
+      // Contar pendentes
+      const pending = dashboard.filter(
+        (d: CycleDashboard) => {
+          const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+          if (isDirector) {
+            return d.leader_evaluation_status === 'pending';
+          }
+          return d.self_evaluation_status === 'pending' && d.leader_evaluation_status === 'pending';
+        }
+      ).length;
+
+      const completionRate = totalEmployees > 0
+        ? Math.round((completedEvaluations / totalEmployees) * 100)
         : 0;
 
       setSummaryData({
@@ -160,7 +191,7 @@ const Reports = () => {
     if (dashboard && departments.length > 0) {
       const progressByDept = departments.map(dept => {
         // Filtrar colaboradores do departamento
-        const deptEmployees = dashboard.filter((d: CycleDashboard) => 
+        const deptEmployees = dashboard.filter((d: CycleDashboard) =>
           users.find(u => u.id === d.employee_id)?.teams?.some(
             t => t.department_id === dept.id
           )
@@ -168,14 +199,23 @@ const Reports = () => {
 
         const total = deptEmployees.length;
         const completed = deptEmployees.filter(
-          (d: CycleDashboard) => d.self_evaluation_status === 'completed' && 
-               d.leader_evaluation_status === 'completed'
+          (d: CycleDashboard) => {
+            const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+            if (isDirector) {
+              return d.leader_evaluation_status === 'completed';
+            }
+            return d.self_evaluation_status === 'completed' && d.leader_evaluation_status === 'completed';
+          }
         ).length;
         const inProgress = deptEmployees.filter(
-          (d: CycleDashboard) => (d.self_evaluation_status === 'in-progress' || 
-                d.leader_evaluation_status === 'in-progress') &&
-               !(d.self_evaluation_status === 'completed' && 
-                 d.leader_evaluation_status === 'completed')
+          (d: CycleDashboard) => {
+            const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+            if (isDirector) {
+              return d.leader_evaluation_status === 'in-progress';
+            }
+            return (d.self_evaluation_status === 'in-progress' || d.leader_evaluation_status === 'in-progress') &&
+                   !(d.self_evaluation_status === 'completed' && d.leader_evaluation_status === 'completed');
+          }
         ).length;
         const pending = total - completed - inProgress;
 
@@ -195,18 +235,23 @@ const Reports = () => {
 
   // Filtrar dados para a visão detalhada
   const filteredData = dashboard.filter((item: CycleDashboard) => {
+    // Não mostrar diretores na tabela
+    if (item.self_evaluation_status === 'n/a' && item.consensus_status === 'n/a') {
+      return false;
+    }
+
     const user = users.find(u => u.id === item.employee_id);
     if (!user) return false;
 
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.position.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesDepartment = !selectedDepartment || 
+
+    const matchesDepartment = !selectedDepartment ||
       user.teams?.some(t => t.department_id === selectedDepartment);
-    
-    const matchesStatus = !selectedStatus || 
-      item.self_evaluation_status === selectedStatus || 
+
+    const matchesStatus = !selectedStatus ||
+      item.self_evaluation_status === selectedStatus ||
       item.leader_evaluation_status === selectedStatus ||
       item.consensus_status === selectedStatus;
 
@@ -227,8 +272,9 @@ const Reports = () => {
     
     const tableData = filteredData.map((item: CycleDashboard) => {
       const user = users.find(u => u.id === item.employee_id);
-      const deptName = user?.teams && user.teams[0] ?
-        departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-';
+      const deptName = item.department_name ||
+        (user?.teams && user.teams[0] ?
+          departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-');
 
       return [
         user?.name || '-',
@@ -257,8 +303,9 @@ const Reports = () => {
   const exportExcel = () => {
     const data = filteredData.map((item: CycleDashboard) => {
       const user = users.find(u => u.id === item.employee_id);
-      const deptName = user?.teams && user.teams[0] ?
-        departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-';
+      const deptName = item.department_name ||
+        (user?.teams && user.teams[0] ?
+          departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-');
 
       return {
         'Nome': user?.name || '-',
@@ -295,6 +342,7 @@ const Reports = () => {
       case 'completed': return 'Completo';
       case 'in-progress': return 'Em Andamento';
       case 'pending': return 'Pendente';
+      case 'n/a': return 'N/A';
       default: return 'Aguardando';
     }
   };
@@ -302,35 +350,41 @@ const Reports = () => {
   const getStatusBadge = (status: string | null | undefined) => {
     const label = getStatusLabel(status);
     const statusConfig = {
-      'Completo': { 
+      'Completo': {
         bgColor: 'bg-status-success/10',
         textColor: 'text-status-success',
         borderColor: 'border-status-success/20',
-        icon: CheckCircle 
+        icon: CheckCircle
       },
-      'Em Andamento': { 
+      'Em Andamento': {
         bgColor: 'bg-status-warning/10',
         textColor: 'text-status-warning',
         borderColor: 'border-status-warning/20',
-        icon: Clock 
+        icon: Clock
       },
-      'Pendente': { 
+      'Pendente': {
         bgColor: 'bg-status-danger/10',
         textColor: 'text-status-danger',
         borderColor: 'border-status-danger/20',
-        icon: AlertTriangle 
+        icon: AlertTriangle
       },
-      'Definido': { 
+      'N/A': {
+        bgColor: 'bg-gray-100 dark:bg-gray-700',
+        textColor: 'text-gray-500 dark:text-gray-400',
+        borderColor: 'border-gray-300 dark:border-gray-600',
+        icon: Target
+      },
+      'Definido': {
         bgColor: 'bg-status-success/10',
         textColor: 'text-status-success',
         borderColor: 'border-status-success/20',
-        icon: Target 
+        icon: Target
       },
-      'Aguardando': { 
+      'Aguardando': {
         bgColor: 'bg-status-info/10',
         textColor: 'text-status-info',
         borderColor: 'border-status-info/20',
-        icon: Clock 
+        icon: Clock
       }
     };
 
@@ -366,8 +420,14 @@ const Reports = () => {
     );
   };
 
-  const getNineBoxBadge = (position: string | null | undefined) => {
+  const getNineBoxBadge = (position: string | null | undefined, item?: CycleDashboard) => {
     if (!position) {
+      // Se for diretor (autoavaliação e consenso são n/a), mostrar N/A ao invés de Pendente
+      if (item && item.self_evaluation_status === 'n/a' && item.consensus_status === 'n/a') {
+        return (
+          <span className="text-sm text-gray-500 dark:text-gray-400">N/A</span>
+        );
+      }
       return (
         <span className="text-sm text-gray-400 dark:text-gray-600">Pendente</span>
       );
@@ -754,9 +814,11 @@ const Reports = () => {
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-naue-border-gray dark:divide-gray-700">
                   {filteredData.map((item: CycleDashboard) => {
                     const user = users.find(u => u.id === item.employee_id);
-                    const deptName = user?.teams && user.teams[0] ? 
-                      departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-';
-                    
+                    // Priorizar department_name do dashboard, depois buscar por teams
+                    const deptName = item.department_name ||
+                      (user?.teams && user.teams[0] ?
+                        departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-');
+
                     return (
                       <tr key={item.employee_id} className="hover:bg-green-50 dark:hover:bg-gray-700 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -782,10 +844,12 @@ const Reports = () => {
                           {getStatusBadge(item.consensus_status)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getStatusBadge(item.ninebox_position ? 'completed' : 'pending')}
+                          {item.self_evaluation_status === 'n/a' && item.consensus_status === 'n/a'
+                            ? getStatusBadge('n/a')
+                            : getStatusBadge(item.ninebox_position ? 'completed' : 'pending')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {getNineBoxBadge(item.ninebox_position)}
+                          {getNineBoxBadge(item.ninebox_position, item)}
                         </td>
                       </tr>
                     );
@@ -799,8 +863,10 @@ const Reports = () => {
           <div className="md:hidden space-y-3">
             {filteredData.map((item: CycleDashboard, index: number) => {
               const user = users.find(u => u.id === item.employee_id);
-              const deptName = user?.teams && user.teams[0] ? 
-                departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-';
+              // Priorizar department_name do dashboard, depois buscar por teams
+              const deptName = item.department_name ||
+                (user?.teams && user.teams[0] ?
+                  departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-');
               
               return (
                 <motion.div
@@ -827,7 +893,7 @@ const Reports = () => {
                           </p>
                         </div>
                         <div className="ml-3 text-right">
-                          {getNineBoxBadge(item.ninebox_position)}
+                          {getNineBoxBadge(item.ninebox_position, item)}
                         </div>
                       </div>
                       
@@ -846,7 +912,9 @@ const Reports = () => {
                         </div>
                         <div>
                           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">PDI</p>
-                          {getStatusBadge(item.ninebox_position ? 'completed' : 'pending')}
+                          {item.self_evaluation_status === 'n/a' && item.consensus_status === 'n/a'
+                            ? getStatusBadge('n/a')
+                            : getStatusBadge(item.ninebox_position ? 'completed' : 'pending')}
                         </div>
                       </div>
                     </div>

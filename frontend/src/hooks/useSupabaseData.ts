@@ -122,53 +122,43 @@ export function useSupabaseUsers() {
 
   // Atualizar usuário
   const updateUser = useCallback(async (id: string, updates: Partial<User>) => {
-
     try {
       const updated = await usersService.update(id, updates);
       await loadUsers(); // Recarregar lista
-      toast.success('Usuário atualizado com sucesso!');
       return updated;
     } catch (err) {
-      toast.error('Erro ao atualizar usuário');
       throw err;
     }
   }, [loadUsers]);
 
   // Desativar usuário
   const deactivateUser = useCallback(async (id: string) => {
-
     try {
       await usersService.deactivate(id);
       await loadUsers(); // Recarregar lista
-      toast.success('Usuário desativado com sucesso!');
     } catch (err) {
-      toast.error('Erro ao desativar usuário');
       throw err;
     }
   }, [loadUsers]);
 
   // Ativar usuário
   const activateUser = useCallback(async (id: string) => {
-
     try {
       await usersService.activate(id);
       await loadUsers(); // Recarregar lista
-      toast.success('Usuário ativado com sucesso!');
     } catch (err) {
-      toast.error('Erro ao ativar usuário');
       throw err;
     }
   }, [loadUsers]);
 
   // Deletar usuário
   const deleteUser = useCallback(async (id: string) => {
-
     try {
       await usersService.delete(id);
       await loadUsers(); // Recarregar lista
-      toast.success('Usuário deletado com sucesso!');
+      // Toast removido - será exibido no componente que chama esta função
     } catch (err) {
-      toast.error('Erro ao deletar usuário');
+      // Não exibir toast aqui para evitar duplicação
       throw err;
     }
   }, [loadUsers]);

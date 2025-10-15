@@ -294,14 +294,70 @@ export const usersService = {
     if (error) throw error;
   },
 
-  // Deletar usuário
+  // Deletar usuário (soft delete primeiro, hard delete se já estiver desativado)
   async delete(id: string): Promise<void> {
-    const { error } = await supabase
+    // Verificar se o usuário já está desativado
+    const { data: user, error: getUserError } = await supabase
       .from('users')
-      .delete()
-      .eq('id', id);
+      .select('active')
+      .eq('id', id)
+      .single();
 
-    if (error) throw error;
+    if (getUserError) throw getUserError;
+
+    // Se usuário já está desativado, fazer hard delete em cascata
+    if (user.active === false) {
+      // Deletar avaliações
+      await supabase.from('self_evaluations').delete().eq('employee_id', id);
+      await supabase.from('leader_evaluations').delete().eq('employee_id', id);
+      await supabase.from('leader_evaluations').delete().eq('evaluator_id', id);
+      await supabase.from('consensus_evaluations').delete().eq('employee_id', id);
+
+      // Deletar PDIs
+      await supabase.from('development_plans').delete().eq('employee_id', id);
+
+      // Deletar membros de times
+      await supabase.from('team_members').delete().eq('user_id', id);
+
+      // Remover como responsável
+      await supabase.from('teams').update({ responsible_id: null }).eq('responsible_id', id);
+      await supabase.from('departments').update({ responsible_id: null }).eq('responsible_id', id);
+
+      // Remover reports_to
+      await supabase.from('users').update({ reports_to: null }).eq('reports_to', id);
+
+      // Deletar competências de avaliação
+      const { data: selfEvals } = await supabase.from('self_evaluations').select('id').eq('employee_id', id);
+      const { data: leaderEvals } = await supabase.from('leader_evaluations').select('id').eq('employee_id', id);
+
+      const evalIds = [
+        ...(selfEvals?.map(e => e.id) || []),
+        ...(leaderEvals?.map(e => e.id) || [])
+      ];
+
+      if (evalIds.length > 0) {
+        await supabase.from('evaluation_competencies').delete().in('evaluation_id', evalIds);
+      }
+
+      // Finalmente deletar o usuário
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    } else {
+      // Se usuário está ativo, fazer soft delete
+      const { error } = await supabase
+        .from('users')
+        .update({
+          active: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    }
   },
 
   // Buscar líderes

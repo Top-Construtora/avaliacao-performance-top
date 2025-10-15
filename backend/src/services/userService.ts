@@ -96,13 +96,78 @@ export const userService = {
   },
 
   async deleteUser(id: string) {
-    const { error } = await supabaseAdmin
+    // Verificar se o usuário já está desativado
+    const { data: user, error: getUserError } = await supabaseAdmin
       .from('users')
-      .delete()
-      .eq('id', id);
+      .select('active')
+      .eq('id', id)
+      .single();
 
-    if (error) {
-      throw new ApiError(500, 'Failed to delete user');
+    if (getUserError) {
+      throw new ApiError(404, 'User not found');
+    }
+
+    // Se usuário já está desativado (active = false), fazer hard delete
+    if (user.active === false) {
+      // Deletar em cascata: primeiro os dados relacionados, depois o usuário
+
+      // 1. Deletar avaliações
+      await supabaseAdmin.from('self_evaluations').delete().eq('employee_id', id);
+      await supabaseAdmin.from('leader_evaluations').delete().eq('employee_id', id);
+      await supabaseAdmin.from('leader_evaluations').delete().eq('evaluator_id', id);
+      await supabaseAdmin.from('consensus_evaluations').delete().eq('employee_id', id);
+
+      // 2. Deletar PDIs
+      await supabaseAdmin.from('development_plans').delete().eq('employee_id', id);
+
+      // 3. Deletar membros de times
+      await supabaseAdmin.from('team_members').delete().eq('user_id', id);
+
+      // 4. Remover como responsável de times/departamentos
+      await supabaseAdmin.from('teams').update({ responsible_id: null }).eq('responsible_id', id);
+      await supabaseAdmin.from('departments').update({ responsible_id: null }).eq('responsible_id', id);
+
+      // 5. Remover reports_to de subordinados
+      await supabaseAdmin.from('users').update({ reports_to: null }).eq('reports_to', id);
+
+      // 6. Deletar competências de avaliação
+      const { data: selfEvals } = await supabaseAdmin.from('self_evaluations').select('id').eq('employee_id', id);
+      const { data: leaderEvals } = await supabaseAdmin.from('leader_evaluations').select('id').eq('employee_id', id);
+
+      const evalIds = [
+        ...(selfEvals?.map(e => e.id) || []),
+        ...(leaderEvals?.map(e => e.id) || [])
+      ];
+
+      if (evalIds.length > 0) {
+        await supabaseAdmin.from('evaluation_competencies').delete().in('evaluation_id', evalIds);
+      }
+
+      // 7. Finalmente, deletar o usuário
+      const { error: deleteError } = await supabaseAdmin
+        .from('users')
+        .delete()
+        .eq('id', id);
+
+      if (deleteError) {
+        throw new ApiError(500, 'Failed to permanently delete user');
+      }
+
+      // 8. Deletar do Auth
+      await supabaseAdmin.auth.admin.deleteUser(id);
+    } else {
+      // Se usuário está ativo, fazer soft delete (desativar)
+      const { error } = await supabaseAdmin
+        .from('users')
+        .update({
+          active: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) {
+        throw new ApiError(500, 'Failed to deactivate user');
+      }
     }
   },
 

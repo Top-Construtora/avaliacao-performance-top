@@ -112,28 +112,28 @@ const Consensus = () => {
     { 
       id: 'gestao-conhecimento', 
       name: 'GESTÃO DO CONHECIMENTO', 
-      description: 'Capacidade de adquirir, compartilhar e aplicar conhecimentos técnicos relevantes',
+      description: 'Demonstra domínio técnico sobre a sua área de atuação e atua de maneira a favorecer o bom andamento de todos os processos e procedimentos.',
       category: 'Técnica', 
       icon: Target 
     },
     { 
       id: 'orientacao-resultados', 
-      name: 'ORIENTAÇÃO A RESULTADOS COM SEGURANÇA', 
-      description: 'Foco em resultados mantendo padrões de segurança e qualidade',
+      name: 'ORIENTAÇÃO A RESULTADOS', 
+      description: 'Atua com capacidade de focar na concretização dos objetivos, com intuito de garantir que os resultados sejam alcançados conforme o esperado. ',
       category: 'Técnica', 
       icon: TrendingUp 
     },
     { 
       id: 'pensamento-critico', 
       name: 'PENSAMENTO CRÍTICO', 
-      description: 'Capacidade de analisar criticamente situações e propor soluções eficazes',
+      description: 'Capacidade de analisar cenários para buscar soluções superando desafios.',
       category: 'Técnica', 
       icon: Target 
     },
     { 
       id: 'aderencia-processos', 
-      name: 'ASSERTIVIDADE E PROATIVIDADE', 
-      description: 'Comunicação assertiva e capacidade de prover soluções de forma proativa',
+      name: 'ADERÊNCIA AOS PROCESSOS', 
+      description: 'Trabalha em aderência aos processos de gestão da empresa, esforçando-se para compreender e atender os objetivos, cumprindo com os resutlados da área.',
       category: 'Técnica', 
       icon: Target 
     },
@@ -141,28 +141,28 @@ const Consensus = () => {
     { 
       id: 'comunicacao', 
       name: 'COMUNICAÇÃO', 
-      description: 'Capacidade de se comunicar de forma clara, eficaz e respeitosa',
+      description: 'Possui capacidade de se expressar de forma clara e apropriada (seja escrita, verbal ou não verbal), entendo os questionamentos e sendo compreendido por seus colegas e clientes.',
       category: 'Comportamental', 
       icon: Users 
     },
     { 
       id: 'inteligencia-emocional', 
       name: 'INTELIGÊNCIA EMOCIONAL', 
-      description: 'Habilidade de reconhecer e gerenciar emoções próprias e dos outros',
+      description: 'Apresenta capacidade de enfrentar situações de estresse e/ou pressão de forma paciente, educada e responsável.',
       category: 'Comportamental', 
       icon: Users 
     },
     { 
       id: 'colaboracao', 
-      name: 'DELEGAÇÃO', 
-      description: 'Capacidade de distribuir tarefas adequadamente e empoderar a equipe',
+      name: 'COLABORAÇÃO', 
+      description: 'Possibilita entre o time uma troca de conhecimento e agilidade no cumprimento de metas e objetivos compartilhados, ou seja, trabalho em equipe.',
       category: 'Comportamental', 
       icon: Users 
     },
     { 
       id: 'flexibilidade', 
-      name: 'PATRIMONIALISMO', 
-      description: 'Cuidado e responsabilidade com os recursos e patrimônio da empresa',
+      name: 'FLEXIBILIDADE', 
+      description: 'Capaz de se adaptar a mudanças e/ou situações inesperadas.',
       category: 'Comportamental', 
       icon: Users 
     },
@@ -477,12 +477,12 @@ const Consensus = () => {
         'GESTÃO DO CONHECIMENTO': 'gestao-conhecimento',
         'ORIENTAÇÃO A RESULTADOS COM SEGURANÇA': 'orientacao-resultados',
         'PENSAMENTO CRÍTICO': 'pensamento-critico',
-        'ASSERTIVIDADE E PROATIVIDADE': 'aderencia-processos',
+        'ADERÊNCIA AOS PROCESSOS': 'aderencia-processos',
         // Comportamentais
         'COMUNICAÇÃO': 'comunicacao',
         'INTELIGÊNCIA EMOCIONAL': 'inteligencia-emocional',
-        'DELEGAÇÃO': 'colaboracao',
-        'PATRIMONIALISMO': 'flexibilidade',
+        'COLABORAÇÃO': 'colaboracao',
+        'FLEXIBLIDADE': 'flexibilidade',
         // Organizacionais
         'MERITOCRACIA E MISSÃO COMPARTILHADA': 'missao-dada-cumprida',
         'ESPIRAL DE PASSOS': 'senso-dono',
