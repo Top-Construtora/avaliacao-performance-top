@@ -199,7 +199,6 @@ export interface Database {
           evaluation_type: 'self' | 'leader' | 'consensus' | null
           potential_score: number | null
           consensus_score: number | null
-          potential_score: number | null
         }
         Insert: {
           id?: string
@@ -221,7 +220,6 @@ export interface Database {
           evaluation_type?: 'self' | 'leader' | 'consensus' | null
           potential_score?: number | null
           consensus_score?: number | null
-          potential_score?: number | null
         }
         Update: {
           id?: string
@@ -243,7 +241,6 @@ export interface Database {
           evaluation_type?: 'self' | 'leader' | 'consensus' | null
           potential_score?: number | null
           consensus_score?: number | null
-          potential_score?: number | null
         }
       }
       evaluation_competencies: {
