@@ -2,8 +2,8 @@ import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from './ThemeToggle';
-import { 
-  Bell, 
+import {
+  Bell,
   Calendar,
   ChevronDown,
   ChevronRight,
@@ -23,6 +23,7 @@ import {
   Target
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 interface HeaderProps {
   isMobileMenuOpen?: boolean;
@@ -48,6 +49,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [expandedNotifications, setExpandedNotifications] = useState<{ [key: number]: boolean }>({});
+  const [nineBoxPosition, setNineBoxPosition] = useState<string | null>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -154,7 +156,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
       if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
         setShowNotifications(false);
       }
-      
+
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setShowUserMenu(false);
       }
@@ -163,6 +165,32 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Buscar posição Nine Box do usuário
+  useEffect(() => {
+    const fetchNineBoxPosition = async () => {
+      if (!user?.id) return;
+
+      try {
+        // Buscar o último consenso do usuário
+        const { data, error } = await supabase
+          .from('consensus_evaluations')
+          .select('nine_box_position')
+          .eq('employee_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (!error && data) {
+          setNineBoxPosition(data.nine_box_position);
+        }
+      } catch (error) {
+        // Silenciosamente falhar se não houver consenso
+      }
+    };
+
+    fetchNineBoxPosition();
+  }, [user?.id]);
 
   const handleLogout = async () => {
     try {
@@ -191,6 +219,22 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
     if (isDirector) return 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600';
     if (isLeader) return 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 text-primary-700 dark:text-primary-300 border-primary-200 dark:border-primary-700';
     return 'bg-gradient-to-r from-secondary-50 to-secondary-100 dark:from-secondary-900/20 dark:to-secondary-800/20 text-secondary-700 dark:text-secondary-300 border-secondary-200 dark:border-secondary-700';
+  };
+
+  const getNineBoxBadgeColor = (position: string) => {
+    const colorMap: Record<string, string> = {
+      'B1': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-300 dark:border-red-600',
+      'B2': 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-600',
+      'B3': 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-600',
+      'B4': 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600',
+      'B5': 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-300 dark:border-yellow-600',
+      'B6': 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-600',
+      'B7': 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-600',
+      'B8': 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-600',
+      'B9': 'bg-gradient-to-r from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 text-white border-green-700 dark:border-green-600',
+    };
+
+    return colorMap[position] || 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600';
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -492,6 +536,11 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                     {getRoleIcon()}
                     <span className="ml-1">{getRoleLabel()}</span>
                   </span>
+                  {nineBoxPosition && (
+                    <span className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full border ${getNineBoxBadgeColor(nineBoxPosition)} flex items-center font-bold`}>
+                      {nineBoxPosition}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 bg-primary-900 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0 shadow-md">
@@ -515,11 +564,16 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                     <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                       {profile?.name || user?.email}
                     </p>
-                    <div className="flex items-center mt-1.5">
+                    <div className="flex items-center mt-1.5 space-x-1">
                       <span className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full border ${getRoleBadgeColor()} flex items-center font-medium`}>
                         {getRoleIcon()}
                         <span className="ml-0.5 sm:ml-1">{getRoleLabel()}</span>
                       </span>
+                      {nineBoxPosition && (
+                        <span className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full border ${getNineBoxBadgeColor(nineBoxPosition)} flex items-center font-bold`}>
+                          {nineBoxPosition}
+                        </span>
+                      )}
                     </div>
                   </div>
 

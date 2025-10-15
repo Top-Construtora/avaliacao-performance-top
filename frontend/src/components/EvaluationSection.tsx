@@ -202,7 +202,7 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-primary-200 dark:border-primary-700">
               <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Técnicas</h4>
-              <p className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">{scores.technical.toFixed(1)}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">{scores.technical}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 50%</p>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
                 <div
@@ -214,7 +214,7 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
 
             <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-secondary-200 dark:border-secondary-700">
               <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Comportamentais</h4>
-              <p className="text-2xl sm:text-3xl font-bold text-secondary-600 dark:text-secondary-400">{scores.behavioral.toFixed(1)}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-secondary-600 dark:text-secondary-400">{scores.behavioral}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 30%</p>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
                 <div
@@ -226,7 +226,7 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
 
             <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-accent-200 dark:border-accent-700">
               <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Organizacionais</h4>
-              <p className="text-2xl sm:text-3xl font-bold text-accent-600 dark:text-accent-400">{scores.organizational.toFixed(1)}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-accent-600 dark:text-accent-400">{scores.organizational}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 20%</p>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
                 <div
@@ -238,7 +238,7 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
 
             <div className="bg-gradient-to-br from-primary-500 to-secondary-600 dark:from-primary-600 dark:to-secondary-700 p-4 sm:p-6 rounded-xl text-white">
               <h4 className="text-sm font-medium text-primary-100 dark:text-primary-200 mb-1">Nota Final</h4>
-              <p className="text-2xl sm:text-3xl font-bold">{scores.final.toFixed(1)}</p>
+              <p className="text-2xl sm:text-3xl font-bold">{scores.final}</p>
               <p className="text-xs text-primary-100 dark:text-primary-200 mt-1">Média Ponderada</p>
               <div className="flex items-center mt-3">
                 <Award className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />

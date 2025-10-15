@@ -800,7 +800,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-stone-200 dark:border-stone-700">
                 <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Média Geral</h4>
-                <p className="text-2xl sm:text-3xl font-bold text-stone-700 dark:text-stone-600">{calculatePotentialScores().final.toFixed(1)}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-stone-700 dark:text-stone-600">{calculatePotentialScores().final}</p>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
                   <div
                     className="bg-gradient-to-r from-stone-600 to-stone-700 dark:from-stone-700 dark:to-stone-800 h-2 rounded-full transition-all duration-300"

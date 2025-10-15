@@ -237,17 +237,25 @@ export const evaluationService = {
   calculateCategoryScore(competencies: EvaluationCompetency[], category: string): number {
     const categoryComps = competencies.filter(c => c.category === category);
     if (categoryComps.length === 0) return 0;
-    
+
     const sum = categoryComps.reduce((acc, comp) => acc + (comp.score || 0), 0);
-    return Number((sum / categoryComps.length).toFixed(2));
+    return sum / categoryComps.length;
   },
 
-  // Calcular score final
+  // Calcular score final com média ponderada
   calculateFinalScore(competencies: EvaluationCompetency[]): number {
     if (competencies.length === 0) return 0;
-    
-    const sum = competencies.reduce((acc, comp) => acc + (comp.score || 0), 0);
-    return Number((sum / competencies.length).toFixed(2));
+
+    // Calcular média de cada categoria
+    const technicalScore = this.calculateCategoryScore(competencies, 'technical');
+    const behavioralScore = this.calculateCategoryScore(competencies, 'behavioral');
+    const deliveriesScore = this.calculateCategoryScore(competencies, 'deliveries');
+
+    // Aplicar pesos: technical 50%, behavioral 30%, deliveries 20%
+    const weightedScore = (technicalScore * 0.5) + (behavioralScore * 0.3) + (deliveriesScore * 0.2);
+
+    // Arredondar para 10 casas decimais para eliminar erros de precisão de ponto flutuante
+    return Math.round(weightedScore * 10000000000) / 10000000000;
   },
 
   // Mapear posição no Nine Box

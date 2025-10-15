@@ -82,7 +82,6 @@ const Consensus = () => {
   const [consensusObservations, setConsensusObservations] = useState<Record<string, string>>({});
   const [selfScores, setSelfScores] = useState<ScoreMap>({});
   const [leaderScores, setLeaderScores] = useState<ScoreMap>({});
-  const [showMatrix, setShowMatrix] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingPDI, setLoadingPDI] = useState(false);
 
@@ -434,7 +433,7 @@ const Consensus = () => {
         if (existingConsensus) {
           setHasExistingConsensus(true);
           toast.error(
-            `Este colaborador já possui um consenso salvo neste ciclo (Nota: ${existingConsensus.consensus_score?.toFixed(1)}, Posição: ${existingConsensus.nine_box_position}). Selecione outro colaborador.`,
+            `Este colaborador já possui um consenso salvo neste ciclo (Nota: ${existingConsensus.consensus_score}, Posição: ${existingConsensus.nine_box_position}). Selecione outro colaborador.`,
             { duration: 5000 }
           );
         } else {
@@ -590,8 +589,12 @@ const Consensus = () => {
     const technical = calculateCategoryAverage('Técnica');
     const behavioral = calculateCategoryAverage('Comportamental');
     const organizational = calculateCategoryAverage('Organizacional');
-    
-    return (technical * 0.4) + (behavioral * 0.3) + (organizational * 0.3);
+
+    // Aplicar pesos: technical 50%, behavioral 30%, organizational 20%
+    const weightedScore = (technical * 0.5) + (behavioral * 0.3) + (organizational * 0.2);
+
+    // Arredondar para 10 casas decimais para eliminar erros de precisão de ponto flutuante
+    return Math.round(weightedScore * 10000000000) / 10000000000;
   };
 
   // Função para calcular o código Nine Box (B1-B9)
@@ -727,11 +730,6 @@ const Consensus = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const generateMatrix = (): void => {
-    setShowMatrix(true);
-    toast.success('Matriz 9-Box gerada com sucesso!');
   };
 
   const ScoreButton = ({ score, isSelected, onClick }: { 
@@ -1211,25 +1209,25 @@ const Consensus = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-green-200 dark:border-green-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Técnicas</h4>
-                    <p className="text-2xl sm:text-3xl font-bold text-green-800 dark:text-green-700">{calculateCategoryAverage('Técnica').toFixed(1)}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 40%</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-green-800 dark:text-green-700">{calculateCategoryAverage('Técnica')}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 50%</p>
                   </div>
-                  
+
                   <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Comportamentais</h4>
-                    <p className="text-2xl sm:text-3xl font-bold text-gray-600 dark:text-gray-400">{calculateCategoryAverage('Comportamental').toFixed(1)}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-gray-600 dark:text-gray-400">{calculateCategoryAverage('Comportamental')}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 30%</p>
                   </div>
-                  
+
                   <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-stone-200 dark:border-stone-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Organizacionais</h4>
-                    <p className="text-2xl sm:text-3xl font-bold text-stone-700 dark:text-stone-600">{calculateCategoryAverage('Organizacional').toFixed(1)}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 30%</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-stone-700 dark:text-stone-600">{calculateCategoryAverage('Organizacional')}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 20%</p>
                   </div>
-                  
+
                   <div className="bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 p-4 sm:p-6 rounded-xl text-white">
                     <h4 className="text-xs sm:text-sm font-medium text-green-100 dark:text-green-200 mb-1">Nota Final</h4>
-                    <p className="text-2xl sm:text-3xl font-bold">{calculateOverallAverage().toFixed(1)}</p>
+                    <p className="text-2xl sm:text-3xl font-bold">{calculateOverallAverage()}</p>
                     <p className="text-xs text-green-100 dark:text-green-200 mt-1">Média Ponderada</p>
                   </div>
 
@@ -1284,22 +1282,13 @@ const Consensus = () => {
 
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   onClick={handleSaveConsensus}
                   icon={<Save size={18} />}
                   size="lg"
                   disabled={progress < 100 || loading || hasExistingConsensus}
                 >
                   {hasExistingConsensus ? 'Consenso Já Salvo' : 'Salvar Consenso'}
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={generateMatrix}
-                  icon={<BarChart3 size={18} />}
-                  size="lg"
-                  disabled={progress < 100 || loading}
-                >
-                  Gerar Matriz 9-Box
                 </Button>
               </div>
             </motion.div>
@@ -1327,53 +1316,6 @@ const Consensus = () => {
           </div>
         </motion.div>
       )}
-
-      {/* Success Modal */}
-      <AnimatePresence>
-        {showMatrix && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowMatrix(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-xl dark:shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center">
-                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/20 mb-4">
-                  <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  Matriz 9-Box Gerada!
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm sm:text-base">
-                  O colaborador {selectedEmployee?.name} foi posicionado na matriz 9-Box com base no consenso estabelecido.
-                </p>
-                <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowMatrix(false)}
-                  >
-                    Fechar
-                  </Button>
-                  <Button
-                    variant="primary"
-                    onClick={() => navigate('/nine-box')}
-                  >
-                    Ver Matriz
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
