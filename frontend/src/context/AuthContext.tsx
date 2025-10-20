@@ -12,6 +12,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
 }
 
@@ -222,6 +223,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Add updatePassword implementation
+  const updatePassword = async (newPassword: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Senha alterada com sucesso!');
+    } catch (error: any) {
+      console.error('Update password error:', error);
+      toast.error(error.message || 'Erro ao alterar senha');
+      throw error;
+    }
+  };
+
   // Add resetPassword implementation
   const resetPassword = async (email: string) => {
     try {
@@ -249,6 +269,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     updateProfile,
+    updatePassword,
     resetPassword
   };
 

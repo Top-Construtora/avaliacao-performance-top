@@ -178,11 +178,10 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
           .select('nine_box_position')
           .eq('employee_id', user.id)
           .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
 
-        if (!error && data) {
-          setNineBoxPosition(data.nine_box_position);
+        if (!error && data && data.length > 0) {
+          setNineBoxPosition(data[0].nine_box_position);
         }
       } catch (error) {
         // Silenciosamente falhar se não houver consenso
@@ -398,6 +397,13 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
 
                   {/* Lista de notificações */}
                   <div className="max-h-[calc(100vh-200px)] sm:max-h-96 overflow-y-auto custom-scrollbar">
+                    <div className="px-4 py-8 text-center bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-700">
+                      <div className="inline-flex p-3 rounded-full bg-amber-100 dark:bg-amber-800/30 mb-2">
+                        <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <p className="text-sm text-amber-800 dark:text-amber-200 font-semibold">Funcionalidade em desenvolvimento</p>
+                      <p className="text-xs text-amber-600 dark:text-amber-300 mt-1">As notificações estarão disponíveis em breve</p>
+                    </div>
                     {notifications.length === 0 ? (
                       <div className="px-4 py-12 text-center">
                         <div className="inline-flex p-4 rounded-full bg-gray-50 dark:bg-gray-700 mb-3">
