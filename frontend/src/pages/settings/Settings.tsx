@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../../components/Button';
@@ -28,8 +29,9 @@ import {
 type SettingSection = 'profile' | 'preferences' | 'security';
 
 const Settings = () => {
-  const { user, profile, updatePassword } = useAuth();
+  const { user, profile, updatePassword, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
   
   const [activeSection, setActiveSection] = useState<SettingSection>('profile');
   const [showPassword, setShowPassword] = useState(false);
@@ -122,17 +124,20 @@ const Settings = () => {
 
       // Se a senha atual está correta, atualiza para a nova senha
       await updatePassword(passwordForm.newPassword);
-      
-      // Limpa o formulário
-      setPasswordForm({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
+
+      // Aguarda 1 segundo para o usuário ver a mensagem de sucesso
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Desloga o usuário
+      await signOut();
+
+      // Redireciona para a tela de login
+      navigate('/login');
+
+      toast.success('Por favor, faça login novamente com sua nova senha');
     } catch (error: any) {
       console.error('Erro ao alterar senha:', error);
       toast.error(error.message || 'Erro ao alterar senha');
-    } finally {
       setIsLoading(false);
     }
   };
