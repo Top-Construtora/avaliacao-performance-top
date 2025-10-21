@@ -79,7 +79,7 @@ interface PdiData {
 
 const LeaderEvaluation = () => {
   const navigate = useNavigate();
-  const { currentCycle, saveLeaderEvaluation, checkExistingEvaluation, loadSubordinates, subordinates } = useEvaluation();
+  const { currentCycle, saveLeaderEvaluation, checkExistingEvaluation, loadSubordinates, subordinates, deliveriesCriteria } = useEvaluation();
   const { user, profile } = useAuth();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [currentStep, setCurrentStep] = useState(1); // 1: Competências, 2: Potencial, 3: PDI
@@ -88,65 +88,75 @@ const LeaderEvaluation = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [leaderEvaluationId, setLeaderEvaluationId] = useState<string | null>(null);
 
-  const [sections, setSections] = useState<SectionProps[]>([ // Explicitly type sections state
-    {
-      id: 'technical',
-      title: 'Competências Técnicas',
-      weight: 50,
-      expanded: true,
-      icon: BookOpen, // Added icon
-      gradient: 'from-green-800 to-green-900', // Added gradient
-      darkGradient: 'dark:from-green-800 dark:to-green-900', // Added dark gradient
-      bgColor: 'bg-green-50', // Added background color
-      darkBgColor: 'dark:bg-green-800/20', // Added dark background color
-      borderColor: 'border-green-200', // Added border color
-      darkBorderColor: 'dark:border-green-700', // Added dark border color
-      items: EVALUATION_COMPETENCIES.technical.map(comp => ({
-        id: comp.name.toLowerCase().replace(/\s+/g, '-'),
-        name: comp.name,
-        description: comp.description,
-        score: undefined // Explicitly allow undefined
-      }))
-    },
-    {
-      id: 'behavioral',
-      title: 'Competências Comportamentais',
-      weight: 30,
-      expanded: false,
-      icon: Target, // Added icon
-      gradient: 'from-gray-600 to-gray-700', // Added gradient
-      darkGradient: 'dark:from-gray-600 dark:to-gray-700', // Added dark gradient
-      bgColor: 'bg-gray-50', // Added background color
-      darkBgColor: 'dark:bg-gray-800/20', // Added dark background color
-      borderColor: 'border-gray-200', // Added border color
-      darkBorderColor: 'dark:border-gray-700', // Added dark border color
-      items: EVALUATION_COMPETENCIES.behavioral.map(comp => ({
-        id: comp.name.toLowerCase().replace(/\s+/g, '-'),
-        name: comp.name,
-        description: comp.description,
-        score: undefined
-      }))
-    },
-    {
-      id: 'organizational',
-      title: 'Competências Organizacionais',
-      weight: 20,
-      expanded: false,
-      icon: Award, // Added icon
-      gradient: 'from-stone-700 to-stone-800', // Added gradient
-      darkGradient: 'dark:from-stone-700 dark:to-stone-800', // Added dark gradient
-      bgColor: 'bg-stone-50', // Added background color
-      darkBgColor: 'dark:bg-stone-800/20', // Added dark background color
-      borderColor: 'border-stone-200', // Added border color
-      darkBorderColor: 'dark:border-stone-700', // Added dark border color
-      items: EVALUATION_COMPETENCIES.deliveries.map(comp => ({
-        id: comp.name.toLowerCase().replace(/\s+/g, '-'),
-        name: comp.name,
-        description: comp.description,
-        score: undefined
-      }))
-    }
-  ]);
+  const [sections, setSections] = useState<SectionProps[]>([]); // Inicializar vazio, será preenchido no useEffect
+
+  // Inicializar sections quando deliveriesCriteria carregar
+  useEffect(() => {
+    // Usar deliveriesCriteria do contexto ou fallback para EVALUATION_COMPETENCIES.deliveries
+    const organizationalCompetencies = deliveriesCriteria.length > 0
+      ? deliveriesCriteria
+      : EVALUATION_COMPETENCIES.deliveries;
+
+    setSections([
+      {
+        id: 'technical',
+        title: 'Competências Técnicas',
+        weight: 50,
+        expanded: true,
+        icon: BookOpen,
+        gradient: 'from-green-800 to-green-900',
+        darkGradient: 'dark:from-green-800 dark:to-green-900',
+        bgColor: 'bg-green-50',
+        darkBgColor: 'dark:bg-green-800/20',
+        borderColor: 'border-green-200',
+        darkBorderColor: 'dark:border-green-700',
+        items: EVALUATION_COMPETENCIES.technical.map(comp => ({
+          id: comp.name.toLowerCase().replace(/\s+/g, '-'),
+          name: comp.name,
+          description: comp.description,
+          score: undefined
+        }))
+      },
+      {
+        id: 'behavioral',
+        title: 'Competências Comportamentais',
+        weight: 30,
+        expanded: false,
+        icon: Target,
+        gradient: 'from-gray-600 to-gray-700',
+        darkGradient: 'dark:from-gray-600 dark:to-gray-700',
+        bgColor: 'bg-gray-50',
+        darkBgColor: 'dark:bg-gray-800/20',
+        borderColor: 'border-gray-200',
+        darkBorderColor: 'dark:border-gray-700',
+        items: EVALUATION_COMPETENCIES.behavioral.map(comp => ({
+          id: comp.name.toLowerCase().replace(/\s+/g, '-'),
+          name: comp.name,
+          description: comp.description,
+          score: undefined
+        }))
+      },
+      {
+        id: 'organizational',
+        title: 'Competências Organizacionais',
+        weight: 20,
+        expanded: false,
+        icon: Award,
+        gradient: 'from-stone-700 to-stone-800',
+        darkGradient: 'dark:from-stone-700 dark:to-stone-800',
+        bgColor: 'bg-stone-50',
+        darkBgColor: 'dark:bg-stone-800/20',
+        borderColor: 'border-stone-200',
+        darkBorderColor: 'dark:border-stone-700',
+        items: organizationalCompetencies.map((comp: any) => ({
+          id: comp.name.toLowerCase().replace(/\s+/g, '-'),
+          name: comp.name,
+          description: comp.description,
+          score: undefined
+        }))
+      }
+    ]);
+  }, [deliveriesCriteria]);
 
   const [potentialItems, setPotentialItems] = useState<PotentialItem[]>([ // Explicitly type potentialItems state
     {
@@ -363,16 +373,21 @@ const LeaderEvaluation = () => {
 
     const competencies = sections.flatMap(section =>
       section.items.map(item => {
-        const originalComp = EVALUATION_COMPETENCIES[
-          section.id === 'technical' ? 'technical' :
-          section.id === 'behavioral' ? 'behavioral' : 'deliveries'
-        ].find(c => c.name === item.name);
+        // Determinar a categoria baseada no ID da seção
+        let category: 'technical' | 'behavioral' | 'deliveries';
+        if (section.id === 'technical') {
+          category = 'technical';
+        } else if (section.id === 'behavioral') {
+          category = 'behavioral';
+        } else {
+          category = 'deliveries';
+        }
 
         return {
           id: item.id,
           criterion_name: item.name,
           criterion_description: item.description,
-          category: originalComp?.category || 'technical',
+          category: category,
           score: item.score!,
           weight: 1.0
         };
@@ -426,16 +441,21 @@ const LeaderEvaluation = () => {
       section.items
         .filter(item => item.score !== undefined)
         .map(item => {
-          const originalComp = EVALUATION_COMPETENCIES[
-            section.id === 'technical' ? 'technical' :
-            section.id === 'behavioral' ? 'behavioral' : 'deliveries'
-          ].find(c => c.name === item.name);
+          // Determinar a categoria baseada no ID da seção
+          let category: 'technical' | 'behavioral' | 'deliveries';
+          if (section.id === 'technical') {
+            category = 'technical';
+          } else if (section.id === 'behavioral') {
+            category = 'behavioral';
+          } else {
+            category = 'deliveries';
+          }
 
           return {
             id: item.id,
             criterion_name: item.name,
             criterion_description: item.description,
-            category: originalComp?.category || 'technical',
+            category: category,
             score: item.score!,
             weight: 1.0
           };

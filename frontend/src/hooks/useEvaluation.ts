@@ -13,6 +13,7 @@ import type {
 } from '../types/evaluation.types';
 import type { UserWithDetails } from '../types/supabase';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
 // Define ActionItem and PdiData interfaces here or import them
@@ -53,7 +54,8 @@ interface UseEvaluationReturn {
   employees: UserWithDetails[];
   subordinates: UserWithDetails[];
   nineBoxData: NineBoxData[];
-  
+  deliveriesCriteria: any[]; // Competências organizacionais
+
   // Actions
   loadCurrentCycle: () => Promise<void>;
   loadAllCycles: () => Promise<void>;
@@ -121,6 +123,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
   const [employees, setEmployees] = useState<UserWithDetails[]>([]);
   const [subordinates, setSubordinates] = useState<UserWithDetails[]>([]);
   const [nineBoxData, setNineBoxData] = useState<NineBoxData[]>([]);
+  const [deliveriesCriteria, setDeliveriesCriteria] = useState<any[]>([]);
 
   // Load current active cycle
   const loadCurrentCycle = useCallback(async () => {
@@ -544,9 +547,37 @@ export const useEvaluation = (): UseEvaluationReturn => {
     }
   }, []);
 
+  // Load organizational competencies
+  const loadOrganizationalCompetencies = useCallback(async () => {
+    try {
+      const { data: orgCompetencies } = await supabase
+        .from('organizational_competencies')
+        .select('*')
+        .eq('is_active', true)
+        .order('position', { ascending: true });
+
+      if (orgCompetencies && orgCompetencies.length > 0) {
+        const mappedDeliveries = orgCompetencies.map((comp: any) => ({
+          id: comp.id,
+          name: comp.name,
+          description: comp.description,
+          category: 'deliveries' as const,
+          position: comp.position
+        }));
+        setDeliveriesCriteria(mappedDeliveries);
+      } else {
+        setDeliveriesCriteria([]);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar competências organizacionais:', error);
+      setDeliveriesCriteria([]);
+    }
+  }, []);
+
   // Load initial data
   useEffect(() => {
     loadCurrentCycle();
+    loadOrganizationalCompetencies();
 
     const loadEmployees = async () => {
       try {
@@ -558,7 +589,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
     };
 
     loadEmployees();
-  }, [loadCurrentCycle]);
+  }, [loadCurrentCycle, loadOrganizationalCompetencies]);
 
   return {
     loading,
@@ -569,6 +600,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
     employees,
     subordinates,
     nineBoxData,
+    deliveriesCriteria,
     loadCurrentCycle,
     loadAllCycles,
     loadDashboard,

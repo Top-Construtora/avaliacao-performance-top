@@ -20,6 +20,7 @@ import {
   Building,
   User,
   HelpCircle,
+  Award,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import logo from '../../assets/images/logo.png';
@@ -122,6 +123,12 @@ export default function Sidebar({
       label: 'Gerenciar Ciclos',
       icon: RotateCcw,
       path: '/cycle',
+      allowedRoles: ['admin', 'director'],
+    },
+    {
+      label: 'Código Cultural',
+      icon: Award,
+      path: '/codigo-cultural',
       allowedRoles: ['admin', 'director'],
     },
     {

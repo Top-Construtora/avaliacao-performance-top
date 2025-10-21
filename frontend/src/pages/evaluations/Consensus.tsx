@@ -73,7 +73,8 @@ interface PdiData {
 
 const Consensus = () => {
   const navigate = useNavigate();
-  
+  const { deliveriesCriteria } = useEvaluation();
+
   const [leaders, setLeaders] = useState<UserWithDetails[]>([]);
   const [employees, setEmployees] = useState<UserWithDetails[]>([]);
   const [selectedLeaderId, setSelectedLeaderId] = useState<string>('');
@@ -107,46 +108,46 @@ const Consensus = () => {
   });
 
 
-  const criteria: Criterion[] = [
+  const [criteria, setCriteria] = useState<Criterion[]>([
     // Competências Técnicas
-    { 
-      id: 'gestao-conhecimento', 
-      name: 'GESTÃO DO CONHECIMENTO', 
+    {
+      id: 'gestao-conhecimento',
+      name: 'GESTÃO DO CONHECIMENTO',
       description: 'Demonstra domínio técnico sobre a sua área de atuação e atua de maneira a favorecer o bom andamento de todos os processos e procedimentos.',
-      category: 'Técnica', 
-      icon: Target 
+      category: 'Técnica',
+      icon: Target
     },
-    { 
-      id: 'orientacao-resultados', 
-      name: 'ORIENTAÇÃO A RESULTADOS', 
+    {
+      id: 'orientacao-resultados',
+      name: 'ORIENTAÇÃO A RESULTADOS',
       description: 'Atua com capacidade de focar na concretização dos objetivos, com intuito de garantir que os resultados sejam alcançados conforme o esperado. ',
-      category: 'Técnica', 
-      icon: TrendingUp 
+      category: 'Técnica',
+      icon: TrendingUp
     },
-    { 
-      id: 'pensamento-critico', 
-      name: 'PENSAMENTO CRÍTICO', 
+    {
+      id: 'pensamento-critico',
+      name: 'PENSAMENTO CRÍTICO',
       description: 'Capacidade de analisar cenários para buscar soluções superando desafios.',
-      category: 'Técnica', 
-      icon: Target 
+      category: 'Técnica',
+      icon: Target
     },
-    { 
-      id: 'aderencia-processos', 
-      name: 'ADERÊNCIA AOS PROCESSOS', 
+    {
+      id: 'aderencia-processos',
+      name: 'ADERÊNCIA AOS PROCESSOS',
       description: 'Trabalha em aderência aos processos de gestão da empresa, esforçando-se para compreender e atender os objetivos, cumprindo com os resutlados da área.',
-      category: 'Técnica', 
-      icon: Target 
+      category: 'Técnica',
+      icon: Target
     },
     // Competências Comportamentais
-    { 
-      id: 'comunicacao', 
-      name: 'COMUNICAÇÃO', 
+    {
+      id: 'comunicacao',
+      name: 'COMUNICAÇÃO',
       description: 'Possui capacidade de se expressar de forma clara e apropriada (seja escrita, verbal ou não verbal), entendo os questionamentos e sendo compreendido por seus colegas e clientes.',
-      category: 'Comportamental', 
-      icon: Users 
+      category: 'Comportamental',
+      icon: Users
     },
-    { 
-      id: 'inteligencia-emocional', 
+    {
+      id: 'inteligencia-emocional',
       name: 'INTELIGÊNCIA EMOCIONAL', 
       description: 'Apresenta capacidade de enfrentar situações de estresse e/ou pressão de forma paciente, educada e responsável.',
       category: 'Comportamental', 
@@ -159,43 +160,36 @@ const Consensus = () => {
       category: 'Comportamental', 
       icon: Users 
     },
-    { 
-      id: 'flexibilidade', 
-      name: 'FLEXIBILIDADE', 
+    {
+      id: 'flexibilidade',
+      name: 'FLEXIBILIDADE',
       description: 'Capaz de se adaptar a mudanças e/ou situações inesperadas.',
-      category: 'Comportamental', 
-      icon: Users 
-    },
-    // Competências Organizacionais
-    {
-      id: 'missao-dada-cumprida',
-      name: 'MERITOCRACIA E MISSÃO COMPARTILHADA',
-      description: 'Reconhecimento por mérito e alinhamento com os valores da empresa',
-      category: 'Organizacional',
-      icon: Award
-    },
-    {
-      id: 'senso-dono',
-      name: 'ESPIRAL DE PASSOS',
-      description: 'Evolução contínua através de pequenos passos consistentes',
-      category: 'Organizacional',
-      icon: Award
-    },
-    {
-      id: 'planejar-preciso',
-      name: 'PLANEJAR É PRECISO',
-      description: 'Valorização do planejamento e organização como fator crítico de sucesso',
-      category: 'Organizacional',
-      icon: Award
-    },
-    {
-      id: 'melhoria-continua',
-      name: 'MELHORIA CONTÍNUA',
-      description: 'Busca constante por aperfeiçoamento e inovação em processos e resultados',
-      category: 'Organizacional',
-      icon: Award
+      category: 'Comportamental',
+      icon: Users
     }
-  ];
+    // Competências Organizacionais serão carregadas dinamicamente do deliveriesCriteria
+  ]);
+
+  // Carregar competências organizacionais dinâmicas
+  useEffect(() => {
+    if (deliveriesCriteria && deliveriesCriteria.length > 0) {
+      setCriteria(prevCriteria => {
+        // Remover competências organizacionais antigas
+        const withoutOrganizational = prevCriteria.filter(c => c.category !== 'Organizacional');
+
+        // Adicionar competências organizacionais dinâmicas
+        const organizationalCompetencies = deliveriesCriteria.map((comp: any) => ({
+          id: comp.id,
+          name: comp.name.toUpperCase(),
+          description: comp.description,
+          category: 'Organizacional' as const,
+          icon: Award
+        }));
+
+        return [...withoutOrganizational, ...organizationalCompetencies];
+      });
+    }
+  }, [deliveriesCriteria]);
 
   const categoryConfig = {
     'Técnica': {
@@ -366,14 +360,6 @@ const Consensus = () => {
     }
   }, [selectedLeaderId]);
 
-  // Load evaluations and PDI when employee is selected
-  useEffect(() => {
-    if (selectedEmployeeId) {
-      loadEmployeeEvaluations();
-      loadPdiForEmployee(selectedEmployeeId);
-    }
-  }, [selectedEmployeeId, loadPdiForEmployee]);
-
   const fetchLeaders = async () => {
     try {
       const { data, error } = await supabase
@@ -411,7 +397,7 @@ const Consensus = () => {
     }
   };
 
-  const loadEmployeeEvaluations = async () => {
+  const loadEmployeeEvaluations = useCallback(async () => {
     if (!selectedEmployeeId) return;
 
     setLoading(true);
@@ -475,20 +461,23 @@ const Consensus = () => {
       const criterionNameToId: Record<string, string> = {
         // Técnicas
         'GESTÃO DO CONHECIMENTO': 'gestao-conhecimento',
-        'ORIENTAÇÃO A RESULTADOS COM SEGURANÇA': 'orientacao-resultados',
+        'ORIENTAÇÃO A RESULTADOS': 'orientacao-resultados',
         'PENSAMENTO CRÍTICO': 'pensamento-critico',
         'ADERÊNCIA AOS PROCESSOS': 'aderencia-processos',
         // Comportamentais
         'COMUNICAÇÃO': 'comunicacao',
         'INTELIGÊNCIA EMOCIONAL': 'inteligencia-emocional',
         'COLABORAÇÃO': 'colaboracao',
-        'FLEXIBLIDADE': 'flexibilidade',
-        // Organizacionais
-        'MERITOCRACIA E MISSÃO COMPARTILHADA': 'missao-dada-cumprida',
-        'ESPIRAL DE PASSOS': 'senso-dono',
-        'PLANEJAR É PRECISO': 'planejar-preciso',
-        'MELHORIA CONTÍNUA': 'melhoria-continua'
+        'FLEXIBILIDADE': 'flexibilidade'
+        // Organizacionais serão mapeadas dinamicamente
       };
+
+      // Adicionar mapeamento dinâmico para competências organizacionais
+      if (deliveriesCriteria && deliveriesCriteria.length > 0) {
+        deliveriesCriteria.forEach((comp: any) => {
+          criterionNameToId[comp.name.toUpperCase()] = comp.id;
+        });
+      }
 
       // Processar scores da autoavaliação
       if (selfEval && !selfError && selfEval.evaluation_competencies) {
@@ -552,7 +541,15 @@ const Consensus = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEmployeeId, deliveriesCriteria]);
+
+  // Load evaluations and PDI when employee is selected
+  useEffect(() => {
+    if (selectedEmployeeId) {
+      loadEmployeeEvaluations();
+      loadPdiForEmployee(selectedEmployeeId);
+    }
+  }, [selectedEmployeeId, loadPdiForEmployee, loadEmployeeEvaluations]);
 
   const handleConsensusChange = (criterionId: string, score: number): void => {
     setConsensusScores(prev => ({

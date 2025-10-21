@@ -365,7 +365,7 @@ export const evaluationService = {
   // Criar autoavaliação
   async createSelfEvaluation(supabase: any, evaluationData: any) {
     try {
-      // Calcular scores por categoria
+      // Calcular scores por categoria (pode retornar null se não houver competências)
       const technicalScore = this.calculateCategoryScore(evaluationData.competencies, 'technical');
       const behavioralScore = this.calculateCategoryScore(evaluationData.competencies, 'behavioral');
       const deliveriesScore = this.calculateCategoryScore(evaluationData.competencies, 'deliveries');
@@ -380,7 +380,7 @@ export const evaluationService = {
           status: 'completed',
           technical_score: technicalScore,
           behavioral_score: behavioralScore,
-          deliveries_score: deliveriesScore,
+          deliveries_score: deliveriesScore, // Pode ser null
           final_score: finalScore,
           knowledge: evaluationData.toolkit?.knowledge || [],
           tools: evaluationData.toolkit?.tools || [],
@@ -455,7 +455,7 @@ export const evaluationService = {
   // Criar avaliação de líder
   async createLeaderEvaluation(supabase: any, evaluationData: any) {
     try {
-      // Calcular scores
+      // Calcular scores (pode retornar null se não houver competências)
       const technicalScore = this.calculateCategoryScore(evaluationData.competencies, 'technical');
       const behavioralScore = this.calculateCategoryScore(evaluationData.competencies, 'behavioral');
       const deliveriesScore = this.calculateCategoryScore(evaluationData.competencies, 'deliveries');
@@ -471,7 +471,7 @@ export const evaluationService = {
           status: 'completed',
           technical_score: technicalScore,
           behavioral_score: behavioralScore,
-          deliveries_score: deliveriesScore,
+          deliveries_score: deliveriesScore, // Pode ser null
           final_score: finalScore,
           potential_score: evaluationData.potentialScore,
           evaluation_date: new Date().toISOString().split('T')[0],
@@ -646,9 +646,9 @@ export const evaluationService = {
   // ====================================
   
   // Calcular score por categoria
-  calculateCategoryScore(competencies: EvaluationCompetency[], category: string): number {
+  calculateCategoryScore(competencies: EvaluationCompetency[], category: string): number | null {
     const categoryComps = competencies.filter(c => c.category === category);
-    if (categoryComps.length === 0) return 0;
+    if (categoryComps.length === 0) return null; // Retorna null se não houver competências
 
     const sum = categoryComps.reduce((acc, comp) => acc + (comp.score || 0), 0);
     return sum / categoryComps.length;
@@ -659,12 +659,21 @@ export const evaluationService = {
     if (competencies.length === 0) return 0;
 
     // Calcular média de cada categoria
-    const technicalScore = this.calculateCategoryScore(competencies, 'technical');
-    const behavioralScore = this.calculateCategoryScore(competencies, 'behavioral');
-    const deliveriesScore = this.calculateCategoryScore(competencies, 'deliveries');
+    const technicalScore = this.calculateCategoryScore(competencies, 'technical') || 0;
+    const behavioralScore = this.calculateCategoryScore(competencies, 'behavioral') || 0;
+    const deliveriesScore = this.calculateCategoryScore(competencies, 'deliveries') || 0;
 
-    // Aplicar pesos: technical 50%, behavioral 30%, deliveries 20%
-    const weightedScore = (technicalScore * 0.5) + (behavioralScore * 0.3) + (deliveriesScore * 0.2);
+    // Contar quantas categorias têm valores
+    const categories = [];
+    if (technicalScore > 0) categories.push({ score: technicalScore, weight: 0.5 });
+    if (behavioralScore > 0) categories.push({ score: behavioralScore, weight: 0.3 });
+    if (deliveriesScore > 0) categories.push({ score: deliveriesScore, weight: 0.2 });
+
+    if (categories.length === 0) return 0;
+
+    // Se alguma categoria estiver faltando, redistribuir pesos proporcionalmente
+    const totalWeight = categories.reduce((sum, cat) => sum + cat.weight, 0);
+    const weightedScore = categories.reduce((sum, cat) => sum + (cat.score * (cat.weight / totalWeight)), 0);
 
     // Arredondar para 10 casas decimais para eliminar erros de precisão de ponto flutuante
     return Math.round(weightedScore * 10000000000) / 10000000000;

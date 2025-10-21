@@ -55,8 +55,8 @@ interface Section {
 const SelfEvaluation = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
-  const { currentCycle, saveSelfEvaluation, checkExistingEvaluation, loading } = useEvaluation();
-  
+  const { currentCycle, saveSelfEvaluation, checkExistingEvaluation, loading, deliveriesCriteria } = useEvaluation();
+
   const [currentStep, setCurrentStep] = useState<'toolkit' | 'competencies'>('toolkit');
   const [formData, setFormData] = useState<SelfEvaluationData>({
     conhecimentos: [''],
@@ -69,6 +69,7 @@ const SelfEvaluation = () => {
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
   const [hasExistingEvaluation, setHasExistingEvaluation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [competencyCategories, setCompetencyCategories] = useState<any[]>([]);
 
   // Check for existing evaluation
   useEffect(() => {
@@ -81,48 +82,55 @@ const SelfEvaluation = () => {
     checkExisting();
   }, [currentCycle, user, checkExistingEvaluation]);
 
-  // Updated competency categories to match the new system
-  const competencyCategories = [
-    {
-      id: 'competencias-tecnicas',
-      title: 'Competências Técnicas',
-      icon: Target,
-      gradient: 'from-green-800 to-green-900 dark:from-green-800 dark:to-green-900',
-      bgColor: 'bg-green-50 dark:bg-green-800/20',
-      borderColor: 'border-green-200 dark:border-green-700',
-      items: EVALUATION_COMPETENCIES.technical.map(comp => ({
-        id: comp.name.toLowerCase().replace(/\s+/g, '-'),
-        name: comp.name,
-        description: comp.description
-      }))
-    },
-    {
-      id: 'competencias-comportamentais',
-      title: 'Competências Comportamentais',
-      icon: Users,
-      gradient: 'from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700',
-      bgColor: 'bg-gray-50 dark:bg-gray-800/20',
-      borderColor: 'border-gray-200 dark:border-gray-700',
-      items: EVALUATION_COMPETENCIES.behavioral.map(comp => ({
-        id: comp.name.toLowerCase().replace(/\s+/g, '-'),
-        name: comp.name,
-        description: comp.description
-      }))
-    },
-    {
-      id: 'competencias-organizacionais',
-      title: 'Competências Organizacionais',
-      icon: Building,
-      gradient: 'from-stone-700 to-stone-800 dark:from-stone-700 dark:to-stone-800',
-      bgColor: 'bg-stone-50 dark:bg-stone-800/20',
-      borderColor: 'border-stone-200 dark:border-stone-700',
-      items: EVALUATION_COMPETENCIES.deliveries.map(comp => ({
-        id: comp.name.toLowerCase().replace(/\s+/g, '-'),
-        name: comp.name,
-        description: comp.description
-      }))
-    }
-  ];
+  // Initialize competency categories with dynamic organizational competencies
+  useEffect(() => {
+    // Usar deliveriesCriteria do contexto ou fallback para EVALUATION_COMPETENCIES.deliveries
+    const organizationalCompetencies = deliveriesCriteria.length > 0
+      ? deliveriesCriteria
+      : EVALUATION_COMPETENCIES.deliveries;
+
+    setCompetencyCategories([
+      {
+        id: 'competencias-tecnicas',
+        title: 'Competências Técnicas',
+        icon: Target,
+        gradient: 'from-green-800 to-green-900 dark:from-green-800 dark:to-green-900',
+        bgColor: 'bg-green-50 dark:bg-green-800/20',
+        borderColor: 'border-green-200 dark:border-green-700',
+        items: EVALUATION_COMPETENCIES.technical.map(comp => ({
+          id: comp.name.toLowerCase().replace(/\s+/g, '-'),
+          name: comp.name,
+          description: comp.description
+        }))
+      },
+      {
+        id: 'competencias-comportamentais',
+        title: 'Competências Comportamentais',
+        icon: Users,
+        gradient: 'from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700',
+        bgColor: 'bg-gray-50 dark:bg-gray-800/20',
+        borderColor: 'border-gray-200 dark:border-gray-700',
+        items: EVALUATION_COMPETENCIES.behavioral.map(comp => ({
+          id: comp.name.toLowerCase().replace(/\s+/g, '-'),
+          name: comp.name,
+          description: comp.description
+        }))
+      },
+      {
+        id: 'competencias-organizacionais',
+        title: 'Competências Organizacionais',
+        icon: Building,
+        gradient: 'from-stone-700 to-stone-800 dark:from-stone-700 dark:to-stone-800',
+        bgColor: 'bg-stone-50 dark:bg-stone-800/20',
+        borderColor: 'border-stone-200 dark:border-stone-700',
+        items: organizationalCompetencies.map((comp: any) => ({
+          id: comp.name.toLowerCase().replace(/\s+/g, '-'),
+          name: comp.name,
+          description: comp.description
+        }))
+      }
+    ]);
+  }, [deliveriesCriteria]);
 
   const addField = (section: keyof SelfEvaluationData) => {
     setFormData(prev => ({
@@ -213,19 +221,24 @@ const SelfEvaluation = () => {
     }, {} as SelfEvaluationData);
 
     // Prepare competencies for the new system
-    const competencies = competencyCategories.flatMap(category => 
+    const competencies = competencyCategories.flatMap(category =>
       category.items.map(item => {
-        const competency = EVALUATION_COMPETENCIES[
-          category.id === 'competencias-tecnicas' ? 'technical' : 
-          category.id === 'competencias-comportamentais' ? 'behavioral' : 'deliveries'
-        ].find(c => c.name === item.name);
+        // Determinar a categoria baseada no ID da categoria
+        let categoryType: 'technical' | 'behavioral' | 'deliveries';
+        if (category.id === 'competencias-tecnicas') {
+          categoryType = 'technical';
+        } else if (category.id === 'competencias-comportamentais') {
+          categoryType = 'behavioral';
+        } else {
+          categoryType = 'deliveries';
+        }
 
         return {
           criterion_name: item.name,
           criterion_description: item.description,
           name: item.name,
           description: item.description,
-          category: competency?.category || 'technical',
+          category: categoryType,
           score: competencyScores[item.id] || 0,
           written_response: ''
         };
@@ -707,25 +720,35 @@ const SelfEvaluation = () => {
                         )}
                       </div>
                       
-                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                        {[1, 2, 3, 4].map((rating) => (
-                          <button
-                            key={rating}
-                            onClick={() => handleCompetencyScore(item.id, rating)}
-                            className={`flex-1 py-3 sm:py-4 px-2 sm:px-4 rounded-lg sm:rounded-lg border transition-all duration-200 ${
-                              competencyScores[item.id] === rating
-                                ? `${rating === 4 ? 'bg-green-500 dark:bg-green-600' : rating === 3 ? 'bg-green-500 dark:bg-green-600' : rating === 2 ? 'bg-yellow-500 dark:bg-yellow-600' : 'bg-red-500 dark:bg-red-600'} text-white border-transparent shadow-lg transform scale-105`
-                                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800'
-                            }`}
-                          >
-                            <div className="text-center">
-                              <div className={`text-xl sm:text-2xl font-bold mb-1 ${competencyScores[item.id] === rating ? 'text-white' : 'text-gray-800 dark:text-gray-100'}`}>{rating}</div>
-                              <div className={`text-xs ${competencyScores[item.id] === rating ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-                                {rating === 4 ? 'Excepcional' : rating === 3 ? 'Satisfatório' : rating === 2 ? 'Em Desenvolvimento' : 'Insatisfatório'}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                        {[1, 2, 3, 4].map((rating) => {
+                          const ratingLabels = {
+                            1: { label: 'Insatisfatório', color: 'bg-red-500', darkColor: 'dark:bg-red-600' },
+                            2: { label: 'Em Desenvolvimento', color: 'bg-accent-500', darkColor: 'dark:bg-accent-600' },
+                            3: { label: 'Satisfatório', color: 'bg-primary-500', darkColor: 'dark:bg-primary-600' },
+                            4: { label: 'Excepcional', color: 'bg-green-500', darkColor: 'dark:bg-green-600' }
+                          };
+                          const ratingInfo = ratingLabels[rating as keyof typeof ratingLabels];
+
+                          return (
+                            <button
+                              key={rating}
+                              onClick={() => handleCompetencyScore(item.id, rating)}
+                              className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
+                                competencyScores[item.id] === rating
+                                  ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
+                                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                              }`}
+                            >
+                              <div className="text-center">
+                                <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
+                                <div className="text-xs">
+                                  {ratingInfo.label}
+                                </div>
                               </div>
-                            </div>
-                          </button>
-                        ))}
+                            </button>
+                          );
+                        })}
                       </div>
                     </motion.div>
                   ))}

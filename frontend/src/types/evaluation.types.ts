@@ -175,6 +175,9 @@ export interface NineBoxData {
 }
 
 // Competency templates for evaluations
+// NOTA: As competências técnicas e comportamentais são fixas
+// As competências organizacionais (deliveries) devem ser carregadas dinamicamente do banco
+// usando o hook useOrganizationalCompetencies ou o EvaluationContext
 export const EVALUATION_COMPETENCIES = {
   technical: [
     {
@@ -220,6 +223,8 @@ export const EVALUATION_COMPETENCIES = {
       category: 'behavioral' as const
     }
   ],
+  // AVISO: As competências organizacionais abaixo são apenas fallback
+  // Use deliveriesCriteria do EvaluationContext para obter as competências atualizadas do banco
   deliveries: [
     {
       name: 'Meritocracia e Missão Compartilhada',

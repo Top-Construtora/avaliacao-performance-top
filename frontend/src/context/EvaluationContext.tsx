@@ -54,7 +54,8 @@ interface EvaluationContextType {
   calculateFinalScore: (technical: number, behavioral: number, deliveries: number) => number;
   technicalCriteria: Criterion[];
   behavioralCriteria: Criterion[];
-  deliveriesCriteria: Criterion[];
+  deliveriesCriteria: Criterion[]; // Carregado dinamicamente do banco (competências organizacionais)
+  reloadOrganizationalCompetencies: () => Promise<void>; // Função para recarregar competências organizacionais
 
   // Novos para PDI
   pdis: ActionPlanData[];
@@ -110,26 +111,54 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
+  // Função para carregar competências organizacionais do banco
+  const loadOrganizationalCompetencies = async () => {
+    try {
+      const { data: orgCompetencies } = await supabase
+        .from('organizational_competencies')
+        .select('*')
+        .eq('is_active', true)
+        .order('position', { ascending: true });
+
+      if (orgCompetencies && orgCompetencies.length > 0) {
+        // Mapear para o formato esperado
+        const mappedDeliveries = orgCompetencies.map((comp: any) => ({
+          id: comp.id,
+          criterion_name: comp.name,
+          name: comp.name,
+          description: comp.description,
+          criterion_description: comp.description,
+          category: 'deliveries' as const,
+          position: comp.position
+        }));
+        setDeliveriesCriteria(mappedDeliveries);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar competências organizacionais:', error);
+    }
+  };
+
   // Carregar dados do Supabase com as novas tabelas
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Carregar competências do Supabase
+        // Carregar competências técnicas e comportamentais do Supabase (se existirem)
         const { data: competenciesData } = await supabase
           .from('competencies')
           .select('*')
           .order('created_at');
-        
+
         if (competenciesData) {
           // Separar competências por categoria
           const technical = competenciesData.filter((c: any) => c.category === 'technical');
           const behavioral = competenciesData.filter((c: any) => c.category === 'behavioral');
-          const deliveries = competenciesData.filter((c: any) => c.category === 'deliveries');
-          
+
           setTechnicalCriteria(technical);
           setBehavioralCriteria(behavioral);
-          setDeliveriesCriteria(deliveries);
         }
+
+        // Carregar competências organizacionais (deliveries) da nova tabela
+        await loadOrganizationalCompetencies();
 
         // Carregar employees do Supabase
         const { data: usersData } = await supabase
@@ -433,7 +462,8 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     calculateFinalScore,
     technicalCriteria,
     behavioralCriteria,
-    deliveriesCriteria,
+    deliveriesCriteria, // Competências organizacionais dinâmicas
+    reloadOrganizationalCompetencies: loadOrganizationalCompetencies, // Função para recarregar
 
     // Novos para PDI
     pdis,
