@@ -33,12 +33,40 @@ export const pdiService = {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        console.error('❌ Erro na resposta da API:', error);
-        throw new Error(error.error || 'Erro ao salvar PDI');
+        // Tentar fazer parse do erro, mas se falhar, usar mensagem padrão
+        let errorMessage = 'Erro ao salvar PDI';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const error = await response.json();
+            console.error('❌ Erro na resposta da API:', error);
+            errorMessage = error.error || error.message || errorMessage;
+          } else {
+            const text = await response.text();
+            console.error('❌ Erro na resposta (não-JSON):', text);
+            errorMessage = text || `Erro HTTP ${response.status}`;
+          }
+        } catch (parseError) {
+          console.error('❌ Erro ao fazer parse da resposta de erro:', parseError);
+          errorMessage = `Erro HTTP ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
 
-      const result = await response.json();
+      // Verificar se a resposta tem conteúdo antes de fazer parse
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.warn('⚠️ Resposta não é JSON, usando resposta vazia');
+        return { success: true };
+      }
+
+      const text = await response.text();
+      if (!text || text.trim() === '') {
+        console.warn('⚠️ Resposta vazia do servidor');
+        return { success: true };
+      }
+
+      const result = JSON.parse(text);
       console.log('✅ PDI salvo com sucesso:', result);
       return result;
     } catch (error: any) {
@@ -67,12 +95,41 @@ export const pdiService = {
           console.log('PDI não encontrado (404)');
           return null;
         }
-        const error = await response.json();
-        console.error('Erro na resposta:', error);
-        throw new Error(error.error || 'Erro ao buscar PDI');
+
+        // Tentar fazer parse do erro, mas se falhar, usar mensagem padrão
+        let errorMessage = 'Erro ao buscar PDI';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const error = await response.json();
+            console.error('Erro na resposta:', error);
+            errorMessage = error.error || error.message || errorMessage;
+          } else {
+            const text = await response.text();
+            console.error('Erro na resposta (não-JSON):', text);
+            errorMessage = text || `Erro HTTP ${response.status}`;
+          }
+        } catch (parseError) {
+          console.error('Erro ao fazer parse da resposta de erro:', parseError);
+          errorMessage = `Erro HTTP ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
 
-      const result = await response.json();
+      // Verificar se a resposta tem conteúdo antes de fazer parse
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.warn('⚠️ Resposta não é JSON');
+        return null;
+      }
+
+      const text = await response.text();
+      if (!text || text.trim() === '') {
+        console.warn('⚠️ Resposta vazia do servidor');
+        return null;
+      }
+
+      const result = JSON.parse(text);
       console.log('Resposta completa da API getPDI:', result);
       
       // Se a resposta tem success e data, retorna data (pode ser null)
@@ -98,12 +155,38 @@ export const pdiService = {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Erro ao buscar PDIs do ciclo');
+        // Tentar fazer parse do erro, mas se falhar, usar mensagem padrão
+        let errorMessage = 'Erro ao buscar PDIs do ciclo';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const error = await response.json();
+            errorMessage = error.error || error.message || errorMessage;
+          } else {
+            const text = await response.text();
+            errorMessage = text || `Erro HTTP ${response.status}`;
+          }
+        } catch (parseError) {
+          errorMessage = `Erro HTTP ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
 
-      const result = await response.json();
-      return result.data;
+      // Verificar se a resposta tem conteúdo antes de fazer parse
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.warn('⚠️ Resposta não é JSON');
+        return [];
+      }
+
+      const text = await response.text();
+      if (!text || text.trim() === '') {
+        console.warn('⚠️ Resposta vazia do servidor');
+        return [];
+      }
+
+      const result = JSON.parse(text);
+      return result.data || [];
     } catch (error: any) {
       console.error('Erro ao buscar PDIs do ciclo:', error);
       throw error;

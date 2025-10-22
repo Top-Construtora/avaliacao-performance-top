@@ -105,7 +105,7 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
-  
+
   // Para requisições OPTIONS, responde imediatamente
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
@@ -113,7 +113,17 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Max-Age', '86400');
     return res.sendStatus(204);
   }
-  
+
+  next();
+});
+
+// Middleware para garantir que sempre enviamos Content-Type correto
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = function(data: any) {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    return originalJson(data);
+  };
   next();
 });
 

@@ -34,10 +34,25 @@ export const api = {
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
             
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ 
-          message: `HTTP error! status: ${response.status}` 
-        }));
-        
+        let errorData: any = { message: `HTTP error! status: ${response.status}` };
+
+        try {
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.indexOf("application/json") !== -1) {
+            const text = await response.text();
+            if (text && text.trim() !== '') {
+              errorData = JSON.parse(text);
+            }
+          } else {
+            const text = await response.text();
+            if (text) {
+              errorData = { message: text };
+            }
+          }
+        } catch (parseError) {
+          console.error('❌ Erro ao fazer parse da resposta de erro:', parseError);
+        }
+
         const error: any = new Error(errorData.message || errorData.error || 'API request failed');
         error.response = {
           status: response.status,
@@ -49,8 +64,29 @@ export const api = {
       // Verifica se a resposta é JSON
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.indexOf("application/json") !== -1) {
-        const data = await response.json();
-        
+        // Ler o texto primeiro para verificar se está vazio
+        const text = await response.text();
+
+        // Se a resposta estiver vazia, retornar objeto de sucesso padrão
+        if (!text || text.trim() === '') {
+          console.warn('⚠️ API retornou resposta JSON vazia');
+          return { success: true };
+        }
+
+        // Tentar fazer parse do JSON
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          console.error('❌ Erro ao fazer parse de JSON:', text);
+          const error: any = new Error('Resposta inválida do servidor');
+          error.response = {
+            status: response.status,
+            data: { error: 'Invalid JSON response' }
+          };
+          throw error;
+        }
+
         // Se a resposta tem sucesso mas está estruturada diferente
         if (data.success === false) {
           const error: any = new Error(data.error || data.message || 'Request failed');
@@ -60,7 +96,7 @@ export const api = {
           };
           throw error;
         }
-        
+
         return data;
       } else {
         // Se não for JSON, retorna como texto

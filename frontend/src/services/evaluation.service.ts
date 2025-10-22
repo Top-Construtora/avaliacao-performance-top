@@ -194,16 +194,21 @@ export const evaluationService = {
       timeline?: string;
     }
   ): Promise<LeaderEvaluation> {
-    const response = await api.post('/evaluations/leader', {
-      cycleId,
-      employeeId,
-      evaluatorId,
-      competencies,
-      potentialScore,
-      feedback,
-      pdi
-    });
-    return response.data;
+    try {
+      const response = await api.post('/evaluations/leader', {
+        cycleId,
+        employeeId,
+        evaluatorId,
+        competencies,
+        potentialScore,
+        feedback,
+        pdi
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao salvar avaliação de líder:', error);
+      throw error;
+    }
   },
 
   // ====================================
