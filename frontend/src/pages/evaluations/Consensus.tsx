@@ -1380,6 +1380,7 @@ const Consensus = () => {
                             loading={loading}
                             canProceedToStep3={() => true} // Always true as it's the PDI section
                             selectedEmployee={employees.find(emp => emp.id === selectedEmployeeId)}
+                            hideActionButtons={viewMode === 'view'} // Hide buttons in view mode
                           />
                         </motion.div>
                       )}
