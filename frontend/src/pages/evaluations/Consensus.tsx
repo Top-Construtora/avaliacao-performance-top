@@ -10,7 +10,7 @@ import { evaluationService } from '../../services/evaluation.service';
 import PotentialAndPDI from '../../components/PotentialAndPDI';
 import PDIViewer from '../../components/PDIViewer';
 import { UserWithDetails } from '../../types/supabase';
-import { 
+import {
   ArrowLeft,
   Save,
   BookOpen,
@@ -29,6 +29,9 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
+  Brain,
+  Wrench,
+  Zap,
 } from 'lucide-react';
 
 interface ScoreMap {
@@ -41,6 +44,13 @@ interface Criterion {
   description: string;
   category: 'Técnica' | 'Comportamental' | 'Organizacional';
   icon: React.ElementType;
+}
+
+interface ToolkitData {
+  knowledge: string[];
+  tools: string[];
+  strengths_internal: string[];
+  qualities: string[];
 }
 
 // Define ActionItem and PdiData interfaces here to ensure consistency
@@ -85,12 +95,15 @@ const Consensus = () => {
   const [leaderScores, setLeaderScores] = useState<ScoreMap>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingPDI, setLoadingPDI] = useState(false);
+  const [employeeToolkit, setEmployeeToolkit] = useState<ToolkitData | null>(null);
 
   // Estados para armazenar IDs das avaliações e nota de potencial
   const [selfEvaluationId, setSelfEvaluationId] = useState<string | null>(null);
   const [leaderEvaluationId, setLeaderEvaluationId] = useState<string | null>(null);
   const [potentialScore, setPotentialScore] = useState<number | null>(null);
   const [hasExistingConsensus, setHasExistingConsensus] = useState<boolean>(false);
+  const [existingConsensusData, setExistingConsensusData] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<'edit' | 'view'>('edit');
   
   // Novos estados para controle do PDI
   const [showPDI, setShowPDI] = useState(false);
@@ -389,7 +402,7 @@ const Consensus = () => {
         .order('name');
 
       if (error) throw error;
-      
+
       setEmployees(data || []);
     } catch (error) {
       console.error('Error fetching employees:', error);
@@ -402,15 +415,20 @@ const Consensus = () => {
 
     setLoading(true);
     try {
+      // Declarar variável fora do bloco para uso posterior
+      let existingConsensus: any = null;
+
       // Verificar se já existe consenso para este colaborador no ciclo atual
       const currentCycle = await evaluationService.getCurrentCycle();
       if (currentCycle) {
-        const { data: existingConsensus, error: consensusCheckError } = await supabase
+        const { data: consensusData, error: consensusCheckError } = await supabase
           .from('consensus_evaluations')
-          .select('id, consensus_score, potential_score, nine_box_position, evaluation_date')
+          .select('id, consensus_score, potential_score, nine_box_position, evaluation_date, notes, self_evaluation_id, leader_evaluation_id')
           .eq('employee_id', selectedEmployeeId)
           .eq('cycle_id', currentCycle.id)
           .single();
+
+        existingConsensus = consensusData;
 
         if (consensusCheckError && consensusCheckError.code !== 'PGRST116') {
           console.error('Erro ao verificar consenso existente:', consensusCheckError);
@@ -418,12 +436,38 @@ const Consensus = () => {
 
         if (existingConsensus) {
           setHasExistingConsensus(true);
-          toast.error(
-            `Este colaborador já possui um consenso salvo neste ciclo (Nota: ${existingConsensus.consensus_score}, Posição: ${existingConsensus.nine_box_position}). Selecione outro colaborador.`,
-            { duration: 5000 }
+          setExistingConsensusData(existingConsensus);
+          setViewMode('view');
+          toast.success(
+            `Visualizando consenso salvo (Nota: ${existingConsensus.consensus_score}, Posição: ${existingConsensus.nine_box_position})`,
+            { duration: 4000 }
           );
+
+          // Carregar os dados do consenso salvo
+          try {
+            const notesData = JSON.parse(existingConsensus.notes || '{}');
+            if (notesData.criterionScores) {
+              setConsensusScores(notesData.criterionScores);
+            }
+            if (notesData.observations) {
+              setConsensusObservations(notesData.observations);
+            }
+            if (notesData.selfScores) {
+              setSelfScores(notesData.selfScores);
+            }
+            if (notesData.leaderScores) {
+              setLeaderScores(notesData.leaderScores);
+            }
+            setPotentialScore(existingConsensus.potential_score);
+            setSelfEvaluationId(existingConsensus.self_evaluation_id);
+            setLeaderEvaluationId(existingConsensus.leader_evaluation_id);
+          } catch (e) {
+            console.error('Erro ao carregar notas do consenso:', e);
+          }
         } else {
           setHasExistingConsensus(false);
+          setExistingConsensusData(null);
+          setViewMode('edit');
         }
       }
 
@@ -439,6 +483,18 @@ const Consensus = () => {
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
+
+      // Carregar toolkit da autoavaliação
+      if (selfEval && !selfError) {
+        setEmployeeToolkit({
+          knowledge: selfEval.knowledge || [],
+          tools: selfEval.tools || [],
+          strengths_internal: selfEval.strengths_internal || [],
+          qualities: selfEval.qualities || []
+        });
+      } else {
+        setEmployeeToolkit(null);
+      }
 
       // Buscar a avaliação do líder mais recente
       const { data: leaderEval, error: leaderError } = await supabase
@@ -479,8 +535,8 @@ const Consensus = () => {
         });
       }
 
-      // Processar scores da autoavaliação
-      if (selfEval && !selfError && selfEval.evaluation_competencies) {
+      // Processar scores da autoavaliação (apenas se não houver consenso existente)
+      if (!existingConsensus && selfEval && !selfError && selfEval.evaluation_competencies) {
         console.log('📊 Autoavaliação encontrada - Competências:', selfEval.evaluation_competencies);
         setSelfEvaluationId(selfEval.id); // Armazenar o ID da autoavaliação
 
@@ -494,13 +550,13 @@ const Consensus = () => {
             console.warn(`    ⚠️ Competência não mapeada: ${comp.criterion_name}`);
           }
         });
-      } else {
+      } else if (!existingConsensus) {
         console.log('❌ Nenhuma autoavaliação encontrada para este colaborador');
         setSelfEvaluationId(null);
       }
 
-      // Processar scores da avaliação do líder
-      if (leaderEval && !leaderError && leaderEval.evaluation_competencies) {
+      // Processar scores da avaliação do líder (apenas se não houver consenso existente)
+      if (!existingConsensus && leaderEval && !leaderError && leaderEval.evaluation_competencies) {
         console.log('👔 Avaliação do Líder encontrada - Competências:', leaderEval.evaluation_competencies);
         setLeaderEvaluationId(leaderEval.id); // Armazenar o ID da avaliação do líder
         setPotentialScore(leaderEval.potential_score || null); // Armazenar a nota de potencial
@@ -517,16 +573,19 @@ const Consensus = () => {
             console.warn(`    ⚠️ Competência não mapeada: ${comp.criterion_name}`);
           }
         });
-      } else {
+      } else if (!existingConsensus) {
         console.log('❌ Nenhuma avaliação do líder encontrada para este colaborador');
         setLeaderEvaluationId(null);
         setPotentialScore(null);
       }
 
-      setSelfScores(selfScoresMap);
-      setLeaderScores(leaderScoresMap);
-      setConsensusScores({});
-      setConsensusObservations({});
+      // Apenas limpar scores se não houver consenso existente
+      if (!existingConsensus) {
+        setSelfScores(selfScoresMap);
+        setLeaderScores(leaderScoresMap);
+        setConsensusScores({});
+        setConsensusObservations({});
+      }
 
       // Informar se não encontrou avaliações
       if (selfError && selfError.code === 'PGRST116') {
@@ -729,20 +788,26 @@ const Consensus = () => {
     }
   };
 
-  const ScoreButton = ({ score, isSelected, onClick }: { 
-    score: number; 
-    isSelected: boolean; 
-    onClick: (score: number) => void;
+  const ScoreButton = ({ score, isSelected, onClick, disabled }: {
+    score: number;
+    isSelected: boolean;
+    onClick?: (score: number) => void;
+    disabled?: boolean;
   }) => (
     <button
-      onClick={() => onClick(score)}
-      className={`w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-200 transform hover:scale-105 ${
-        isSelected 
-          ? 'bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 text-white shadow-lg ring-2 ring-green-300 dark:ring-green-600 ring-offset-2 dark:ring-offset-gray-800' 
+      onClick={() => onClick && !disabled && onClick(score)}
+      disabled={disabled}
+      className={`w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-200 ${
+        disabled
+          ? 'cursor-not-allowed opacity-70'
+          : 'transform hover:scale-105 cursor-pointer'
+      } ${
+        isSelected
+          ? 'bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 text-white shadow-lg ring-2 ring-green-300 dark:ring-green-600 ring-offset-2 dark:ring-offset-gray-800'
           : 'bg-white dark:bg-gray-700 text-naue-black dark:text-gray-300 font-medium hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-800 dark:hover:text-green-700 border-2 border-gray-200 dark:border-gray-600 hover:border-green-300 dark:hover:border-green-600 shadow-sm'
       }`}
-      title={`Selecionar nota ${score}`}
-      aria-label={`Nota ${score} ${isSelected ? '(selecionada)' : ''}`}
+      title={disabled ? `Nota ${score} (somente leitura)` : `Selecionar nota ${score}`}
+      aria-label={`Nota ${score} ${isSelected ? '(selecionada)' : ''} ${disabled ? '(somente leitura)' : ''}`}
     >
       {score}
     </button>
@@ -848,7 +913,7 @@ const Consensus = () => {
         </div>
 
         {/* Employee Selection */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Leader Selection */}
           <div className="sm:col-span-1">
             <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
@@ -923,7 +988,24 @@ const Consensus = () => {
               <div>
                 <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
                   <Calendar className="inline h-4 w-4 mr-1" />
-                  Data
+                  Data de Admissão
+                </label>
+                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
+                  {selectedEmployee.join_date
+                    ? (() => {
+                        // Parse da data sem problemas de timezone
+                        const [year, month, day] = selectedEmployee.join_date.split('-');
+                        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                        return date.toLocaleDateString('pt-BR');
+                      })()
+                    : 'Não informada'}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                  <Calendar className="inline h-4 w-4 mr-1" />
+                  Data da Reunião
                 </label>
                 <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
                   {new Date().toLocaleDateString('pt-BR')}
@@ -941,22 +1023,135 @@ const Consensus = () => {
         </div>
       )}
 
-      {/* Warning Banner for Existing Consensus */}
-      {hasExistingConsensus && selectedEmployeeId && !loading && (
+      {/* Info Banner for Existing Consensus - View Mode */}
+      {hasExistingConsensus && selectedEmployeeId && !loading && viewMode === 'view' && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-600 rounded-lg p-4 shadow-sm"
+          className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 dark:border-blue-600 rounded-lg p-4 shadow-sm"
         >
           <div className="flex items-start">
-            <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
-            <div>
-              <h3 className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
-                Consenso Já Registrado
+            <CheckCircle className="h-5 w-5 text-blue-500 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">
+                Visualizando Consenso Salvo
               </h3>
-              <p className="text-sm text-red-700 dark:text-red-400">
-                Este colaborador já possui um consenso salvo no ciclo atual. Não é possível criar ou modificar consensos já salvos. Selecione outro colaborador para continuar.
+              <p className="text-sm text-blue-700 dark:text-blue-400">
+                Este colaborador já possui um consenso finalizado neste ciclo. Você está visualizando as informações em modo somente leitura.
               </p>
+              <div className="mt-2 flex items-center space-x-4 text-xs text-blue-600 dark:text-blue-400">
+                <span className="flex items-center">
+                  <BarChart3 className="h-3 w-3 mr-1" />
+                  Nota Final: <strong className="ml-1">{existingConsensusData?.consensus_score}</strong>
+                </span>
+                <span className="flex items-center">
+                  <Target className="h-3 w-3 mr-1" />
+                  Posição Nine Box: <strong className="ml-1">{existingConsensusData?.nine_box_position}</strong>
+                </span>
+                <span className="flex items-center">
+                  <Calendar className="h-3 w-3 mr-1" />
+                  Data: <strong className="ml-1">{existingConsensusData?.evaluation_date ? new Date(existingConsensusData.evaluation_date).toLocaleDateString('pt-BR') : 'N/A'}</strong>
+                </span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Toolkit Section */}
+      {selectedEmployeeId && !loading && employeeToolkit && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden"
+        >
+          <div className="px-4 sm:px-8 py-4 sm:py-6 bg-gradient-to-r from-green-50 via-gray-50 to-stone-50 dark:from-green-900/20 dark:via-gray-900/20 dark:to-stone-900/20 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 shadow-md dark:shadow-lg">
+                <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100">Toolkit do Colaborador</h2>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  Conhecimentos, ferramentas e qualidades declaradas na autoavaliação
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Conhecimentos */}
+              {employeeToolkit.knowledge.length > 0 && (
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-700">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Brain className="h-5 w-5 text-green-800 dark:text-green-700" />
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Conhecimentos</h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {employeeToolkit.knowledge.map((item, index) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Ferramentas */}
+              {employeeToolkit.tools.length > 0 && (
+                <div className="p-4 bg-gray-50 dark:bg-gray-900/20 rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Wrench className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Ferramentas</h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {employeeToolkit.tools.map((item, index) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <CheckCircle className="h-4 w-4 text-gray-600 dark:text-gray-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Forças Internas */}
+              {employeeToolkit.strengths_internal.length > 0 && (
+                <div className="p-4 bg-stone-50 dark:bg-stone-900/20 rounded-xl border border-stone-200 dark:border-stone-700">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Zap className="h-5 w-5 text-stone-700 dark:text-stone-600" />
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Forças Internas</h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {employeeToolkit.strengths_internal.map((item, index) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <CheckCircle className="h-4 w-4 text-stone-600 dark:text-stone-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Qualidades */}
+              {employeeToolkit.qualities.length > 0 && (
+                <div className="p-4 bg-stone-50 dark:bg-stone-900/20 rounded-xl border border-stone-200 dark:border-stone-700">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Award className="h-5 w-5 text-stone-700 dark:text-stone-600" />
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Qualidades</h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {employeeToolkit.qualities.map((item, index) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <CheckCircle className="h-4 w-4 text-stone-600 dark:text-stone-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
@@ -964,7 +1159,7 @@ const Consensus = () => {
 
       {/* Criteria by Category */}
       <AnimatePresence>
-        {selectedEmployeeId && !loading && !hasExistingConsensus && (
+        {selectedEmployeeId && !loading && (
           <>
             {Object.entries(groupedCriteria).map(([category, categoryCriteria], categoryIndex) => {
               const config = categoryConfig[category as keyof typeof categoryConfig];
@@ -1068,7 +1263,8 @@ const Consensus = () => {
                                         key={score}
                                         score={score}
                                         isSelected={consensusScore === score}
-                                        onClick={(selectedScore: number) => handleConsensusChange(criterion.id, selectedScore)}
+                                        onClick={(selectedScore: number) => viewMode === 'edit' ? handleConsensusChange(criterion.id, selectedScore) : undefined}
+                                        disabled={viewMode === 'view'}
                                       />
                                     ))}
                                   </div>
@@ -1080,14 +1276,16 @@ const Consensus = () => {
                             <div className="mt-3">
                               <label className="flex items-center text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                                 <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                                Observações
+                                Observações {viewMode === 'view' && <span className="ml-1 text-xs">(somente leitura)</span>}
                               </label>
                               <textarea
-                                className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent resize-none transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500"
+                                className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent resize-none transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-70 disabled:cursor-not-allowed"
                                 rows={2}
-                                placeholder="Adicione observações sobre esta competência..."
+                                placeholder={viewMode === 'edit' ? "Adicione observações sobre esta competência..." : "Sem observações"}
                                 value={consensusObservations[criterion.id] || ''}
-                                onChange={(e) => handleObservationChange(criterion.id, e.target.value)}
+                                onChange={(e) => viewMode === 'edit' && handleObservationChange(criterion.id, e.target.value)}
+                                disabled={viewMode === 'view'}
+                                readOnly={viewMode === 'view'}
                               />
                             </div>
                           </div>
@@ -1252,43 +1450,45 @@ const Consensus = () => {
               </motion.div>
             )}
 
-            {/* Actions */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0"
-            >
-              <div className="flex items-center space-x-2 text-sm">
-                {progress < 100 ? (
-                  <>
-                    <AlertCircle className="h-5 w-5 text-amber-500 dark:text-amber-400" />
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Complete todas as avaliações para finalizar
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
-                    <span className="text-green-600 dark:text-green-400 font-medium">
-                      Consenso completo!
-                    </span>
-                  </>
-                )}
-              </div>
+            {/* Actions - Only show in edit mode */}
+            {viewMode === 'edit' && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0"
+              >
+                <div className="flex items-center space-x-2 text-sm">
+                  {progress < 100 ? (
+                    <>
+                      <AlertCircle className="h-5 w-5 text-amber-500 dark:text-amber-400" />
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Complete todas as avaliações para finalizar
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
+                      <span className="text-green-600 dark:text-green-400 font-medium">
+                        Consenso completo!
+                      </span>
+                    </>
+                  )}
+                </div>
 
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                <Button
-                  variant="primary"
-                  onClick={handleSaveConsensus}
-                  icon={<Save size={18} />}
-                  size="lg"
-                  disabled={progress < 100 || loading || hasExistingConsensus}
-                >
-                  {hasExistingConsensus ? 'Consenso Já Salvo' : 'Salvar Consenso'}
-                </Button>
-              </div>
-            </motion.div>
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                  <Button
+                    variant="primary"
+                    onClick={handleSaveConsensus}
+                    icon={<Save size={18} />}
+                    size="lg"
+                    disabled={progress < 100 || loading}
+                  >
+                    Salvar Consenso
+                  </Button>
+                </div>
+              </motion.div>
+            )}
           </>
         )}
       </AnimatePresence>
