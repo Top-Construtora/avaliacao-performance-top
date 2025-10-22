@@ -16,8 +16,14 @@ export const pdiService = {
       console.log('🚀 Frontend - Enviando PDI para API:', params);
       console.log('📊 Total de items a enviar:', params.items?.length || 0);
 
+      // Determinar URL base
+      const apiUrl = import.meta.env.VITE_API_URL ||
+        (window.location.hostname.includes('vercel.app')
+          ? 'https://avaliacao-performance-naue.onrender.com/api'
+          : '/api');
+
       // Verificar a rota correta
-      const response = await fetch('/api/pdi', {
+      const response = await fetch(`${apiUrl}/pdi`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +85,13 @@ export const pdiService = {
   async getPDI(employeeId: string) {
     console.log('pdiService.getPDI chamado para employeeId:', employeeId);
     try {
-      const url = `/api/pdi/${employeeId}`;
+      // Determinar URL base
+      const apiUrl = import.meta.env.VITE_API_URL ||
+        (window.location.hostname.includes('vercel.app')
+          ? 'https://avaliacao-performance-naue.onrender.com/api'
+          : '/api');
+
+      const url = `${apiUrl}/pdi/${employeeId}`;
       console.log('Fazendo requisição para:', url);
 
       const response = await fetch(url, {
@@ -148,7 +160,13 @@ export const pdiService = {
   // Buscar PDIs por ciclo
   async getPDIsByCycle(cycleId: string) {
     try {
-      const response = await fetch(`/api/pdi/cycle/${cycleId}`, {
+      // Determinar URL base
+      const apiUrl = import.meta.env.VITE_API_URL ||
+        (window.location.hostname.includes('vercel.app')
+          ? 'https://avaliacao-performance-naue.onrender.com/api'
+          : '/api');
+
+      const response = await fetch(`${apiUrl}/pdi/cycle/${cycleId}`, {
         headers: {
           'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
         }

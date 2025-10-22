@@ -1,6 +1,16 @@
 // Em desenvolvimento, usar path relativo para aproveitar o proxy do Vite
 // Em produção, usar a URL completa da API
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL ||
+  (window.location.hostname.includes('vercel.app')
+    ? 'https://avaliacao-performance-naue.onrender.com/api'
+    : '/api');
+
+// Log para debug
+console.log('🌍 API Configuration:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  hostname: window.location.hostname,
+  using: API_BASE_URL
+});
 
 export const api = {
   baseURL: API_BASE_URL,
