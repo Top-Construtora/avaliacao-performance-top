@@ -5,12 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
     ? 'https://avaliacao-performance-naue.onrender.com/api'
     : '/api');
 
-// Log para debug
-console.log('🌍 API Configuration:', {
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-  hostname: window.location.hostname,
-  using: API_BASE_URL
-});
+// Removido log de debug com informações sensíveis
 
 export const api = {
   baseURL: API_BASE_URL,

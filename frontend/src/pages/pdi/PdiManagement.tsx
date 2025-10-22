@@ -74,9 +74,7 @@ const PdiManagement: React.FC = () => {
         setPdiData(initialPdiData);
 
         try {
-          console.log('Carregando PDI para colaborador:', selectedEmployeeId);
           const loadedPdi = await loadPDI(selectedEmployeeId);
-          console.log('PDI carregado:', loadedPdi);
           
           if (loadedPdi) {
             // Mesclar os dados carregados com as informações do colaborador
@@ -139,8 +137,6 @@ const PdiManagement: React.FC = () => {
       timeline: pdiData.periodo,
       items: allPdiActionItems, // Adicionar o campo items com os dados completos
     };
-
-    console.log('Salvando PDI com dados:', pdiToSave);
 
     setIsSavingPDI(true);
     try {
