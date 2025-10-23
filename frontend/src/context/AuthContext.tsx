@@ -186,13 +186,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Garantir consistência dos dados antes de enviar
       const updateData = { ...updates };
-      
-      // Se não tem filhos, limpar array de faixas etárias
-      if ('has_children' in updateData && !updateData.has_children) {
-        updateData.children_age_ranges = [];
-      }
-      
-      
+
+      // Remover campos que não existem na tabela
+      // @ts-ignore
+      delete updateData.children_age_ranges;
 
       // Atualiza no Supabase
       const { data, error } = await supabase
@@ -246,17 +243,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Add resetPassword implementation
   const resetPassword = async (email: string) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      // Determina a URL de redirecionamento baseada no ambiente
+      const redirectUrl = `${window.location.origin}/reset-password`;
+
+      console.log('🔄 Tentando enviar email de recuperação para:', email);
+      console.log('🔗 Redirect URL:', redirectUrl);
+
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
+        // Opções adicionais para garantir compatibilidade
+        captchaToken: undefined,
       });
 
       if (error) {
+        console.error('❌ Erro do Supabase:', error);
         throw error;
       }
 
-      toast.success('Email de recuperação enviado!');
+      console.log('✅ Resposta do Supabase:', data);
+      console.log('📧 Email solicitado com sucesso!');
+      console.log('⚠️ IMPORTANTE:');
+      console.log('  1. Verifique sua caixa de entrada e SPAM');
+      console.log('  2. O email pode demorar até 10 minutos para chegar');
+      console.log('  3. O Supabase tem limite de 3-4 emails/hora no plano gratuito');
+      console.log('  4. Se não chegar, verifique se o usuário existe em Authentication > Users');
+
+      toast.success(
+        'Email de recuperação solicitado! Verifique sua caixa de entrada e SPAM. O email pode demorar até 10 minutos.',
+        { duration: 8000 }
+      );
     } catch (error: any) {
-      console.error('Reset password error:', error);
+      console.error('❌ Reset password error:', error);
       toast.error(error.message || 'Erro ao enviar email de recuperação');
       throw error;
     }

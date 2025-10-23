@@ -322,5 +322,26 @@ export const userService = {
     } catch (error) {
       throw new ApiError(500, 'Failed to fetch user statistics');
     }
+  },
+
+  async resetUserPassword(userId: string, newPassword: string) {
+    try {
+      // Usa a API Admin do Supabase para atualizar senha (requer SERVICE_KEY)
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(
+        userId,
+        { password: newPassword }
+      );
+
+      if (error) {
+        throw new ApiError(500, 'Erro ao atualizar senha: ' + error.message);
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError(500, error.message || 'Erro ao redefinir senha');
+    }
   }
 };

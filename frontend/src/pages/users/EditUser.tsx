@@ -87,10 +87,8 @@ const EditUser = () => {
     positionId: '', // ID do track_position
     internLevel: 'A' as 'A' | 'B' | 'C' | 'D' | 'E',
     contractType: 'CLT' as 'CLT' | 'PJ',
-    
-    // Novos campos de perfil pessoal
-    has_children: false,
-    children_age_ranges: [] as string[],
+
+    // Campos has_children e children_age_ranges removidos - não existem no banco
   });
 
   const [originalData, setOriginalData] = useState(formData);
@@ -260,9 +258,8 @@ const EditUser = () => {
         positionId: user.position_id || '',
         internLevel: user.intern_level || 'A' as 'A' | 'B' | 'C' | 'D' | 'E',
         contractType: user.contract_type || 'CLT' as 'CLT' | 'PJ',
-        
-        has_children: user.has_children || false,
-        children_age_ranges: user.children_age_ranges || [],
+
+        // has_children e children_age_ranges removidos - não existem no banco
       };
 
       setFormData(userData);
@@ -444,9 +441,7 @@ const EditUser = () => {
         position_id: formData.positionId || null,
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
-        
-        has_children: formData.has_children,
-        children_age_ranges: formData.children_age_ranges,
+        // has_children e children_age_ranges removidos - colunas não existem no banco
       });
 
       // Atualizar times do usuário
@@ -468,15 +463,25 @@ const EditUser = () => {
           .insert(teamMembers);
       }
 
-      // Atualizar senha se necessário
+      // Atualizar senha via backend API
       if (showPasswordChange && newPassword) {
-        const { error: passwordError } = await supabase.auth.admin.updateUserById(
-          id!,
-          { password: newPassword }
-        );
+        try {
+          const response = await fetch(`/api/users/${id}/reset-password`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify({ password: newPassword })
+          });
 
-        if (passwordError) {
-          throw new Error('Erro ao atualizar senha');
+          if (!response.ok) {
+            throw new Error('Erro ao atualizar senha');
+          }
+        } catch (passwordError) {
+          console.error('Erro ao atualizar senha:', passwordError);
+          toast.error('Erro ao atualizar senha');
+          throw passwordError;
         }
       }
 
@@ -1028,12 +1033,13 @@ const EditUser = () => {
           </motion.div>
 
           {/* Personal Profile Information - UserProfileFields */}
-          <motion.div variants={itemVariants}>
-            <UserProfileFields 
+          {/* Comentado: campos has_children e children_age_ranges não existem no banco */}
+          {/* <motion.div variants={itemVariants}>
+            <UserProfileFields
               formData={formData}
               onChange={handleProfileFieldChange}
             />
-          </motion.div>
+          </motion.div> */}
 
           {/* Team Allocation */}
           {formData.profileType !== 'director' && (

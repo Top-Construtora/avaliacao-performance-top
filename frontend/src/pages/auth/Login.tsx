@@ -7,15 +7,13 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn, resetPassword } = useAuth();
+  const { signIn } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,25 +39,6 @@ export default function Login() {
     }
   };
 
-  const handleForgotPassword = async () => {
-    if (!email) {
-      setError('Digite seu email para recuperar a senha');
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError('');
-      await resetPassword(email);
-      setShowForgotPassword(false);
-      setSuccessMessage('Email de recuperação enviado! Verifique sua caixa de entrada.');
-      setTimeout(() => setSuccessMessage(''), 5000);
-    } catch (err) {
-      setError('Erro ao enviar email de recuperação');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a5d47] to-[#021a14] flex items-center justify-center p-4">
@@ -156,18 +135,6 @@ export default function Login() {
               </motion.div>
             )}
 
-            {/* Mensagem de Sucesso */}
-            {successMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg"
-              >
-                <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                <span>{successMessage}</span>
-              </motion.div>
-            )}
-
             {/* Links */}
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -179,7 +146,7 @@ export default function Login() {
               </label>
               <button
                 type="button"
-                onClick={() => setShowForgotPassword(true)}
+                onClick={() => navigate('/reset-password')}
                 className="text-primary-600 hover:text-primary-800 font-medium transition-colors"
               >
                 Esqueceu a senha?
@@ -219,54 +186,6 @@ export default function Login() {
             </p>
           </div>
         </div>
-
-        {/* Modal Esqueceu a Senha */}
-        {showForgotPassword && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-            onClick={() => setShowForgotPassword(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-naue-white rounded-2xl p-6 max-w-sm w-full shadow-md border border-naue-border-gray"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Recuperar Senha
-              </h2>
-              <p className="text-gray-600 mb-4">
-                Digite seu email para receber as instruções de recuperação.
-              </p>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 mb-4 bg-white"
-                placeholder="seu@email.com"
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowForgotPassword(false)}
-                  className="flex-1 py-2 px-4 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleForgotPassword}
-                  disabled={isLoading}
-                  className="flex-1 py-2 px-4 rounded-lg bg-primary-600 text-white hover:bg-primary-800 transition-colors disabled:bg-gray-400"
-                >
-                  {isLoading ? 'Enviando...' : 'Enviar'}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
       </motion.div>
     </div>
   );

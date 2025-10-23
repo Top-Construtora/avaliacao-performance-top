@@ -13,5 +13,6 @@ router.post('/', userController.createUser);
 router.put('/:id', userController.updateUser);
 router.delete('/:id', userController.deleteUser);
 router.get('/leader/:leaderId/subordinates', userController.getSubordinates);
+router.post('/:id/reset-password', userController.resetUserPassword);
 
 export default router;

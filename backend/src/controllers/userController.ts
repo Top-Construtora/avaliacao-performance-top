@@ -103,10 +103,33 @@ export const userController = {
     try {
       const { leaderId } = req.params;
       const subordinates = await userService.getSubordinates(leaderId);
-      
+
       res.json({
         success: true,
         data: subordinates
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async resetUserPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { password } = req.body;
+
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Senha é obrigatória'
+        });
+      }
+
+      await userService.resetUserPassword(id, password);
+
+      res.json({
+        success: true,
+        message: 'Senha atualizada com sucesso'
       });
     } catch (error) {
       next(error);
