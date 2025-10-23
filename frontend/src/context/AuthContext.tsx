@@ -101,13 +101,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setProfile(profileData);
         setIsAuthenticated(true);
         
-        // Salva o token no localStorage para uso com a API
-        localStorage.setItem('access_token', session.access_token);
+        // Salva o token no sessionStorage para uso com a API
+        // sessionStorage é limpo quando o navegador fecha
+        sessionStorage.setItem('access_token', session.access_token);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
+      sessionStorage.removeItem('access_token');
+      sessionStorage.removeItem('refresh_token');
     } finally {
       setLoading(false);
     }
@@ -150,8 +151,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
-      // Salva os dados
-      localStorage.setItem('access_token', data.session.access_token);
+      // Salva os dados no sessionStorage (limpo ao fechar navegador)
+      sessionStorage.setItem('access_token', data.session.access_token);
       setUser(profileData);
       setProfile(profileData);
       setIsAuthenticated(true);
@@ -171,8 +172,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error signing out:', error);
     } finally {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
+      sessionStorage.removeItem('access_token');
+      sessionStorage.removeItem('refresh_token');
       setUser(null);
       setProfile(null);
       setIsAuthenticated(false);

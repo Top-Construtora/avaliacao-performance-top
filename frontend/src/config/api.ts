@@ -11,7 +11,7 @@ export const api = {
   baseURL: API_BASE_URL,
   
   async request(endpoint: string, options: RequestInit = {}) {
-    const token = localStorage.getItem('access_token');
+    const token = sessionStorage.getItem('access_token');
     
     // Headers padrão limpos
     const headers: HeadersInit = {
