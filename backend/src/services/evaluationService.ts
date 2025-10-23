@@ -735,10 +735,13 @@ export const evaluationService = {
   },
 
   // ====================================
-  // PDI - PLANO DE DESENVOLVIMENTO INDIVIDUAL
+  // PDI - PLANO DE DESENVOLVIMENTO INDIVIDUAL (MÉTODOS ANTIGOS - NÃO USAR)
   // ====================================
-  
-  // Salvar PDI (formato antigo)
+  // ATENÇÃO: Estes métodos usam campos antigos ('actions', 'goals', 'resources')
+  // que não existem mais na tabela. Use pdiService em vez disso.
+
+  // @deprecated - Usar pdiService.savePDI() em vez disso
+  // Salvar PDI (formato antigo - NÃO USAR)
   async savePDI(supabase: any, pdiData: any) {
     try {
       // Verificar se já existe um PDI ativo para o colaborador
@@ -781,7 +784,8 @@ export const evaluationService = {
     }
   },
 
-  // Salvar PDI com items (novo formato)
+  // @deprecated - Usar pdiService.savePDI() em vez disso
+  // Salvar PDI com items (formato antigo - NÃO USAR)
   async savePDIWithItems(supabase: any, pdiData: any) {
     try {
       // Processar items para criar goals, actions e resources
@@ -848,7 +852,8 @@ export const evaluationService = {
     }
   },
 
-  // Buscar PDI ativo do colaborador
+  // @deprecated - Usar pdiService.getPDI() em vez disso
+  // Buscar PDI ativo do colaborador (formato antigo - NÃO USAR)
   async getPDI(supabase: any, employeeId: string) {
     try {
       const { data, error } = await supabase
@@ -881,7 +886,8 @@ export const evaluationService = {
     }
   },
 
-  // Atualizar PDI
+  // @deprecated - Não usar este método
+  // Atualizar PDI (formato antigo - NÃO USAR)
   async updatePDI(supabase: any, pdiId: string, updates: any) {
     try {
       const { data, error } = await supabase

@@ -301,50 +301,42 @@ export const evaluationController = {
   async savePDI(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      const { employeeId, goals, actions, resources, timeline, items } = req.body;
-      
-      if (!employeeId || (!items && (!goals || !actions))) {
+      const { employeeId, cycleId, leaderEvaluationId, items, periodo } = req.body;
+
+      console.log('📥 Controller - Recebendo requisição PDI:', {
+        employeeId,
+        cycleId,
+        itemsLength: items?.length,
+        periodo
+      });
+
+      if (!employeeId || !items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({
           success: false,
-          error: 'Campos obrigatórios: employeeId e (items ou goals/actions)'
+          error: 'Campos obrigatórios: employeeId e items (array não vazio)'
         });
       }
-      
-      // Se temos items, usar o novo formato
-      if (items && Array.isArray(items)) {
-        const pdi = await evaluationService.savePDIWithItems(
-          authReq.supabase,
-          {
-            employeeId,
-            items,
-            periodo: timeline,
-            createdBy: authReq.user?.id
-          }
-        );
-        
-        res.json({
-          success: true,
-          data: pdi
-        });
-      } else {
-        // Usar formato antigo
-        const pdi = await evaluationService.savePDI(
-          authReq.supabase,
-          {
-            employeeId,
-            goals,
-            actions,
-            resources,
-            timeline,
-            createdBy: authReq.user?.id
-          }
-        );
-        
-        res.json({
-          success: true,
-          data: pdi
-        });
-      }
+
+      // Importar o pdiService
+      const { pdiService } = require('../services/pdiService');
+
+      // Usar o pdiService para salvar o PDI
+      const pdi = await pdiService.savePDI(
+        authReq.supabase,
+        {
+          employeeId,
+          cycleId,
+          leaderEvaluationId,
+          items,
+          periodo: periodo || 'Anual',
+          createdBy: authReq.user?.id
+        }
+      );
+
+      res.json({
+        success: true,
+        data: pdi
+      });
     } catch (error) {
       console.error('Controller error:', error);
       next(error);
@@ -356,12 +348,15 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const { employeeId } = req.params;
-      
-      const pdi = await evaluationService.getPDI(
+
+      // Importar o pdiService
+      const { pdiService } = require('../services/pdiService');
+
+      const pdi = await pdiService.getPDI(
         authReq.supabase,
         employeeId
       );
-      
+
       // Se não encontrou PDI, retorna null ao invés de erro
       if (!pdi) {
         return res.json({
@@ -369,14 +364,14 @@ export const evaluationController = {
           data: null
         });
       }
-      
+
       res.json({
         success: true,
         data: pdi
       });
     } catch (error: any) {
       console.error('Controller error:', error);
-      
+
       // Se o erro for "no rows returned", retorna null ao invés de erro 500
       if (error.message && error.message.includes('PGRST116')) {
         return res.json({
@@ -384,7 +379,7 @@ export const evaluationController = {
           data: null
         });
       }
-      
+
       next(error);
     }
   },
