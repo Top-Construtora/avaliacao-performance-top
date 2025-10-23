@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, resetPassword } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,6 +15,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,9 +49,11 @@ export default function Login() {
 
     try {
       setIsLoading(true);
-      const { resetPassword } = useAuth();
+      setError('');
       await resetPassword(email);
       setShowForgotPassword(false);
+      setSuccessMessage('Email de recuperação enviado! Verifique sua caixa de entrada.');
+      setTimeout(() => setSuccessMessage(''), 5000);
     } catch (err) {
       setError('Erro ao enviar email de recuperação');
     } finally {
@@ -150,6 +153,18 @@ export default function Login() {
               >
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 <span>{error}</span>
+              </motion.div>
+            )}
+
+            {/* Mensagem de Sucesso */}
+            {successMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg"
+              >
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <span>{successMessage}</span>
               </motion.div>
             )}
 
