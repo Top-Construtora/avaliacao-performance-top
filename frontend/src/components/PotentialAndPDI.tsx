@@ -249,7 +249,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     {
       key: 'curtosPrazos' as const,
       title: 'Curto Prazo',
-      subtitle: '0-6 meses',
+      subtitle: '3 meses',
       icon: BookOpen,
       gradient: 'from-green-800 to-green-900',
       darkGradient: 'dark:from-green-800 dark:to-green-900',
@@ -263,7 +263,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     {
       key: 'mediosPrazos' as const,
       title: 'Médio Prazo',
-      subtitle: '6-12 meses',
+      subtitle: '3-6 meses',
       icon: Target,
       gradient: 'from-gray-500 to-gray-600',
       darkGradient: 'dark:from-gray-600 dark:to-gray-700',
@@ -277,7 +277,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     {
       key: 'longosPrazos' as const,
       title: 'Longo Prazo',
-      subtitle: '12-24 meses',
+      subtitle: '6-12 meses',
       icon: Rocket,
       gradient: 'from-stone-700 to-stone-800',
       darkGradient: 'dark:from-stone-700 dark:to-stone-800',

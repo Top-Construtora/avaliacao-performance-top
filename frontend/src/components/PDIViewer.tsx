@@ -188,9 +188,9 @@ const PDIViewer: React.FC<PDIViewerProps> = ({ pdiData }) => {
 
       {/* Action Items */}
       <div className="bg-gray-50 rounded-lg p-6">
-        {renderActionItems(pdiData.curtosPrazos, 'Ações de Curto Prazo (0-6 meses)', 'bg-status-info/10 text-status-info border border-status-info/20')}
-        {renderActionItems(pdiData.mediosPrazos, 'Ações de Médio Prazo (6-12 meses)', 'bg-status-warning/10 text-status-warning border border-status-warning/20')}
-        {renderActionItems(pdiData.longosPrazos, 'Ações de Longo Prazo (12+ meses)', 'bg-status-success/10 text-status-success border border-status-success/20')}
+        {renderActionItems(pdiData.curtosPrazos, 'Ações de Curto Prazo (3 meses)', 'bg-status-info/10 text-status-info border border-status-info/20')}
+        {renderActionItems(pdiData.mediosPrazos, 'Ações de Médio Prazo (3-6 meses)', 'bg-status-warning/10 text-status-warning border border-status-warning/20')}
+        {renderActionItems(pdiData.longosPrazos, 'Ações de Longo Prazo (6-12 meses)', 'bg-status-success/10 text-status-success border border-status-success/20')}
       </div>
 
       {/* Footer */}
