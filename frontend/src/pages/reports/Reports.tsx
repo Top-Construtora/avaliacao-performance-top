@@ -109,21 +109,6 @@ const Reports = () => {
   const loadDashboardData = async (cycleId: string) => {
     try {
       const dashboardData = await evaluationService.getCycleDashboard(cycleId);
-
-      // Log para verificar diretores
-      const directors = dashboardData.filter((d: CycleDashboard) => d.self_evaluation_status === 'n/a');
-      console.log('🔍 REPORTS PAGE - Directors in dashboard:', directors.length);
-      directors.forEach((d: CycleDashboard) => {
-        console.log(`  📊 ${d.employee_name}:`);
-        console.log(`     - self_evaluation_status: "${d.self_evaluation_status}"`);
-        console.log(`     - consensus_status: "${d.consensus_status}"`);
-        console.log(`     - leader_evaluation_status: "${d.leader_evaluation_status}"`);
-        console.log(`     - ninebox_position: "${d.ninebox_position}"`);
-      });
-
-      // Log de todos os dados para debug
-      console.log('📋 Sample dashboard item (first):', dashboardData[0]);
-
       setDashboard(dashboardData);
     } catch (error) {
       console.error('Erro ao carregar dashboard:', error);
@@ -136,41 +121,45 @@ const Reports = () => {
     if (dashboard && dashboard.length > 0) {
       const totalEmployees = dashboard.length;
 
-      // Contar avaliações completas
-      // Para diretores (n/a em self e consensus): apenas leader completo
-      // Para outros: self e leader completos
+      // COMPLETO: autoavaliação + líder + consenso + PDI (ninebox_position) todos completos
       const completedEvaluations = dashboard.filter(
         (d: CycleDashboard) => {
           const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
           if (isDirector) {
-            return d.leader_evaluation_status === 'completed';
+            return d.leader_evaluation_status === 'completed' && d.ninebox_position;
           }
-          return d.self_evaluation_status === 'completed' && d.leader_evaluation_status === 'completed';
+          return d.self_evaluation_status === 'completed' &&
+                 d.leader_evaluation_status === 'completed' &&
+                 d.consensus_status === 'completed' &&
+                 d.ninebox_position;
         }
       ).length;
 
-      // Contar em andamento
+      // EM ANDAMENTO: pelo menos UMA avaliação completa mas não tudo
       const inProgress = dashboard.filter(
         (d: CycleDashboard) => {
           const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+
+          // Se já está completo, não conta como em andamento
           if (isDirector) {
-            return d.leader_evaluation_status === 'in-progress';
+            const isComplete = d.leader_evaluation_status === 'completed' && d.ninebox_position;
+            if (isComplete) return false;
+            // Em andamento se leader foi iniciado ou completo sem ninebox
+            return d.leader_evaluation_status === 'completed' || d.leader_evaluation_status === 'in-progress';
+          } else {
+            const isComplete = d.self_evaluation_status === 'completed' &&
+                              d.leader_evaluation_status === 'completed' &&
+                              d.consensus_status === 'completed' &&
+                              d.ninebox_position;
+            if (isComplete) return false;
+            // Em andamento se pelo menos autoavaliação OU líder está completo
+            return d.self_evaluation_status === 'completed' || d.leader_evaluation_status === 'completed';
           }
-          return (d.self_evaluation_status === 'in-progress' || d.leader_evaluation_status === 'in-progress') &&
-                 !(d.self_evaluation_status === 'completed' && d.leader_evaluation_status === 'completed');
         }
       ).length;
 
-      // Contar pendentes
-      const pending = dashboard.filter(
-        (d: CycleDashboard) => {
-          const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
-          if (isDirector) {
-            return d.leader_evaluation_status === 'pending';
-          }
-          return d.self_evaluation_status === 'pending' && d.leader_evaluation_status === 'pending';
-        }
-      ).length;
+      // PENDENTE: nada foi iniciado
+      const pending = totalEmployees - completedEvaluations - inProgress;
 
       const completionRate = totalEmployees > 0
         ? Math.round((completedEvaluations / totalEmployees) * 100)
@@ -188,35 +177,56 @@ const Reports = () => {
 
   // Calcular progresso por departamento
   useEffect(() => {
-    if (dashboard && departments.length > 0) {
+    if (dashboard && dashboard.length > 0 && departments.length > 0) {
       const progressByDept = departments.map(dept => {
-        // Filtrar colaboradores do departamento
-        const deptEmployees = dashboard.filter((d: CycleDashboard) =>
-          users.find(u => u.id === d.employee_id)?.teams?.some(
-            t => t.department_id === dept.id
-          )
-        );
+        // Filtrar colaboradores do departamento usando department_name do dashboard
+        const deptEmployees = dashboard.filter((d: CycleDashboard) => {
+          // Comparar o nome do departamento (case insensitive)
+          return d.department_name?.toLowerCase() === dept.name.toLowerCase();
+        });
 
         const total = deptEmployees.length;
+
+        // COMPLETO: autoavaliação + líder + consenso + PDI (ninebox_position) todos completos
         const completed = deptEmployees.filter(
           (d: CycleDashboard) => {
             const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
             if (isDirector) {
-              return d.leader_evaluation_status === 'completed';
+              // Para diretor: apenas leader completo e ninebox definido
+              return d.leader_evaluation_status === 'completed' && d.ninebox_position;
             }
-            return d.self_evaluation_status === 'completed' && d.leader_evaluation_status === 'completed';
+            // Para não-diretor: self + leader + consensus completos E ninebox definido
+            return d.self_evaluation_status === 'completed' &&
+                   d.leader_evaluation_status === 'completed' &&
+                   d.consensus_status === 'completed' &&
+                   d.ninebox_position;
           }
         ).length;
+
+        // EM ANDAMENTO: pelo menos UMA avaliação completa mas não tudo
         const inProgress = deptEmployees.filter(
           (d: CycleDashboard) => {
             const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+
+            // Se já está completo, não conta como em andamento
             if (isDirector) {
-              return d.leader_evaluation_status === 'in-progress';
+              const isComplete = d.leader_evaluation_status === 'completed' && d.ninebox_position;
+              if (isComplete) return false;
+              // Em andamento se leader foi iniciado ou completo sem ninebox
+              return d.leader_evaluation_status === 'completed' || d.leader_evaluation_status === 'in-progress';
+            } else {
+              const isComplete = d.self_evaluation_status === 'completed' &&
+                                d.leader_evaluation_status === 'completed' &&
+                                d.consensus_status === 'completed' &&
+                                d.ninebox_position;
+              if (isComplete) return false;
+              // Em andamento se pelo menos autoavaliação OU líder está completo
+              return d.self_evaluation_status === 'completed' || d.leader_evaluation_status === 'completed';
             }
-            return (d.self_evaluation_status === 'in-progress' || d.leader_evaluation_status === 'in-progress') &&
-                   !(d.self_evaluation_status === 'completed' && d.leader_evaluation_status === 'completed');
           }
         ).length;
+
+        // PENDENTE: nada foi iniciado
         const pending = total - completed - inProgress;
 
         return {
@@ -231,7 +241,7 @@ const Reports = () => {
 
       setDepartmentProgress(progressByDept);
     }
-  }, [dashboard, departments, users]);
+  }, [dashboard, departments]);
 
   // Filtrar dados para a visão detalhada
   const filteredData = dashboard.filter((item: CycleDashboard) => {
@@ -636,7 +646,7 @@ const Reports = () => {
               <div className="flex items-center justify-between mb-2">
                 <CheckCircle className="w-8 h-8 text-green-800 dark:text-green-700" />
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  0%
+                  {summaryData.totalEmployees > 0 ? Math.round((summaryData.completedEvaluations / summaryData.totalEmployees) * 100) : 0}%
                 </span>
               </div>
               <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
@@ -650,9 +660,9 @@ const Reports = () => {
               className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700"
             >
               <div className="flex items-center justify-between mb-2">
-                <Clock className="w-8 h-8 text-gray-600 dark:text-gray-500" />
+                <Clock className="w-8 h-8 text-blue-600 dark:text-blue-500" />
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  0%
+                  {summaryData.totalEmployees > 0 ? Math.round((summaryData.inProgress / summaryData.totalEmployees) * 100) : 0}%
                 </span>
               </div>
               <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
@@ -668,7 +678,7 @@ const Reports = () => {
               <div className="flex items-center justify-between mb-2">
                 <AlertTriangle className="w-8 h-8 opacity-80" />
                 <span className="text-xs font-medium bg-white/20 px-2 py-1 rounded-full">
-                  100%
+                  {summaryData.totalEmployees > 0 ? Math.round((summaryData.pending / summaryData.totalEmployees) * 100) : 0}%
                 </span>
               </div>
               <h3 className="text-3xl font-bold mb-1">{summaryData.pending}</h3>
@@ -707,23 +717,38 @@ const Reports = () => {
                           <CheckCircle size={14} className="mr-1" />
                           {dept.completed} completos
                         </span>
-                        <span className="flex items-center text-gray-600 dark:text-gray-500">
+                        <span className="flex items-center text-blue-600 dark:text-blue-500">
                           <Clock size={14} className="mr-1" />
                           {dept.inProgress} em andamento
                         </span>
-                        <span className="flex items-center text-gray-500 dark:text-gray-400">
+                        <span className="flex items-center text-yellow-600 dark:text-yellow-500">
                           <AlertTriangle size={14} className="mr-1" />
                           {dept.pending} pendentes
+                        </span>
+                        <span className="flex items-center text-gray-500 dark:text-gray-400">
+                          <Users size={14} className="mr-1" />
+                          {dept.total} total
                         </span>
                       </div>
                     </div>
                     
                     <div className="relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                      {/* Barra de completos (verde escuro) */}
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${completionRate}%` }}
                         transition={{ duration: 1, delay: index * 0.1 }}
-                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-800 to-green-900"
+                        className="absolute top-0 left-0 h-full bg-[#0a5d47]"
+                      />
+                      {/* Barra de em andamento (azul) */}
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{
+                          width: `${dept.total > 0 ? ((dept.inProgress / dept.total) * 100) : 0}%`,
+                          left: `${completionRate}%`
+                        }}
+                        transition={{ duration: 1, delay: index * 0.1 + 0.2 }}
+                        className="absolute top-0 h-full bg-gradient-to-r from-blue-500 to-blue-600"
                       />
                     </div>
                   </motion.div>

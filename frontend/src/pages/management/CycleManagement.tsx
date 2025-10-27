@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Calendar, Plus, Play, Lock, Edit, Clock, 
+import {
+  Calendar, Plus, Play, Lock, Edit, Clock,
   CheckCircle, AlertCircle, Users, BarChart3, FileText,
   Info, X, Save, ChevronRight,
   CalendarDays, Timer, TrendingUp, Award,
@@ -23,6 +24,7 @@ interface CycleStats {
 }
 
 const CycleManagement: React.FC = () => {
+  const navigate = useNavigate();
   const { isDirector, isAdmin } = useUserRole();
   const {
     cycles,
@@ -482,7 +484,7 @@ const CycleManagement: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.location.href = `/evaluation-dashboard/${cycle.id}`}
+                          onClick={() => navigate(`/evaluation-dashboard/${cycle.id}`)}
                           icon={<BarChart3 className="h-4 w-4" />}
                         >
                           Dashboard
@@ -780,14 +782,14 @@ const CycleManagement: React.FC = () => {
                   <div className="flex flex-wrap gap-3">
                     <Button
                       variant="primary"
-                      onClick={() => window.location.href = `/evaluation-dashboard/${selectedCycle.id}`}
+                      onClick={() => navigate(`/evaluation-dashboard/${selectedCycle.id}`)}
                       icon={<BarChart3 className="h-4 w-4" />}
                     >
                       Ver Dashboard Completo
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => window.location.href = `/nine-box?cycleId=${selectedCycle.id}`}
+                      onClick={() => navigate(`/nine-box?cycleId=${selectedCycle.id}`)}
                       icon={<Grid3x3 className="h-4 w-4" />}
                     >
                       Ver Matriz 9-Box

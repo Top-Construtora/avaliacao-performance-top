@@ -138,6 +138,7 @@ export interface CycleDashboard {
   employee_name: string;
   employee_email: string;
   employee_position: string;
+  department_name?: string; // Nome do departamento
   self_evaluation_status: string;
   self_evaluation_score?: number | null;
   leader_evaluation_status: string;
@@ -159,6 +160,8 @@ export interface CycleDashboard {
   leader_score?: number;
   potential_score?: number;
   consensus_id?: string;
+  consensus_performance_score?: number | null;
+  consensus_potential_score?: number | null;
 }
 
 export interface NineBoxData {
