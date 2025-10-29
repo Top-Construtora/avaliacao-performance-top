@@ -13,20 +13,27 @@ const PORT = process.env.PORT || 3001;
 
 // --- CONFIGURAÇÃO DE CORS CENTRALIZADA ---
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3001',
-  'https://avaliacao-performance.vercel.app',
-  'https://avaliacao-performance-naue.vercel.app',
-  'https://avaliacao-performance-lusah.vercel.app',
-  'https://avaliacao-performance-haura.vercel.app',
-  'https://avaliacao-performance-pgu5.onrender.com',
-  'https://avaliacao-performance-naue.onrender.com',
-  'https://avaliacao-performance-haura.onrender.com',
+// Domínios permitidos em produção
+const productionOrigins = [
+  'https://avaliacao-performance-top.onrender.com',
+  'https://avaliacao-performance-top.vercel.app',
 ];
 
+// Domínios permitidos em desenvolvimento
+const developmentOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3001',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3001',
+];
+
+// Determina quais origens usar baseado no ambiente
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? productionOrigins
+  : [...developmentOrigins, ...productionOrigins]; // Dev aceita localhost + produção
+
 // Adiciona a URL do frontend a partir das variáveis de ambiente se ela existir
-if (process.env.FRONTEND_URL) {
+if (process.env.FRONTEND_URL && !allowedOrigins.includes(process.env.FRONTEND_URL)) {
   allowedOrigins.push(process.env.FRONTEND_URL);
 }
 
@@ -192,10 +199,16 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 app.listen(PORT, () => {
+  const environment = process.env.NODE_ENV || 'development';
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`🌍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌍 Ambiente: ${environment}`);
   console.log(`📍 URL: ${process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`}`);
-  console.log('✅ Origens permitidas pelo CORS:');
+  console.log(`🔒 CORS configurado para ${environment.toUpperCase()}:`);
+  if (environment === 'production') {
+    console.log('   ⚠️  APENAS domínios de produção permitidos:');
+  } else {
+    console.log('   ✅ Localhost + produção permitidos:');
+  }
   allowedOrigins.forEach(origin => console.log(`   - ${origin}`));
 });
 
