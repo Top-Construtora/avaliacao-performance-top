@@ -178,7 +178,7 @@ export const usersService = {
 
           const teamIds = teamMemberships?.map(tm => tm.team_id) || [];
           let teams: Team[] = [];
-          
+
           if (teamIds.length > 0) {
             const { data: teamsData } = await supabase
               .from('teams')
@@ -193,11 +193,54 @@ export const usersService = {
             .select('id, name, email, position')
             .eq('reports_to', user.id);
 
+          // Buscar trilha de carreira
+          let track = null;
+          if (user.track_id) {
+            const { data: trackData } = await supabase
+              .from('career_tracks')
+              .select('id, name, code')
+              .eq('id', user.track_id)
+              .single();
+            track = trackData;
+          }
+
+          // Buscar posição na trilha com classe salarial
+          // Tenta usar current_track_position_id primeiro, depois position_id como fallback
+          let trackPosition = null;
+          const positionIdToUse = user.current_track_position_id || user.position_id;
+          if (positionIdToUse) {
+            const { data: positionData } = await supabase
+              .from('track_positions')
+              .select(`
+                id,
+                base_salary,
+                position:job_positions(id, name, code),
+                class:salary_classes(id, name, code)
+              `)
+              .eq('id', positionIdToUse)
+              .single();
+            trackPosition = positionData;
+          }
+
+          // Buscar nível salarial
+          let salaryLevel = null;
+          if (user.current_salary_level_id) {
+            const { data: levelData } = await supabase
+              .from('salary_levels')
+              .select('id, name, percentage')
+              .eq('id', user.current_salary_level_id)
+              .single();
+            salaryLevel = levelData;
+          }
+
           return {
             ...user,
             manager,
             teams,
             direct_reports: directReports || [],
+            track,
+            track_position: trackPosition,
+            salary_level: salaryLevel,
           } as UserWithDetails;
         })
       );

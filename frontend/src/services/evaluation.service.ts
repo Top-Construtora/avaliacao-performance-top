@@ -296,7 +296,10 @@ export const evaluationService = {
     items?: any[]; // Adicionar suporte para items
   }): Promise<any> {
     try {
-      const response = await api.post('/evaluations/pdi', pdiData);
+      // CORRIGIDO: Usar a rota correta /pdi que usa o pdiController
+      // A rota antiga /evaluations/pdi estava marcando PDIs como 'completed' em vez de atualizar
+      // Remover /api do endpoint pois o baseURL já inclui /api
+      const response = await api.post('/pdi', pdiData);
       return response.data;
     } catch (error) {
       console.error('Erro ao salvar PDI:', error);
@@ -306,7 +309,9 @@ export const evaluationService = {
 
   async getPDI(employeeId: string): Promise<any> {
     try {
-      const response = await api.get(`/evaluations/pdi/${employeeId}`);
+      // CORRIGIDO: Usar a rota correta /pdi
+      // Remover /api do endpoint pois o baseURL já inclui /api
+      const response = await api.get(`/pdi/${employeeId}`);
       // O backend retorna { success: true, data: pdi }
       if (response.data && response.data.success) {
         return response.data.data;

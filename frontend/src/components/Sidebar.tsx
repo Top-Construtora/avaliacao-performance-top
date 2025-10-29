@@ -114,6 +114,12 @@ export default function Sidebar({
       allowedRoles: ['admin', 'director']
     },
     {
+      label: 'Meu PDI',
+      icon: BookOpen,
+      path: '/my-pdi',
+      allowedRoles: ['director', 'leader', 'collaborator']
+    },
+    {
       label: 'Gerenciar PDI',
       icon: BookOpen,
       path: 'pdi',

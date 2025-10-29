@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { User, BarChart3, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3, Mail, Cake } from 'lucide-react';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useSupabaseUsers } from '../../hooks/useSupabaseData';
+import { supabase } from '../../lib/supabase';
 
 interface MatrixConfig {
   bgColor: string;
@@ -96,10 +97,29 @@ const NineBoxMatrix = () => {
     loadDashboard
   } = useEvaluation();
   const { users } = useSupabaseUsers();
-  
+
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [hoveredQuadrant, setHoveredQuadrant] = useState<string | null>(null);
   const [eligibleEmployees, setEligibleEmployees] = useState<any[]>([]);
+  const [salaryLevels, setSalaryLevels] = useState<Array<{ id: string; name: string; percentage: number }>>([]);
+
+  // Carregar níveis salariais
+  useEffect(() => {
+    const loadSalaryLevels = async () => {
+      try {
+        const { data } = await supabase
+          .from('salary_levels')
+          .select('id, name, percentage')
+          .order('order_index');
+
+        if (data) setSalaryLevels(data);
+      } catch (error) {
+        console.error('Erro ao carregar níveis salariais:', error);
+      }
+    };
+
+    loadSalaryLevels();
+  }, []);
 
   // Carregar dados do dashboard quando o ciclo atual mudar
   useEffect(() => {
@@ -147,6 +167,20 @@ const NineBoxMatrix = () => {
 
   const selectedEvaluation = eligibleEmployees.find(e => e.employee_id === selectedEmployee);
   const selectedEmp = selectedEvaluation?.user;
+
+  /**
+   * Calcula o salário baseado no cargo e nível salarial (intern_level)
+   */
+  const calculateSalary = (trackPosition: any, internLevel: string): number | null => {
+    if (!trackPosition?.base_salary || !internLevel) return null;
+
+    const salaryLevel = salaryLevels.find(l => l.name === internLevel);
+    if (!salaryLevel) return null;
+
+    const baseSalary = trackPosition.base_salary;
+    const percentage = salaryLevel.percentage / 100;
+    return baseSalary + (baseSalary * percentage);
+  };
 
   /**
    * Converte nota de 1-4 para posição de 0-3 no grid
@@ -319,7 +353,7 @@ const NineBoxMatrix = () => {
                 </div>
               </div>
 
-              {/* Grid 2x2 com informações */}
+              {/* Grid 2x4 com informações */}
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
@@ -358,6 +392,60 @@ const NineBoxMatrix = () => {
                   </label>
                   <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
                     {calculateAge(selectedEmp.birth_date)}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                    <TrendingUp className="inline h-4 w-4 mr-1" />
+                    Trilha
+                  </label>
+                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                    {selectedEmp.track?.name || '-'}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                    <Target className="inline h-4 w-4 mr-1" />
+                    Nível Salarial
+                  </label>
+                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                    {selectedEmp.intern_level || '-'}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                    <Grid3x3 className="inline h-4 w-4 mr-1" />
+                    Classe Salarial
+                  </label>
+                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                    {selectedEmp.track_position?.class?.name || '-'}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                    <TrendingUp className="inline h-4 w-4 mr-1" />
+                    Salário
+                  </label>
+                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                    {(() => {
+                      // Calcular salário baseado no intern_level e cargo
+                      const calculatedSalary = calculateSalary(selectedEmp.track_position, selectedEmp.intern_level);
+
+                      if (calculatedSalary) {
+                        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculatedSalary);
+                      }
+
+                      // Fallback para current_salary se o cálculo falhar
+                      if (selectedEmp.current_salary) {
+                        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedEmp.current_salary);
+                      }
+
+                      return '-';
+                    })()}
                   </div>
                 </div>
               </div>

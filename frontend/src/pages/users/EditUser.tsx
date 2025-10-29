@@ -68,6 +68,11 @@ const EditUser = () => {
   const [tracksLoading, setTracksLoading] = useState(false);
   const [positionsLoading, setPositionsLoading] = useState(false);
 
+  // Estados para níveis salariais
+  const [salaryLevels, setSalaryLevels] = useState<Array<{ id: string; name: string; percentage: number; order_index: number }>>([]);
+  const [salaryLevelsLoading, setSalaryLevelsLoading] = useState(false);
+  const [calculatedSalary, setCalculatedSalary] = useState<number | null>(null);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -85,7 +90,7 @@ const EditUser = () => {
     departmentId: '',
     trackId: '',
     positionId: '', // ID do track_position
-    internLevel: 'A' as 'A' | 'B' | 'C' | 'D' | 'E',
+    internLevel: 'A' as 'A' | 'B' | 'C' | 'D' | 'E', // Este é o nível salarial
     contractType: 'CLT' as 'CLT' | 'PJ',
 
     // Campos has_children e children_age_ranges removidos - não existem no banco
@@ -165,6 +170,48 @@ const EditUser = () => {
     loadPositions();
   }, []);
 
+  // Carregar níveis salariais
+  useEffect(() => {
+    const loadSalaryLevels = async () => {
+      setSalaryLevelsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('salary_levels')
+          .select('id, name, percentage, order_index')
+          .order('order_index');
+
+        if (error) throw error;
+        setSalaryLevels(data || []);
+      } catch (error) {
+        console.error('Erro ao carregar níveis salariais:', error);
+        toast.error('Erro ao carregar níveis salariais');
+      } finally {
+        setSalaryLevelsLoading(false);
+      }
+    };
+
+    loadSalaryLevels();
+  }, []);
+
+  // Calcular salário automaticamente quando mudar cargo ou internível (nível salarial)
+  useEffect(() => {
+    if (formData.positionId && formData.internLevel) {
+      const selectedPosition = positions.find(p => p.id === formData.positionId);
+      const selectedLevel = salaryLevels.find(l => l.name === formData.internLevel);
+
+      if (selectedPosition && selectedLevel) {
+        const baseSalary = selectedPosition.base_salary;
+        const percentage = selectedLevel.percentage / 100;
+        const calculatedValue = baseSalary + (baseSalary * percentage);
+        setCalculatedSalary(calculatedValue);
+      } else {
+        setCalculatedSalary(null);
+      }
+    } else {
+      setCalculatedSalary(null);
+    }
+  }, [formData.positionId, formData.internLevel, positions, salaryLevels]);
+
   // Filtrar trilhas por departamento
   useEffect(() => {
     if (formData.departmentId && tracks.length > 0) {
@@ -215,10 +262,10 @@ const EditUser = () => {
 
   // Carregar dados do usuário
   useEffect(() => {
-    if (id && users.length > 0 && departments.length > 0 && tracks.length > 0 && positions.length > 0) {
+    if (id && users.length > 0 && departments.length > 0 && tracks.length > 0 && positions.length > 0 && salaryLevels.length > 0) {
       loadUserData();
     }
-  }, [id, users, departments, tracks, positions]);
+  }, [id, users, departments, tracks, positions, salaryLevels]);
 
   const loadUserData = async () => {
     setLoadingUser(true);
@@ -256,7 +303,7 @@ const EditUser = () => {
         departmentId: user.department_id || '',
         trackId: user.track_id || '',
         positionId: user.position_id || '',
-        internLevel: user.intern_level || 'A' as 'A' | 'B' | 'C' | 'D' | 'E',
+        internLevel: user.intern_level || 'A' as 'A' | 'B' | 'C' | 'D' | 'E', // Internível é o nível salarial
         contractType: user.contract_type || 'CLT' as 'CLT' | 'PJ',
 
         // has_children e children_age_ranges removidos - não existem no banco
@@ -392,7 +439,7 @@ const EditUser = () => {
     if (!formData.departmentId) errors.departmentId = 'Departamento é obrigatório';
     if (!formData.trackId) errors.trackId = 'Trilha é obrigatória';
     if (!formData.positionId) errors.positionId = 'Cargo é obrigatório';
-    if (!formData.internLevel) errors.internLevel = 'Internível é obrigatório';
+    if (!formData.internLevel) errors.internLevel = 'Nível salarial é obrigatório';
     if (!formData.contractType) errors.contractType = 'Tipo de contrato é obrigatório';
 
     // Validação de senha se estiver mudando
@@ -424,6 +471,9 @@ const EditUser = () => {
     setIsLoading(true);
 
     try {
+      // Buscar o salary_level_id baseado no internLevel
+      const selectedSalaryLevel = salaryLevels.find(l => l.name === formData.internLevel);
+
       // Atualizar dados do usuário
       await updateUser(id!, {
         name: formData.name.trim(),
@@ -439,6 +489,8 @@ const EditUser = () => {
         department_id: formData.departmentId || null,
         track_id: formData.trackId || null,
         position_id: formData.positionId || null,
+        current_salary_level_id: selectedSalaryLevel?.id || null,
+        current_salary: calculatedSalary || null,
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
         // has_children e children_age_ranges removidos - colunas não existem no banco
@@ -997,7 +1049,7 @@ const EditUser = () => {
 
               <div>
                 <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                  Internível *
+                  Nível Salarial *
                 </label>
                 <div className="relative">
                   <Layers className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
@@ -1026,7 +1078,7 @@ const EditUser = () => {
                   </p>
                 )}
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Selecione o nível de senioridade dentro do cargo
+                  O salário será calculado automaticamente com base no cargo e nível
                 </p>
               </div>
             </div>

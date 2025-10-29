@@ -34,6 +34,7 @@ import SalaryAdminPage from './pages/management/SalaryAdminPage';
 import TrackPositionsPage from './pages/carrer/TrackPositionsPage';
 import CareerTrackDetail from './pages/carrer/CareerTrackDetail';
 import PdiManagement from './pages/pdi/PdiManagement'; // Import the new PDI Management page
+import MyPdi from './pages/pdi/MyPdi'; // Import the My PDI page
 import CodigoCultural from './pages/management/CodigoCultural';
 
 const USE_SUPABASE_AUTH = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
@@ -295,6 +296,15 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
+                    {/* My PDI - View Own PDI */}
+                    <Route
+                      path="my-pdi"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader', 'collaborator']}>
+                          <MyPdi />
+                        </ProtectedRoute>
+                      }
+                    />
                     {/* PDI Management (New Route) */}
                     <Route path="pdi" element={<ProtectedRoute allowedRoles={['director', 'leader']}><PdiManagement /></ProtectedRoute>} />
 
@@ -359,6 +369,8 @@ function App() {
                     <Route path="salary" element={<SalaryAdminPage />} />
                     <Route path="salary/tracks/:trackId" element={<TrackPositionsPage />} />
                     <Route path="career-track/:trackId" element={<CareerTrackDetail />} />
+                    {/* My PDI - View Own PDI */}
+                    <Route path="my-pdi" element={<MyPdi />} />
                     {/* PDI Management (New Route) */}
                     <Route path="pdi-management" element={<PdiManagement />} />
                     {/* Código Cultural */}

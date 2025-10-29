@@ -321,6 +321,14 @@ export interface UserWithDetails extends User {
   departments?: Department[]
   manager?: Pick<User, 'id' | 'name' | 'email'>
   direct_reports?: Pick<User, 'id' | 'name' | 'email' | 'position'>[]
+  track?: { id: string; name: string; code: string | null }
+  track_position?: {
+    id: string
+    base_salary: number
+    position: { id: string; name: string; code: string | null }
+    class: { id: string; name: string; code: string }
+  }
+  salary_level?: { id: string; name: string; percentage: number }
 }
 
 export interface TeamWithDetails extends Team {
