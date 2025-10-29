@@ -27,6 +27,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         sessionStorage.removeItem(key)
       }
     }
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 0 // Desabilita Realtime completamente
+    }
   }
 })
 
