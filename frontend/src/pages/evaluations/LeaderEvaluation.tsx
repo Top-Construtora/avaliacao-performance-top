@@ -174,7 +174,7 @@ const LeaderEvaluation = () => {
     {
       id: 'pot3',
       name: 'Alinhamento com Código Cultural',
-      description: 'O parceiro de negócio possui alinhamento com o Código Cultural da TOP Construtora e Incorporadora.',
+      description: 'O parceiro de negócio possui alinhamento com o Código Cultural da empresa.',
       score: undefined
     },
     {
