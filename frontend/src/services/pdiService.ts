@@ -17,7 +17,7 @@ export const pdiService = {
       // Determinar URL base
       const apiUrl = import.meta.env.VITE_API_URL ||
         (window.location.hostname.includes('vercel.app')
-          ? 'https://avaliacao-performance-naue.onrender.com/api'
+          ? 'https://avaliacao-performance-top.onrender.com/api'
           : '/api');
 
       // Verificar a rota correta
@@ -84,7 +84,7 @@ export const pdiService = {
       // Determinar URL base
       const apiUrl = import.meta.env.VITE_API_URL ||
         (window.location.hostname.includes('vercel.app')
-          ? 'https://avaliacao-performance-naue.onrender.com/api'
+          ? 'https://avaliacao-performance-top.onrender.com/api'
           : '/api');
 
       const url = `${apiUrl}/pdi/${employeeId}`;
@@ -154,7 +154,7 @@ export const pdiService = {
       // Determinar URL base
       const apiUrl = import.meta.env.VITE_API_URL ||
         (window.location.hostname.includes('vercel.app')
-          ? 'https://avaliacao-performance-naue.onrender.com/api'
+          ? 'https://avaliacao-performance-top.onrender.com/api'
           : '/api');
 
       const response = await fetch(`${apiUrl}/pdi/cycle/${cycleId}`, {

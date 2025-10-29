@@ -2,7 +2,7 @@
 // Em produção, usar a URL completa da API
 const API_BASE_URL = import.meta.env.VITE_API_URL ||
   (window.location.hostname.includes('vercel.app')
-    ? 'https://avaliacao-performance-naue.onrender.com/api'
+    ? 'https://avaliacao-performance-top.onrender.com/api'
     : '/api');
 
 // Removido log de debug com informações sensíveis
