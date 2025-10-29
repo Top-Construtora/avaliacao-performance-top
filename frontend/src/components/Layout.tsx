@@ -32,6 +32,13 @@ export default function Layout() {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
+  // Redirecionar para login se não tiver usuário
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [loading, user, navigate]);
+
   // Loading state
   if (loading) {
     return (
@@ -48,9 +55,8 @@ export default function Layout() {
     );
   }
 
-  // Se não tem usuário (não deveria acontecer com ProtectedRoute, mas por segurança)
+  // Se não tem usuário, retorna null (o useEffect acima vai redirecionar)
   if (!user) {
-    navigate('/login');
     return null;
   }
 

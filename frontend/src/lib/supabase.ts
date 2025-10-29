@@ -27,13 +27,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         sessionStorage.removeItem(key)
       }
     }
-  },
-  global: {
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    }
   }
 })
 
