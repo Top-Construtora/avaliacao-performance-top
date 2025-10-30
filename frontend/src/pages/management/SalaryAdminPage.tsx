@@ -10,6 +10,7 @@ import {
 // Importações corretas dos serviços
 import Button from '../../components/Button';
 import { RoleGuard } from '../../components/RoleGuard';
+import { useAuth } from '../../context/AuthContext';
 import { departmentsService } from '../../services/departments.service';
 import { salaryService, CareerTrack } from '../../services/salary.service';
 
@@ -29,10 +30,19 @@ interface DepartmentWithActive {
 // --- Componente Principal da Página de Administração ---
 const SalaryAdminPage = () => {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [tracks, setTracks] = useState<CareerTrack[]>([]);
   const [departments, setDepartments] = useState<DepartmentWithActive[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateTrackModal, setShowCreateTrackModal] = useState(false);
+
+  // Verificar se o usuário tem permissão para acessar esta página
+  useEffect(() => {
+    if (profile?.email === 'recrutatop@topconstrutora.com') {
+      toast.error('Você não tem permissão para acessar esta página');
+      navigate('/');
+    }
+  }, [profile, navigate]);
 
   useEffect(() => {
     loadInitialData();

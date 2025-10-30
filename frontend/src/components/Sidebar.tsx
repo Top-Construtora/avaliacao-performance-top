@@ -177,6 +177,11 @@ export default function Sidebar({
 
   // Filtrar itens baseado no papel do usuário
   const filteredNavItems = navItems.filter(item => {
+    // Bloquear acesso a Cargos e Salários para o email específico
+    if (profile?.email === 'recrutatop@topconstrutora.com' && item.path === '/salary') {
+      return false;
+    }
+
     // Admin tem acesso a tudo, exceto itens em hideForRoles
     if (isAdmin) {
       if (item.hideForRoles && item.hideForRoles.includes('admin')) {
