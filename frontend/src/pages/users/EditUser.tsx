@@ -432,7 +432,7 @@ const EditUser = () => {
       errors.reportsTo = 'Selecione um líder';
     }
     if (formData.profileType === 'leader' && !formData.reportsTo && users.find(u => u.id === id)?.is_director === false) {
-      errors.reportsTo = 'Selecione um diretor para o líder';
+      errors.reportsTo = 'Selecione quem este líder reporta';
     }
 
     // Novos campos de carreira
@@ -1166,7 +1166,7 @@ const EditUser = () => {
                     onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
                   >
                     <option value="">
-                      {formData.profileType === 'regular' ? 'Selecione um líder' : 'Selecione um diretor'}
+                      {formData.profileType === 'regular' ? 'Selecione um líder' : 'Selecione quem este líder reporta'}
                     </option>
                     {users
                       .filter(u => {
@@ -1176,8 +1176,8 @@ const EditUser = () => {
                         if (formData.profileType === 'regular') {
                           return (u.is_leader || u.is_director) && u.id !== id;
                         }
-                        // For leaders, only show directors
-                        return u.is_director && u.id !== id;
+                        // Para líderes, podem reportar para outros líderes ou diretores
+                        return (u.is_leader || u.is_director) && u.id !== id;
                       })
                       .map(superior => (
                         <option key={superior.id} value={superior.id}>
@@ -1196,7 +1196,7 @@ const EditUser = () => {
                 )}
                 {formData.profileType === 'leader' && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    Líderes devem reportar para um diretor
+                    Líderes podem reportar para outros líderes ou diretores
                   </p>
                 )}
               </div>
