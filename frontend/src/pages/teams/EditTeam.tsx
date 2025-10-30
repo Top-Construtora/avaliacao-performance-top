@@ -47,7 +47,7 @@ const EditTeam = () => {
 
       if (!team) {
         toast.error('Time não encontrado');
-        navigate('/users'); // Redireciona para a gestão de usuários
+        navigate('/teams'); // Redireciona para a gestão de times
         return;
       }
 
@@ -142,7 +142,7 @@ const EditTeam = () => {
       setOriginalData(formData);
 
       setTimeout(() => {
-        navigate('/users');
+        navigate('/teams');
       }, 1500);
     } catch (error) {
       console.error('Erro na atualização:', error);
@@ -342,7 +342,7 @@ const EditTeam = () => {
         <div className="flex flex-col sm:flex-row justify-end gap-3">
           <Button
             variant="outline"
-            onClick={() => navigate('/users')}
+            onClick={() => navigate('/teams')}
             disabled={isLoading}
             size="lg"
             className="w-full sm:w-auto"

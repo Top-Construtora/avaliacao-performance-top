@@ -44,7 +44,7 @@ const EditDepartment = () => {
 
       if (!department) {
         toast.error('Departamento não encontrado');
-        navigate('/users'); // Redireciona para a gestão de usuários
+        navigate('/departments'); // Redireciona para a gestão de departamentos
         return;
       }
 
@@ -121,7 +121,7 @@ const EditDepartment = () => {
       setOriginalData(formData); // Atualiza originalData após sucesso
 
       setTimeout(() => {
-        navigate('/users'); // Redireciona para a gestão de usuários
+        navigate('/departments'); // Redireciona para a gestão de departamentos
       }, 1500);
     } catch (error) {
       console.error('Erro na atualização:', error);
@@ -250,7 +250,7 @@ const EditDepartment = () => {
         <div className="flex flex-col sm:flex-row justify-end gap-3">
           <Button
             variant="outline"
-            onClick={() => navigate('/users')}
+            onClick={() => navigate('/departments')}
             disabled={isLoading}
             size="lg"
             className="w-full sm:w-auto"
