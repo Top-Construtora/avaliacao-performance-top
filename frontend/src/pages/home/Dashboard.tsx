@@ -50,26 +50,26 @@ const Dashboard = () => {
       description: 'Avalie suas competências e performance de forma reflexiva',
       action: 'Iniciar avaliação',
       icon: User,
-      gradient: 'from-primary-900 to-primary-800',
-      darkGradient: 'dark:from-primary-900 dark:to-primary-800',
+      gradient: 'from-primary to-primary-600',
+      darkGradient: 'dark:from-primary dark:to-primary-600',
       shadowColor: 'shadow-primary-500/20',
       darkShadowColor: 'dark:shadow-secondary-600/30',
-      iconBg: 'from-primary-900 to-primary-800',
-      darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
+      iconBg: 'from-primary to-primary-600',
+      darkIconBg: 'dark:from-primary dark:to-primary-600',
       onClick: () => navigate('/self-evaluation'),
     },
     {
       id: 'avaliacao-lider',
       title: 'Avaliação do Líder',
-      description: 'Avalie a performance dos seus colaboradores',
+      description: 'Avalie a performance dos seus avaliados',
       action: 'Avaliar equipe',
       icon: Users,
-      gradient: 'from-primary-900 to-primary-800',
-      darkGradient: 'dark:from-primary-900 dark:to-primary-800',
+      gradient: 'from-primary to-primary-600',
+      darkGradient: 'dark:from-primary dark:to-primary-600',
       shadowColor: 'shadow-secondary-500/20',
       darkShadowColor: 'dark:shadow-secondary-600/30',
-      iconBg: 'from-primary-900 to-primary-800',
-      darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
+      iconBg: 'from-primary to-primary-600',
+      darkIconBg: 'dark:from-primary dark:to-primary-600',
       onClick: () => navigate('/leader-evaluation'),
     },
     {
@@ -78,12 +78,12 @@ const Dashboard = () => {
       description: 'Defina as notas finais em reunião de consenso',
       action: 'Definir consenso',
       icon: Target,
-      gradient: 'from-primary-900 to-primary-800',
-      darkGradient: 'dark:from-primary-900 dark:to-primary-800',
+      gradient: 'from-primary to-primary-600',
+      darkGradient: 'dark:from-primary dark:to-primary-600',
       shadowColor: 'shadow-accent-500/20',
       darkShadowColor: 'dark:shadow-secondary-600/30',
-      iconBg: 'from-primary-900 to-primary-800',
-      darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
+      iconBg: 'from-primary to-primary-600',
+      darkIconBg: 'dark:from-primary dark:to-primary-600',
       onClick: () => navigate('/consensus'),
     },
     {
@@ -92,12 +92,12 @@ const Dashboard = () => {
       description: 'Visualize o posicionamento na matriz de potencial',
       action: 'Ver matriz',
       icon: BarChart3,
-      gradient: 'from-primary-900 to-primary-800',
-      darkGradient: 'dark:from-primary-900 dark:to-primary-800',
+      gradient: 'from-primary to-primary-600',
+      darkGradient: 'dark:from-primary dark:to-primary-600',
       shadowColor: 'shadow-primary-500/20',
       darkShadowColor: 'dark:shadow-secondary-600/30',
-      iconBg: 'from-primary-900 to-primary-800',
-      darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
+      iconBg: 'from-primary to-primary-600',
+      darkIconBg: 'dark:from-primary dark:to-primary-600',
       onClick: () => navigate('/nine-box'),
     },
     {
@@ -106,12 +106,12 @@ const Dashboard = () => {
       description: 'Crie planos de desenvolvimento individual',
       action: 'Criar plano',
       icon: FileText,
-      gradient: 'from-primary-900 to-primary-800',
-      darkGradient: 'dark:from-primary-900 dark:to-primary-800',
+      gradient: 'from-primary to-primary-600',
+      darkGradient: 'dark:from-primary dark:to-primary-600',
       shadowColor: 'shadow-secondary-500/20',
       darkShadowColor: 'dark:shadow-secondary-600/30',
-      iconBg: 'from-primary-900 to-primary-800',
-      darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
+      iconBg: 'from-primary to-primary-600',
+      darkIconBg: 'dark:from-primary dark:to-primary-600',
       onClick: () => navigate('/pdi'),
     },
     {
@@ -120,12 +120,12 @@ const Dashboard = () => {
       description: 'Acompanhe o progresso e resultados gerais',
       action: 'Ver relatórios',
       icon: Award,
-      gradient: 'from-primary-900 to-primary-800',
-      darkGradient: 'dark:from-primary-900 dark:to-primary-800',
+      gradient: 'from-primary to-primary-600',
+      darkGradient: 'dark:from-primary dark:to-primary-600',
       shadowColor: 'shadow-accent-500/20',
       darkShadowColor: 'dark:shadow-secondary-600/30',
-      iconBg: 'from-primary-900 to-primary-800',
-      darkIconBg: 'dark:from-primary-900 dark:to-primary-800',
+      iconBg: 'from-primary to-primary-600',
+      darkIconBg: 'dark:from-primary dark:to-primary-600',
       onClick: () => navigate('/reports'),
     },
   ];
@@ -136,7 +136,7 @@ const Dashboard = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-primary-900 to-primary-800 dark:from-primary-900 dark:to-primary-800 rounded-2xl p-8 text-white shadow-md hover:shadow-lg transition-shadow duration-300"
+        className="bg-gradient-to-br from-primary to-primary-600 dark:from-primary dark:to-primary-600 rounded-2xl p-8 text-white shadow-md hover:shadow-lg transition-shadow duration-300"
       >
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Bem-vindo(a), {firstName}!</h1>
         <p className="text-primary-100 dark:text-primary-200 text-base sm:text-lg">
@@ -179,7 +179,7 @@ const Dashboard = () => {
                 
                 <div className={`inline-flex items-center text-sm font-semibold bg-gradient-to-r ${card.gradient} ${card.darkGradient} bg-clip-text text-transparent group-hover:gap-2 sm:group-hover:gap-3 transition-all duration-300`}>
                   <span>{card.action}</span>
-                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-primary-900 dark:text-primary-800 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-primary dark:text-primary-600 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
               

@@ -165,7 +165,7 @@ const UserManagement = () => {
       Nome: user.name,
       Email: user.email,
       Cargo: user.position,
-      Tipo: user.is_director ? 'Diretor' : user.is_leader ? 'Líder' : 'Colaborador',
+      Tipo: user.is_director ? 'Diretor' : user.is_leader ? 'Avaliador' : 'Avaliado',
       Departamentos: user.departments?.map(d => d.name).join(', ') || '-',
       Times: user.teams?.map(t => t.name).join(', ') || '-',
       'Data de Entrada': new Date(user.join_date).toLocaleDateString('pt-BR'),
@@ -189,7 +189,7 @@ const UserManagement = () => {
     filteredUsers.forEach(user => {
       const userDepts = user.departments?.map(d => d.name).join(', ') || '-';
       const userTeams = user.teams?.map(t => t.name).join(', ') || '-';
-      const type = user.is_director ? 'Diretor' : user.is_leader ? 'Líder' : 'Colaborador';
+      const type = user.is_director ? 'Diretor' : user.is_leader ? 'Avaliador' : 'Avaliado';
       
       markdownContent += `| ${user.name} | ${user.email} | ${user.position} | ${type} | ${userDepts} | ${userTeams} |\n`;
     });
@@ -215,7 +215,7 @@ const UserManagement = () => {
       user.name,
       user.email,
       user.position,
-      user.is_director ? 'Diretor' : user.is_leader ? 'Líder' : 'Colaborador',
+      user.is_director ? 'Diretor' : user.is_leader ? 'Avaliador' : 'Avaliado',
       new Date(user.join_date).toLocaleDateString('pt-BR')
     ]);
 
@@ -397,7 +397,7 @@ const UserManagement = () => {
                       ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600'
                       : 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 text-primary-800 dark:text-primary-300 border border-primary-200 dark:border-primary-700'
                   }`}>
-                    {user.is_director ? 'Diretor' : 'Líder'}
+                    {user.is_director ? 'Diretor' : 'Avaliador'}
                   </span>
                 </div>
               )}
@@ -576,7 +576,7 @@ const UserManagement = () => {
             <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 dark:from-primary-900 dark:via-primary-800 dark:to-primary-700 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalLeaders}</p>
-                <p className="text-sm text-primary-100 font-medium">Líderes</p>
+                <p className="text-sm text-primary-100 font-medium">Avaliadores</p>
               </div>
               <Crown className="absolute -bottom-2 -right-2 h-16 w-16 text-stone-800 dark:text-stone-700 opacity-50" />
             </motion.div>
@@ -584,7 +584,7 @@ const UserManagement = () => {
             <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalCollaborators}</p>
-                <p className="text-sm text-gray-200 font-medium">Colaboradores</p>
+                <p className="text-sm text-gray-200 font-medium">Avaliados</p>
               </div>
               <UserCheck className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-500 dark:text-gray-400 opacity-50" />
             </motion.div>
@@ -742,7 +742,7 @@ const UserManagement = () => {
                           onChange={(e) => setShowOnlyLeaders(e.target.checked)}
                           className="rounded border-gray-300 dark:border-gray-600 text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400 mr-3"
                         />
-                        <span className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Apenas líderes</span>
+                        <span className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Apenas avaliadores</span>
                       </label>
                       <label className="flex items-center cursor-pointer">
                         <input

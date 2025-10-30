@@ -9,21 +9,21 @@ export default {
         'space': ['Space Grotesk', 'sans-serif'],
       },
       colors: {
-        // NAUE Consultoria - Cores Primárias
+        // NAUE Consultoria - Cores Primárias (Azul Escuro)
         'primary': {
-          DEFAULT: '#003b2b',
-          hover: '#002821',
-          light: 'rgba(0, 59, 43, 0.15)',
-          50: '#e6f4f0',
-          100: '#cce9e1',
-          200: '#99d3c3',
-          300: '#66bda5',
-          400: '#33a787',
-          500: '#003b2b',
-          600: '#003b2b',
-          700: '#002a20',
-          800: '#00211a',
-          900: '#001915',
+          DEFAULT: '#1e6076',
+          hover: '#185567',
+          light: 'rgba(30, 96, 118, 0.15)',
+          50: '#e6f2f5',
+          100: '#cce5eb',
+          200: '#99cbd7',
+          300: '#66b1c3',
+          400: '#3397af',
+          500: '#1e6076',
+          600: '#1e6076',
+          700: '#185567',
+          800: '#134a58',
+          900: '#0d3f49',
         },
         // Cores Neutras
         'naue': {
@@ -69,8 +69,8 @@ export default {
           800: '#075943',
           900: '#064c3a',
         },
-        'dark-navy': '#003b2b',
-        'naue-green': '#003b2b',
+        'dark-navy': '#1e6076',
+        'naue-green': '#1e6076',
       },
       boxShadow: {
         'primary-500/20': '0 10px 15px -3px rgba(18, 176, 160, 0.2), 0 4px 6px -2px rgba(18, 176, 160, 0.1)',

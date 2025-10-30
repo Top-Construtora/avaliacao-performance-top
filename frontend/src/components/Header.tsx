@@ -285,7 +285,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
   };
 
   return (
-    <header className="bg-primary-900 dark:bg-primary-900 border-b border-white/10 sticky top-0 z-20">
+    <header className="bg-primary dark:bg-primary border-b border-white/10 sticky top-0 z-20">
       <div className="flex items-center justify-between h-[77px] px-3 sm:px-4 md:px-6">
         {/* Lado esquerdo - Menu mobile */}
         <div className="flex items-center flex-shrink-0">
@@ -549,7 +549,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                   )}
                 </div>
               </div>
-              <div className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 bg-primary-900 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0 shadow-md">
+              <div className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0 shadow-md">
                 {profile?.name ? profile.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
               </div>
               <ChevronDown className={`h-3 w-3 sm:h-4 sm:w-4 text-white/70 transition-transform hidden sm:block ${showUserMenu ? 'rotate-180' : ''}`} />

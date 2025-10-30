@@ -417,7 +417,7 @@ const Reports = () => {
     }
 
     const getScoreColor = () => {
-      if (score >= 9) return 'text-green-800 dark:text-green-700';
+      if (score >= 9) return 'text-primary-00 dark:text-primary-700';
       if (score >= 7) return 'text-gray-600 dark:text-gray-500';
       if (score >= 5) return 'text-yellow-600 dark:text-yellow-500';
       return 'text-red-600 dark:text-red-500';
@@ -453,7 +453,7 @@ const Reports = () => {
       'B6': { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-700' },
       'B7': { bg: 'bg-rose-50 dark:bg-rose-900/20', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-700' },
       'B8': { bg: 'bg-indigo-50 dark:bg-indigo-900/20', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-200 dark:border-indigo-700' },
-      'B9': { bg: 'bg-green-800 dark:bg-green-800', text: 'text-white', border: 'border-green-800 dark:border-green-700' },
+      'B9': { bg: 'bg-primary-00 dark:bg-primary-00', text: 'text-white', border: 'border-primary-00 dark:border-primary-700' },
     };
 
     const config = positionConfig[position] || {
@@ -472,7 +472,7 @@ const Reports = () => {
   if (loading || evaluationLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-800 dark:border-green-700"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-00 dark:border-primary-700"></div>
       </div>
     );
   }
@@ -494,7 +494,7 @@ const Reports = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center flex-wrap">
-              <BarChart3 className="text-green-800 dark:text-green-700 mr-2 sm:mr-3 flex-shrink-0" />
+              <BarChart3 className="text-primary-00 dark:text-primary-700 mr-2 sm:mr-3 flex-shrink-0" />
               <span className="break-words">Central de Relatórios</span>
             </h1>
             <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
@@ -505,14 +505,14 @@ const Reports = () => {
           <div className="hidden md:flex items-center space-x-3">
             <button
               onClick={printReport}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-800 dark:hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-00 dark:hover:text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-600/20 rounded-lg transition-all duration-200"
               title="Imprimir"
             >
               <Printer size={18} />
             </button>
             <button
               onClick={shareReport}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-800 dark:hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-00 dark:hover:text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-600/20 rounded-lg transition-all duration-200"
               title="Compartilhar"
             >
               <Share2 size={18} />
@@ -538,7 +538,7 @@ const Reports = () => {
           <div className="md:hidden">
             <button
               onClick={() => setShowMobileActions(!showMobileActions)}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-800 dark:hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-00 dark:hover:text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-600/20 rounded-lg transition-all duration-200"
             >
               {showMobileActions ? <X size={20} /> : <MoreVertical size={20} />}
             </button>
@@ -595,7 +595,7 @@ const Reports = () => {
             onClick={() => setActiveTab('overview')}
             className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
               activeTab === 'overview'
-                ? 'bg-green-800 text-white'
+                ? 'bg-primary-00 text-white'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
@@ -606,7 +606,7 @@ const Reports = () => {
             onClick={() => setActiveTab('detailed')}
             className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
               activeTab === 'detailed'
-                ? 'bg-green-800 text-white'
+                ? 'bg-primary-00 text-white'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
@@ -627,7 +627,7 @@ const Reports = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-gradient-to-br from-green-800 to-green-900 p-6 rounded-xl shadow-lg text-white"
+              className="bg-gradient-to-br from-primary-00 to-primary-600 p-6 rounded-xl shadow-lg text-white"
             >
               <div className="flex items-center justify-between mb-2">
                 <Users className="w-8 h-8 opacity-80" />
@@ -644,7 +644,7 @@ const Reports = () => {
               className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700"
             >
               <div className="flex items-center justify-between mb-2">
-                <CheckCircle className="w-8 h-8 text-green-800 dark:text-green-700" />
+                <CheckCircle className="w-8 h-8 text-primary-00 dark:text-primary-700" />
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                   {summaryData.totalEmployees > 0 ? Math.round((summaryData.completedEvaluations / summaryData.totalEmployees) * 100) : 0}%
                 </span>
@@ -690,7 +690,7 @@ const Reports = () => {
           {/* Progress by Department */}
           <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <BarChart3 className="mr-2 text-green-800 dark:text-green-700" size={20} />
+              <BarChart3 className="mr-2 text-primary-00 dark:text-primary-700" size={20} />
               Progresso por Departamento
             </h2>
             
@@ -713,7 +713,7 @@ const Reports = () => {
                         {dept.name}
                       </h3>
                       <div className="flex items-center space-x-4 text-sm">
-                        <span className="flex items-center text-green-800 dark:text-green-700">
+                        <span className="flex items-center text-primary-00 dark:text-primary-700">
                           <CheckCircle size={14} className="mr-1" />
                           {dept.completed} completos
                         </span>
@@ -773,7 +773,7 @@ const Reports = () => {
                   placeholder="Buscar colaborador..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-green-800 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-00 focus:border-transparent transition-all duration-200"
                 />
               </div>
               
@@ -782,7 +782,7 @@ const Reports = () => {
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-800 focus:border-transparent transition-all duration-200 appearance-none"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-00 focus:border-transparent transition-all duration-200 appearance-none"
                 >
                   <option value="">Todos os departamentos</option>
                   {departments.map(dept => (
@@ -796,7 +796,7 @@ const Reports = () => {
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-800 focus:border-transparent transition-all duration-200 appearance-none"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-00 focus:border-transparent transition-all duration-200 appearance-none"
                 >
                   <option value="">Todos os status</option>
                   <option value="completed">Completo</option>
@@ -845,7 +845,7 @@ const Reports = () => {
                         departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-');
 
                     return (
-                      <tr key={item.employee_id} className="hover:bg-green-50 dark:hover:bg-gray-700 transition-colors">
+                      <tr key={item.employee_id} className="hover:bg-primary-50 dark:hover:bg-gray-700 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
                             <div className="text-sm font-medium text-naue-black dark:text-gray-100">
@@ -902,8 +902,8 @@ const Reports = () => {
                   className="bg-naue-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700"
                 >
                   <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-semibold text-green-800 dark:text-green-700">
+                    <div className="flex-shrink-0 w-10 h-10 bg-primary-100 dark:bg-primary-600/30 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-primary-00 dark:text-primary-700">
                         {user?.name?.charAt(0) || '?'}
                       </span>
                     </div>

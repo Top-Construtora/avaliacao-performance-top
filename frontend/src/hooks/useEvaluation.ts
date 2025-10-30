@@ -67,7 +67,7 @@ interface UseEvaluationReturn {
   createCycle: (cycle: Omit<EvaluationCycle, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
   openCycle: (cycleId: string) => Promise<void>;
   closeCycle: (cycleId: string) => Promise<void>;
-  
+
   // Evaluations
   saveSelfEvaluation: (data: {
     cycleId: string;

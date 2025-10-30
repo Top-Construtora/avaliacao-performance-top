@@ -24,7 +24,7 @@ const Button = ({
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:-translate-y-0.5 hover:shadow-md';
   
   const variantClasses = {
-    primary: 'bg-primary-900 hover:bg-primary-900 text-white focus:ring-primary-500',
+    primary: 'bg-primary hover:bg-primary-700 text-white focus:ring-primary-500',
     secondary: 'bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-500',
     success: 'bg-emerald-500 hover:bg-emerald-600 text-white focus:ring-emerald-500',
     danger: 'bg-red-500 hover:bg-red-600 text-white focus:ring-red-500',

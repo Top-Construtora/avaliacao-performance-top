@@ -179,7 +179,7 @@ const CycleManagement: React.FC = () => {
                         {cycle.status === 'draft' && (
                           <button
                             onClick={() => openCycle(cycle.id)}
-                            className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                            className="p-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors"
                             title="Abrir ciclo"
                           >
                             <Play className="h-5 w-5" />

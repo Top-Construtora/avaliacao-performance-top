@@ -51,7 +51,6 @@ interface PotentialAndPDIProps {
   setPdiData: React.Dispatch<React.SetStateAction<PdiData>>;
   handlePreviousStep: () => void;
   handleNextStep: () => void;
-  handleSave: () => Promise<void>;
   handleSubmit: () => Promise<void>;
   isSaving: boolean;
   loading: boolean;
@@ -68,7 +67,6 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
   setPdiData,
   handlePreviousStep,
   handleNextStep,
-  handleSave,
   handleSubmit,
   isSaving,
   loading,
@@ -868,16 +866,6 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                   Voltar
                 </Button>
                 <Button
-                  variant="outline"
-                  onClick={handleSave}
-                  icon={<Save size={18} />}
-                  size="lg"
-                  disabled={isSaving || loading}
-                  className="w-full sm:w-auto"
-                >
-                  {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
-                </Button>
-                <Button
                   variant="primary"
                   onClick={handleNextStep}
                   icon={<ArrowRight size={18} />}
@@ -955,16 +943,6 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                   className="w-full sm:w-auto"
                 >
                   Voltar
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleSave}
-                  icon={<Save size={18} />}
-                  size="lg"
-                  disabled={isSaving || loading}
-                  className="w-full sm:w-auto"
-                >
-                  {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
                 </Button>
                 <Button
                   variant="primary"

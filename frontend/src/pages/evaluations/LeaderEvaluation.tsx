@@ -235,7 +235,7 @@ const LeaderEvaluation = () => {
         const exists = await checkExistingEvaluation(currentCycle.id, selectedEmployeeId, 'leader');
         setHasExistingEvaluation(exists);
         if (exists) {
-          toast.error('Já existe uma avaliação para este colaborador neste ciclo');
+          toast.error('Já existe uma avaliação para este avaliado neste ciclo');
           setSelectedEmployeeId('');
           return;
         }
@@ -431,6 +431,8 @@ const LeaderEvaluation = () => {
     }
   };
 
+  // Função de salvar rascunho removida - não é mais necessária
+  /*
   const handleSaveDraft = async () => {
     if (!currentCycle || !selectedEmployeeId || !profile?.id) {
       toast.error('Dados incompletos para salvar');
@@ -507,6 +509,7 @@ const LeaderEvaluation = () => {
       setIsSaving(false);
     }
   };
+  */
 
   const isCycleInValidPeriod = (): boolean => { // Explicitly define return type
     if (!currentCycle) return false;
@@ -625,9 +628,6 @@ const LeaderEvaluation = () => {
                   )}
                 </div>
                 <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                  <Button variant="outline" onClick={handleSaveDraft} icon={<Save size={18} />} size="lg" disabled={isSaving || loading}>
-                    {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
-                  </Button>
                   <Button variant="primary" onClick={handleNextStep} icon={<ArrowRight size={18} />} size="lg" disabled={!canProceedToStep2()}>
                     Próxima Etapa
                   </Button>
@@ -645,7 +645,6 @@ const LeaderEvaluation = () => {
               setPdiData={setPdiData}
               handlePreviousStep={handlePreviousStep}
               handleNextStep={handleNextStep}
-              handleSave={handleSaveDraft}
               handleSubmit={handleSubmit}
               isSaving={isSaving}
               loading={loading}
@@ -663,7 +662,6 @@ const LeaderEvaluation = () => {
               setPdiData={setPdiData}
               handlePreviousStep={handlePreviousStep}
               handleNextStep={handleNextStep}
-              handleSave={handleSaveDraft}
               handleSubmit={handleSubmit}
               isSaving={isSaving}
               loading={loading}
@@ -685,14 +683,14 @@ const LeaderEvaluation = () => {
               <Info className="h-8 w-8 sm:h-10 sm:w-10 text-gray-600 dark:text-gray-400" />
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              {subordinates.length === 0 && !loading ? 'Nenhum subordinado disponível' : 'Nenhum colaborador selecionado'}
+              {subordinates.length === 0 && !loading ? 'Nenhum subordinado disponível' : 'Nenhum avaliado selecionado'}
             </h3>
             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
               {subordinates.length === 0 && !loading
                 ? profile?.is_leader && !profile?.is_director
-                  ? 'Você não possui colaboradores subordinados para avaliar.'
+                  ? 'Você não possui avaliados subordinados para avaliar.'
                   : 'Entre em contato com o RH para verificar suas permissões.'
-                : 'Selecione um colaborador acima para iniciar a avaliação de performancee'}
+                : 'Selecione um avaliado acima para iniciar a avaliação de performance'}
             </p>
           </div>
         </motion.div>

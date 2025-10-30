@@ -37,6 +37,7 @@ interface PdiData {
 
 const PdiManagement: React.FC = () => {
   const { employees, loadPDI, savePDI } = useEvaluation();
+  const { profile } = useAuth();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [pdiData, setPdiData] = useState<PdiData>({
     colaboradorId: '',
@@ -51,12 +52,30 @@ const PdiManagement: React.FC = () => {
   const [loadingPDI, setLoadingPDI] = useState<boolean>(false);
   const [isSavingPDI, setIsSavingPDI] = useState<boolean>(false);
 
+  // Filtrar employees baseado nas permissões do usuário
+  const filteredEmployees = React.useMemo(() => {
+    if (!profile) return [];
+
+    // Admin e Diretores podem ver todos
+    if (profile.is_admin || profile.is_director) {
+      return employees;
+    }
+
+    // Líderes só podem ver seus subordinados
+    if (profile.is_leader) {
+      return employees.filter(emp => emp.reports_to === profile.id);
+    }
+
+    // Outros usuários não veem ninguém
+    return [];
+  }, [employees, profile]);
+
   // Load PDI when selectedEmployeeId changes
   useEffect(() => {
     const fetchPdi = async () => {
       if (selectedEmployeeId) {
         setLoadingPDI(true);
-        const employeeProfile = employees.find(emp => emp.id === selectedEmployeeId);
+        const employeeProfile = filteredEmployees.find(emp => emp.id === selectedEmployeeId);
         
         // Reset PDI data before loading new one
         const initialPdiData = {
@@ -101,7 +120,7 @@ const PdiManagement: React.FC = () => {
       }
     };
     fetchPdi();
-  }, [selectedEmployeeId, employees, loadPDI]);
+  }, [selectedEmployeeId, filteredEmployees, loadPDI]);
 
   const handleSavePDI = useCallback(async () => {
     if (!pdiData.colaboradorId) {
@@ -167,7 +186,7 @@ const PdiManagement: React.FC = () => {
     await handleSavePDI();
   };
 
-  const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
+  const selectedEmployee = filteredEmployees.find(emp => emp.id === selectedEmployeeId);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -203,7 +222,7 @@ const PdiManagement: React.FC = () => {
                 disabled={loadingPDI}
               >
                 <option value="">Escolha um colaborador...</option>
-                {employees
+                {filteredEmployees
                   .filter(employee => !employee.is_admin && !employee.is_director)
                   .map((employee) => (
                     <option key={employee.id} value={employee.id}>

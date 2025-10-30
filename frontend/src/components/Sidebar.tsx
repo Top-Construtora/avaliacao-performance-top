@@ -352,7 +352,7 @@ export default function Sidebar({
   return (
     <>
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col bg-primary-900 w-64 fixed h-full z-30">
+      <aside className="hidden md:flex flex-col bg-primary w-64 fixed h-full z-30">
         {sidebarContent}
       </aside>
 
@@ -375,7 +375,7 @@ export default function Sidebar({
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.3 }}
-              className="md:hidden flex flex-col bg-naue-green fixed h-full w-64 z-50"
+              className="md:hidden flex flex-col bg-primary fixed h-full w-64 z-50"
             >
               {sidebarContent}
             </motion.aside>

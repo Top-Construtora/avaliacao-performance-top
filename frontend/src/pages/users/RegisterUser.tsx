@@ -344,7 +344,7 @@ const RegisterUser = () => {
         minWorkAge.setFullYear(minWorkAge.getFullYear() + 16);
         
         if (joinDate < minWorkAge) {
-          errors.joinDate = 'Data de admissão inválida (colaborador teria menos de 16 anos)';
+          errors.joinDate = 'Data de admissão inválida (avaliado teria menos de 16 anos)';
         }
       }
     }
@@ -353,10 +353,10 @@ const RegisterUser = () => {
       errors.teams = 'Selecione pelo menos um time';
     }
     if (formData.profileType === 'regular' && !formData.reportsTo) {
-      errors.reportsTo = 'Selecione um líder';
+      errors.reportsTo = 'Selecione um avaliador';
     }
     if (formData.profileType === 'leader' && !formData.reportsTo) {
-      errors.reportsTo = 'Selecione quem este líder reporta';
+      errors.reportsTo = 'Selecione quem este avaliador reporta';
     }
     
     setFormErrors(errors);
@@ -446,7 +446,7 @@ const RegisterUser = () => {
               Cadastrar Usuário
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
-              Adicione novos colaboradores ao sistema
+              Adicione novos avaliados ao sistema
             </p>
           </div>
         </div>
@@ -469,7 +469,7 @@ const RegisterUser = () => {
             {[
               {
                 value: 'regular',
-                label: 'Colaborador',
+                label: 'Avaliado',
                 description: 'Membro da equipe com acesso padrão',
                 icon: UserCheck,
                 gradient: 'from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700',
@@ -479,7 +479,7 @@ const RegisterUser = () => {
               },
               {
                 value: 'leader',
-                label: 'Líder',
+                label: 'Avaliador',
                 description: 'Gerencia equipes e avaliações',
                 icon: Crown,
                 gradient: 'from-primary-900 to-primary-800 dark:from-primary-900 dark:to-primary-800',
@@ -1040,7 +1040,7 @@ const RegisterUser = () => {
                   onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
                 >
                   <option value="">
-                    {formData.profileType === 'regular' ? 'Selecione um líder' : 'Selecione quem este líder reporta'}
+                    {formData.profileType === 'regular' ? 'Selecione um avaliador' : 'Selecione quem este avaliador reporta'}
                   </option>
                   {users
                     .filter(u => {
@@ -1057,7 +1057,7 @@ const RegisterUser = () => {
                       <option key={superior.id} value={superior.id}>
                         {superior.name} - {superior.position}
                         {superior.is_director && ' (Diretor)'}
-                        {superior.is_leader && !superior.is_director && ' (Líder)'}
+                        {superior.is_leader && !superior.is_director && ' (Avaliador)'}
                       </option>
                     ))}
                 </select>
@@ -1070,7 +1070,7 @@ const RegisterUser = () => {
               )}
               {formData.profileType === 'leader' && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  Líderes podem reportar para outros líderes ou diretores
+                  Avaliadores podem reportar para outros avaliadores ou diretores
                 </p>
               )}
             </div>

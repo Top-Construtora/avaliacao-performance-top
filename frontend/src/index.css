@@ -5,9 +5,9 @@
 /* NAUE Consultoria - Variáveis de Identidade Visual */
 :root {
   /* Cores Primárias */
-  --primary: #003b2b;
-  --primary-hover: #002821;
-  --primary-light: rgba(0, 59, 43, 0.15);
+  --primary: #1e6076;
+  --primary-hover: #185567;
+  --primary-light: rgba(30, 96, 118, 0.15);
   
   /* Cores Neutras */
   --black: #282C2A;

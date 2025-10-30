@@ -317,7 +317,7 @@ const TeamManagement = () => {
             {responsible && (
               <div className="flex items-center text-sm text-gray-800 dark:text-gray-400 group/item hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                 <UserCog className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-600 group-hover/item:text-gray-600 dark:group-hover/item:text-gray-400" />
-                <span>Líder: <span className="font-medium truncate">{responsible.name}</span></span>
+                <span>Avaliador: <span className="font-medium truncate">{responsible.name}</span></span>
               </div>
             )}
 
@@ -397,7 +397,7 @@ const TeamManagement = () => {
             <UIGuard show="showCreateTeamButton">
               <Button
                 variant="primary"
-                onClick={() => navigate('/register/teams')}
+                onClick={() => navigate('/register/team')}
                 icon={<Plus size={18} />}
                 size="lg"
               >
@@ -436,7 +436,7 @@ const TeamManagement = () => {
             <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-stone-700 via-stone-800 to-stone-900 dark:from-stone-800 dark:via-stone-900 dark:to-stone-800 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.teamsWithoutResponsible}</p>
-                <p className="text-sm text-gray-200 font-medium">Sem Líder</p>
+                <p className="text-sm text-gray-200 font-medium">Sem Avaliador</p>
               </div>
               <UserCog className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-400 dark:text-gray-700 opacity-50" />
             </motion.div>

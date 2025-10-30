@@ -177,7 +177,7 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="sm:col-span-2">
           <label htmlFor="employee-select" className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-            Selecione o Colaborador
+            Selecione o Avaliado
           </label>
           <div className="relative">
             <select
@@ -187,11 +187,11 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
               className="w-full px-4 py-3 pl-12 pr-10 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-green-800 dark:focus:border-green-700 text-sm sm:text-base appearance-none text-gray-700 dark:text-gray-200"
               disabled={loading}
             >
-              <option value="">Escolha um colaborador...</option>
+              <option value="">Escolha um avaliado...</option>
               {loading ? (
                 <option value="" disabled>Carregando...</option>
               ) : subordinates.length === 0 ? (
-                <option value="" disabled>Nenhum colaborador subordinado</option>
+                <option value="" disabled>Nenhum avaliado subordinado</option>
               ) : (
                 subordinates.map(employee => (
                   <option key={employee.id} value={employee.id}>

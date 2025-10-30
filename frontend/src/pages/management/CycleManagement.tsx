@@ -198,10 +198,10 @@ const CycleManagement: React.FC = () => {
       };
     }
     return { 
-      color: 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400', 
-      icon: CheckCircle, 
+      color: 'bg-primary-100 text-primary-700 dark:bg-primary-600/20 dark:text-primary-400',
+      icon: CheckCircle,
       text: 'Ativo',
-      dotColor: 'bg-green-400'
+      dotColor: 'bg-primary-400'
     };
   };
 
@@ -260,7 +260,7 @@ const CycleManagement: React.FC = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-              <Calendar className="h-7 w-7 text-green-800 dark:text-green-700 mr-3" />
+              <Calendar className="h-7 w-7 text-primary dark:text-primary-600 mr-3" />
               Gerenciamento de Ciclos de Avaliação
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -325,13 +325,13 @@ const CycleManagement: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-          <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4">
+          <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-700 dark:text-green-400 text-sm font-medium">Total de Ciclos</p>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100 mt-1">{cycles.length}</p>
+                <p className="text-primary-700 dark:text-primary-400 text-sm font-medium">Total de Ciclos</p>
+                <p className="text-2xl font-bold text-primary-900 dark:text-primary-100 mt-1">{cycles.length}</p>
               </div>
-              <Calendar className="h-8 w-8 text-green-800 dark:text-green-600 opacity-50" />
+              <Calendar className="h-8 w-8 text-primary-800 dark:text-primary-600 opacity-50" />
             </div>
           </div>
 
@@ -378,7 +378,7 @@ const CycleManagement: React.FC = () => {
         {cyclesLoading ? (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-800 dark:border-green-700 mx-auto"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-800 dark:border-primary-700 mx-auto"></div>
               <p className="text-gray-500 dark:text-gray-400 mt-4">Carregando ciclos...</p>
             </div>
           </div>
@@ -584,7 +584,7 @@ const CycleManagement: React.FC = () => {
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
                     placeholder="Ex: Ciclo 2024 - Primeiro Semestre"
                   />
                 </div>
@@ -596,7 +596,7 @@ const CycleManagement: React.FC = () => {
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
                     rows={3}
                     placeholder="Descrição opcional do ciclo"
                   />
@@ -611,7 +611,7 @@ const CycleManagement: React.FC = () => {
                       type="date"
                       value={formData.start_date}
                       onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
                     />
                   </div>
 
@@ -623,7 +623,7 @@ const CycleManagement: React.FC = () => {
                       type="date"
                       value={formData.end_date}
                       onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
                     />
                   </div>
                 </div>
@@ -707,7 +707,7 @@ const CycleManagement: React.FC = () => {
               {cycleStats ? (
                 <div className="space-y-6">
                   {/* Progress Overview */}
-                  <div className="bg-gradient-to-br from-green-50 to-gray-50 dark:from-gray-700 dark:to-gray-800 rounded-lg p-6">
+                  <div className="bg-gradient-to-br from-primary-50 to-gray-50 dark:from-gray-700 dark:to-gray-800 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
                       Progresso Geral
                     </h3>
@@ -721,7 +721,7 @@ const CycleManagement: React.FC = () => {
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3">
                         <div
-                          className="bg-gradient-to-r from-green-800 to-gray-600 dark:from-green-700 dark:to-gray-500 h-3 rounded-full transition-all duration-500"
+                          className="bg-gradient-to-r from-primary-800 to-gray-600 dark:from-primary-700 dark:to-gray-500 h-3 rounded-full transition-all duration-500"
                           style={{ width: `${cycleStats.completionRate}%` }}
                         />
                       </div>
@@ -805,7 +805,7 @@ const CycleManagement: React.FC = () => {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-800 dark:border-green-700 mx-auto"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-800 dark:border-primary-700 mx-auto"></div>
                   <p className="text-gray-500 dark:text-gray-400 mt-4">Carregando estatísticas...</p>
                 </div>
               )}

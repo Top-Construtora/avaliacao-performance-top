@@ -41,7 +41,7 @@ export default function Login() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a5d47] to-[#021a14] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#1e6076] to-[#0d3f49] flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -55,7 +55,7 @@ export default function Login() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="inline-flex items-center justify-center w-16 h-16 bg-primary-800 rounded-xl shadow-lg"
+              className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-xl shadow-lg"
             >
               <img src={logo}/>
             </motion.div>
@@ -147,7 +147,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => navigate('/reset-password')}
-                className="text-primary-600 hover:text-primary-800 font-medium transition-colors"
+                className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
               >
                 Esqueceu a senha?
               </button>
@@ -160,7 +160,7 @@ export default function Login() {
               className={`w-full py-3 px-6 rounded-lg font-medium text-white transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-md ${
                 isLoading
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-primary-600 hover:bg-primary-800 focus:ring-2 focus:ring-primary-500/20 active:scale-[0.98]'
+                  : 'bg-primary hover:bg-primary-600 focus:ring-2 focus:ring-primary-500/20 active:scale-[0.98]'
               }`}
             >
               {isLoading ? (
