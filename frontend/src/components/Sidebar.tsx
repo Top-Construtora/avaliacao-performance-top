@@ -357,7 +357,7 @@ export default function Sidebar({
   return (
     <>
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col bg-primary w-64 fixed h-full z-30">
+      <aside className="hidden md:flex flex-col w-64 fixed h-full z-30" style={{backgroundColor: '#1e2938'}}>
         {sidebarContent}
       </aside>
 
@@ -380,7 +380,8 @@ export default function Sidebar({
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.3 }}
-              className="md:hidden flex flex-col bg-primary fixed h-full w-64 z-50"
+              className="md:hidden flex flex-col fixed h-full w-64 z-50"
+              style={{backgroundColor: '#1e2938'}}
             >
               {sidebarContent}
             </motion.aside>

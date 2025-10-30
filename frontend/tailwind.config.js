@@ -11,19 +11,19 @@ export default {
       colors: {
         // NAUE Consultoria - Cores Primárias (Azul Escuro)
         'primary': {
-          DEFAULT: '#1e6076',
-          hover: '#185567',
-          light: 'rgba(30, 96, 118, 0.15)',
-          50: '#e6f2f5',
-          100: '#cce5eb',
-          200: '#99cbd7',
-          300: '#66b1c3',
-          400: '#3397af',
-          500: '#1e6076',
-          600: '#1e6076',
-          700: '#185567',
-          800: '#134a58',
-          900: '#0d3f49',
+          DEFAULT: '#1e2938',
+          hover: '#161f2a',
+          light: 'rgba(30, 41, 56, 0.15)',
+          50: '#e8eaed',
+          100: '#d1d5db',
+          200: '#a3abb7',
+          300: '#758193',
+          400: '#47576f',
+          500: '#1e2938',
+          600: '#1e2938',
+          700: '#161f2a',
+          800: '#0f151c',
+          900: '#070a0e',
         },
         // Cores Neutras
         'naue': {
@@ -69,8 +69,8 @@ export default {
           800: '#075943',
           900: '#064c3a',
         },
-        'dark-navy': '#1e6076',
-        'naue-green': '#1e6076',
+        'dark-navy': '#1e2938',
+        'naue-green': '#1e2938',
       },
       boxShadow: {
         'primary-500/20': '0 10px 15px -3px rgba(18, 176, 160, 0.2), 0 4px 6px -2px rgba(18, 176, 160, 0.1)',

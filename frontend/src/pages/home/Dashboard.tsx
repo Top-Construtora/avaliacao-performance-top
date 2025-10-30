@@ -136,10 +136,11 @@ const Dashboard = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-primary to-primary-600 dark:from-primary dark:to-primary-600 rounded-2xl p-8 text-white shadow-md hover:shadow-lg transition-shadow duration-300"
+        className="rounded-2xl p-8 text-white shadow-md hover:shadow-lg transition-shadow duration-300"
+        style={{background: 'linear-gradient(to bottom right, #1e2938, #161f2a)'}}
       >
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Bem-vindo(a), {firstName}!</h1>
-        <p className="text-primary-100 dark:text-primary-200 text-base sm:text-lg">
+        <p className="text-white/90 text-base sm:text-lg">
           Gerencie e acompanhe todas as avaliações de performance em um só lugar
         </p>
       </motion.div>
@@ -162,10 +163,16 @@ const Dashboard = () => {
               onClick={card.onClick}
             >
               {/* Background Gradient Decoration */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} ${card.darkGradient} opacity-0 group-hover:opacity-5 dark:group-hover:opacity-10 transition-opacity duration-300`} />
+              <div
+                className="absolute inset-0 opacity-0 group-hover:opacity-5 dark:group-hover:opacity-10 transition-opacity duration-300"
+                style={{background: 'linear-gradient(to bottom right, #1e2938, #161f2a)'}}
+              />
               
               <div className="relative z-10">
-                <div className={`inline-flex p-2 sm:p-3 rounded-xl bg-gradient-to-br ${card.iconBg} ${card.darkIconBg} shadow-md dark:shadow-lg mb-3 sm:mb-4`}>
+                <div
+                  className="inline-flex p-2 sm:p-3 rounded-xl shadow-md dark:shadow-lg mb-3 sm:mb-4"
+                  style={{background: 'linear-gradient(to bottom right, #1e2938, #161f2a)'}}
+                >
                   <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
                 
@@ -177,22 +184,22 @@ const Dashboard = () => {
                   {card.description}
                 </p>
                 
-                <div className={`inline-flex items-center text-sm font-semibold bg-gradient-to-r ${card.gradient} ${card.darkGradient} bg-clip-text text-transparent group-hover:gap-2 sm:group-hover:gap-3 transition-all duration-300`}>
+                <div className="inline-flex items-center text-sm font-semibold group-hover:gap-2 sm:group-hover:gap-3 transition-all duration-300" style={{color: '#1e2938'}}>
                   <span>{card.action}</span>
-                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-primary dark:text-primary-600 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1" style={{color: '#1e2938'}} />
                 </div>
               </div>
               
               {/* Hover Effect Border */}
-              <div 
-                className={`absolute inset-0 rounded-lg border border-transparent bg-gradient-to-br ${card.gradient} ${card.darkGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} 
-                style={{ 
-                  padding: '2px', 
-                  background: `linear-gradient(to bottom right, var(--tw-gradient-from), var(--tw-gradient-to))`, 
-                  WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', 
-                  WebkitMaskComposite: 'exclude', 
-                  maskComposite: 'exclude' 
-                }} 
+              <div
+                className="absolute inset-0 rounded-lg border border-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  padding: '2px',
+                  background: 'linear-gradient(to bottom right, #1e2938, #161f2a)',
+                  WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'exclude',
+                  maskComposite: 'exclude'
+                }}
               />
             </motion.div>
           );

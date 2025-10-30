@@ -96,7 +96,7 @@ export default function ResetPassword() {
   const requirements = checkPasswordStrength();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a5d47] to-[#021a14] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#1e2938] to-[#0f151c] flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -110,7 +110,8 @@ export default function ResetPassword() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="inline-flex items-center justify-center w-16 h-16 bg-primary-800 rounded-xl shadow-lg"
+              className="inline-flex items-center justify-center w-16 h-16 rounded-xl shadow-lg"
+              style={{backgroundColor: '#1e2938'}}
             >
               <img src={logo} alt="Logo" />
             </motion.div>
@@ -307,8 +308,9 @@ export default function ResetPassword() {
                 className={`flex-1 py-3 px-6 rounded-lg font-medium text-white transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-md ${
                   isLoading || !isPasswordValid() || newPassword !== confirmPassword
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-primary-600 hover:bg-primary-800 focus:ring-2 focus:ring-primary-500/20 active:scale-[0.98]'
+                    : 'hover:opacity-90 focus:ring-2 focus:ring-primary-500/20 active:scale-[0.98]'
                 }`}
+                style={!(isLoading || !isPasswordValid() || newPassword !== confirmPassword) ? {backgroundColor: '#1e2938'} : {}}
               >
                 {isLoading ? (
                   <>
