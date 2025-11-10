@@ -70,4 +70,8 @@ router.get('/reports/by-position', authorizeRoles(['director', 'leader']) as any
 // ===== CÁLCULO DE SALÁRIO =====
 router.post('/calculate', salaryController.calculateSalary as any);
 
+// ===== EXPORTAÇÃO =====
+router.get('/tracks/:trackId/export/pdf', authorizeRoles(['director', 'leader']) as any, salaryController.exportTrackToPDF as any);
+router.get('/tracks/:trackId/export/excel', authorizeRoles(['director', 'leader']) as any, salaryController.exportTrackToExcel as any);
+
 export default router;

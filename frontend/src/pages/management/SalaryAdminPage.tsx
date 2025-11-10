@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import {
   Building, GitBranch, Plus, ChevronRight,
-  Trash2, Save, X, Settings, 
+  Trash2, Save, X, Settings, Download, FileText, FileSpreadsheet
 } from 'lucide-react';
 
 // Importações corretas dos serviços
@@ -35,6 +35,8 @@ const SalaryAdminPage = () => {
   const [departments, setDepartments] = useState<DepartmentWithActive[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateTrackModal, setShowCreateTrackModal] = useState(false);
+  const [exportingTrack, setExportingTrack] = useState<string | null>(null);
+  const [showExportMenu, setShowExportMenu] = useState<string | null>(null);
 
   // Verificar se o usuário tem permissão para acessar esta página
   useEffect(() => {
@@ -47,6 +49,23 @@ const SalaryAdminPage = () => {
   useEffect(() => {
     loadInitialData();
   }, []);
+
+  // Fechar menu de exportação ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showExportMenu) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('.relative')) {
+          setShowExportMenu(null);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showExportMenu]);
 
   const loadInitialData = async () => {
     setLoading(true);
@@ -162,6 +181,34 @@ const SalaryAdminPage = () => {
     }
   };
 
+  const handleExportPDF = async (trackId: string, trackName: string) => {
+    setExportingTrack(trackId);
+    setShowExportMenu(null);
+    try {
+      await salaryService.exportTrackToPDF(trackId);
+      toast.success(`Trilha "${trackName}" exportada para PDF com sucesso!`);
+    } catch (error) {
+      toast.error('Erro ao exportar para PDF.');
+      console.error(error);
+    } finally {
+      setExportingTrack(null);
+    }
+  };
+
+  const handleExportExcel = async (trackId: string, trackName: string) => {
+    setExportingTrack(trackId);
+    setShowExportMenu(null);
+    try {
+      await salaryService.exportTrackToExcel(trackId);
+      toast.success(`Trilha "${trackName}" exportada para Excel com sucesso!`);
+    } catch (error) {
+      toast.error('Erro ao exportar para Excel.');
+      console.error(error);
+    } finally {
+      setExportingTrack(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center">
@@ -259,18 +306,51 @@ const SalaryAdminPage = () => {
                           </button>
                         </div>
                       </div>
-                      <div className="mt-4">
-                        <Button 
-                          variant="secondary" 
-                          size="sm" 
+                      <div className="mt-4 flex gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           onClick={() => navigate(`/salary/tracks/${track.id}`)}
-                          className="w-full"
+                          className="flex-1"
                         >
                           <span className="inline-flex items-center">
                             Gerenciar Cargos
                             <ChevronRight className="h-4 w-4 ml-1" />
                           </span>
                         </Button>
+                        <div className="relative">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setShowExportMenu(showExportMenu === track.id ? null : track.id)}
+                            disabled={exportingTrack === track.id}
+                            title="Exportar dados da trilha"
+                          >
+                            {exportingTrack === track.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                            ) : (
+                              <Download className="h-4 w-4" />
+                            )}
+                          </Button>
+                          {showExportMenu === track.id && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-10">
+                              <button
+                                onClick={() => handleExportPDF(track.id, track.name)}
+                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-t-lg"
+                              >
+                                <FileText className="h-4 w-4" />
+                                Exportar para PDF
+                              </button>
+                              <button
+                                onClick={() => handleExportExcel(track.id, track.name)}
+                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-b-lg"
+                              >
+                                <FileSpreadsheet className="h-4 w-4" />
+                                Exportar para Excel
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </motion.div>
                   );

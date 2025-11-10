@@ -160,9 +160,53 @@ export const api = {
   },
 
   delete(endpoint: string, customHeaders?: HeadersInit) {
-    return this.request(endpoint, { 
+    return this.request(endpoint, {
       method: 'DELETE',
       headers: customHeaders
     });
+  },
+
+  // Método específico para download de arquivos (blob)
+  async downloadFile(endpoint: string): Promise<Blob> {
+    const token = sessionStorage.getItem('access_token');
+
+    const headers: HeadersInit = {};
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const config: RequestInit = {
+      method: 'GET',
+      credentials: 'include',
+      mode: 'cors',
+      headers: headers,
+    };
+
+    try {
+      const response = await fetch(`${this.baseURL}${endpoint}`, config);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        const error: any = new Error(`HTTP error! status: ${response.status}`);
+        error.response = {
+          status: response.status,
+          data: { error: errorText }
+        };
+        throw error;
+      }
+
+      // Retorna o blob diretamente
+      return await response.blob();
+    } catch (error: any) {
+      if (import.meta.env.DEV) {
+        console.error('File Download Error:', {
+          endpoint,
+          error: error.message,
+          status: error.response?.status
+        });
+      }
+      throw error;
+    }
   },
 };

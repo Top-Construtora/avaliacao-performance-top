@@ -396,8 +396,57 @@ class SalaryService {
     );
   }
 
+  // ===== EXPORTAÇÃO =====
+  async exportTrackToPDF(trackId: string): Promise<void> {
+    try {
+      // Usar o método downloadFile para obter o blob diretamente
+      const blob = await api.downloadFile(`/salary/tracks/${trackId}/export/pdf`);
+
+      // Criar um URL temporário para o blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Criar um link temporário e fazer o download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `trilha_${trackId}_${Date.now()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+
+      // Limpar
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erro ao exportar para PDF:', error);
+      throw error;
+    }
+  }
+
+  async exportTrackToExcel(trackId: string): Promise<void> {
+    try {
+      // Usar o método downloadFile para obter o blob diretamente
+      const blob = await api.downloadFile(`/salary/tracks/${trackId}/export/excel`);
+
+      // Criar um URL temporário para o blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Criar um link temporário e fazer o download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `trilha_${trackId}_${Date.now()}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+
+      // Limpar
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erro ao exportar para Excel:', error);
+      throw error;
+    }
+  }
+
   // ===== MÉTODOS AUXILIARES =====
-  
+
   // Verificar se o sistema de salários está configurado
   async checkSystemStatus(): Promise<{
     configured: boolean;

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { salaryService } from '../services/salaryService';
+import { exportService } from '../services/exportService';
 import { AuthRequest } from '../middleware/auth';
 
 export const salaryController = {
@@ -447,12 +448,69 @@ export const salaryController = {
     try {
       const { trackPositionId, salaryLevelId } = req.body;
       const calculated = await salaryService.calculateSalary(
-        req.supabase, 
-        trackPositionId, 
+        req.supabase,
+        trackPositionId,
         salaryLevelId
       );
       res.json({ success: true, data: calculated });
     } catch (error) {
+      next(error);
+    }
+  },
+
+  // ===== EXPORTAÇÃO =====
+  async exportTrackToPDF(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { trackId } = req.params;
+      console.log(`[PDF Export] Iniciando exportação para trilha ${trackId}`);
+
+      // Buscar informações da trilha para o nome do arquivo
+      const track = await salaryService.getCareerTrackById(req.supabase, trackId);
+      console.log(`[PDF Export] Trilha encontrada: ${track.name}`);
+
+      const pdfBuffer = await exportService.exportTrackToPDF(req.supabase, trackId);
+      console.log(`[PDF Export] PDF gerado com sucesso. Tamanho: ${pdfBuffer.length} bytes`);
+
+      // Sanitizar o nome do arquivo
+      const fileName = `trilha_${track.name.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
+      console.log(`[PDF Export] Nome do arquivo: ${fileName}`);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Length', pdfBuffer.length.toString());
+
+      res.send(pdfBuffer);
+      console.log(`[PDF Export] Arquivo enviado com sucesso`);
+    } catch (error) {
+      console.error('[PDF Export] Erro ao exportar:', error);
+      next(error);
+    }
+  },
+
+  async exportTrackToExcel(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { trackId } = req.params;
+      console.log(`[Excel Export] Iniciando exportação para trilha ${trackId}`);
+
+      // Buscar informações da trilha para o nome do arquivo
+      const track = await salaryService.getCareerTrackById(req.supabase, trackId);
+      console.log(`[Excel Export] Trilha encontrada: ${track.name}`);
+
+      const excelBuffer = await exportService.exportTrackToExcel(req.supabase, trackId);
+      console.log(`[Excel Export] Excel gerado com sucesso. Tamanho: ${excelBuffer.length} bytes`);
+
+      // Sanitizar o nome do arquivo
+      const fileName = `trilha_${track.name.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.xlsx`;
+      console.log(`[Excel Export] Nome do arquivo: ${fileName}`);
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Length', excelBuffer.length.toString());
+
+      res.send(excelBuffer);
+      console.log(`[Excel Export] Arquivo enviado com sucesso`);
+    } catch (error) {
+      console.error('[Excel Export] Erro ao exportar:', error);
       next(error);
     }
   }
