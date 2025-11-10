@@ -183,21 +183,13 @@ const NineBoxMatrix = () => {
   };
 
   /**
-   * Converte nota de 1-4 para posição de 0-3 no grid
-   */
-  const convertScoreToGridPosition = (score: number): number => {
-    const clampedScore = Math.max(1, Math.min(4, score));
-    return clampedScore - 1;
-  };
-
-  /**
    * Obtém o quadrante baseado nas notas (retorna índices de 1-3)
    */
   const getQuadrant = (performance: number, potential: number): { row: number; col: number } => {
     // Determina o quadrante baseado nos intervalos:
-    // 1.0-1.999 = quadrante 1 (baixo)
-    // 2.0-2.999 = quadrante 2 (médio)
-    // 3.0-4.0 = quadrante 3 (alto)
+    // 1.0-1.999 = quadrante 1
+    // 2.0-2.999 = quadrante 2
+    // 3.0-4.0 = quadrante 3
 
     let perfQuadrant: number;
     let potQuadrant: number;
@@ -227,17 +219,100 @@ const NineBoxMatrix = () => {
   };
 
   /**
+   * Retorna o número do quadrante (1-9) conforme a metodologia Nine Box
+   * Box 1: Baixo Perf + Baixo Pot
+   * Box 2: Baixo Perf + Médio Pot
+   * Box 3: Baixo Perf + Alto Pot
+   * Box 4: Médio Perf + Baixo Pot
+   * Box 5: Médio Perf + Médio Pot
+   * Box 6: Médio Perf + Alto Pot
+   * Box 7: Alto Perf + Baixo Pot
+   * Box 8: Alto Perf + Médio Pot
+   * Box 9: Alto Perf + Alto Pot
+   */
+  const getQuadrantName = (performance: number, potential: number): string => {
+    const quadrant = getQuadrant(performance, potential);
+    // Calcula o número do box baseado na posição
+    // row e col vão de 1 a 3
+    // Fórmula: (col - 1) * 3 + row
+    // Exemplo: col=2, row=3 => (2-1)*3 + 3 = 6 (Box 6)
+    const boxNumber = (quadrant.col - 1) * 3 + quadrant.row;
+    return boxNumber.toString();
+  };
+
+  /**
+   * Retorna o nome descritivo do box conforme o guia Nine Box
+   */
+  const getBoxDescriptiveName = (boxNumber: string): string => {
+    const boxNames: Record<string, string> = {
+      '1': 'Insuficiente',
+      '2': 'Questionável',
+      '3': 'Enigma',
+      '4': 'Eficaz',
+      '5': 'Mantenedor',
+      '6': 'Crescimento',
+      '7': 'Comprometimento',
+      '8': 'Alto Impacto',
+      '9': 'Futuro Líder'
+    };
+    return boxNames[boxNumber] || '';
+  };
+
+  /**
    * Calcula a posição do ponto dentro da matriz
+   * Garante que o ponto fique sempre dentro dos limites do quadrante correto
    */
   const getPointPosition = (performance: number, potential: number) => {
-    const x = convertScoreToGridPosition(performance);
-    const y = convertScoreToGridPosition(potential);
-    
-    // Converte para porcentagem (0-100%)
-    const xPercent = (x / 3) * 100;
-    // Inverte o Y porque o grid visual cresce de baixo para cima
-    const yPercent = (1 - y / 3) * 100;
-    
+    // Limita as notas entre 1 e 4
+    const clampedPerf = Math.max(1, Math.min(4, performance));
+    const clampedPot = Math.max(1, Math.min(4, potential));
+
+    // Determina o quadrante
+    const quadrant = getQuadrant(clampedPerf, clampedPot);
+
+    // Padding interno para o ponto não ultrapassar as bordas (15% de cada lado do quadrante)
+    const PADDING = 0.15;
+
+    // Calcula a posição relativa dentro do quadrante (0 a 1)
+    let perfRelative: number;
+    let potRelative: number;
+
+    // Performance (eixo X / coluna)
+    if (quadrant.col === 1) {
+      // Quadrante 1: notas 1.0-1.999
+      perfRelative = (clampedPerf - 1.0) / 1.0; // 0 a 1
+    } else if (quadrant.col === 2) {
+      // Quadrante 2: notas 2.0-2.999
+      perfRelative = (clampedPerf - 2.0) / 1.0; // 0 a 1
+    } else {
+      // Quadrante 3: notas 3.0-4.0
+      perfRelative = (clampedPerf - 3.0) / 1.0; // 0 a 1
+    }
+
+    // Potencial (eixo Y / linha)
+    if (quadrant.row === 1) {
+      // Quadrante 1: notas 1.0-1.999
+      potRelative = (clampedPot - 1.0) / 1.0; // 0 a 1
+    } else if (quadrant.row === 2) {
+      // Quadrante 2: notas 2.0-2.999
+      potRelative = (clampedPot - 2.0) / 1.0; // 0 a 1
+    } else {
+      // Quadrante 3: notas 3.0-4.0
+      potRelative = (clampedPot - 3.0) / 1.0; // 0 a 1
+    }
+
+    // Aplica padding para manter o ponto dentro do quadrante
+    perfRelative = perfRelative * (1 - 2 * PADDING) + PADDING;
+    potRelative = potRelative * (1 - 2 * PADDING) + PADDING;
+
+    // Cada quadrante ocupa 33.33% da matriz
+    const quadrantSize = 100 / 3;
+
+    // Calcula a posição final em porcentagem (0-100%)
+    const xPercent = (quadrant.col - 1) * quadrantSize + (perfRelative * quadrantSize);
+    // Inverte o Y porque o grid visual cresce de baixo para cima (linha 3 = topo)
+    const yPercent = (3 - quadrant.row) * quadrantSize + ((1 - potRelative) * quadrantSize);
+
     return { x: xPercent, y: yPercent };
   };
 
@@ -503,6 +578,25 @@ const NineBoxMatrix = () => {
                       style={{ width: `${(selectedEvaluation.potential_score / 4) * 100}%` }}
                     />
                   </div>
+                </div>
+
+                {/* Card de Quadrante */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-900/20 rounded-lg sm:rounded-xl p-4 border border-blue-200 dark:border-blue-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Quadrante</p>
+                    <Grid3x3 className="h-4 w-4 text-blue-800 dark:text-blue-700" />
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-2xl sm:text-3xl font-bold text-blue-800 dark:text-blue-700">
+                      Box {getQuadrantName(selectedEvaluation.consensus_score, selectedEvaluation.potential_score)}
+                    </p>
+                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-400">
+                      {getBoxDescriptiveName(getQuadrantName(selectedEvaluation.consensus_score, selectedEvaluation.potential_score))}
+                    </p>
+                  </div>
+                  <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
+                    Performance: {selectedEvaluation.consensus_score < 2 ? 'Baixo' : selectedEvaluation.consensus_score < 3 ? 'Médio' : 'Alto'} | Potencial: {selectedEvaluation.potential_score < 2 ? 'Baixo' : selectedEvaluation.potential_score < 3 ? 'Médio' : 'Alto'}
+                  </p>
                 </div>
               </div>
             </div>
