@@ -803,8 +803,8 @@ const Consensus = () => {
           : 'transform hover:scale-105 cursor-pointer'
       } ${
         isSelected
-          ? 'bg-gradient-to-br from-primary-00 to-primary-600 dark:from-primary-00 dark:to-primary-600 text-white shadow-lg ring-2 ring-primary-300 dark:ring-primary-600 ring-offset-2 dark:ring-offset-gray-800'
-          : 'bg-white dark:bg-gray-700 text-naue-black dark:text-gray-300 font-medium hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-00 dark:hover:text-primary-700 border-2 border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-600 shadow-sm'
+          ? 'bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700 text-white shadow-lg ring-2 ring-gray-400 dark:ring-gray-500 ring-offset-2 dark:ring-offset-gray-800'
+          : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium hover:bg-gray-50 dark:hover:bg-gray-600 border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 shadow-sm'
       }`}
       title={disabled ? `Nota ${score} (somente leitura)` : `Selecionar nota ${score}`}
       aria-label={`Nota ${score} ${isSelected ? '(selecionada)' : ''} ${disabled ? '(somente leitura)' : ''}`}
@@ -822,13 +822,14 @@ const Consensus = () => {
     type: 'self' | 'leader';
     criterionId: string;
   }) => {
+    // Usar sempre o mesmo background cinza escuro para ambos os tipos
+    const bg = 'bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700';
+
     const config = {
       self: {
-        bg: 'bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700',
         label: 'Autoavaliação',
       },
       leader: {
-        bg: 'bg-gradient-to-br from-primary-00 to-primary-600 dark:from-primary-00 dark:to-primary-600',
         label: 'Avaliação do Líder',
       }
     };
@@ -840,7 +841,7 @@ const Consensus = () => {
       <div className="flex flex-col items-center space-y-4 w-32">
         <h6 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium text-center h-10 flex items-center justify-center">{config[type].label}</h6>
         <div
-          className={`w-14 h-14 rounded-xl ${hasScore ? config[type].bg : 'bg-gray-300 dark:bg-gray-600'} flex items-center justify-center text-white text-xl font-bold shadow-lg dark:shadow-xl`}
+          className={`w-14 h-14 rounded-xl ${bg} flex items-center justify-center text-white text-xl font-bold shadow-lg dark:shadow-xl`}
           title={`${config[type].label}: ${hasScore ? score : 'Não avaliado'}`}
         >
           {displayScore}
@@ -1421,10 +1422,10 @@ const Consensus = () => {
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 20%</p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-primary-00 to-primary-600 dark:from-primary-00 dark:to-primary-600 p-4 sm:p-6 rounded-xl text-white">
-                    <h4 className="text-xs sm:text-sm font-medium text-primary-100 dark:text-primary-200 mb-1">Nota Final</h4>
+                  <div className="bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700 p-4 sm:p-6 rounded-xl text-white">
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-100 dark:text-gray-200 mb-1">Nota Final</h4>
                     <p className="text-2xl sm:text-3xl font-bold">{calculateOverallAverage()}</p>
-                    <p className="text-xs text-primary-100 dark:text-primary-200 mt-1">Média Ponderada</p>
+                    <p className="text-xs text-gray-100 dark:text-gray-200 mt-1">Média Ponderada</p>
                   </div>
 
                   {/* Adicionar indicador do PDI */}
