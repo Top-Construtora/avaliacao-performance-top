@@ -412,10 +412,10 @@ const SelfEvaluation = () => {
       title: 'Ferramentas',
       subtitle: 'Sei usar:',
       icon: Wrench,
-      gradient: 'from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700',
+      gradient: 'from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-700',
       bgColor: 'bg-gray-50 dark:bg-gray-900/20',
       borderColor: 'border-gray-200 dark:border-gray-700',
-      iconBg: 'bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700',
+      iconBg: 'bg-gradient-to-br from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-700',
       items: formData.ferramentas
     },
     {
@@ -423,10 +423,10 @@ const SelfEvaluation = () => {
       title: 'Forças Internas',
       subtitle: 'Me sustentam:',
       icon: Shield,
-      gradient: 'from-stone-700 to-stone-800 dark:from-stone-700 dark:to-stone-800',
+      gradient: 'from-stone-500 to-stone-600 dark:from-stone-700 dark:to-stone-800',
       bgColor: 'bg-stone-50 dark:bg-stone-900/20',
       borderColor: 'border-stone-200 dark:border-stone-700',
-      iconBg: 'bg-gradient-to-br from-stone-700 to-stone-800 dark:from-stone-700 dark:to-stone-800',
+      iconBg: 'bg-gradient-to-br from-stone-500 to-stone-600 dark:from-stone-700 dark:to-stone-800',
       items: formData.forcasInternas
     },
     {
@@ -434,10 +434,10 @@ const SelfEvaluation = () => {
       title: 'Qualidades',
       subtitle: 'Tenho para oferecer:',
       icon: Award,
-      gradient: 'from-stone-700 to-stone-800 dark:from-stone-700 dark:to-stone-800',
+      gradient: 'from-stone-500 to-stone-600 dark:from-stone-700 dark:to-stone-800',
       bgColor: 'bg-gradient-to-br from-stone-50 to-stone-50 dark:from-stone-900/20 dark:to-stone-900/20',
       borderColor: 'border-stone-200 dark:border-stone-700',
-      iconBg: 'bg-gradient-to-br from-stone-700 to-stone-800 dark:from-stone-700 dark:to-stone-800',
+      iconBg: 'bg-gradient-to-br from-stone-500 to-stone-600 dark:from-stone-700 dark:to-stone-800',
       items: formData.qualidades
     }
   ];

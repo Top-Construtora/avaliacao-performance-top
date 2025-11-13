@@ -206,22 +206,22 @@ const Consensus = () => {
 
   const categoryConfig = {
     'Técnica': {
-      color: 'text-primary-00 dark:text-primary-700',
+      color: 'text-primary-600 dark:text-primary-400',
       bgColor: 'bg-primary-50 dark:bg-primary-600/20',
       borderColor: 'border-primary-200 dark:border-primary-700',
-      gradient: 'from-primary-00 to-primary-600 dark:from-primary-00 dark:to-primary-600'
+      gradient: 'from-primary-500 to-primary-600 dark:from-primary-700 dark:to-primary-800'
     },
     'Comportamental': {
       color: 'text-gray-600 dark:text-gray-400',
       bgColor: 'bg-gray-50 dark:bg-gray-900/20',
       borderColor: 'border-gray-200 dark:border-gray-700',
-      gradient: 'from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700'
+      gradient: 'from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-700'
     },
     'Organizacional': {
       color: 'text-stone-700 dark:text-stone-600',
       bgColor: 'bg-stone-50 dark:bg-stone-900/20',
       borderColor: 'border-stone-200 dark:border-stone-700',
-      gradient: 'from-stone-700 to-stone-800 dark:from-stone-700 dark:to-stone-800'
+      gradient: 'from-stone-500 to-stone-600 dark:from-stone-700 dark:to-stone-800'
     }
   };
 

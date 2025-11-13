@@ -249,13 +249,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       title: 'Curto Prazo',
       subtitle: '3 meses',
       icon: BookOpen,
-      gradient: 'from-green-800 to-green-900',
+      gradient: 'from-green-500 to-green-600',
       darkGradient: 'dark:from-green-800 dark:to-green-900',
       bgColor: 'bg-green-50',
       darkBgColor: 'dark:bg-green-800/20',
       borderColor: 'border-green-200',
       darkBorderColor: 'dark:border-green-700',
-      iconBg: 'bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900',
+      iconBg: 'bg-gradient-to-br from-green-500 to-green-600 dark:from-green-800 dark:to-green-900',
       description: 'Ações imediatas e de rápido impacto'
     },
     {
@@ -277,13 +277,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       title: 'Longo Prazo',
       subtitle: '6-12 meses',
       icon: Rocket,
-      gradient: 'from-stone-700 to-stone-800',
+      gradient: 'from-stone-500 to-stone-600',
       darkGradient: 'dark:from-stone-700 dark:to-stone-800',
       bgColor: 'bg-stone-50',
       darkBgColor: 'dark:bg-stone-800/20',
       borderColor: 'border-stone-200',
       darkBorderColor: 'dark:border-stone-700',
-      iconBg: 'bg-gradient-to-br from-stone-700 to-stone-800 dark:from-stone-600 dark:to-stone-700',
+      iconBg: 'bg-gradient-to-br from-stone-500 to-stone-600 dark:from-stone-700 dark:to-stone-800',
       description: 'Visão estratégica e crescimento sustentável'
     }
   ];
@@ -687,7 +687,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
               const colorMap: { [key: string]: any } = {
                 'pot1': {
-                  gradient: 'from-green-800 to-green-900',
+                  gradient: 'from-green-500 to-green-600',
                   darkGradient: 'dark:from-green-800 dark:to-green-900',
                   bgColor: 'bg-green-50',
                   darkBgColor: 'dark:bg-green-900/20',
@@ -695,7 +695,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                   darkBorderColor: 'dark:border-green-700'
                 },
                 'pot2': {
-                  gradient: 'from-gray-600 to-gray-700',
+                  gradient: 'from-gray-500 to-gray-600',
                   darkGradient: 'dark:from-gray-600 dark:to-gray-700',
                   bgColor: 'bg-gray-50',
                   darkBgColor: 'dark:bg-gray-900/20',
@@ -703,7 +703,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                   darkBorderColor: 'dark:border-gray-700'
                 },
                 'pot3': {
-                  gradient: 'from-stone-700 to-stone-800',
+                  gradient: 'from-stone-500 to-stone-600',
                   darkGradient: 'dark:from-stone-700 dark:to-stone-800',
                   bgColor: 'bg-stone-50',
                   darkBgColor: 'dark:bg-stone-900/20',
