@@ -30,8 +30,11 @@ router.delete('/levels/:id', authorizeRoles(['director']) as any, salaryControll
 
 // ===== TRILHAS DE CARREIRA =====
 router.get('/tracks', salaryController.getCareerTracks as any);
-router.get('/tracks/:id', salaryController.getCareerTrackById as any);
+// Exportação deve vir ANTES das rotas genéricas com :id para evitar conflitos
+router.get('/tracks/:trackId/export/pdf', authorizeRoles(['director', 'leader']) as any, salaryController.exportTrackToPDF as any);
+router.get('/tracks/:trackId/export/excel', authorizeRoles(['director', 'leader']) as any, salaryController.exportTrackToExcel as any);
 router.get('/tracks/department/:departmentId', salaryController.getTracksByDepartment as any);
+router.get('/tracks/:id', salaryController.getCareerTrackById as any);
 router.post('/tracks', authorizeRoles(['director', 'leader']) as any, salaryController.createCareerTrack as any);
 router.put('/tracks/:id', authorizeRoles(['director', 'leader']) as any, salaryController.updateCareerTrack as any);
 router.delete('/tracks/:id', authorizeRoles(['director']) as any, salaryController.deleteCareerTrack as any);
@@ -69,9 +72,5 @@ router.get('/reports/by-position', authorizeRoles(['director', 'leader']) as any
 
 // ===== CÁLCULO DE SALÁRIO =====
 router.post('/calculate', salaryController.calculateSalary as any);
-
-// ===== EXPORTAÇÃO =====
-router.get('/tracks/:trackId/export/pdf', authorizeRoles(['director', 'leader']) as any, salaryController.exportTrackToPDF as any);
-router.get('/tracks/:trackId/export/excel', authorizeRoles(['director', 'leader']) as any, salaryController.exportTrackToExcel as any);
 
 export default router;
