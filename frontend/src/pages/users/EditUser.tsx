@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../../hooks/useSupabaseData';
 import { supabase } from '../../lib/supabase';
+import { api } from '../../config/api';
 import Button from '../../components/Button';
 
 import { 
@@ -518,18 +519,7 @@ const EditUser = () => {
       // Atualizar senha via backend API
       if (showPasswordChange && newPassword) {
         try {
-          const response = await fetch(`/api/users/${id}/reset-password`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
-            },
-            body: JSON.stringify({ password: newPassword })
-          });
-
-          if (!response.ok) {
-            throw new Error('Erro ao atualizar senha');
-          }
+          await api.post(`/users/${id}/reset-password`, { password: newPassword });
         } catch (passwordError) {
           console.error('Erro ao atualizar senha:', passwordError);
           toast.error('Erro ao atualizar senha');
