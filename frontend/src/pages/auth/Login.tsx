@@ -150,7 +150,7 @@ export default function Login() {
                 onClick={() => navigate('/reset-password')}
                 className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
               >
-                Esqueceu a senha?
+                Redefinir a senha?
               </button>
             </div>
 

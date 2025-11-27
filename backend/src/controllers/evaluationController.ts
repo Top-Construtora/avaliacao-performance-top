@@ -185,16 +185,37 @@ export const evaluationController = {
       const authReq = req as AuthRequest;
       const { employeeId } = req.params;
       const { cycleId } = req.query;
-      
+
       const evaluations = await evaluationService.getSelfEvaluations(
         authReq.supabase,
         employeeId,
         cycleId as string
       );
-      
+
       res.json({
         success: true,
         data: evaluations
+      });
+    } catch (error) {
+      console.error('Controller error:', error);
+      next(error);
+    }
+  },
+
+  // Buscar autoavaliação específica por ID
+  async getSelfEvaluationById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { evaluationId } = req.params;
+
+      const evaluation = await evaluationService.getSelfEvaluationById(
+        authReq.supabase,
+        evaluationId
+      );
+
+      res.json({
+        success: true,
+        data: evaluation
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -208,16 +229,37 @@ export const evaluationController = {
       const authReq = req as AuthRequest;
       const { employeeId } = req.params;
       const { cycleId } = req.query;
-      
+
       const evaluations = await evaluationService.getLeaderEvaluations(
         authReq.supabase,
         employeeId,
         cycleId as string
       );
-      
+
       res.json({
         success: true,
         data: evaluations
+      });
+    } catch (error) {
+      console.error('Controller error:', error);
+      next(error);
+    }
+  },
+
+  // Buscar avaliação de líder específica por ID
+  async getLeaderEvaluationById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { evaluationId } = req.params;
+
+      const evaluation = await evaluationService.getLeaderEvaluationById(
+        authReq.supabase,
+        evaluationId
+      );
+
+      res.json({
+        success: true,
+        data: evaluation
       });
     } catch (error) {
       console.error('Controller error:', error);

@@ -32,10 +32,12 @@ router.get('/check', evaluationController.checkExistingEvaluation);
 
 // Rotas específicas para autoavaliações
 router.get('/self-evaluations/:employeeId', evaluationController.getSelfEvaluations);
+router.get('/self-evaluation/:evaluationId', evaluationController.getSelfEvaluationById);
 router.post('/self', evaluationController.createSelfEvaluation);
 
 // Rotas específicas para avaliações de líder
 router.get('/leader-evaluations/:employeeId', evaluationController.getLeaderEvaluations);
+router.get('/leader-evaluation/:evaluationId', evaluationController.getLeaderEvaluationById);
 router.post('/leader', evaluationController.createLeaderEvaluation);
 
 // ====================================

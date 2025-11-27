@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { 
-  Brain, 
-  Wrench, 
-  Award, 
-  Plus, 
-  X, 
-  Save, 
+import {
+  Brain,
+  Wrench,
+  Award,
+  Plus,
+  X,
+  Save,
   ArrowLeft,
   ArrowRight,
   Target,
@@ -21,13 +21,15 @@ import {
   ChevronRight,
   Zap,
   Pen,
-  AlertCircle
+  AlertCircle,
+  Eye
 } from 'lucide-react';
 import Button from '../../components/Button';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 import { EVALUATION_COMPETENCIES } from '../../types/evaluation.types';
 import { evaluationService } from '../../services/evaluation.service';
+import { api } from '../../config/api';
 
 interface SelfEvaluationData {
   conhecimentos: string[];
@@ -54,8 +56,14 @@ interface Section {
 
 const SelfEvaluation = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
   const { currentCycle, saveSelfEvaluation, checkExistingEvaluation, loading, deliveriesCriteria } = useEvaluation();
+
+  // Modo de visualização
+  const viewEvaluationId = searchParams.get('view');
+  const isViewMode = !!viewEvaluationId;
+  const [evaluationData, setEvaluationData] = useState<any>(null);
 
   const [currentStep, setCurrentStep] = useState<'toolkit' | 'competencies'>('toolkit');
   const [formData, setFormData] = useState<SelfEvaluationData>({
@@ -71,16 +79,46 @@ const SelfEvaluation = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [competencyCategories, setCompetencyCategories] = useState<any[]>([]);
 
+  // Carregar avaliação se estiver em modo de visualização
+  useEffect(() => {
+    const loadEvaluationForView = async () => {
+      if (isViewMode && viewEvaluationId) {
+        try {
+          const response = await api.get(`/api/evaluations/self-evaluation/${viewEvaluationId}`);
+
+          if (response.data.success) {
+            const evaluation = response.data.data;
+            setEvaluationData(evaluation);
+            setCurrentStep('competencies');
+
+            // Preencher scores de competências
+            const scores: CompetencyScore = {};
+            evaluation.evaluation_competencies.forEach((comp: any) => {
+              scores[comp.criterion_name] = comp.score;
+            });
+            setCompetencyScores(scores);
+          }
+        } catch (error) {
+          console.error('Erro ao carregar autoavaliação:', error);
+          toast.error('Erro ao carregar autoavaliação');
+          navigate('/');
+        }
+      }
+    };
+
+    loadEvaluationForView();
+  }, [isViewMode, viewEvaluationId, navigate]);
+
   // Check for existing evaluation
   useEffect(() => {
     const checkExisting = async () => {
-      if (currentCycle && user) {
+      if (!isViewMode && currentCycle && user) {
         const exists = await checkExistingEvaluation(currentCycle.id, user.id, 'self');
         setHasExistingEvaluation(exists);
       }
     };
     checkExisting();
-  }, [currentCycle, user, checkExistingEvaluation]);
+  }, [currentCycle, user, checkExistingEvaluation, isViewMode]);
 
   // Initialize competency categories with dynamic organizational competencies
   useEffect(() => {
@@ -522,8 +560,9 @@ const SelfEvaluation = () => {
                         <input
                           type="text"
                           value={item}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField(section.id, index, e.target.value)}
-                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-300 font-medium rounded-lg sm:rounded-xl focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => !isViewMode && updateField(section.id, index, e.target.value)}
+                          disabled={isViewMode}
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-300 font-medium rounded-lg sm:rounded-xl focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500 disabled:opacity-75 disabled:cursor-not-allowed"
                           placeholder={`Digite ${section.title.toLowerCase()} ${index + 1}...`}
                         />
                         {item.trim() && (
@@ -733,12 +772,13 @@ const SelfEvaluation = () => {
                           return (
                             <button
                               key={rating}
-                              onClick={() => handleCompetencyScore(item.id, rating)}
+                              onClick={() => !isViewMode && handleCompetencyScore(item.id, rating)}
+                              disabled={isViewMode}
                               className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
                                 competencyScores[item.id] === rating
                                   ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
                                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
-                              }`}
+                              } ${isViewMode ? 'opacity-75 cursor-not-allowed' : ''}`}
                             >
                               <div className="text-center">
                                 <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
@@ -804,6 +844,40 @@ const SelfEvaluation = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+      {/* Banner de Visualização */}
+      {isViewMode && evaluationData && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 sm:p-6"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg">
+                <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Modo de Visualização</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Você está visualizando uma autoavaliação já preenchida. Não é possível editá-la.
+                </p>
+                <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                  <strong>Colaborador:</strong> {evaluationData.employee?.name} |
+                  <strong className="ml-2">Data:</strong> {new Date(evaluationData.evaluation_date).toLocaleDateString('pt-BR')}
+                </div>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
+              icon={<ArrowLeft size={18} />}
+            >
+              Voltar
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

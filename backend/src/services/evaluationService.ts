@@ -360,15 +360,37 @@ export const evaluationService = {
           evaluation_competencies!self_evaluation_id (*)
         `)
         .eq('employee_id', employeeId);
-      
+
       if (cycleId) {
         query = query.eq('cycle_id', cycleId);
       }
-      
+
       const { data, error } = await query.order('created_at', { ascending: false });
-      
+
       if (error) throw new ApiError(500, error.message);
       return data || [];
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  // Buscar autoavaliação específica por ID
+  async getSelfEvaluationById(supabase: any, evaluationId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('self_evaluations')
+        .select(`
+          *,
+          evaluation_competencies!self_evaluation_id (*),
+          employee:users!employee_id(id, name, email, cargo, department),
+          cycle:evaluation_cycles!cycle_id(id, title)
+        `)
+        .eq('id', evaluationId)
+        .single();
+
+      if (error) throw new ApiError(500, error.message);
+      return data;
     } catch (error: any) {
       console.error('Service error:', error);
       throw error;
@@ -450,15 +472,38 @@ export const evaluationService = {
           evaluator:users!evaluator_id(id, name)
         `)
         .eq('employee_id', employeeId);
-      
+
       if (cycleId) {
         query = query.eq('cycle_id', cycleId);
       }
-      
+
       const { data, error } = await query.order('created_at', { ascending: false });
-      
+
       if (error) throw new ApiError(500, error.message);
       return data || [];
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  // Buscar avaliação de líder específica por ID
+  async getLeaderEvaluationById(supabase: any, evaluationId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('leader_evaluations')
+        .select(`
+          *,
+          evaluation_competencies!leader_evaluation_id (*),
+          evaluator:users!evaluator_id(id, name, email),
+          employee:users!employee_id(id, name, email, cargo, department),
+          cycle:evaluation_cycles!cycle_id(id, title)
+        `)
+        .eq('id', evaluationId)
+        .single();
+
+      if (error) throw new ApiError(500, error.message);
+      return data;
     } catch (error: any) {
       console.error('Service error:', error);
       throw error;

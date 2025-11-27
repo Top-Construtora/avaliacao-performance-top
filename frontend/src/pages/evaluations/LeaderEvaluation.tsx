@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
@@ -8,9 +8,10 @@ import { pdiService } from '../../services/pdiService';
 import LeaderEvaluationHeader from '../../components/LeaderEvaluationHeader';
 import EvaluationSection from '../../components/EvaluationSection';
 import PotentialAndPDI from '../../components/PotentialAndPDI';
-import { AlertCircle, CheckCircle, Save, ArrowRight, BookOpen, Target, Award, Info } from 'lucide-react';
+import { AlertCircle, CheckCircle, Save, ArrowRight, BookOpen, Target, Award, Info, Eye, ArrowLeft } from 'lucide-react';
 import Button from '../../components/Button';
 import { motion } from 'framer-motion';
+import { api } from '../../config/api';
 
 // Define SectionProps interface for type consistency
 interface CompetencyItem {
@@ -79,6 +80,7 @@ interface PdiData {
 
 const LeaderEvaluation = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { currentCycle, saveLeaderEvaluation, checkExistingEvaluation, loadSubordinates, subordinates, deliveriesCriteria } = useEvaluation();
   const { user, profile } = useAuth();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
@@ -87,6 +89,11 @@ const LeaderEvaluation = () => {
   const [hasExistingEvaluation, setHasExistingEvaluation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [leaderEvaluationId, setLeaderEvaluationId] = useState<string | null>(null);
+
+  // Modo de visualização
+  const viewEvaluationId = searchParams.get('view');
+  const isViewMode = !!viewEvaluationId;
+  const [evaluationData, setEvaluationData] = useState<any>(null);
 
   const [sections, setSections] = useState<SectionProps[]>([]); // Inicializar vazio, será preenchido no useEffect
 
@@ -196,15 +203,74 @@ const LeaderEvaluation = () => {
     longosPrazos: []
   });
 
+  // Carregar avaliação se estiver em modo de visualização
+  useEffect(() => {
+    const loadEvaluationForView = async () => {
+      if (isViewMode && viewEvaluationId) {
+        try {
+          setLoading(true);
+          const response = await api.get(`/api/evaluations/leader-evaluation/${viewEvaluationId}`);
+
+          if (response.data.success) {
+            const evaluation = response.data.data;
+            setEvaluationData(evaluation);
+            setSelectedEmployeeId(evaluation.employee_id);
+
+            // Preencher competências
+            const technicalComps = evaluation.evaluation_competencies.filter((c: any) => c.category === 'technical');
+            const behavioralComps = evaluation.evaluation_competencies.filter((c: any) => c.category === 'behavioral');
+            const deliveriesComps = evaluation.evaluation_competencies.filter((c: any) => c.category === 'deliveries');
+
+            setSections(prev => prev.map(section => {
+              const comps = section.id === 'technical' ? technicalComps :
+                           section.id === 'behavioral' ? behavioralComps :
+                           deliveriesComps;
+
+              return {
+                ...section,
+                items: section.items.map(item => {
+                  const matchingComp = comps.find((c: any) =>
+                    c.criterion_name === item.name
+                  );
+                  return {
+                    ...item,
+                    score: matchingComp?.score
+                  };
+                })
+              };
+            }));
+
+            // Carregar PDI
+            if (evaluation.employee_id) {
+              await loadExistingPDI(evaluation.employee_id);
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao carregar avaliação:', error);
+          toast.error('Erro ao carregar avaliação');
+          navigate('/');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    if (isViewMode && sections.length > 0) {
+      loadEvaluationForView();
+    }
+  }, [isViewMode, viewEvaluationId, sections.length]);
+
   // Load subordinates on mount
   useEffect(() => {
     const loadData = async () => {
-      setLoading(true);
-      await loadSubordinates();
-      setLoading(false);
+      if (!isViewMode) {
+        setLoading(true);
+        await loadSubordinates();
+        setLoading(false);
+      }
     };
     loadData();
-  }, [loadSubordinates]);
+  }, [loadSubordinates, isViewMode]);
 
   // Load existing PDI when employee is selected
   const loadExistingPDI = async (employeeId: string) => {
@@ -582,18 +648,54 @@ const LeaderEvaluation = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <LeaderEvaluationHeader
-        currentStep={currentStep}
-        currentCycle={currentCycle}
-        selectedEmployeeId={selectedEmployeeId}
-        setSelectedEmployeeId={setSelectedEmployeeId}
-        subordinates={subordinates}
-        loading={loading}
-        progress={getProgress()}
-        periodMessage={getCyclePeriodMessage()} // Ensure this matches the type
-        pdiData={pdiData}
-        setPdiData={setPdiData}
-      />
+      {isViewMode && evaluationData && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 sm:p-6"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg">
+                <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Modo de Visualização</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Você está visualizando uma avaliação já preenchida. Não é possível editá-la.
+                </p>
+                <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                  <strong>Colaborador:</strong> {evaluationData.employee?.name} |
+                  <strong className="ml-2">Avaliador:</strong> {evaluationData.evaluator?.name} |
+                  <strong className="ml-2">Data:</strong> {new Date(evaluationData.evaluation_date).toLocaleDateString('pt-BR')}
+                </div>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
+              icon={<ArrowLeft size={18} />}
+            >
+              Voltar
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      {!isViewMode && (
+        <LeaderEvaluationHeader
+          currentStep={currentStep}
+          currentCycle={currentCycle}
+          selectedEmployeeId={selectedEmployeeId}
+          setSelectedEmployeeId={setSelectedEmployeeId}
+          subordinates={subordinates}
+          loading={loading}
+          progress={getProgress()}
+          periodMessage={getCyclePeriodMessage()} // Ensure this matches the type
+          pdiData={pdiData}
+          setPdiData={setPdiData}
+        />
+      )}
 
       {selectedEmployeeId && (
         <>
@@ -607,32 +709,35 @@ const LeaderEvaluation = () => {
                   sectionIndex={index}
                   calculateScores={calculateScores}
                   isSaving={isSaving}
+                  readOnly={isViewMode}
                 />
               ))}
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-                <div className="flex items-center space-x-2 text-sm">
-                  {!canProceedToStep2() ? (
-                    <>
-                      <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 dark:text-amber-400 flex-shrink-0" />
-                      <span className="text-gray-600 dark:text-gray-400">
-                        Complete todas as competências para prosseguir
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 dark:text-green-400 flex-shrink-0" />
-                      <span className="text-green-600 dark:text-green-400 font-medium">
-                        Competências avaliadas! Prossiga para avaliar o potencial.
-                      </span>
-                    </>
-                  )}
+              {!isViewMode && (
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
+                  <div className="flex items-center space-x-2 text-sm">
+                    {!canProceedToStep2() ? (
+                      <>
+                        <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 dark:text-amber-400 flex-shrink-0" />
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Complete todas as competências para prosseguir
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 dark:text-green-400 flex-shrink-0" />
+                        <span className="text-green-600 dark:text-green-400 font-medium">
+                          Competências avaliadas! Prossiga para avaliar o potencial.
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                    <Button variant="primary" onClick={handleNextStep} icon={<ArrowRight size={18} />} size="lg" disabled={!canProceedToStep2()}>
+                      Próxima Etapa
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                  <Button variant="primary" onClick={handleNextStep} icon={<ArrowRight size={18} />} size="lg" disabled={!canProceedToStep2()}>
-                    Próxima Etapa
-                  </Button>
-                </div>
-              </div>
+              )}
             </>
           )}
 
