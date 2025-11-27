@@ -57,6 +57,7 @@ interface PotentialAndPDIProps {
   canProceedToStep3: () => boolean;
   selectedEmployee: UserWithDetails | undefined;
   hideActionButtons?: boolean;
+  readOnly?: boolean;
 }
 
 const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
@@ -72,7 +73,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
   loading,
   canProceedToStep3,
   selectedEmployee,
-  hideActionButtons = false
+  hideActionButtons = false,
+  readOnly = false
 }) => {
   const { getNineBoxByEmployeeId } = useEvaluation();
   const employeeNineBox: NineBoxData | undefined = selectedEmployee ? getNineBoxByEmployeeId(selectedEmployee.id) : undefined;
@@ -348,18 +350,20 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
             >
               <div className="space-y-4 sm:space-y-6">
                 {items.length === 0 && !isAddingItemToThisCategory ? (
-                  <div className="text-center py-8 sm:py-12">
-                    <BookOpen className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm sm:text-base">Nenhum item de desenvolvimento adicionado</p>
-                    <Button
-                      variant="outline"
-                      onClick={() => openAddPdiItemForm(prazo)}
-                      icon={<Plus size={16} />}
-                      size="sm"
-                    >
-                      Adicionar Primeiro Item
-                    </Button>
-                  </div>
+                  !readOnly && (
+                    <div className="text-center py-8 sm:py-12">
+                      <BookOpen className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                      <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm sm:text-base">Nenhum item de desenvolvimento adicionado</p>
+                      <Button
+                        variant="outline"
+                        onClick={() => openAddPdiItemForm(prazo)}
+                        icon={<Plus size={16} />}
+                        size="sm"
+                      >
+                        Adicionar Primeiro Item
+                      </Button>
+                    </div>
+                  )
                 ) : (
                   <>
                     {items.map((item, itemIndex) => (
@@ -385,13 +389,15 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               </span>
                             </div>
                           </div>
-                          <button
-                            onClick={() => removePdiItem(item.id, prazo)}
-                            className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
-                          >
-                            <X size={16} className="sm:hidden" />
-                            <X size={20} className="hidden sm:block" />
-                          </button>
+                          {!readOnly && (
+                            <button
+                              onClick={() => removePdiItem(item.id, prazo)}
+                              className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
+                            >
+                              <X size={16} className="sm:hidden" />
+                              <X size={20} className="hidden sm:block" />
+                            </button>
+                          )}
                         </div>
 
                         <div className="space-y-4 sm:space-y-6">
@@ -402,11 +408,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               Competência a desenvolver
                             </label>
                             <textarea
-                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
                               placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
                               rows={3}
                               value={item.competencia}
-                              onChange={(e) => updateActionItem(category, item.id, 'competencia', e.target.value)}
+                              onChange={(e) => !readOnly && updateActionItem(category, item.id, 'competencia', e.target.value)}
+                              disabled={readOnly}
+                              readOnly={readOnly}
                             />
                           </div>
 
@@ -418,9 +426,11 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             </label>
                             <input
                               type="month"
-                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-gray-500 dark:focus:border-gray-400 focus:ring-gray-500 dark:focus:ring-gray-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-gray-500 dark:focus:border-gray-400 focus:ring-gray-500 dark:focus:ring-gray-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
                               value={item.calendarizacao}
-                              onChange={(e) => updateActionItem(category, item.id, 'calendarizacao', e.target.value)}
+                              onChange={(e) => !readOnly && updateActionItem(category, item.id, 'calendarizacao', e.target.value)}
+                              disabled={readOnly}
+                              readOnly={readOnly}
                             />
                           </div>
 
@@ -431,11 +441,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               Como desenvolver as competências
                             </label>
                             <textarea
-                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-stone-600 dark:focus:border-stone-500 focus:ring-stone-600 dark:focus:ring-stone-500 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-stone-600 dark:focus:border-stone-500 focus:ring-stone-600 dark:focus:ring-stone-500 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
                               rows={3}
                               placeholder="Descreva as ações e métodos para desenvolver esta competência..."
                               value={item.comoDesenvolver}
-                              onChange={(e) => updateActionItem(category, item.id, 'comoDesenvolver', e.target.value)}
+                              onChange={(e) => !readOnly && updateActionItem(category, item.id, 'comoDesenvolver', e.target.value)}
+                              disabled={readOnly}
+                              readOnly={readOnly}
                             />
                           </div>
 
@@ -446,11 +458,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               Resultados Esperados
                             </label>
                             <textarea
-                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
                               rows={3}
                               placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
                               value={item.resultadosEsperados}
-                              onChange={(e) => updateActionItem(category, item.id, 'resultadosEsperados', e.target.value)}
+                              onChange={(e) => !readOnly && updateActionItem(category, item.id, 'resultadosEsperados', e.target.value)}
+                              disabled={readOnly}
+                              readOnly={readOnly}
                             />
                           </div>
 
@@ -462,9 +476,10 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                 Status
                               </label>
                               <select
-                                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-500 dark:focus:border-green-400 focus:ring-green-500 dark:focus:ring-green-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+                                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-500 dark:focus:border-green-400 focus:ring-green-500 dark:focus:ring-green-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
                                 value={item.status}
-                                onChange={(e) => updateActionItem(category, item.id, 'status', e.target.value as any)}
+                                onChange={(e) => !readOnly && updateActionItem(category, item.id, 'status', e.target.value as any)}
+                                disabled={readOnly}
                               >
                                 {statusOptions.map(option => (
                                   <option key={option.value} value={option.value}>
@@ -481,11 +496,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                 Observação
                               </label>
                               <textarea
-                                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-gray-500 dark:focus:border-gray-400 focus:ring-gray-500 dark:focus:ring-gray-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base"
+                                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-gray-500 dark:focus:border-gray-400 focus:ring-gray-500 dark:focus:ring-gray-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
                                 rows={2}
                                 placeholder="Observações adicionais..."
                                 value={item.observacao}
-                                onChange={(e) => updateActionItem(category, item.id, 'observacao', e.target.value)}
+                                onChange={(e) => !readOnly && updateActionItem(category, item.id, 'observacao', e.target.value)}
+                                disabled={readOnly}
+                                readOnly={readOnly}
                               />
                             </div>
                           </div>
@@ -493,8 +510,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                       </motion.div>
                     ))}
 
-                    {/* Botão Adicionar Novo Item */}
-                    {!isAddingItemToThisCategory && (
+                    {/* Botão Adicionar Novo Item - Only show in edit mode */}
+                    {!isAddingItemToThisCategory && !readOnly && (
                       <div className="flex justify-center pt-4">
                         <Button
                           variant="outline"
@@ -510,9 +527,9 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                   </>
                 )}
 
-                {/* Formulário de Novo Item */}
+                {/* Formulário de Novo Item - Only show in edit mode */}
                 <AnimatePresence>
-                  {isAddingItemToThisCategory && (
+                  {isAddingItemToThisCategory && !readOnly && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
@@ -754,29 +771,44 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                   </div>
 
                   <div className="p-4 sm:p-6">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                      {[1, 2, 3, 4].map((rating) => {
-                        const ratingInfo = potentialRatingLabels[rating as keyof typeof potentialRatingLabels];
-                        return (
-                          <button
-                            key={rating}
-                            onClick={() => handlePotentialScoreChange(item.id, rating)}
-                            className={`py-3 sm:py-4 px-2 sm:px-4 rounded-xl border-2 transition-all duration-200 ${
-                              item.score === rating
-                                ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
-                                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
-                            }`}
-                          >
-                            <div className="text-center">
-                              <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
-                              <div className="text-xs">
-                                {ratingInfo.label}
+                    {readOnly && item.score ? (
+                      // Visualização estática - apenas mostra a nota
+                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-xl p-6">
+                        <div className="text-center">
+                          <div className={`text-5xl font-bold mb-2 ${potentialRatingLabels[item.score as keyof typeof potentialRatingLabels].color.replace('bg-', 'text-')}`}>
+                            {item.score}
+                          </div>
+                          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {potentialRatingLabels[item.score as keyof typeof potentialRatingLabels].label}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      // Modo de edição - botões clicáveis
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                        {[1, 2, 3, 4].map((rating) => {
+                          const ratingInfo = potentialRatingLabels[rating as keyof typeof potentialRatingLabels];
+                          return (
+                            <button
+                              key={rating}
+                              onClick={() => handlePotentialScoreChange(item.id, rating)}
+                              className={`py-3 sm:py-4 px-2 sm:px-4 rounded-xl border-2 transition-all duration-200 ${
+                                item.score === rating
+                                  ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
+                                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                              }`}
+                            >
+                              <div className="text-center">
+                                <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
+                                <div className="text-xs">
+                                  {ratingInfo.label}
+                                </div>
                               </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               );

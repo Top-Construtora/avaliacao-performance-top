@@ -160,30 +160,44 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                    {[1, 2, 3, 4].map((rating) => {
-                      const ratingInfo = ratingLabels[rating as keyof typeof ratingLabels];
-                      return (
-                        <button
-                          key={rating}
-                          onClick={() => !readOnly && handleScoreChange(section.id, item.id, rating)}
-                          disabled={readOnly}
-                          className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
-                            item.score === rating
-                              ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
-                              : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
-                          } ${readOnly ? 'opacity-75 cursor-not-allowed' : ''}`}
-                        >
-                          <div className="text-center">
-                            <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
-                            <div className="text-xs">
-                              {ratingInfo.label}
+                  {readOnly && item.score ? (
+                    // Visualização estática - apenas mostra a nota
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-xl p-6">
+                      <div className="text-center">
+                        <div className={`text-5xl font-bold mb-2 ${ratingLabels[item.score as keyof typeof ratingLabels].color.replace('bg-', 'text-')}`}>
+                          {item.score}
+                        </div>
+                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {ratingLabels[item.score as keyof typeof ratingLabels].label}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // Modo de edição - botões clicáveis
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                      {[1, 2, 3, 4].map((rating) => {
+                        const ratingInfo = ratingLabels[rating as keyof typeof ratingLabels];
+                        return (
+                          <button
+                            key={rating}
+                            onClick={() => handleScoreChange(section.id, item.id, rating)}
+                            className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
+                              item.score === rating
+                                ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
+                                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                            }`}
+                          >
+                            <div className="text-center">
+                              <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
+                              <div className="text-xs">
+                                {ratingInfo.label}
+                              </div>
                             </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </motion.div>

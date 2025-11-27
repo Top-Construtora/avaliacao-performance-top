@@ -738,6 +738,7 @@ const LeaderEvaluation = () => {
               canProceedToStep3={canProceedToStep3}
               selectedEmployee={selectedEmployee}
               hideActionButtons={viewMode === 'view'}
+              readOnly={viewMode === 'view'}
             />
           )}
 
@@ -756,6 +757,7 @@ const LeaderEvaluation = () => {
               canProceedToStep3={canProceedToStep3}
               selectedEmployee={selectedEmployee}
               hideActionButtons={viewMode === 'view'}
+              readOnly={viewMode === 'view'}
             />
           )}
         </>

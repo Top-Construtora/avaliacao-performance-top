@@ -525,25 +525,34 @@ const SelfEvaluation = () => {
                       className="flex items-center space-x-2 sm:space-x-3 group"
                     >
                       <div className="flex-1 relative">
-                        <input
-                          type="text"
-                          value={item}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => viewMode === 'edit' && updateField(section.id, index, e.target.value)}
-                          disabled={viewMode === 'view'}
-                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-300 font-medium rounded-lg sm:rounded-xl focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500 disabled:opacity-75 disabled:cursor-not-allowed"
-                          placeholder={`Digite ${section.title.toLowerCase()} ${index + 1}...`}
-                        />
-                        {item.trim() && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="absolute right-2 sm:right-3 top-2 sm:top-3.5"
-                          >
-                            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary-500 dark:text-primary-400" />
-                          </motion.div>
+                        {viewMode === 'view' && item.trim() ? (
+                          // Visualização estática - apenas mostra o texto
+                          <div className="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700 text-gray-900 dark:text-gray-100 font-medium rounded-lg sm:rounded-xl">
+                            {item}
+                          </div>
+                        ) : viewMode === 'view' ? null : (
+                          // Modo de edição - input editável
+                          <>
+                            <input
+                              type="text"
+                              value={item}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField(section.id, index, e.target.value)}
+                              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-300 font-medium rounded-lg sm:rounded-xl focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
+                              placeholder={`Digite ${section.title.toLowerCase()} ${index + 1}...`}
+                            />
+                            {item.trim() && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute right-2 sm:right-3 top-2 sm:top-3.5"
+                              >
+                                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary-500 dark:text-primary-400" />
+                              </motion.div>
+                            )}
+                          </>
                         )}
                       </div>
-                      {section.items.length > 1 && (
+                      {section.items.length > 1 && viewMode === 'edit' && (
                         <button
                           onClick={() => removeField(section.id, index)}
                           className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
@@ -555,85 +564,91 @@ const SelfEvaluation = () => {
                   ))}
                 </div>
 
-                {/* Add More Button */}
-                <button
-                  onClick={() => addField(section.id)}
-                  className={`mt-3 sm:mt-4 flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-lg border border-dashed ${isCompleted ? section.borderColor : 'border-gray-300 dark:border-gray-600'} text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 group`}
-                >
-                  <Plus className="h-3 w-3 sm:h-4 sm:w-4 group-hover:rotate-90 transition-transform duration-200" />
-                  <span className="text-xs sm:text-sm font-medium">Adicionar mais</span>
-                </button>
+                {/* Add More Button - Only show in edit mode */}
+                {viewMode === 'edit' && (
+                  <button
+                    onClick={() => addField(section.id)}
+                    className={`mt-3 sm:mt-4 flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-lg border border-dashed ${isCompleted ? section.borderColor : 'border-gray-300 dark:border-gray-600'} text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 group`}
+                  >
+                    <Plus className="h-3 w-3 sm:h-4 sm:w-4 group-hover:rotate-90 transition-transform duration-200" />
+                    <span className="text-xs sm:text-sm font-medium">Adicionar mais</span>
+                  </button>
+                )}
               </div>
             </motion.div>
           );
         })}
 
-        {/* Tips Section */}
-        <motion.div
-          variants={itemVariants}
-          className="bg-gradient-to-br from-green-50 to-gray-50 dark:from-green-900/20 dark:to-gray-900/20 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-naue-border-gray dark:border-green-800"
-        >
-          <div className="flex items-start space-x-3">
-            <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-              <Info className="h-4 w-4 sm:h-5 sm:w-5 text-primary dark:text-primary-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-2 text-sm sm:text-base">Dicas para uma boa autoavaliação</h3>
-              <ul className="space-y-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                <li className="flex items-start">
-                  <span className="text-primary dark:text-primary-600 mr-2">•</span>
-                  <span>Seja específico e honesto sobre suas competências</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary dark:text-primary-600 mr-2">•</span>
-                  <span>Inclua tanto habilidades técnicas quanto comportamentais</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary dark:text-primary-600 mr-2">•</span>
-                  <span>Pense em situações reais onde aplicou essas habilidades</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Action Buttons */}
-        <motion.div
-          variants={itemVariants}
-          className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 space-y-4 sm:space-y-0"
-        >
-          <Button
-            variant="outline"
-            onClick={() => navigate('/')}
-            size="lg"
-            className="w-full sm:w-auto order-2 sm:order-1"
+        {/* Tips Section - Only show in edit mode */}
+        {viewMode === 'edit' && (
+          <motion.div
+            variants={itemVariants}
+            className="bg-gradient-to-br from-green-50 to-gray-50 dark:from-green-900/20 dark:to-gray-900/20 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-naue-border-gray dark:border-green-800"
           >
-            Cancelar
-          </Button>
-          
-          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 order-1 sm:order-2">
-            <span className="text-xs sm:text-sm text-center">
-              {completedSections.size === sections.length ? (
-                <span className="flex items-center text-primary-600 dark:text-primary-400">
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Todas as seções completas!
-                </span>
-              ) : (
-                <span className="text-gray-600 dark:text-gray-400">{sections.length - completedSections.size} seções pendentes</span>
-              )}
-            </span>
+            <div className="flex items-start space-x-3">
+              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <Info className="h-4 w-4 sm:h-5 sm:w-5 text-primary dark:text-primary-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-2 text-sm sm:text-base">Dicas para uma boa autoavaliação</h3>
+                <ul className="space-y-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  <li className="flex items-start">
+                    <span className="text-primary dark:text-primary-600 mr-2">•</span>
+                    <span>Seja específico e honesto sobre suas competências</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-primary dark:text-primary-600 mr-2">•</span>
+                    <span>Inclua tanto habilidades técnicas quanto comportamentais</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-primary dark:text-primary-600 mr-2">•</span>
+                    <span>Pense em situações reais onde aplicou essas habilidades</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Action Buttons - Only show in edit mode */}
+        {viewMode === 'edit' && (
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 space-y-4 sm:space-y-0"
+          >
             <Button
-              variant="primary"
-              onClick={handleNextStep}
-              icon={<ArrowRight size={18} />}
+              variant="outline"
+              onClick={() => navigate('/')}
               size="lg"
-              disabled={completedSections.size !== sections.length}
-              className="bg-gradient-to-r from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 w-full sm:w-auto"
+              className="w-full sm:w-auto order-2 sm:order-1"
             >
-              Próxima Etapa
+              Cancelar
             </Button>
-          </div>
-        </motion.div>
+
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 order-1 sm:order-2">
+              <span className="text-xs sm:text-sm text-center">
+                {completedSections.size === sections.length ? (
+                  <span className="flex items-center text-primary-600 dark:text-primary-400">
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Todas as seções completas!
+                  </span>
+                ) : (
+                  <span className="text-gray-600 dark:text-gray-400">{sections.length - completedSections.size} seções pendentes</span>
+                )}
+              </span>
+              <Button
+                variant="primary"
+                onClick={handleNextStep}
+                icon={<ArrowRight size={18} />}
+                size="lg"
+                disabled={completedSections.size !== sections.length}
+                className="bg-gradient-to-r from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 w-full sm:w-auto"
+              >
+                Próxima Etapa
+              </Button>
+            </div>
+          </motion.div>
+        )}
       </motion.div>
     </>
   );
@@ -737,16 +752,30 @@ const SelfEvaluation = () => {
                           };
                           const ratingInfo = ratingLabels[rating as keyof typeof ratingLabels];
 
-                          return (
+                          return viewMode === 'view' && competencyScores[item.id] === rating ? (
+                            // Visualização estática - apenas mostra a nota selecionada
+                            <div key={rating} className="col-span-2 sm:col-span-4">
+                              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-xl p-6">
+                                <div className="text-center">
+                                  <div className={`text-5xl font-bold mb-2 ${ratingInfo.color.replace('bg-', 'text-')}`}>
+                                    {rating}
+                                  </div>
+                                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {ratingInfo.label}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : viewMode === 'edit' ? (
+                            // Modo de edição - botões clicáveis
                             <button
                               key={rating}
-                              onClick={() => viewMode === 'edit' && handleCompetencyScore(item.id, rating)}
-                              disabled={viewMode === 'view'}
+                              onClick={() => handleCompetencyScore(item.id, rating)}
                               className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
                                 competencyScores[item.id] === rating
                                   ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
                                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
-                              } ${viewMode === 'view' ? 'opacity-75 cursor-not-allowed' : ''}`}
+                              }`}
                             >
                               <div className="text-center">
                                 <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
@@ -755,7 +784,7 @@ const SelfEvaluation = () => {
                                 </div>
                               </div>
                             </button>
-                          );
+                          ) : null;
                         })}
                       </div>
                     </motion.div>
@@ -877,26 +906,28 @@ const SelfEvaluation = () => {
             </div>
           </div>
           
-          {/* Period Alert */}
-          {getCyclePeriodMessage() && (
+          {/* Period Alert - Only show in edit mode */}
+          {viewMode === 'edit' && getCyclePeriodMessage() && (
             <div className={`mt-4 p-3 rounded-lg flex items-start space-x-2 ${
-              getCyclePeriodMessage()?.type === 'error' 
-                ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300' 
+              getCyclePeriodMessage()?.type === 'error'
+                ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300'
                 : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300'
             }`}>
               <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <p className="text-sm">{getCyclePeriodMessage()?.message}</p>
             </div>
           )}
-          
-          <div className="flex items-center space-x-3 w-full lg:w-auto justify-end">
-            <div className="text-right">
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Progresso</p>
-              <p className="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-100">
-                {Math.round(currentStep === 'toolkit' ? toolkitProgress : competencyProgress)}%
-              </p>
-            </div>
-            <div className="relative">
+
+          {/* Progress Indicator - Only show in edit mode */}
+          {viewMode === 'edit' && (
+            <div className="flex items-center space-x-3 w-full lg:w-auto justify-end">
+              <div className="text-right">
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Progresso</p>
+                <p className="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-100">
+                  {Math.round(currentStep === 'toolkit' ? toolkitProgress : competencyProgress)}%
+                </p>
+              </div>
+              <div className="relative">
               <svg className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 transform -rotate-90">
                 <circle
                   cx="50%"
@@ -926,31 +957,34 @@ const SelfEvaluation = () => {
               </svg>
             </div>
           </div>
+          )}
         </div>
 
-        {/* Step Indicator */}
-        <div className="flex items-center justify-center space-x-2 sm:space-x-4">
-          <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${currentStep === 'toolkit' ? 'bg-primary-100 dark:bg-primary-600/30 text-primary-700 dark:text-green-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
-            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'toolkit' ? 'bg-primary dark:bg-green-700 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>
-              1
+        {/* Step Indicator - Only show in edit mode */}
+        {viewMode === 'edit' && (
+          <div className="flex items-center justify-center space-x-2 sm:space-x-4">
+            <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${currentStep === 'toolkit' ? 'bg-primary-100 dark:bg-primary-600/30 text-primary-700 dark:text-green-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'toolkit' ? 'bg-primary dark:bg-green-700 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>
+                1
+              </div>
+              <span className="font-medium text-xs sm:text-sm hidden sm:inline">Toolkit Profissional</span>
             </div>
-            <span className="font-medium text-xs sm:text-sm hidden sm:inline">Toolkit Profissional</span>
-          </div>
-          
-          <div className="w-8 sm:w-16 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div className={`h-full transition-all duration-500 ${currentStep === 'competencies' ? 'w-full bg-primary dark:bg-green-700' : 'w-0'}`} />
-          </div>
-          
-          <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${currentStep === 'competencies' ? 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
-            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'competencies' ? 'bg-gray-600 dark:bg-gray-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>
-              2
-            </div>
-            <span className="font-medium text-xs sm:text-sm hidden sm:inline">Competências</span>
-          </div>
-        </div>
 
-        {/* Quick Stats for Toolkit Step */}
-        {currentStep === 'toolkit' && (
+            <div className="w-8 sm:w-16 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className={`h-full transition-all duration-500 ${currentStep === 'competencies' ? 'w-full bg-primary dark:bg-green-700' : 'w-0'}`} />
+            </div>
+
+            <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${currentStep === 'competencies' ? 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'competencies' ? 'bg-gray-600 dark:bg-gray-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>
+                2
+              </div>
+              <span className="font-medium text-xs sm:text-sm hidden sm:inline">Competências</span>
+            </div>
+          </div>
+        )}
+
+        {/* Quick Stats for Toolkit Step - Only show in edit mode */}
+        {currentStep === 'toolkit' && viewMode === 'edit' && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mt-4 sm:mt-6">
             {sections.map((section) => {
               const filledItems = section.items.filter(item => item.trim() !== '').length;
