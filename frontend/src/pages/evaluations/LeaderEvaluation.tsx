@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 import { EVALUATION_COMPETENCIES } from '../../types/evaluation.types';
 import { pdiService } from '../../services/pdiService';
+import { evaluationService } from '../../services/evaluation.service';
 import LeaderEvaluationHeader from '../../components/LeaderEvaluationHeader';
 import EvaluationSection from '../../components/EvaluationSection';
 import PotentialAndPDI from '../../components/PotentialAndPDI';
-import { AlertCircle, CheckCircle, Save, ArrowRight, BookOpen, Target, Award, Info, Eye, ArrowLeft } from 'lucide-react';
+import { AlertCircle, CheckCircle, Save, ArrowRight, BookOpen, Target, Award, Info } from 'lucide-react';
 import Button from '../../components/Button';
 import { motion } from 'framer-motion';
-import { api } from '../../config/api';
 
 // Define SectionProps interface for type consistency
 interface CompetencyItem {
@@ -80,7 +80,6 @@ interface PdiData {
 
 const LeaderEvaluation = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { currentCycle, saveLeaderEvaluation, checkExistingEvaluation, loadSubordinates, subordinates, deliveriesCriteria } = useEvaluation();
   const { user, profile } = useAuth();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
@@ -90,10 +89,9 @@ const LeaderEvaluation = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [leaderEvaluationId, setLeaderEvaluationId] = useState<string | null>(null);
 
-  // Modo de visualização
-  const viewEvaluationId = searchParams.get('view');
-  const isViewMode = !!viewEvaluationId;
-  const [evaluationData, setEvaluationData] = useState<any>(null);
+  // Controle de modo de visualização (igual ao Consenso)
+  const [viewMode, setViewMode] = useState<'edit' | 'view'>('edit');
+  const [existingEvaluationData, setExistingEvaluationData] = useState<any>(null);
 
   const [sections, setSections] = useState<SectionProps[]>([]); // Inicializar vazio, será preenchido no useEffect
 
@@ -203,74 +201,15 @@ const LeaderEvaluation = () => {
     longosPrazos: []
   });
 
-  // Carregar avaliação se estiver em modo de visualização
-  useEffect(() => {
-    const loadEvaluationForView = async () => {
-      if (isViewMode && viewEvaluationId) {
-        try {
-          setLoading(true);
-          const response = await api.get(`/api/evaluations/leader-evaluation/${viewEvaluationId}`);
-
-          if (response.data.success) {
-            const evaluation = response.data.data;
-            setEvaluationData(evaluation);
-            setSelectedEmployeeId(evaluation.employee_id);
-
-            // Preencher competências
-            const technicalComps = evaluation.evaluation_competencies.filter((c: any) => c.category === 'technical');
-            const behavioralComps = evaluation.evaluation_competencies.filter((c: any) => c.category === 'behavioral');
-            const deliveriesComps = evaluation.evaluation_competencies.filter((c: any) => c.category === 'deliveries');
-
-            setSections(prev => prev.map(section => {
-              const comps = section.id === 'technical' ? technicalComps :
-                           section.id === 'behavioral' ? behavioralComps :
-                           deliveriesComps;
-
-              return {
-                ...section,
-                items: section.items.map(item => {
-                  const matchingComp = comps.find((c: any) =>
-                    c.criterion_name === item.name
-                  );
-                  return {
-                    ...item,
-                    score: matchingComp?.score
-                  };
-                })
-              };
-            }));
-
-            // Carregar PDI
-            if (evaluation.employee_id) {
-              await loadExistingPDI(evaluation.employee_id);
-            }
-          }
-        } catch (error) {
-          console.error('Erro ao carregar avaliação:', error);
-          toast.error('Erro ao carregar avaliação');
-          navigate('/');
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    if (isViewMode && sections.length > 0) {
-      loadEvaluationForView();
-    }
-  }, [isViewMode, viewEvaluationId, sections.length]);
-
   // Load subordinates on mount
   useEffect(() => {
     const loadData = async () => {
-      if (!isViewMode) {
-        setLoading(true);
-        await loadSubordinates();
-        setLoading(false);
-      }
+      setLoading(true);
+      await loadSubordinates();
+      setLoading(false);
     };
     loadData();
-  }, [loadSubordinates, isViewMode]);
+  }, [loadSubordinates]);
 
   // Load existing PDI when employee is selected
   const loadExistingPDI = async (employeeId: string) => {
@@ -298,12 +237,64 @@ const LeaderEvaluation = () => {
   useEffect(() => {
     const checkAndPopulate = async () => {
       if (currentCycle && selectedEmployeeId) {
-        const exists = await checkExistingEvaluation(currentCycle.id, selectedEmployeeId, 'leader');
-        setHasExistingEvaluation(exists);
-        if (exists) {
-          toast.error('Já existe uma avaliação para este avaliado neste ciclo');
-          setSelectedEmployeeId('');
-          return;
+        // Buscar avaliação existente
+        try {
+          const response = await evaluationService.getLeaderEvaluations(selectedEmployeeId, currentCycle.id);
+
+          if (response && response.length > 0) {
+            const existingEval = response[0];
+            setHasExistingEvaluation(true);
+            setExistingEvaluationData(existingEval);
+            setViewMode('view');
+
+            toast.success(
+              `Visualizando avaliação salva (Nota Final: ${existingEval.final_score?.toFixed(1) || 'N/A'})`,
+              { duration: 4000 }
+            );
+
+            // Preencher competências com os dados salvos
+            if (existingEval.evaluation_competencies) {
+              const technicalComps = existingEval.evaluation_competencies.filter((c: any) => c.category === 'technical');
+              const behavioralComps = existingEval.evaluation_competencies.filter((c: any) => c.category === 'behavioral');
+              const deliveriesComps = existingEval.evaluation_competencies.filter((c: any) => c.category === 'deliveries');
+
+              setSections(prev => prev.map(section => {
+                const comps = section.id === 'technical' ? technicalComps :
+                             section.id === 'behavioral' ? behavioralComps :
+                             deliveriesComps;
+
+                return {
+                  ...section,
+                  items: section.items.map(item => {
+                    const matchingComp = comps.find((c: any) =>
+                      c.criterion_name === item.name
+                    );
+                    return {
+                      ...item,
+                      score: matchingComp?.score
+                    };
+                  })
+                };
+              }));
+            }
+
+            // Preencher potencial
+            if (existingEval.potential_score) {
+              setPotentialItems(prev => prev.map((item, idx) => ({
+                ...item,
+                score: idx === 0 ? existingEval.potential_score : item.score
+              })));
+            }
+          } else {
+            setHasExistingEvaluation(false);
+            setExistingEvaluationData(null);
+            setViewMode('edit');
+          }
+        } catch (error) {
+          console.error('Erro ao verificar avaliação existente:', error);
+          setHasExistingEvaluation(false);
+          setExistingEvaluationData(null);
+          setViewMode('edit');
         }
 
         // Load existing PDI
@@ -648,54 +639,45 @@ const LeaderEvaluation = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {isViewMode && evaluationData && (
+      {/* Info Banner for Existing Evaluation - View Mode (igual ao Consenso) */}
+      {hasExistingEvaluation && selectedEmployeeId && !loading && viewMode === 'view' && (
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 sm:p-6"
+          className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 dark:border-blue-600 rounded-lg p-4 shadow-sm"
         >
-          <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg">
-                <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Modo de Visualização</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Você está visualizando uma avaliação já preenchida. Não é possível editá-la.
-                </p>
-                <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Colaborador:</strong> {evaluationData.employee?.name} |
-                  <strong className="ml-2">Avaliador:</strong> {evaluationData.evaluator?.name} |
-                  <strong className="ml-2">Data:</strong> {new Date(evaluationData.evaluation_date).toLocaleDateString('pt-BR')}
-                </div>
-              </div>
+          <div className="flex items-start">
+            <CheckCircle className="h-5 w-5 text-blue-500 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                Avaliação de Líder já realizada
+              </h4>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                Esta avaliação já foi preenchida e salva. Você está visualizando os dados em modo somente leitura.
+                {existingEvaluationData && (
+                  <span className="block mt-1 font-medium">
+                    Nota Final: {existingEvaluationData.final_score?.toFixed(1) || 'N/A'} |
+                    Avaliado em: {new Date(existingEvaluationData.evaluation_date).toLocaleDateString('pt-BR')}
+                  </span>
+                )}
+              </p>
             </div>
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/')}
-              icon={<ArrowLeft size={18} />}
-            >
-              Voltar
-            </Button>
           </div>
         </motion.div>
       )}
 
-      {!isViewMode && (
-        <LeaderEvaluationHeader
-          currentStep={currentStep}
-          currentCycle={currentCycle}
-          selectedEmployeeId={selectedEmployeeId}
-          setSelectedEmployeeId={setSelectedEmployeeId}
-          subordinates={subordinates}
-          loading={loading}
-          progress={getProgress()}
-          periodMessage={getCyclePeriodMessage()} // Ensure this matches the type
-          pdiData={pdiData}
-          setPdiData={setPdiData}
-        />
-      )}
+      <LeaderEvaluationHeader
+        currentStep={currentStep}
+        currentCycle={currentCycle}
+        selectedEmployeeId={selectedEmployeeId}
+        setSelectedEmployeeId={setSelectedEmployeeId}
+        subordinates={subordinates}
+        loading={loading}
+        progress={getProgress()}
+        periodMessage={getCyclePeriodMessage()}
+        pdiData={pdiData}
+        setPdiData={setPdiData}
+      />
 
       {selectedEmployeeId && (
         <>
@@ -709,10 +691,10 @@ const LeaderEvaluation = () => {
                   sectionIndex={index}
                   calculateScores={calculateScores}
                   isSaving={isSaving}
-                  readOnly={isViewMode}
+                  readOnly={viewMode === 'view'}
                 />
               ))}
-              {!isViewMode && (
+              {viewMode === 'edit' && (
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
                   <div className="flex items-center space-x-2 text-sm">
                     {!canProceedToStep2() ? (
@@ -755,6 +737,7 @@ const LeaderEvaluation = () => {
               loading={loading}
               canProceedToStep3={canProceedToStep3}
               selectedEmployee={selectedEmployee}
+              hideActionButtons={viewMode === 'view'}
             />
           )}
 
@@ -772,6 +755,7 @@ const LeaderEvaluation = () => {
               loading={loading}
               canProceedToStep3={canProceedToStep3}
               selectedEmployee={selectedEmployee}
+              hideActionButtons={viewMode === 'view'}
             />
           )}
         </>

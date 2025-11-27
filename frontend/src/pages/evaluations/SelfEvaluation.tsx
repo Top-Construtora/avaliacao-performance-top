@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import {
@@ -21,15 +21,13 @@ import {
   ChevronRight,
   Zap,
   Pen,
-  AlertCircle,
-  Eye
+  AlertCircle
 } from 'lucide-react';
 import Button from '../../components/Button';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 import { EVALUATION_COMPETENCIES } from '../../types/evaluation.types';
 import { evaluationService } from '../../services/evaluation.service';
-import { api } from '../../config/api';
 
 interface SelfEvaluationData {
   conhecimentos: string[];
@@ -56,14 +54,13 @@ interface Section {
 
 const SelfEvaluation = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
   const { currentCycle, saveSelfEvaluation, checkExistingEvaluation, loading, deliveriesCriteria } = useEvaluation();
 
-  // Modo de visualização
-  const viewEvaluationId = searchParams.get('view');
-  const isViewMode = !!viewEvaluationId;
-  const [evaluationData, setEvaluationData] = useState<any>(null);
+  // Controle de modo de visualização (igual ao Consenso)
+  const [viewMode, setViewMode] = useState<'edit' | 'view'>('edit');
+  const [hasExistingEvaluation, setHasExistingEvaluation] = useState(false);
+  const [existingEvaluationData, setExistingEvaluationData] = useState<any>(null);
 
   const [currentStep, setCurrentStep] = useState<'toolkit' | 'competencies'>('toolkit');
   const [formData, setFormData] = useState<SelfEvaluationData>({
@@ -75,50 +72,51 @@ const SelfEvaluation = () => {
   const [competencyScores, setCompetencyScores] = useState<CompetencyScore>({});
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['competencias-tecnicas']));
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
-  const [hasExistingEvaluation, setHasExistingEvaluation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [competencyCategories, setCompetencyCategories] = useState<any[]>([]);
 
-  // Carregar avaliação se estiver em modo de visualização
+  // Check for existing evaluation (igual ao Consenso)
   useEffect(() => {
-    const loadEvaluationForView = async () => {
-      if (isViewMode && viewEvaluationId) {
+    const checkExisting = async () => {
+      if (currentCycle && user) {
         try {
-          const response = await api.get(`/api/evaluations/self-evaluation/${viewEvaluationId}`);
+          const response = await evaluationService.getSelfEvaluations(user.id, currentCycle.id);
 
-          if (response.data.success) {
-            const evaluation = response.data.data;
-            setEvaluationData(evaluation);
+          if (response && response.length > 0) {
+            const existingEval = response[0];
+            setHasExistingEvaluation(true);
+            setExistingEvaluationData(existingEval);
+            setViewMode('view');
             setCurrentStep('competencies');
 
+            toast.success(
+              `Visualizando autoavaliação salva (Nota Final: ${existingEval.final_score?.toFixed(1) || 'N/A'})`,
+              { duration: 4000 }
+            );
+
             // Preencher scores de competências
-            const scores: CompetencyScore = {};
-            evaluation.evaluation_competencies.forEach((comp: any) => {
-              scores[comp.criterion_name] = comp.score;
-            });
-            setCompetencyScores(scores);
+            if (existingEval.evaluation_competencies) {
+              const scores: CompetencyScore = {};
+              existingEval.evaluation_competencies.forEach((comp: any) => {
+                scores[comp.criterion_name] = comp.score;
+              });
+              setCompetencyScores(scores);
+            }
+          } else {
+            setHasExistingEvaluation(false);
+            setExistingEvaluationData(null);
+            setViewMode('edit');
           }
         } catch (error) {
-          console.error('Erro ao carregar autoavaliação:', error);
-          toast.error('Erro ao carregar autoavaliação');
-          navigate('/');
+          console.error('Erro ao verificar autoavaliação existente:', error);
+          setHasExistingEvaluation(false);
+          setExistingEvaluationData(null);
+          setViewMode('edit');
         }
       }
     };
-
-    loadEvaluationForView();
-  }, [isViewMode, viewEvaluationId, navigate]);
-
-  // Check for existing evaluation
-  useEffect(() => {
-    const checkExisting = async () => {
-      if (!isViewMode && currentCycle && user) {
-        const exists = await checkExistingEvaluation(currentCycle.id, user.id, 'self');
-        setHasExistingEvaluation(exists);
-      }
-    };
     checkExisting();
-  }, [currentCycle, user, checkExistingEvaluation, isViewMode]);
+  }, [currentCycle, user]);
 
   // Initialize competency categories with dynamic organizational competencies
   useEffect(() => {
@@ -402,36 +400,6 @@ const SelfEvaluation = () => {
     );
   }
 
-  // Check if already evaluated
-  if (hasExistingEvaluation) {
-    return (
-      <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-naue-border-gray dark:border-gray-700 p-8 text-center">
-        <CheckCircle className="h-12 w-12 text-primary-500 dark:text-primary-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-          Autoavaliação já realizada
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
-          Você já completou sua autoavaliação para o ciclo: <strong>{currentCycle?.title}</strong>
-        </p>
-        <div className="space-y-2">
-          <button
-            onClick={() => window.location.href = '/'}
-            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors w-full sm:w-auto"
-          >
-            Voltar ao início
-          </button>
-          {profile?.is_leader && (
-            <button
-              onClick={() => window.location.href = '/leader-evaluation'}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors w-full sm:w-auto ml-0 sm:ml-2"
-            >
-              Avaliar Avaliados
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   const sections: Section[] = [
     {
@@ -560,8 +528,8 @@ const SelfEvaluation = () => {
                         <input
                           type="text"
                           value={item}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => !isViewMode && updateField(section.id, index, e.target.value)}
-                          disabled={isViewMode}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => viewMode === 'edit' && updateField(section.id, index, e.target.value)}
+                          disabled={viewMode === 'view'}
                           className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-300 font-medium rounded-lg sm:rounded-xl focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500 disabled:opacity-75 disabled:cursor-not-allowed"
                           placeholder={`Digite ${section.title.toLowerCase()} ${index + 1}...`}
                         />
@@ -772,13 +740,13 @@ const SelfEvaluation = () => {
                           return (
                             <button
                               key={rating}
-                              onClick={() => !isViewMode && handleCompetencyScore(item.id, rating)}
-                              disabled={isViewMode}
+                              onClick={() => viewMode === 'edit' && handleCompetencyScore(item.id, rating)}
+                              disabled={viewMode === 'view'}
                               className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
                                 competencyScores[item.id] === rating
                                   ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
                                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
-                              } ${isViewMode ? 'opacity-75 cursor-not-allowed' : ''}`}
+                              } ${viewMode === 'view' ? 'opacity-75 cursor-not-allowed' : ''}`}
                             >
                               <div className="text-center">
                                 <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
@@ -799,81 +767,76 @@ const SelfEvaluation = () => {
         );
       })}
 
-      {/* Action Buttons */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 space-y-4 sm:space-y-0"
-      >
-        <Button
-          variant="outline"
-          onClick={() => setCurrentStep('toolkit')}
-          icon={<ArrowLeft size={18} />}
-          size="lg"
-          className="w-full sm:w-auto order-2 sm:order-1"
+      {/* Action Buttons - Only show in edit mode */}
+      {viewMode === 'edit' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 space-y-4 sm:space-y-0"
         >
-          Voltar
-        </Button>
-        
-        <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 order-1 sm:order-2">
-          <span className="text-xs sm:text-sm text-center">
-            {competencyProgress === 100 ? (
-              <span className="flex items-center text-primary-600 dark:text-primary-400">
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Todas as competências avaliadas!
-              </span>
-            ) : (
-              <span className="text-gray-600 dark:text-gray-400">{Math.round(competencyProgress)}% completo</span>
-            )}
-          </span>
           <Button
-            variant="primary"
-            onClick={handleSave}
-            icon={<Save size={18} />}
+            variant="outline"
+            onClick={() => setCurrentStep('toolkit')}
+            icon={<ArrowLeft size={18} />}
             size="lg"
-            disabled={competencyProgress < 100 || isSaving || loading}
-            className="bg-gradient-to-r from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 w-full sm:w-auto"
+            className="w-full sm:w-auto order-2 sm:order-1"
           >
-            {isSaving ? 'Salvando...' : 'Salvar Autoavaliação'}
+            Voltar
           </Button>
-        </div>
-      </motion.div>
+
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 order-1 sm:order-2">
+            <span className="text-xs sm:text-sm text-center">
+              {competencyProgress === 100 ? (
+                <span className="flex items-center text-primary-600 dark:text-primary-400">
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Todas as competências avaliadas!
+                </span>
+              ) : (
+                <span className="text-gray-600 dark:text-gray-400">{Math.round(competencyProgress)}% completo</span>
+              )}
+            </span>
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              icon={<Save size={18} />}
+              size="lg"
+              disabled={competencyProgress < 100 || isSaving || loading}
+              className="bg-gradient-to-r from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 w-full sm:w-auto"
+            >
+              {isSaving ? 'Salvando...' : 'Salvar Autoavaliação'}
+            </Button>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 
   return (
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-      {/* Banner de Visualização */}
-      {isViewMode && evaluationData && (
+      {/* Info Banner for Existing Evaluation - View Mode (igual ao Consenso) */}
+      {hasExistingEvaluation && !loading && viewMode === 'view' && (
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 sm:p-6"
+          className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 dark:border-blue-600 rounded-lg p-4 shadow-sm"
         >
-          <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg">
-                <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Modo de Visualização</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Você está visualizando uma autoavaliação já preenchida. Não é possível editá-la.
-                </p>
-                <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Colaborador:</strong> {evaluationData.employee?.name} |
-                  <strong className="ml-2">Data:</strong> {new Date(evaluationData.evaluation_date).toLocaleDateString('pt-BR')}
-                </div>
-              </div>
+          <div className="flex items-start">
+            <CheckCircle className="h-5 w-5 text-blue-500 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                Autoavaliação já realizada
+              </h4>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                Você já completou sua autoavaliação para este ciclo. Você está visualizando os dados em modo somente leitura.
+                {existingEvaluationData && (
+                  <span className="block mt-1 font-medium">
+                    Nota Final: {existingEvaluationData.final_score?.toFixed(1) || 'N/A'} |
+                    Avaliado em: {new Date(existingEvaluationData.evaluation_date).toLocaleDateString('pt-BR')}
+                  </span>
+                )}
+              </p>
             </div>
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/')}
-              icon={<ArrowLeft size={18} />}
-            >
-              Voltar
-            </Button>
           </div>
         </motion.div>
       )}
