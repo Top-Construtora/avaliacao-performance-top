@@ -118,7 +118,8 @@ export const evaluationController = {
 
       const dashboard = await evaluationService.getCycleDashboard(
         authReq.supabase,
-        cycleId
+        cycleId,
+        authReq.user?.email
       );
 
       res.json({
@@ -136,12 +137,13 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const { cycleId } = req.params;
-      
+
       const nineBoxData = await evaluationService.getNineBoxData(
         authReq.supabase,
-        cycleId
+        cycleId,
+        authReq.user?.email
       );
-      
+
       res.json({
         success: true,
         data: nineBoxData

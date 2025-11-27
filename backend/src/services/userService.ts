@@ -2,6 +2,7 @@
 import { supabaseAdmin } from '../config/supabase';
 import { ApiError } from '../middleware/errorHandler';
 import { User } from '../types';
+import { filterRestrictedUsers } from '../utils/userFilterUtils';
 
 export const userService = {
   async getUsers(filters?: {
@@ -9,6 +10,7 @@ export const userService = {
     is_leader?: boolean;
     is_director?: boolean;
     reports_to?: string;
+    currentUserEmail?: string;
   }) {
     let query = supabaseAdmin.from('users').select('*');
 
@@ -31,7 +33,10 @@ export const userService = {
       throw new ApiError(500, 'Failed to fetch users');
     }
 
-    return data;
+    // Aplicar filtro de usuários restritos
+    const filteredData = filterRestrictedUsers(filters?.currentUserEmail, data || []);
+
+    return filteredData;
   },
 
   async getUserById(id: string) {
@@ -292,7 +297,7 @@ export const userService = {
     }
   },
 
-  async getSubordinates(leaderId: string) {
+  async getSubordinates(leaderId: string, currentUserEmail?: string) {
     const { data, error } = await supabaseAdmin
       .from('users')
       .select('*')
@@ -304,7 +309,10 @@ export const userService = {
       throw new ApiError(500, 'Failed to fetch subordinates');
     }
 
-    return data;
+    // Aplicar filtro de usuários restritos
+    const filteredData = filterRestrictedUsers(currentUserEmail, data || []);
+
+    return filteredData;
   },
 
   // Novos métodos para estatísticas

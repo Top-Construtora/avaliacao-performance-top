@@ -1,18 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
 import { userService } from '../services/userService';
+import { AuthRequest } from '../middleware/auth';
 
 export const userController = {
   async getUsers(req: Request, res: Response, next: NextFunction) {
     try {
+      const authReq = req as AuthRequest;
       const filters = {
         active: req.query.active === 'true',
         is_leader: req.query.is_leader === 'true',
         is_director: req.query.is_director === 'true',
-        reports_to: req.query.reports_to as string
+        reports_to: req.query.reports_to as string,
+        currentUserEmail: authReq.user?.email
       };
 
       const users = await userService.getUsers(filters);
-      
+
       res.json({
         success: true,
         data: users
@@ -101,8 +104,9 @@ export const userController = {
 
   async getSubordinates(req: Request, res: Response, next: NextFunction) {
     try {
+      const authReq = req as AuthRequest;
       const { leaderId } = req.params;
-      const subordinates = await userService.getSubordinates(leaderId);
+      const subordinates = await userService.getSubordinates(leaderId, authReq.user?.email);
 
       res.json({
         success: true,

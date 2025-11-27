@@ -7,6 +7,7 @@ import type {
   CycleDashboard,
   NineBoxData,
 } from '../types';
+import { filterRestrictedUsers, filterRestrictedEmployeeRelations } from '../utils/userFilterUtils';
 
 export const evaluationService = {
   // ====================================
@@ -139,7 +140,7 @@ export const evaluationService = {
   // ====================================
   
   // Dashboard do ciclo
-  async getCycleDashboard(supabase: any, cycleId: string) {
+  async getCycleDashboard(supabase: any, cycleId: string, currentUserEmail?: string) {
     try {
       // Buscar TODOS os usuários ativos (exceto admins)
       const { data: allUsers, error: usersError } = await supabase
@@ -159,6 +160,9 @@ export const evaluationService = {
       if (usersError) {
         console.error('Error fetching users:', usersError);
       }
+
+      // Aplicar filtro de usuários restritos
+      const filteredUsers = filterRestrictedUsers(currentUserEmail, allUsers || []);
 
       // Buscar autoavaliações
       const { data: selfEvals, error: selfError } = await supabase
@@ -200,11 +204,16 @@ export const evaluationService = {
         console.error('Error fetching consensus evaluations:', consensusError);
       }
 
+      // Aplicar filtro nas avaliações também
+      const filteredSelfEvals = filterRestrictedEmployeeRelations(currentUserEmail, selfEvals || []);
+      const filteredLeaderEvals = filterRestrictedEmployeeRelations(currentUserEmail, leaderEvals || []);
+      const filteredConsensusEvals = filterRestrictedEmployeeRelations(currentUserEmail, consensusEvals || []);
+
       // Combinar dados para o dashboard
       const employeeMap = new Map<string, CycleDashboard>();
 
-      // Primeiro, adicionar TODOS os usuários ativos (exceto admins) ao mapa
-      allUsers?.forEach((user: any) => {
+      // Primeiro, adicionar TODOS os usuários ativos filtrados (exceto admins) ao mapa
+      filteredUsers?.forEach((user: any) => {
         // Diretores não têm autoavaliação nem consenso, apenas avaliação de líder
         const isDirector = user.is_director === true;
 
@@ -237,7 +246,7 @@ export const evaluationService = {
       });
 
       // Processar autoavaliações (apenas atualizar os dados existentes)
-      selfEvals?.forEach((se: any) => {
+      filteredSelfEvals?.forEach((se: any) => {
         const empId = se.employee_id;
         if (employeeMap.has(empId)) {
           const emp = employeeMap.get(empId)!;
@@ -248,7 +257,7 @@ export const evaluationService = {
       });
 
       // Processar avaliações de líder (apenas atualizar os dados existentes)
-      leaderEvals?.forEach((le: any) => {
+      filteredLeaderEvals?.forEach((le: any) => {
         const empId = le.employee_id;
         if (employeeMap.has(empId)) {
           const emp = employeeMap.get(empId)!;
@@ -260,7 +269,7 @@ export const evaluationService = {
       });
 
       // Processar avaliações de consenso (apenas atualizar os dados existentes)
-      consensusEvals?.forEach((ce: any) => {
+      filteredConsensusEvals?.forEach((ce: any) => {
         const empId = ce.employee_id;
         if (employeeMap.has(empId)) {
           const emp = employeeMap.get(empId)!;
@@ -298,7 +307,7 @@ export const evaluationService = {
   },
 
   // Dados do Nine Box
-  async getNineBoxData(supabase: any, cycleId: string) {
+  async getNineBoxData(supabase: any, cycleId: string, currentUserEmail?: string) {
     try {
       const { data, error } = await supabase
         .from('consensus_evaluations')
@@ -307,6 +316,7 @@ export const evaluationService = {
           employee:users!employee_id(
             id,
             name,
+            email,
             position,
             department:departments(name)
           )
@@ -315,7 +325,10 @@ export const evaluationService = {
 
       if (error) throw new ApiError(500, error.message);
 
-      return data?.map((item: any) => ({
+      // Aplicar filtro de usuários restritos
+      const filteredData = filterRestrictedEmployeeRelations(currentUserEmail, data || []);
+
+      return filteredData?.map((item: any) => ({
         employee_id: item.employee_id,
         employee_name: item.employee?.name || '',
         position: item.employee?.position || '',
