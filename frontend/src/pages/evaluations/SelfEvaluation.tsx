@@ -102,6 +102,25 @@ const SelfEvaluation = () => {
               });
               setCompetencyScores(scores);
             }
+
+            // Preencher dados do toolkit
+            setFormData({
+              conhecimentos: existingEval.knowledge?.length > 0 ? existingEval.knowledge : [''],
+              ferramentas: existingEval.tools?.length > 0 ? existingEval.tools : [''],
+              forcasInternas: existingEval.strengths_internal?.length > 0 ? existingEval.strengths_internal : [''],
+              qualidades: existingEval.qualities?.length > 0 ? existingEval.qualities : ['']
+            });
+
+            // Marcar seções como completas para exibição correta
+            const completedSectionsSet = new Set<string>();
+            if (existingEval.knowledge?.length > 0) completedSectionsSet.add('conhecimentos');
+            if (existingEval.tools?.length > 0) completedSectionsSet.add('ferramentas');
+            if (existingEval.strengths_internal?.length > 0) completedSectionsSet.add('forcasInternas');
+            if (existingEval.qualities?.length > 0) completedSectionsSet.add('qualidades');
+            setCompletedSections(completedSectionsSet);
+
+            // Expandir todas as seções de competências no modo view
+            setExpandedSections(new Set(['competencias-tecnicas', 'competencias-comportamentais', 'competencias-organizacionais']));
           } else {
             setHasExistingEvaluation(false);
             setExistingEvaluationData(null);
@@ -649,6 +668,33 @@ const SelfEvaluation = () => {
             </div>
           </motion.div>
         )}
+
+        {/* Navigation Buttons - View mode */}
+        {viewMode === 'view' && (
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 space-y-4 sm:space-y-0"
+          >
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              size="lg"
+              className="w-full sm:w-auto order-2 sm:order-1"
+            >
+              Voltar ao Dashboard
+            </Button>
+
+            <Button
+              variant="primary"
+              onClick={() => setCurrentStep('competencies')}
+              icon={<ArrowRight size={18} />}
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 w-full sm:w-auto order-1 sm:order-2"
+            >
+              Ver Competências
+            </Button>
+          </motion.div>
+        )}
       </motion.div>
     </>
   );
@@ -663,7 +709,7 @@ const SelfEvaluation = () => {
       {competencyCategories.map((category, categoryIndex) => {
         const IconComponent = category.icon;
         const isExpanded = expandedSections.has(category.id);
-        const categoryProgress = category.items.filter(item => competencyScores[item.id] !== undefined).length / category.items.length * 100;
+        const categoryProgress = category.items.filter(item => competencyScores[item.id] !== undefined || competencyScores[item.name] !== undefined).length / category.items.length * 100;
 
         return (
           <motion.div
@@ -685,7 +731,7 @@ const SelfEvaluation = () => {
                   <div className="text-left">
                     <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100">{category.title}</h2>
                     <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      {category.items.filter(item => competencyScores[item.id] !== undefined).length} de {category.items.length} competências avaliadas
+                      {category.items.filter(item => competencyScores[item.id] !== undefined || competencyScores[item.name] !== undefined).length} de {category.items.length} competências avaliadas
                     </p>
                   </div>
                 </div>
@@ -728,15 +774,15 @@ const SelfEvaluation = () => {
                           <h4 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">{item.name}</h4>
                           <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{item.description}</p>
                         </div>
-                        {competencyScores[item.id] && (
+                        {(competencyScores[item.id] || competencyScores[item.name]) && (
                           <div className="text-center">
                             <div className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
-                              competencyScores[item.id] >= 4 ? 'bg-primary-100 dark:bg-primary-600/30 text-primary dark:text-green-300' :
-                              competencyScores[item.id] >= 3 ? 'bg-primary-100 dark:bg-primary-600/30 text-primary dark:text-green-300' :
-                              competencyScores[item.id] >= 2 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' :
+                              (competencyScores[item.id] || competencyScores[item.name]) >= 4 ? 'bg-primary-100 dark:bg-primary-600/30 text-primary dark:text-green-300' :
+                              (competencyScores[item.id] || competencyScores[item.name]) >= 3 ? 'bg-primary-100 dark:bg-primary-600/30 text-primary dark:text-green-300' :
+                              (competencyScores[item.id] || competencyScores[item.name]) >= 2 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' :
                               'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                             }`}>
-                              Nota: {competencyScores[item.id]}
+                              Nota: {competencyScores[item.id] || competencyScores[item.name]}
                             </div>
                           </div>
                         )}
@@ -752,7 +798,8 @@ const SelfEvaluation = () => {
                           };
                           const ratingInfo = ratingLabels[rating as keyof typeof ratingLabels];
 
-                          return viewMode === 'view' && competencyScores[item.id] === rating ? (
+                          const currentScore = competencyScores[item.id] || competencyScores[item.name];
+                          return viewMode === 'view' && currentScore === rating ? (
                             // Visualização estática - apenas mostra a nota selecionada
                             <div key={rating} className="col-span-2 sm:col-span-4">
                               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-xl p-6">
@@ -772,7 +819,7 @@ const SelfEvaluation = () => {
                               key={rating}
                               onClick={() => handleCompetencyScore(item.id, rating)}
                               className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
-                                competencyScores[item.id] === rating
+                                currentScore === rating
                                   ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
                                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
                               }`}
@@ -836,6 +883,35 @@ const SelfEvaluation = () => {
               {isSaving ? 'Salvando...' : 'Salvar Autoavaliação'}
             </Button>
           </div>
+        </motion.div>
+      )}
+
+      {/* Navigation Buttons - View mode */}
+      {viewMode === 'view' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 space-y-4 sm:space-y-0"
+        >
+          <Button
+            variant="outline"
+            onClick={() => setCurrentStep('toolkit')}
+            icon={<ArrowLeft size={18} />}
+            size="lg"
+            className="w-full sm:w-auto order-2 sm:order-1"
+          >
+            Ver Toolkit
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            size="lg"
+            className="w-full sm:w-auto order-1 sm:order-2"
+          >
+            Voltar ao Dashboard
+          </Button>
         </motion.div>
       )}
     </motion.div>
@@ -960,26 +1036,42 @@ const SelfEvaluation = () => {
           )}
         </div>
 
-        {/* Step Indicator - Only show in edit mode */}
-        {viewMode === 'edit' && (
+        {/* Step Indicator - Show in edit mode and view mode (clickable in view mode) */}
+        {(viewMode === 'edit' || viewMode === 'view') && (
           <div className="flex items-center justify-center space-x-2 sm:space-x-4">
-            <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${currentStep === 'toolkit' ? 'bg-primary-100 dark:bg-primary-600/30 text-primary-700 dark:text-green-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+            <button
+              onClick={() => viewMode === 'view' && setCurrentStep('toolkit')}
+              disabled={viewMode === 'edit'}
+              className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-all duration-200 ${
+                currentStep === 'toolkit'
+                  ? 'bg-primary-100 dark:bg-primary-600/30 text-primary-700 dark:text-green-300'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+              } ${viewMode === 'view' ? 'cursor-pointer hover:opacity-80' : ''}`}
+            >
               <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'toolkit' ? 'bg-primary dark:bg-green-700 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>
                 1
               </div>
               <span className="font-medium text-xs sm:text-sm hidden sm:inline">Toolkit Profissional</span>
-            </div>
+            </button>
 
             <div className="w-8 sm:w-16 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div className={`h-full transition-all duration-500 ${currentStep === 'competencies' ? 'w-full bg-primary dark:bg-green-700' : 'w-0'}`} />
+              <div className={`h-full transition-all duration-500 ${viewMode === 'view' || currentStep === 'competencies' ? 'w-full bg-primary dark:bg-green-700' : 'w-0'}`} />
             </div>
 
-            <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${currentStep === 'competencies' ? 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+            <button
+              onClick={() => viewMode === 'view' && setCurrentStep('competencies')}
+              disabled={viewMode === 'edit'}
+              className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-all duration-200 ${
+                currentStep === 'competencies'
+                  ? 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+              } ${viewMode === 'view' ? 'cursor-pointer hover:opacity-80' : ''}`}
+            >
               <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'competencies' ? 'bg-gray-600 dark:bg-gray-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>
                 2
               </div>
               <span className="font-medium text-xs sm:text-sm hidden sm:inline">Competências</span>
-            </div>
+            </button>
           </div>
         )}
 
