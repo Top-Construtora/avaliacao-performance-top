@@ -1,15 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
+  User,
   Users,
-  BarChart3,
   FileText,
+  BarChart3,
+  Target,
   Award,
   ArrowRight,
-  Target,
-  Briefcase,
-  Building2,
-  BookOpen
+  Building2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -35,48 +34,54 @@ const DirectorDashboard = () => {
     }
   };
 
-  const quickActions = [
+  const functionalityCards = [
     {
+      id: 'autoavaliacao',
+      title: 'Autoavaliação',
+      description: 'Avalie suas competências e performance de forma reflexiva',
+      action: 'Iniciar avaliação',
+      icon: User,
+      onClick: () => navigate('/self-evaluation'),
+    },
+    {
+      id: 'avaliacao-lider',
       title: 'Avaliação do Líder',
-      description: 'Avalie os líderes da sua organização',
+      description: 'Avalie a performance dos seus avaliados',
+      action: 'Avaliar equipe',
       icon: Users,
       onClick: () => navigate('/leader-evaluation'),
     },
     {
+      id: 'consenso',
       title: 'Consenso',
-      description: 'Participe das reuniões de consenso',
+      description: 'Defina as notas finais em reunião de consenso',
+      action: 'Definir consenso',
       icon: Target,
       onClick: () => navigate('/consensus'),
     },
     {
+      id: 'comite-gente',
       title: 'Comitê de Gente',
-      description: 'Visualize a matriz 9-Box',
-      icon: Award,
+      description: 'Visualize o posicionamento na matriz de potencial',
+      action: 'Ver matriz',
+      icon: BarChart3,
       onClick: () => navigate('/nine-box'),
     },
     {
-      title: 'Relatórios',
-      description: 'Acompanhe métricas e resultados',
-      icon: BarChart3,
-      onClick: () => navigate('/reports'),
-    },
-    {
-      title: 'Gerenciar PDI',
-      description: 'Acompanhe planos de desenvolvimento',
+      id: 'plano-acao',
+      title: 'PDI',
+      description: 'Crie planos de desenvolvimento individual',
+      action: 'Criar plano',
       icon: FileText,
       onClick: () => navigate('/pdi'),
     },
     {
-      title: 'Meu PDI',
-      description: 'Visualize seu plano de desenvolvimento',
-      icon: Briefcase,
-      onClick: () => navigate('/my-pdi'),
-    },
-    {
-      title: 'Guia Nine Box',
-      description: 'Entenda a metodologia 9-Box',
-      icon: BookOpen,
-      onClick: () => navigate('/nine-box-guide'),
+      id: 'relatorios',
+      title: 'Relatórios',
+      description: 'Acompanhe o progresso e resultados gerais',
+      action: 'Ver relatórios',
+      icon: Award,
+      onClick: () => navigate('/reports'),
     },
   ];
 
@@ -92,7 +97,7 @@ const DirectorDashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-              Olá, {firstName}!
+              Bem-vindo(a), {firstName}!
             </h1>
             <p className="text-white/90 text-base sm:text-lg">
               Visão estratégica - Acompanhe o desempenho de toda a organização
@@ -105,40 +110,62 @@ const DirectorDashboard = () => {
         </div>
       </motion.div>
 
-      {/* Quick Actions */}
+      {/* Functionality Cards */}
       <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {quickActions.map((action, index) => {
-          const IconComponent = action.icon;
+        {functionalityCards.map((card) => {
+          const IconComponent = card.icon;
           return (
             <motion.div
-              key={index}
+              key={card.id}
               variants={itemVariants}
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-700 cursor-pointer group transition-all duration-300"
-              onClick={action.onClick}
+              className="relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden border border-gray-300 dark:border-gray-700"
+              onClick={card.onClick}
             >
-              <div className="flex items-start space-x-4">
+              {/* Background Gradient Decoration */}
+              <div
+                className="absolute inset-0 opacity-0 group-hover:opacity-5 dark:group-hover:opacity-10 transition-opacity duration-300"
+                style={{ background: 'linear-gradient(to bottom right, #1e2938, #161f2a)' }}
+              />
+
+              <div className="relative z-10">
                 <div
-                  className="p-3 rounded-xl"
+                  className="inline-flex p-2 sm:p-3 rounded-xl shadow-md dark:shadow-lg mb-3 sm:mb-4"
                   style={{ background: 'linear-gradient(to bottom right, #1e2938, #161f2a)' }}
                 >
-                  <IconComponent className="h-5 w-5 text-white" />
+                  <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-primary-500 transition-colors">
-                    {action.title}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {action.description}
-                  </p>
+
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                  {card.title}
+                </h3>
+
+                <p className="text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base min-h-[40px] sm:min-h-[48px]">
+                  {card.description}
+                </p>
+
+                <div className="inline-flex items-center text-sm font-semibold group-hover:gap-2 sm:group-hover:gap-3 transition-all duration-300" style={{ color: '#1e2938' }}>
+                  <span className="dark:text-gray-300">{card.action}</span>
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1 dark:text-gray-300" />
                 </div>
-                <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" />
               </div>
+
+              {/* Hover Effect Border */}
+              <div
+                className="absolute inset-0 rounded-lg border border-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  padding: '2px',
+                  background: 'linear-gradient(to bottom right, #1e2938, #161f2a)',
+                  WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'exclude',
+                  maskComposite: 'exclude'
+                }}
+              />
             </motion.div>
           );
         })}
