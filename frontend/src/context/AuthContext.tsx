@@ -76,35 +76,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Verifica sessão inicial
     checkAuth();
+
+    // Listener para mudanças de autenticação (login, logout, refresh de token)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event);
+
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (session) {
+          await loadUserProfile(session.user.id, session.access_token);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setProfile(null);
+        setIsAuthenticated(false);
+        sessionStorage.removeItem('access_token');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const checkAuth = async () => {
+  const loadUserProfile = async (userId: string, accessToken: string) => {
     try {
-      // Primeiro verifica se há sessão no Supabase
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        setLoading(false);
-        return;
-      }
-
-      // Se houver sessão, busca o perfil do usuário
       const { data: profileData, error } = await supabase
         .from('users')
         .select('*')
-        .eq('id', session.user.id)
+        .eq('id', userId)
         .single();
 
       if (!error && profileData) {
         setUser(profileData);
         setProfile(profileData);
         setIsAuthenticated(true);
-        
-        // Salva o token no sessionStorage para uso com a API
-        // sessionStorage é limpo quando o navegador fecha
-        sessionStorage.setItem('access_token', session.access_token);
+        sessionStorage.setItem('access_token', accessToken);
       }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
+  };
+
+  const checkAuth = async () => {
+    try {
+      // Primeiro verifica se há sessão no Supabase
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        setLoading(false);
+        return;
+      }
+
+      // Se houver sessão, busca o perfil do usuário
+      await loadUserProfile(session.user.id, session.access_token);
     } catch (error) {
       console.error('Auth check failed:', error);
       sessionStorage.removeItem('access_token');

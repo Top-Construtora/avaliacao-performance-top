@@ -20,6 +20,7 @@ export interface User {
   admission_date?: string;
   position_start_date?: string;
   intern_level?: string;
+  must_change_password?: boolean;
 
   // Campos de trilha/salário (opcionais)
   current_track_position_id?: string;

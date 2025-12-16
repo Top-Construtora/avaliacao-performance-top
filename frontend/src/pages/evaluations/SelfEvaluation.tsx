@@ -70,7 +70,7 @@ const SelfEvaluation = () => {
     qualidades: ['']
   });
   const [competencyScores, setCompetencyScores] = useState<CompetencyScore>({});
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['competencias-tecnicas']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['competencias-tecnicas', 'competencias-comportamentais', 'competencias-organizacionais']));
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
   const [competencyCategories, setCompetencyCategories] = useState<any[]>([]);
@@ -88,11 +88,6 @@ const SelfEvaluation = () => {
             setExistingEvaluationData(existingEval);
             setViewMode('view');
             setCurrentStep('competencies');
-
-            toast.success(
-              `Visualizando autoavaliação salva (Nota Final: ${existingEval.final_score?.toFixed(1) || 'N/A'})`,
-              { duration: 4000 }
-            );
 
             // Preencher scores de competências
             if (existingEval.evaluation_competencies) {
@@ -203,10 +198,10 @@ const SelfEvaluation = () => {
     }
   };
 
-  const handleCompetencyScore = (competencyId: string, score: number) => {
+  const handleCompetencyScore = (competencyName: string, score: number) => {
     setCompetencyScores(prev => ({
       ...prev,
-      [competencyId]: score
+      [competencyName]: score
     }));
   };
 
@@ -275,7 +270,7 @@ const SelfEvaluation = () => {
           name: item.name,
           description: item.description,
           category: categoryType,
-          score: competencyScores[item.id] || 0,
+          score: competencyScores[item.name] || competencyScores[item.id] || 0,
           written_response: ''
         };
       })
@@ -663,7 +658,7 @@ const SelfEvaluation = () => {
       {competencyCategories.map((category, categoryIndex) => {
         const IconComponent = category.icon;
         const isExpanded = expandedSections.has(category.id);
-        const categoryProgress = category.items.filter(item => competencyScores[item.id] !== undefined).length / category.items.length * 100;
+        const categoryProgress = category.items.filter(item => competencyScores[item.name] !== undefined || competencyScores[item.id] !== undefined).length / category.items.length * 100;
 
         return (
           <motion.div
@@ -685,7 +680,7 @@ const SelfEvaluation = () => {
                   <div className="text-left">
                     <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100">{category.title}</h2>
                     <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      {category.items.filter(item => competencyScores[item.id] !== undefined).length} de {category.items.length} competências avaliadas
+                      {category.items.filter(item => competencyScores[item.name] !== undefined || competencyScores[item.id] !== undefined).length} de {category.items.length} competências avaliadas
                     </p>
                   </div>
                 </div>
@@ -715,80 +710,96 @@ const SelfEvaluation = () => {
                   transition={{ duration: 0.3 }}
                   className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6"
                 >
-                  {category.items.map((item, itemIndex) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: itemIndex * 0.05 }}
-                      className="space-y-3 sm:space-y-4"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between space-y-2 sm:space-y-0">
-                        <div className="flex-1 sm:mr-4">
-                          <h4 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">{item.name}</h4>
-                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{item.description}</p>
+                  {category.items.map((item, itemIndex) => {
+                    const ratingLabels = {
+                      1: { label: 'Insatisfatório', color: 'bg-red-500', textColor: 'text-red-600 dark:text-red-400' },
+                      2: { label: 'Em Desenvolvimento', color: 'bg-accent-500', textColor: 'text-yellow-600 dark:text-yellow-400' },
+                      3: { label: 'Satisfatório', color: 'bg-primary-500', textColor: 'text-blue-600 dark:text-blue-400' },
+                      4: { label: 'Excepcional', color: 'bg-emerald-500', textColor: 'text-emerald-600 dark:text-emerald-400' }
+                    };
+                    // Buscar score pelo nome (criterion_name) ou pelo id
+                    const score = competencyScores[item.name] || competencyScores[item.id];
+                    const ratingInfo = score ? ratingLabels[score as keyof typeof ratingLabels] : null;
+
+                    return viewMode === 'view' ? (
+                      // Modo visualização - linha compacta com nota
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: itemIndex * 0.03 }}
+                        className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600"
+                      >
+                        <div className="flex-1 mr-4">
+                          <h4 className="text-sm sm:text-base font-medium text-gray-800 dark:text-gray-100">{item.name}</h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 hidden sm:block">{item.description}</p>
                         </div>
-                        {competencyScores[item.id] && (
-                          <div className="text-center">
-                            <div className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
-                              competencyScores[item.id] >= 4 ? 'bg-primary-100 dark:bg-primary-600/30 text-primary dark:text-green-300' :
-                              competencyScores[item.id] >= 3 ? 'bg-primary-100 dark:bg-primary-600/30 text-primary dark:text-green-300' :
-                              competencyScores[item.id] >= 2 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' :
-                              'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
-                            }`}>
-                              Nota: {competencyScores[item.id]}
+                        {score && ratingInfo && (
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            <span className={`text-xs sm:text-sm font-medium ${ratingInfo.textColor}`}>
+                              {ratingInfo.label}
+                            </span>
+                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${ratingInfo.color} flex items-center justify-center`}>
+                              <span className="text-lg sm:text-xl font-bold text-white">{score}</span>
                             </div>
                           </div>
                         )}
-                      </div>
-                      
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                        {[1, 2, 3, 4].map((rating) => {
-                          const ratingLabels = {
-                            1: { label: 'Insatisfatório', color: 'bg-red-500', darkColor: 'dark:bg-red-600' },
-                            2: { label: 'Em Desenvolvimento', color: 'bg-accent-500', darkColor: 'dark:bg-accent-600' },
-                            3: { label: 'Satisfatório', color: 'bg-primary-500', darkColor: 'dark:bg-primary-600' },
-                            4: { label: 'Excepcional', color: 'bg-primary-500', darkColor: 'dark:bg-green-600' }
-                          };
-                          const ratingInfo = ratingLabels[rating as keyof typeof ratingLabels];
-
-                          return viewMode === 'view' && competencyScores[item.id] === rating ? (
-                            // Visualização estática - apenas mostra a nota selecionada
-                            <div key={rating} className="col-span-2 sm:col-span-4">
-                              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-xl p-6">
-                                <div className="text-center">
-                                  <div className={`text-5xl font-bold mb-2 ${ratingInfo.color.replace('bg-', 'text-')}`}>
-                                    {rating}
-                                  </div>
-                                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    {ratingInfo.label}
-                                  </div>
-                                </div>
+                      </motion.div>
+                    ) : (
+                      // Modo edição - cards clicáveis
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: itemIndex * 0.05 }}
+                        className="space-y-3 sm:space-y-4"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between space-y-2 sm:space-y-0">
+                          <div className="flex-1 sm:mr-4">
+                            <h4 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">{item.name}</h4>
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{item.description}</p>
+                          </div>
+                          {score && (
+                            <div className="text-center">
+                              <div className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
+                                score >= 4 ? 'bg-emerald-100 dark:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300' :
+                                score >= 3 ? 'bg-blue-100 dark:bg-blue-600/30 text-blue-700 dark:text-blue-300' :
+                                score >= 2 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' :
+                                'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+                              }`}>
+                                Nota: {score}
                               </div>
                             </div>
-                          ) : viewMode === 'edit' ? (
-                            // Modo de edição - botões clicáveis
-                            <button
-                              key={rating}
-                              onClick={() => handleCompetencyScore(item.id, rating)}
-                              className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
-                                competencyScores[item.id] === rating
-                                  ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
-                                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
-                              }`}
-                            >
-                              <div className="text-center">
-                                <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
-                                <div className="text-xs">
-                                  {ratingInfo.label}
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                          {[1, 2, 3, 4].map((rating) => {
+                            const ratingLabel = ratingLabels[rating as keyof typeof ratingLabels];
+
+                            return (
+                              <button
+                                key={rating}
+                                onClick={() => handleCompetencyScore(item.name, rating)}
+                                className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
+                                  score === rating
+                                    ? `${ratingLabel.color} text-white border-transparent shadow-lg transform scale-105`
+                                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                                }`}
+                              >
+                                <div className="text-center">
+                                  <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
+                                  <div className="text-xs">
+                                    {ratingLabel.label}
+                                  </div>
                                 </div>
-                              </div>
-                            </button>
-                          ) : null;
-                        })}
-                      </div>
-                    </motion.div>
-                  ))}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -843,33 +854,6 @@ const SelfEvaluation = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-      {/* Info Banner for Existing Evaluation - View Mode (igual ao Consenso) */}
-      {hasExistingEvaluation && !loading && viewMode === 'view' && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 dark:border-blue-600 rounded-lg p-4 shadow-sm"
-        >
-          <div className="flex items-start">
-            <CheckCircle className="h-5 w-5 text-blue-500 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
-            <div className="flex-1">
-              <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                Autoavaliação já realizada
-              </h4>
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                Você já completou sua autoavaliação para este ciclo. Você está visualizando os dados em modo somente leitura.
-                {existingEvaluationData && (
-                  <span className="block mt-1 font-medium">
-                    Nota Final: {existingEvaluationData.final_score?.toFixed(1) || 'N/A'} |
-                    Avaliado em: {new Date(existingEvaluationData.evaluation_date).toLocaleDateString('pt-BR')}
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -1012,6 +996,37 @@ const SelfEvaluation = () => {
       <AnimatePresence mode="wait">
         {currentStep === 'toolkit' ? renderToolkitStep() : renderCompetenciesStep()}
       </AnimatePresence>
+
+      {/* Info Banner for Existing Evaluation - View Mode - No final da página */}
+      {hasExistingEvaluation && !loading && viewMode === 'view' && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-2xl p-6 shadow-sm"
+        >
+          <div className="flex items-start">
+            <CheckCircle className="h-6 w-6 text-blue-500 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
+            <div className="flex-1">
+              <h4 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                Autoavaliação já realizada
+              </h4>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                Você já completou sua autoavaliação para este ciclo. Visualizando em modo somente leitura.
+              </p>
+              {existingEvaluationData && (
+                <div className="flex flex-wrap gap-4 items-center mt-3">
+                  <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    Nota Final: <span className="text-lg font-bold">{existingEvaluationData.final_score?.toFixed(1) || 'N/A'}</span>
+                  </span>
+                  <span className="text-sm text-blue-600 dark:text-blue-300">
+                    Avaliado em: {new Date(existingEvaluationData.evaluation_date).toLocaleDateString('pt-BR')}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };

@@ -24,16 +24,110 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { useUserRole } from '../../context/AuthContext';
 
 interface Section {
   id: string;
   title: string;
   icon: React.ElementType;
   content: React.ReactNode;
+  allowedRoles?: Array<'admin' | 'director' | 'leader' | 'collaborator'>;
 }
 
+// Componente para mostrar funcionalidades baseado no role
+const FuncionalidadesContent = ({ role }: { role: 'admin' | 'director' | 'leader' | 'collaborator' }) => {
+  const getRoleTitle = () => {
+    switch (role) {
+      case 'admin': return 'Administrador';
+      case 'director': return 'Diretor';
+      case 'leader': return 'Líder';
+      default: return 'Colaborador';
+    }
+  };
+
+  const getRoleIcon = () => {
+    switch (role) {
+      case 'admin': return Settings;
+      case 'director': return Award;
+      case 'leader': return Crown;
+      default: return User;
+    }
+  };
+
+  const getFuncionalidades = () => {
+    const base = [
+      { title: 'Autoavaliação', desc: 'Realizar sua própria avaliação de desempenho' },
+      { title: 'Visualizar Resultados', desc: 'Ver feedback e notas finais após consenso' },
+      { title: 'Meu PDI', desc: 'Acompanhar seu Plano de Desenvolvimento Individual' },
+      { title: 'Perfil', desc: 'Atualizar dados pessoais e foto de perfil' },
+    ];
+
+    const leader = [
+      { title: 'Avaliar Time', desc: 'Avaliar desempenho dos colaboradores diretos' },
+      { title: 'Gerenciar PDIs', desc: 'Criar e acompanhar PDIs da equipe' },
+    ];
+
+    const director = [
+      { title: 'Consenso', desc: 'Definir notas finais e potencial dos avaliados' },
+      { title: 'Nine Box', desc: 'Visualizar matriz de desempenho e potencial' },
+      { title: 'Relatórios', desc: 'Acessar dashboards e análises gerenciais' },
+    ];
+
+    const admin = [
+      { title: 'Gerenciar Usuários', desc: 'Cadastrar e editar colaboradores, líderes e times' },
+      { title: 'Gerenciar Ciclos', desc: 'Criar e configurar ciclos de avaliação' },
+      { title: 'Trilhas de Carreira', desc: 'Configurar trilhas, cargos e estrutura salarial' },
+      { title: 'Código Cultural', desc: 'Gerenciar critérios de avaliação' },
+      { title: 'Configurações', desc: 'Configurar preferências do sistema' },
+    ];
+
+    switch (role) {
+      case 'admin':
+        return [...base, ...leader, ...director, ...admin];
+      case 'director':
+        return [...base, ...leader, ...director];
+      case 'leader':
+        return [...base, ...leader];
+      default:
+        return base;
+    }
+  };
+
+  const Icon = getRoleIcon();
+  const funcionalidades = getFuncionalidades();
+
+  return (
+    <div className="space-y-6">
+      <p className="text-gray-700 dark:text-gray-300 mb-6">
+        Como <strong>{getRoleTitle()}</strong>, você tem acesso às seguintes funcionalidades:
+      </p>
+
+      <div className="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-xl p-6 border border-primary-200 dark:border-primary-800">
+        <div className="flex items-center gap-3 mb-4">
+          <Icon className="h-7 w-7 text-primary dark:text-primary-400" />
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{getRoleTitle()}</h3>
+        </div>
+        <div className="grid md:grid-cols-2 gap-3">
+          {funcionalidades.map((func, index) => (
+            <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
+                {func.title}
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{func.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const HelpPage = () => {
-  const [expandedSection, setExpandedSection] = useState<string>('cadastro');
+  const { role } = useUserRole();
+  const [expandedSection, setExpandedSection] = useState<string>(
+    role === 'admin' || role === 'director' ? 'cadastro' : 'avaliacao'
+  );
 
   const toggleSection = (id: string) => {
     setExpandedSection(expandedSection === id ? '' : id);
@@ -44,6 +138,7 @@ const HelpPage = () => {
       id: 'cadastro',
       title: 'Ordem de Cadastro',
       icon: UserPlus,
+      allowedRoles: ['admin', 'director'],
       content: (
         <div className="space-y-6">
           <p className="text-gray-700 dark:text-gray-300 mb-6">
@@ -510,156 +605,10 @@ const HelpPage = () => {
     },
     {
       id: 'funcionalidades',
-      title: 'Funcionalidades por Perfil',
+      title: 'Suas Funcionalidades',
       icon: Settings,
       content: (
-        <div className="space-y-6">
-          <p className="text-gray-700 dark:text-gray-300 mb-6">
-            Cada perfil de usuário tem acesso a funcionalidades específicas de acordo com suas responsabilidades.
-          </p>
-
-          {/* Colaborador */}
-          <div className="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-xl p-6 border border-primary-200 dark:border-primary-800">
-            <div className="flex items-center gap-3 mb-4">
-              <User className="h-7 w-7 text-primary dark:text-primary-400" />
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Colaborador</h3>
-            </div>
-            <div className="grid md:grid-cols-2 gap-3">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Autoavaliação
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Realizar sua própria avaliação de desempenho</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Visualizar Resultados
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Ver feedback e notas finais após consenso</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  PDI
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Acompanhar seu Plano de Desenvolvimento Individual</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Perfil
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Atualizar dados pessoais e foto de perfil</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Líder */}
-          <div className="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-xl p-6 border border-primary-200 dark:border-primary-800">
-            <div className="flex items-center gap-3 mb-4">
-              <Crown className="h-7 w-7 text-primary dark:text-primary-400" />
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Líder</h3>
-            </div>
-            <div className="grid md:grid-cols-2 gap-3">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Todas as funções do Colaborador
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Autoavaliação, resultados e PDI próprio</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Avaliar Time
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Avaliar desempenho dos colaboradores diretos</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Gerenciar PDIs
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Criar e acompanhar PDIs da equipe</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Dashboard do Time
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Visualizar métricas e status da equipe</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Diretor */}
-          <div className="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-xl p-6 border border-primary-200 dark:border-primary-800">
-            <div className="flex items-center gap-3 mb-4">
-              <Award className="h-7 w-7 text-primary dark:text-primary-400" />
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Diretor</h3>
-            </div>
-            <div className="grid md:grid-cols-2 gap-3">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Todas as funções do Líder
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Avaliar, gerenciar PDIs e acompanhar times</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Gerenciar Usuários
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Cadastrar e editar colaboradores, líderes e times</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Gerenciar Ciclos
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Criar e configurar ciclos de avaliação</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Consenso
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Definir notas finais e potencial dos avaliados</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Nine Box
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Visualizar matriz de desempenho e potencial</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Trilhas de Carreira
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Configurar trilhas, cargos e estrutura salarial</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Relatórios Estratégicos
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Acessar dashboards e análises gerenciais</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
-                  Visão Geral Salarial
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Consultar estrutura salarial da empresa</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <FuncionalidadesContent role={role} />
       ),
     },
     {
@@ -758,7 +707,9 @@ const HelpPage = () => {
 
         {/* Sections */}
         <div className="space-y-4">
-          {sections.map((section, index) => {
+          {sections
+            .filter(section => !section.allowedRoles || section.allowedRoles.includes(role))
+            .map((section, index) => {
             const Icon = section.icon;
             const isExpanded = expandedSection === section.id;
 
