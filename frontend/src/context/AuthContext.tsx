@@ -37,7 +37,7 @@ export interface UserRole {
 
 export const useUserRole = (): UserRole => {
   const { profile } = useAuth();
-
+  
   if (!profile) {
     return {
       isAdmin: false,
@@ -77,100 +77,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        await loadUserProfile(session.user.id, session.access_token);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setProfile(null);
-        setIsAuthenticated(false);
-        sessionStorage.removeItem('access_token');
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
 
-  const loadUserProfile = async (userId: string, accessToken: string) => {
-    try {
-      const { data: profileData, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error loading profile:', error);
-        // Limpar cache e fazer logout se houver erro
-        await supabase.auth.signOut();
-        localStorage.clear();
-        sessionStorage.clear();
-        setUser(null);
-        setProfile(null);
-        setIsAuthenticated(false);
-        return;
-      }
-
-      if (profileData) {
-        setUser(profileData);
-        setProfile(profileData);
-        setIsAuthenticated(true);
-        sessionStorage.setItem('access_token', accessToken);
-      }
-    } catch (error) {
-      console.error('Error loading profile:', error);
-      // Limpar cache e fazer logout em caso de exceção
-      await supabase.auth.signOut();
-      localStorage.clear();
-      sessionStorage.clear();
-      setUser(null);
-      setProfile(null);
-      setIsAuthenticated(false);
-    }
-  };
-
   const checkAuth = async () => {
-    // Timeout de segurança - se demorar mais de 10s, limpa tudo e volta ao login
-    const timeoutId = setTimeout(async () => {
-      console.warn('Auth check timeout - clearing cache');
-      await supabase.auth.signOut();
-      localStorage.clear();
-      sessionStorage.clear();
-      setLoading(false);
-      setUser(null);
-      setProfile(null);
-      setIsAuthenticated(false);
-    }, 10000);
-
     try {
+      // Primeiro verifica se há sessão no Supabase
       const { data: { session } } = await supabase.auth.getSession();
-
+      
       if (!session) {
-        clearTimeout(timeoutId);
         setLoading(false);
         return;
       }
 
-      await loadUserProfile(session.user.id, session.access_token);
-      clearTimeout(timeoutId);
+      // Se houver sessão, busca o perfil do usuário
+      const { data: profileData, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (!error && profileData) {
+        setUser(profileData);
+        setProfile(profileData);
+        setIsAuthenticated(true);
+        
+        // Salva o token no sessionStorage para uso com a API
+        // sessionStorage é limpo quando o navegador fecha
+        sessionStorage.setItem('access_token', session.access_token);
+      }
     } catch (error) {
       console.error('Auth check failed:', error);
-      clearTimeout(timeoutId);
-      // Limpar cache se houver erro
-      await supabase.auth.signOut();
-      localStorage.clear();
-      sessionStorage.clear();
+      sessionStorage.removeItem('access_token');
+      sessionStorage.removeItem('refresh_token');
     } finally {
-      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
 
   const signIn = async (email: string, password: string): Promise<boolean> => {
     try {
+      // Faz login via Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -186,6 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
+      // Busca o perfil do usuário
       const { data: profileData, error: profileError } = await supabase
         .from('users')
         .select('*')
@@ -197,17 +144,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
+      // Verifica se o usuário está ativo
       if (!profileData.active) {
         await supabase.auth.signOut();
         toast.error('Usuário inativo. Entre em contato com o administrador.');
         return false;
       }
 
+      // Salva os dados no sessionStorage (limpo ao fechar navegador)
       sessionStorage.setItem('access_token', data.session.access_token);
       setUser(profileData);
       setProfile(profileData);
       setIsAuthenticated(true);
-
+      
       toast.success('Login realizado com sucesso!');
       return true;
     } catch (error: any) {
@@ -235,10 +184,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!profile) return;
 
     try {
+      // Garantir consistência dos dados antes de enviar
       const updateData = { ...updates };
+
+      // Remover campos que não existem na tabela
       // @ts-ignore
       delete updateData.children_age_ranges;
 
+      // Atualiza no Supabase
       const { data, error } = await supabase
         .from('users')
         .update({
@@ -255,6 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data) {
         setProfile(data);
+        // Atualizar também o user se necessário
         if (user && user.id === profile.id) {
           setUser(data);
         }
@@ -267,6 +221,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Add updatePassword implementation
   const updatePassword = async (newPassword: string) => {
     try {
       const { error } = await supabase.auth.updateUser({
@@ -285,25 +240,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Add resetPassword implementation
   const resetPassword = async (email: string) => {
     try {
+      // Determina a URL de redirecionamento baseada no ambiente
       const redirectUrl = `${window.location.origin}/reset-password`;
+
+      console.log('🔄 Tentando enviar email de recuperação para:', email);
+      console.log('🔗 Redirect URL:', redirectUrl);
 
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
+        // Opções adicionais para garantir compatibilidade
         captchaToken: undefined,
       });
 
       if (error) {
+        console.error('❌ Erro do Supabase:', error);
         throw error;
       }
 
+      console.log('✅ Resposta do Supabase:', data);
+      console.log('📧 Email solicitado com sucesso!');
+      console.log('⚠️ IMPORTANTE:');
+      console.log('  1. Verifique sua caixa de entrada e SPAM');
+      console.log('  2. O email pode demorar até 10 minutos para chegar');
+      console.log('  3. O Supabase tem limite de 3-4 emails/hora no plano gratuito');
+      console.log('  4. Se não chegar, verifique se o usuário existe em Authentication > Users');
+
       toast.success(
-        'Email de recuperação enviado! Verifique sua caixa de entrada.',
+        'Email de recuperação solicitado! Verifique sua caixa de entrada e SPAM. O email pode demorar até 10 minutos.',
         { duration: 8000 }
       );
     } catch (error: any) {
-      console.error('Reset password error:', error);
+      console.error('❌ Reset password error:', error);
       toast.error(error.message || 'Erro ao enviar email de recuperação');
       throw error;
     }
