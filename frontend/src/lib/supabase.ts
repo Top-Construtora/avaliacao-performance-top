@@ -3,10 +3,15 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+console.log('🔧 Supabase Config:', {
+  url: supabaseUrl ? '✅ Configurado' : '❌ Não configurado',
+  anonKey: supabaseAnonKey ? '✅ Configurado' : '❌ Não configurado'
+});
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Por favor, configure as variáveis VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env.local'
-  )
+  const error = 'Por favor, configure as variáveis VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env.local';
+  console.error('❌', error);
+  throw new Error(error);
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -15,7 +20,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: true,
     storageKey: 'gio-auth-token',
-    storage: localStorage
+    storage: localStorage,
+    flowType: 'pkce'
   },
   realtime: {
     params: {
@@ -23,6 +29,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     }
   }
 })
+
+console.log('✅ Supabase client created successfully');
 
 export type Database = {
   public: {

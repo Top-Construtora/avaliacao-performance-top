@@ -102,41 +102,76 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadUserProfile = async (userId: string, accessToken: string) => {
     try {
+      console.log('📋 Loading user profile for:', userId);
       const { data: profileData, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (!error && profileData) {
+      if (error) {
+        console.error('❌ Error loading profile:', error);
+        // Se não encontrar o perfil, fazer logout
+        setUser(null);
+        setProfile(null);
+        setIsAuthenticated(false);
+        return;
+      }
+
+      if (profileData) {
+        console.log('✅ Profile loaded successfully');
         setUser(profileData);
         setProfile(profileData);
         setIsAuthenticated(true);
         sessionStorage.setItem('access_token', accessToken);
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error('❌ Error loading profile:', error);
+      setUser(null);
+      setProfile(null);
+      setIsAuthenticated(false);
     }
   };
 
   const checkAuth = async () => {
+    console.log('🔍 Starting auth check...');
+
+    // Timeout de segurança - garante que o loading não fica infinito
+    const timeoutId = setTimeout(() => {
+      console.warn('⚠️ Auth check timeout - forcing loading to false');
+      setLoading(false);
+    }, 5000); // 5 segundos timeout
+
     try {
       // Primeiro verifica se há sessão no Supabase
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      if (!session) {
+      if (sessionError) {
+        console.error('❌ Session error:', sessionError);
+        clearTimeout(timeoutId);
         setLoading(false);
         return;
       }
 
+      if (!session) {
+        console.log('ℹ️ No active session found');
+        clearTimeout(timeoutId);
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ Session found, loading profile...');
       // Se houver sessão, busca o perfil do usuário
       await loadUserProfile(session.user.id, session.access_token);
+      clearTimeout(timeoutId);
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error('❌ Auth check failed:', error);
       sessionStorage.removeItem('access_token');
       sessionStorage.removeItem('refresh_token');
+      clearTimeout(timeoutId);
     } finally {
       setLoading(false);
+      console.log('✅ Auth check completed');
     }
   };
 
