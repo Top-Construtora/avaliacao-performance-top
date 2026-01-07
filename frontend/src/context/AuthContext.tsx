@@ -246,34 +246,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Determina a URL de redirecionamento baseada no ambiente
       const redirectUrl = `${window.location.origin}/reset-password`;
 
-      console.log('🔄 Tentando enviar email de recuperação para:', email);
-      console.log('🔗 Redirect URL:', redirectUrl);
-
-      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
-        // Opções adicionais para garantir compatibilidade
         captchaToken: undefined,
       });
 
       if (error) {
-        console.error('❌ Erro do Supabase:', error);
         throw error;
       }
 
-      console.log('✅ Resposta do Supabase:', data);
-      console.log('📧 Email solicitado com sucesso!');
-      console.log('⚠️ IMPORTANTE:');
-      console.log('  1. Verifique sua caixa de entrada e SPAM');
-      console.log('  2. O email pode demorar até 10 minutos para chegar');
-      console.log('  3. O Supabase tem limite de 3-4 emails/hora no plano gratuito');
-      console.log('  4. Se não chegar, verifique se o usuário existe em Authentication > Users');
-
       toast.success(
-        'Email de recuperação solicitado! Verifique sua caixa de entrada e SPAM. O email pode demorar até 10 minutos.',
-        { duration: 8000 }
+        'Email de recuperação enviado! Verifique sua caixa de entrada e pasta de spam.',
+        { duration: 6000 }
       );
     } catch (error: any) {
-      console.error('❌ Reset password error:', error);
+      console.error('Reset password error:', error);
       toast.error(error.message || 'Erro ao enviar email de recuperação');
       throw error;
     }
