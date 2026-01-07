@@ -18,9 +18,18 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Validação simples - apenas verifica se as senhas coincidem e têm pelo menos 1 caractere
-  const passwordsMatch = newPassword === confirmPassword && newPassword.length > 0;
-  const isPasswordValid = passwordsMatch;
+  // Validação: mínimo 6 caracteres, letra e número
+  const passwordRequirements = {
+    minLength: newPassword.length >= 6,
+    hasLetter: /[a-zA-Z]/.test(newPassword),
+    hasNumber: /[0-9]/.test(newPassword),
+  };
+
+  const isPasswordValid =
+    passwordRequirements.minLength &&
+    passwordRequirements.hasLetter &&
+    passwordRequirements.hasNumber &&
+    newPassword === confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,8 +152,31 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
                 </div>
               </div>
 
+              {/* Requisitos de senha */}
+              {newPassword.length > 0 && (
+                <div className="space-y-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Requisitos da senha:
+                  </p>
+                  <div className="space-y-1">
+                    <div className={`flex items-center gap-2 text-xs ${passwordRequirements.minLength ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${passwordRequirements.minLength ? 'bg-green-600' : 'bg-gray-400'}`} />
+                      Mínimo 6 caracteres
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs ${passwordRequirements.hasLetter ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${passwordRequirements.hasLetter ? 'bg-green-600' : 'bg-gray-400'}`} />
+                      Pelo menos uma letra
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs ${passwordRequirements.hasNumber ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${passwordRequirements.hasNumber ? 'bg-green-600' : 'bg-gray-400'}`} />
+                      Pelo menos um número
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Mensagem de erro se senhas não coincidem */}
-              {confirmPassword.length > 0 && !passwordsMatch && (
+              {confirmPassword.length > 0 && newPassword !== confirmPassword && (
                 <p className="text-sm text-red-500 dark:text-red-400">
                   As senhas não coincidem
                 </p>

@@ -66,7 +66,7 @@ const CollaboratorDashboard = () => {
       setLoading(true);
       if (currentCycle) {
         const dashboard = await evaluationService.getCycleDashboard(currentCycle.id);
-        const myData = dashboard.find((d: any) => d.employee_id === profile!.id);
+        const myData = dashboard.find((d: any) => String(d.employee_id) === String(profile!.id));
 
         if (myData) {
           // Normalizar status para o formato esperado

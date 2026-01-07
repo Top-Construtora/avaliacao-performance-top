@@ -1,21 +1,97 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useEvaluation } from '../../hooks/useEvaluation';
+import { useUsers } from '../../context/UserContext';
 import {
-  User,
   Users,
+  UserCheck,
   FileText,
-  BarChart3,
-  Target,
-  Award,
   ArrowRight,
-  Building2
+  CheckCircle,
+  AlertCircle,
+  Building2,
+  Award
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { evaluationService } from '../../services/evaluation.service';
 
 const DirectorDashboard = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { currentCycle } = useEvaluation();
+  const { users } = useUsers();
   const firstName = profile?.name?.split(' ')[0];
+
+  const [teamStatus, setTeamStatus] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (profile?.id && currentCycle) {
+      loadData();
+    } else {
+      setLoading(false);
+    }
+  }, [profile?.id, currentCycle, users]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      if (currentCycle && profile?.id) {
+        const dashboard = await evaluationService.getCycleDashboard(currentCycle.id);
+
+        const normalizeStatus = (status: string | null | undefined): string => {
+          if (!status) return 'pending';
+          if (status === 'completed' || status === 'Completed' || status === 'COMPLETED') return 'completed';
+          if (status === 'in-progress' || status === 'in_progress' || status === 'InProgress') return 'in-progress';
+          return 'pending';
+        };
+
+        // Status dos liderados
+        const subordinates = users.filter(u => u.reports_to === profile.id && u.active);
+        const teamData = subordinates.map(subordinate => {
+          const evalData = dashboard.find((d: any) => String(d.employee_id) === String(subordinate.id));
+
+          return {
+            id: subordinate.id,
+            name: subordinate.name,
+            position: subordinate.position,
+            leaderEvaluation: normalizeStatus(evalData?.leader_evaluation_status),
+          };
+        });
+
+        setTeamStatus(teamData);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+            <CheckCircle className="w-3 h-3" />
+            Avaliado
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+            <AlertCircle className="w-3 h-3" />
+            Pendente
+          </span>
+        );
+    }
+  };
+
+  // Calcular estatísticas
+  const totalSubordinates = teamStatus.length;
+  const completedLeaderEvaluations = teamStatus.filter(t => t.leaderEvaluation === 'completed').length;
+  const pendingLeaderEvaluations = totalSubordinates - completedLeaderEvaluations;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -34,44 +110,20 @@ const DirectorDashboard = () => {
     }
   };
 
-  const functionalityCards = [
+  const quickActions = [
     {
-      id: 'autoavaliacao',
-      title: 'Autoavaliação',
-      description: 'Avalie suas competências e performance de forma reflexiva',
-      action: 'Iniciar avaliação',
-      icon: User,
-      onClick: () => navigate('/self-evaluation'),
-    },
-    {
-      id: 'avaliacao-lider',
-      title: 'Avaliação do Líder',
-      description: 'Avalie a performance dos seus avaliados',
-      action: 'Avaliar equipe',
-      icon: Users,
+      id: 'avaliar-equipe',
+      title: 'Avaliar Equipe',
+      description: 'Realize a avaliação dos seus liderados',
+      action: 'Avaliar',
+      icon: UserCheck,
       onClick: () => navigate('/leader-evaluation'),
     },
     {
-      id: 'consenso',
-      title: 'Consenso',
-      description: 'Defina as notas finais em reunião de consenso',
-      action: 'Definir consenso',
-      icon: Target,
-      onClick: () => navigate('/consensus'),
-    },
-    {
-      id: 'comite-gente',
-      title: 'Comitê de Gente',
-      description: 'Visualize o posicionamento na matriz de potencial',
-      action: 'Ver matriz',
-      icon: BarChart3,
-      onClick: () => navigate('/nine-box'),
-    },
-    {
-      id: 'plano-acao',
-      title: 'PDI',
-      description: 'Crie planos de desenvolvimento individual',
-      action: 'Criar plano',
+      id: 'gerenciar-pdi',
+      title: 'Gerenciar PDI',
+      description: 'Acompanhe os PDIs da sua equipe',
+      action: 'Gerenciar',
       icon: FileText,
       onClick: () => navigate('/pdi'),
     },
@@ -110,14 +162,85 @@ const DirectorDashboard = () => {
         </div>
       </motion.div>
 
-      {/* Functionality Cards */}
+      {/* Team Status Card - Meus Liderados */}
       <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+            <Users className="mr-2 text-primary-500" size={20} />
+            Meus Liderados
+          </h2>
+          <div className="flex items-center gap-3">
+            <div className="text-center">
+              <span className="text-xl font-bold text-emerald-600">{completedLeaderEvaluations}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 block">Avaliados</span>
+            </div>
+            <div className="text-center">
+              <span className="text-xl font-bold text-amber-500">{pendingLeaderEvaluations}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 block">Pendentes</span>
+            </div>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          </div>
+        ) : teamStatus.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>Nenhum liderado encontrado</p>
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-[280px] overflow-y-auto">
+            {teamStatus.map((member) => (
+              <div
+                key={member.id}
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{member.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{member.position}</p>
+                </div>
+                {getStatusBadge(member.leaderEvaluation)}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Progress bar */}
+        {totalSubordinates > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Avaliações concluídas</span>
+              <span className="text-sm font-bold text-emerald-600">
+                {completedLeaderEvaluations}/{totalSubordinates}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(completedLeaderEvaluations / totalSubordinates) * 100}%` }}
+                transition={{ duration: 1, delay: 0.5 }}
+                className="h-2 rounded-full bg-emerald-500"
+              />
+            </div>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Quick Actions */}
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {functionalityCards.map((card) => {
+        {quickActions.map((card) => {
           const IconComponent = card.icon;
           return (
             <motion.div

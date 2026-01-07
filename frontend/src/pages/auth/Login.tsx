@@ -147,10 +147,10 @@ export default function Login() {
               </label>
               <button
                 type="button"
-                onClick={() => navigate('/reset-password')}
+                onClick={() => navigate('/forgot-password')}
                 className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
               >
-                Redefinir a senha?
+                Esqueci minha senha
               </button>
             </div>
 

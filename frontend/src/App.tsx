@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/auth/Login';
+import ForgotPassword from './pages/auth/ForgotPassword';
 import UserManagement from './pages/users/UserManagement';
 import TeamManagement from './pages/teams/TeamManagement';
 import DepartmentManagement from './pages/departments/DepartmentManagement';
@@ -87,6 +88,7 @@ function App() {
                 <Toaster {...toasterConfig} />
                 <Routes>
                   <Route path="/login" element={<Login />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
 
                   <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>

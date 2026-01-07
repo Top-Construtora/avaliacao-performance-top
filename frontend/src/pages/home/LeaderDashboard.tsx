@@ -50,7 +50,7 @@ const LeaderDashboard = () => {
         const dashboard = await evaluationService.getCycleDashboard(currentCycle.id);
 
         // Meu progresso pessoal
-        const myData = dashboard.find((d: any) => d.employee_id === profile.id);
+        const myData = dashboard.find((d: any) => String(d.employee_id) === String(profile.id));
         if (myData) {
           const normalizeStatus = (status: string | null | undefined): string => {
             if (!status) return 'pending';
@@ -70,7 +70,7 @@ const LeaderDashboard = () => {
         // Status dos liderados
         const subordinates = users.filter(u => u.reports_to === profile.id && u.active);
         const teamData = subordinates.map(subordinate => {
-          const evalData = dashboard.find((d: any) => d.employee_id === subordinate.id);
+          const evalData = dashboard.find((d: any) => String(d.employee_id) === String(subordinate.id));
 
           const normalizeStatus = (status: string | null | undefined): string => {
             if (!status) return 'pending';

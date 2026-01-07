@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Lock, Eye, EyeOff, CheckCircle, AlertCircle, Mail, ArrowLeft } from 'lucide-react';
 import logo from '../../../assets/images/logo.png';
@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [email, setEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -18,13 +19,50 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [hasTokenError, setHasTokenError] = useState(false);
+  const [tokenErrorMessage, setTokenErrorMessage] = useState('');
+
+  // Detecta se está em modo de recuperação (veio do link de email)
+  useEffect(() => {
+    const checkRecoveryMode = async () => {
+      const hash = window.location.hash;
+
+      // Verifica se há erro no hash da URL (Supabase retorna erros assim)
+      if (hash.includes('error=')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const errorCode = params.get('error_code');
+        const errorDescription = params.get('error_description');
+
+        if (errorCode === 'otp_expired') {
+          setHasTokenError(true);
+          setTokenErrorMessage('O link de recuperação expirou ou é inválido');
+        } else if (errorCode) {
+          setHasTokenError(true);
+          setTokenErrorMessage(errorDescription || 'Erro ao validar o link de recuperação');
+        }
+        return;
+      }
+
+      // Verifica se há access_token no hash (Supabase envia assim no link de recuperação)
+      if (hash.includes('access_token=')) {
+        setIsRecoveryMode(true);
+      } else {
+        // Verifica também se há type=recovery nos query params
+        const type = searchParams.get('type');
+        if (type === 'recovery') {
+          setIsRecoveryMode(true);
+        }
+      }
+    };
+
+    checkRecoveryMode();
+  }, [searchParams]);
 
   const passwordRequirements = [
-    { regex: /.{8,}/, text: 'Mínimo 8 caracteres' },
-    { regex: /[A-Z]/, text: 'Uma letra maiúscula' },
-    { regex: /[a-z]/, text: 'Uma letra minúscula' },
-    { regex: /[0-9]/, text: 'Um número' },
-    { regex: /[^A-Za-z0-9]/, text: 'Um caractere especial' },
+    { regex: /.{6,}/, text: 'Mínimo 6 caracteres' },
+    { regex: /[a-zA-Z]/, text: 'Pelo menos uma letra' },
+    { regex: /[0-9]/, text: 'Pelo menos um número' },
   ];
 
   const checkPasswordStrength = () => {
@@ -42,9 +80,19 @@ export default function ResetPassword() {
     e.preventDefault();
     setError('');
 
-    if (!email || !currentPassword || !newPassword || !confirmPassword) {
-      setError('Por favor, preencha todos os campos');
-      return;
+    // Validação de campos obrigatórios
+    if (isRecoveryMode) {
+      // No modo recuperação, não precisa de email nem senha atual
+      if (!newPassword || !confirmPassword) {
+        setError('Por favor, preencha todos os campos');
+        return;
+      }
+    } else {
+      // No modo normal, precisa de todos os campos
+      if (!email || !currentPassword || !newPassword || !confirmPassword) {
+        setError('Por favor, preencha todos os campos');
+        return;
+      }
     }
 
     if (newPassword !== confirmPassword) {
@@ -60,40 +108,142 @@ export default function ResetPassword() {
     try {
       setIsLoading(true);
 
-      // Primeiro, valida o email e senha atual
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password: currentPassword,
-      });
+      if (isRecoveryMode) {
+        // Extrai o access_token do hash da URL
+        const hash = window.location.hash;
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
 
-      if (signInError) {
-        setError('Email ou senha atual incorretos');
-        return;
+        if (!accessToken) {
+          throw new Error('Token de acesso não encontrado na URL. Por favor, solicite um novo link de recuperação.');
+        }
+
+        // Usa a API REST do Supabase diretamente
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+          },
+          body: JSON.stringify({
+            password: newPassword
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Erro ao atualizar senha');
+        }
+
+        // Limpa o localStorage e sessionStorage
+        localStorage.removeItem('gio-auth-token');
+        sessionStorage.clear();
+
+        toast.success('Senha redefinida com sucesso! Faça login com a nova senha.');
+
+        // Limpa o hash da URL antes de navegar
+        window.history.replaceState(null, '', '/login');
+        navigate('/login');
+      } else {
+        // Modo normal: Primeiro valida o email e senha atual
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password: currentPassword,
+        });
+
+        if (signInError) {
+          setError('Email ou senha atual incorretos');
+          setIsLoading(false);
+          return;
+        }
+
+        // Se a senha atual estiver correta, atualiza para a nova
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: newPassword
+        });
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        // Faz logout após trocar a senha
+        await supabase.auth.signOut();
+
+        toast.success('Senha alterada com sucesso! Faça login com a nova senha.');
+        navigate('/login');
       }
-
-      // Se a senha atual estiver correta, atualiza para a nova
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (updateError) {
-        throw updateError;
-      }
-
-      // Faz logout após trocar a senha
-      await supabase.auth.signOut();
-
-      toast.success('Senha alterada com sucesso! Faça login com a nova senha.');
-      navigate('/login');
     } catch (err: any) {
-      console.error('Error changing password:', err);
-      setError(err.message || 'Erro ao alterar senha. Tente novamente.');
+      // Traduz mensagens de erro do Supabase
+      let errorMessage = 'Erro ao alterar senha. Tente novamente.';
+      if (err.message?.includes('New password should be different')) {
+        errorMessage = 'A nova senha deve ser diferente da senha atual';
+      } else if (err.message?.includes('Password should be at least')) {
+        errorMessage = 'A senha deve ter pelo menos 6 caracteres';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   const requirements = checkPasswordStrength();
+
+  // Tela de erro quando o token expirou ou é inválido
+  if (hasTokenError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#1e2938] to-[#0f151c] flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md"
+        >
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-8 space-y-6 border border-gray-200">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                <AlertCircle className="h-10 w-10 text-red-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Link Expirado
+              </h2>
+              <p className="text-gray-600 mb-6">
+                {tokenErrorMessage}
+              </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-left">
+                <p className="text-sm text-yellow-800 mb-2">
+                  Por segurança, os links de recuperação expiram após um tempo.
+                </p>
+                <p className="text-xs text-yellow-600">
+                  Solicite um novo link de recuperação para redefinir sua senha.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => navigate('/forgot-password')}
+                  className="w-full py-3 px-6 rounded-lg font-medium text-white transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-md"
+                  style={{backgroundColor: '#1e2938'}}
+                >
+                  Solicitar Novo Link
+                </button>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Voltar para Login
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1e2938] to-[#0f151c] flex items-center justify-center p-4">
@@ -116,68 +266,74 @@ export default function ResetPassword() {
               <img src={logo} alt="Logo" />
             </motion.div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Redefinir Senha
+              {isRecoveryMode ? 'Criar Nova Senha' : 'Redefinir Senha'}
             </h1>
             <p className="text-gray-600">
-              Escolha uma nova senha segura para sua conta
+              {isRecoveryMode
+                ? 'Escolha uma nova senha segura para sua conta'
+                : 'Escolha uma nova senha segura para sua conta'}
             </p>
           </div>
 
           {/* Formulário */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                    error ? 'border-red-500' : 'border-gray-300'
-                  } focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all bg-white`}
-                  placeholder="seu@email.com"
-                  disabled={isLoading}
-                />
+            {/* Email - Apenas no modo normal (não recovery) */}
+            {!isRecoveryMode && (
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                      error ? 'border-red-500' : 'border-gray-300'
+                    } focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all bg-white`}
+                    placeholder="seu@email.com"
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Senha Atual */}
-            <div>
-              <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                Senha Atual
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  id="currentPassword"
-                  type={showCurrentPassword ? 'text' : 'password'}
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className={`w-full pl-10 pr-12 py-3 rounded-lg border ${
-                    error ? 'border-red-500' : 'border-gray-300'
-                  } focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all bg-white`}
-                  placeholder="••••••••"
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-all duration-200"
-                  tabIndex={-1}
-                >
-                  {showCurrentPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
+            {/* Senha Atual - Apenas no modo normal (não recovery) */}
+            {!isRecoveryMode && (
+              <div>
+                <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  Senha Atual
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    id="currentPassword"
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className={`w-full pl-10 pr-12 py-3 rounded-lg border ${
+                      error ? 'border-red-500' : 'border-gray-300'
+                    } focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all bg-white`}
+                    placeholder="••••••••"
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-all duration-200"
+                    tabIndex={-1}
+                  >
+                    {showCurrentPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Nova Senha */}
             <div>
