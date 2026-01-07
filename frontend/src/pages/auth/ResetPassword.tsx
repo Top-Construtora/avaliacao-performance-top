@@ -26,13 +26,21 @@ export default function ResetPassword() {
   // Detecta se está em modo de recuperação (veio do link de email)
   useEffect(() => {
     const checkRecoveryMode = async () => {
+      // DEBUG: Log completo da URL
+      console.log('🔍 DEBUG - Full URL:', window.location.href);
+      console.log('🔍 DEBUG - Hash:', window.location.hash);
+      console.log('🔍 DEBUG - Search:', window.location.search);
+
       const hash = window.location.hash;
+      const search = window.location.search;
 
       // Verifica se há erro no hash da URL (Supabase retorna erros assim)
       if (hash.includes('error=')) {
         const params = new URLSearchParams(hash.substring(1));
         const errorCode = params.get('error_code');
         const errorDescription = params.get('error_description');
+
+        console.log('❌ DEBUG - Error found:', errorCode, errorDescription);
 
         if (errorCode === 'otp_expired') {
           setHasTokenError(true);
@@ -46,12 +54,23 @@ export default function ResetPassword() {
 
       // Verifica se há access_token no hash (Supabase envia assim no link de recuperação)
       if (hash.includes('access_token=')) {
+        console.log('✅ DEBUG - Token found in hash!');
         setIsRecoveryMode(true);
-      } else {
-        // Verifica também se há type=recovery nos query params
+      }
+      // NOVO: Também verifica no search params (caso o Vercel mova o hash)
+      else if (search.includes('access_token=')) {
+        console.log('✅ DEBUG - Token found in search params!');
+        setIsRecoveryMode(true);
+      }
+      // Verifica também se há type=recovery nos query params
+      else {
         const type = searchParams.get('type');
         if (type === 'recovery') {
+          console.log('✅ DEBUG - Recovery type found!');
           setIsRecoveryMode(true);
+        } else {
+          console.log('⚠️ DEBUG - No token or recovery type found');
+          console.log('⚠️ User may have navigated directly to this page');
         }
       }
     };
@@ -109,14 +128,37 @@ export default function ResetPassword() {
       setIsLoading(true);
 
       if (isRecoveryMode) {
-        // Extrai o access_token do hash da URL
+        // Extrai o access_token do hash da URL ou dos query params
         const hash = window.location.hash;
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get('access_token');
+        const search = window.location.search;
+
+        console.log('🔐 DEBUG - Extracting token...');
+        console.log('   Hash:', hash);
+        console.log('   Search:', search);
+
+        let accessToken = null;
+
+        // Tenta primeiro no hash (padrão do Supabase)
+        if (hash.includes('access_token=')) {
+          const params = new URLSearchParams(hash.substring(1));
+          accessToken = params.get('access_token');
+          console.log('✅ Token extracted from hash:', accessToken ? 'Found' : 'Not found');
+        }
+
+        // Se não encontrou no hash, tenta nos search params
+        if (!accessToken && search.includes('access_token=')) {
+          const params = new URLSearchParams(search);
+          accessToken = params.get('access_token');
+          console.log('✅ Token extracted from search params:', accessToken ? 'Found' : 'Not found');
+        }
 
         if (!accessToken) {
+          console.error('❌ DEBUG - Token not found anywhere!');
+          console.error('   Full URL:', window.location.href);
           throw new Error('Token de acesso não encontrado na URL. Por favor, solicite um novo link de recuperação.');
         }
+
+        console.log('✅ DEBUG - Token successfully extracted!');
 
         // Usa a API REST do Supabase diretamente
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
