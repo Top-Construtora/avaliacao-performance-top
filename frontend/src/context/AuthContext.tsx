@@ -77,6 +77,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     checkAuth();
+
+    // Configurar listener para renovação automática de token
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('🔐 Auth state change:', event);
+
+        if (event === 'TOKEN_REFRESHED' && session) {
+          console.log('✅ Token renovado automaticamente');
+          // Atualizar token no sessionStorage quando o Supabase renovar automaticamente
+          sessionStorage.setItem('access_token', session.access_token);
+        } else if (event === 'SIGNED_OUT') {
+          console.log('👋 Usuário deslogado');
+          sessionStorage.removeItem('access_token');
+          sessionStorage.removeItem('refresh_token');
+          setUser(null);
+          setProfile(null);
+          setIsAuthenticated(false);
+        } else if (event === 'SIGNED_IN' && session) {
+          console.log('👤 Usuário logado');
+          sessionStorage.setItem('access_token', session.access_token);
+        }
+      }
+    );
+
+    // Cleanup: remover listener quando componente desmontar
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const checkAuth = async () => {

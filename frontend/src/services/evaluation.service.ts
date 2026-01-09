@@ -150,13 +150,31 @@ export const evaluationService = {
       qualities?: string[];
     }
   ): Promise<SelfEvaluation> {
-    const response = await api.post('/evaluations/self', {
+    console.log('📡 [evaluationService] Salvando autoavaliação:', {
       cycleId,
       employeeId,
-      competencies,
-      toolkit
+      competenciesCount: competencies.length,
+      hasToolkit: !!toolkit
     });
-    return response.data;
+
+    try {
+      const response = await api.post('/evaluations/self', {
+        cycleId,
+        employeeId,
+        competencies,
+        toolkit
+      });
+
+      console.log('✅ [evaluationService] Autoavaliação salva com sucesso:', response);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [evaluationService] Erro ao salvar autoavaliação:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      throw error;
+    }
   },
 
   // ====================================

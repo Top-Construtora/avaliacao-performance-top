@@ -251,8 +251,11 @@ const SelfEvaluation = () => {
   };
 
   const handleSave = async (): Promise<void> => {
+    console.log('🔄 Iniciando salvamento da autoavaliação');
+
     if (!currentCycle || !user) {
-      toast.error('Ciclo de avaliação não encontrado');
+      console.error('❌ Erro: Ciclo ou usuário não encontrado', { currentCycle, user });
+      toast.error('Ciclo de avaliação ou usuário não encontrado');
       return;
     }
 
@@ -260,7 +263,10 @@ const SelfEvaluation = () => {
     const totalCompetencies = competencyCategories.reduce((sum, category) => sum + category.items.length, 0);
     const evaluatedCompetencies = Object.keys(competencyScores).length;
 
+    console.log('📊 Validação de competências:', { totalCompetencies, evaluatedCompetencies });
+
     if (evaluatedCompetencies < totalCompetencies) {
+      console.warn('⚠️ Nem todas as competências foram avaliadas');
       toast.error('Avalie todas as competências antes de salvar');
       return;
     }
@@ -294,13 +300,20 @@ const SelfEvaluation = () => {
         };
       })
     );
-    
+
+    console.log('📦 Dados preparados para envio:', {
+      cycleId: currentCycle.id,
+      employeeId: user.id,
+      competenciesCount: competencies.length,
+      toolkitSections: Object.keys(cleanedData).length
+    });
+
     const saveDraft = async () => {
       if (!currentCycle?.id || !profile?.id) {
         toast.error('Informações necessárias não encontradas');
         return;
       }
-    
+
       try {
         await evaluationService.saveSelfEvaluation(
           currentCycle.id,
@@ -315,6 +328,8 @@ const SelfEvaluation = () => {
 
     setIsSaving(true);
     try {
+      console.log('📤 Enviando autoavaliação para o servidor...');
+
       await saveSelfEvaluation({
         cycleId: currentCycle.id,
         employeeId: user.id,
@@ -326,13 +341,47 @@ const SelfEvaluation = () => {
           qualities: cleanedData.qualidades
         }
       });
-      
+
+      console.log('✅ Autoavaliação salva com sucesso!');
       toast.success('Autoavaliação completa salva com sucesso!');
       navigate('/');
-    } catch (error) {
-      toast.error('Erro ao salvar autoavaliação');
+    } catch (error: any) {
+      // Log detalhado do erro
+      console.error('❌ Erro ao salvar autoavaliação:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data,
+        stack: error.stack
+      });
+
+      // Mensagem específica baseada no tipo de erro
+      if (error.response?.status === 401) {
+        console.error('🔒 Erro de autenticação: Token expirado ou inválido');
+        toast.error('Sua sessão expirou. Por favor, faça login novamente.', {
+          duration: 5000,
+          icon: '🔒'
+        });
+        // Aguardar 2 segundos para o usuário ler a mensagem antes de redirecionar
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else if (error.response?.status === 403) {
+        console.error('⛔ Erro de permissão');
+        toast.error('Você não tem permissão para realizar esta ação.');
+      } else if (error.response?.status === 500) {
+        console.error('💥 Erro interno do servidor');
+        toast.error('Erro no servidor. Por favor, tente novamente em alguns instantes.');
+      } else if (error.request) {
+        console.error('🌐 Erro de conexão: Sem resposta do servidor');
+        toast.error('Erro de conexão. Verifique sua internet e tente novamente.');
+      } else {
+        console.error('⚠️ Erro desconhecido');
+        toast.error(error.message || 'Erro ao salvar autoavaliação. Por favor, tente novamente.');
+      }
     } finally {
       setIsSaving(false);
+      console.log('🏁 Processo de salvamento finalizado');
     }
   };
 

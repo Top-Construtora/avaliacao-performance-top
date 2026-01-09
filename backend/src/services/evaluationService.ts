@@ -399,6 +399,13 @@ export const evaluationService = {
 
   // Criar autoavaliação
   async createSelfEvaluation(supabase: any, evaluationData: any) {
+    console.log('📝 [evaluationService] Iniciando criação de autoavaliação:', {
+      cycleId: evaluationData.cycleId,
+      employeeId: evaluationData.employeeId,
+      competenciesCount: evaluationData.competencies?.length || 0,
+      hasToolkit: !!evaluationData.toolkit
+    });
+
     try {
       // Calcular scores por categoria (pode retornar null se não houver competências)
       const technicalScore = this.calculateCategoryScore(evaluationData.competencies, 'technical');
@@ -406,29 +413,45 @@ export const evaluationService = {
       const deliveriesScore = this.calculateCategoryScore(evaluationData.competencies, 'deliveries');
       const finalScore = this.calculateFinalScore(evaluationData.competencies);
 
+      console.log('📊 [evaluationService] Scores calculados:', {
+        technicalScore,
+        behavioralScore,
+        deliveriesScore,
+        finalScore
+      });
+
       // Criar a autoavaliação
+      const insertData = {
+        cycle_id: evaluationData.cycleId,
+        employee_id: evaluationData.employeeId,
+        status: 'completed',
+        technical_score: technicalScore,
+        behavioral_score: behavioralScore,
+        deliveries_score: deliveriesScore, // Pode ser null
+        final_score: finalScore,
+        knowledge: evaluationData.toolkit?.knowledge || [],
+        tools: evaluationData.toolkit?.tools || [],
+        strengths_internal: evaluationData.toolkit?.strengths_internal || [],
+        qualities: evaluationData.toolkit?.qualities || [],
+        evaluation_date: new Date().toISOString().split('T')[0],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('💾 [evaluationService] Inserindo autoavaliação no banco...');
+
       const { data: evaluation, error: evalError } = await supabase
         .from('self_evaluations')
-        .insert({
-          cycle_id: evaluationData.cycleId,
-          employee_id: evaluationData.employeeId,
-          status: 'completed',
-          technical_score: technicalScore,
-          behavioral_score: behavioralScore,
-          deliveries_score: deliveriesScore, // Pode ser null
-          final_score: finalScore,
-          knowledge: evaluationData.toolkit?.knowledge || [],
-          tools: evaluationData.toolkit?.tools || [],
-          strengths_internal: evaluationData.toolkit?.strengths_internal || [],
-          qualities: evaluationData.toolkit?.qualities || [],
-          evaluation_date: new Date().toISOString().split('T')[0],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .insert(insertData)
         .select()
         .single();
 
-      if (evalError) throw new ApiError(500, evalError.message);
+      if (evalError) {
+        console.error('❌ [evaluationService] Erro ao inserir autoavaliação:', evalError);
+        throw new ApiError(500, evalError.message);
+      }
+
+      console.log('✅ [evaluationService] Autoavaliação criada com ID:', evaluation.id);
 
       // Salvar as competências avaliadas
       if (evaluationData.competencies && evaluationData.competencies.length > 0) {
@@ -443,16 +466,28 @@ export const evaluationService = {
           created_at: new Date().toISOString()
         }));
 
+        console.log('💾 [evaluationService] Inserindo competências:', competenciesToInsert.length);
+
         const { error: compError } = await supabase
           .from('evaluation_competencies')
           .insert(competenciesToInsert);
 
-        if (compError) throw new ApiError(500, compError.message);
+        if (compError) {
+          console.error('❌ [evaluationService] Erro ao inserir competências:', compError);
+          throw new ApiError(500, compError.message);
+        }
+
+        console.log('✅ [evaluationService] Competências salvas com sucesso');
       }
 
+      console.log('🎉 [evaluationService] Autoavaliação criada com sucesso!');
       return evaluation;
     } catch (error: any) {
-      console.error('Service error:', error);
+      console.error('❌ [evaluationService] Erro crítico ao criar autoavaliação:', {
+        message: error.message,
+        stack: error.stack,
+        details: error.details || error.hint
+      });
       throw error;
     }
   },
