@@ -10,6 +10,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<boolean>;
+  signInWithMicrosoft: () => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
@@ -97,6 +98,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else if (event === 'SIGNED_IN' && session) {
           console.log('👤 Usuário logado');
           sessionStorage.setItem('access_token', session.access_token);
+
+          // Para login OAuth, carregar o perfil do usuário
+          if (!profile) {
+            const { data: profileData, error } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            if (!error && profileData) {
+              // Verifica se o usuário está ativo
+              if (!profileData.active) {
+                await supabase.auth.signOut();
+                toast.error('Usuário inativo. Entre em contato com o administrador.');
+                return;
+              }
+
+              setUser(profileData);
+              setProfile(profileData);
+              setIsAuthenticated(true);
+              toast.success('Login realizado com sucesso!');
+            } else if (error) {
+              console.error('Erro ao buscar perfil:', error);
+              toast.error('Usuário não encontrado no sistema. Entre em contato com o administrador.');
+              await supabase.auth.signOut();
+            }
+          }
         }
       }
     );
@@ -191,6 +219,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Error signing in:', error);
       toast.error('Erro ao fazer login. Verifique suas credenciais.');
       return false;
+    }
+  };
+
+  const signInWithMicrosoft = async (): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'azure',
+        options: {
+          scopes: 'email User.Read offline_access',
+          redirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) {
+        console.error('Microsoft OAuth error:', error);
+        toast.error('Erro ao iniciar login com Microsoft');
+        throw error;
+      }
+    } catch (error: any) {
+      console.error('Error signing in with Microsoft:', error);
+      toast.error('Erro ao fazer login com Microsoft');
+      throw error;
     }
   };
 
@@ -300,6 +350,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAuthenticated,
     loading,
     signIn,
+    signInWithMicrosoft,
     signOut,
     updateProfile,
     updatePassword,

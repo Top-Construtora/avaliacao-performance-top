@@ -7,12 +7,13 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, signInWithMicrosoft } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMicrosoft, setIsLoadingMicrosoft] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,6 +40,17 @@ export default function Login() {
     }
   };
 
+  const handleMicrosoftLogin = async () => {
+    try {
+      setIsLoadingMicrosoft(true);
+      setError('');
+      await signInWithMicrosoft();
+    } catch (err: any) {
+      setError('Erro ao fazer login com Microsoft');
+    } finally {
+      setIsLoadingMicrosoft(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1e2938] to-[#0f151c] flex items-center justify-center p-4">
@@ -157,13 +169,13 @@ export default function Login() {
             {/* Botão de Login */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isLoadingMicrosoft}
               className={`w-full py-3 px-6 rounded-lg font-medium text-white transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-md ${
-                isLoading
+                isLoading || isLoadingMicrosoft
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'hover:opacity-90 focus:ring-2 focus:ring-primary-500/20 active:scale-[0.98]'
               }`}
-              style={!isLoading ? {backgroundColor: '#1e2938'} : {}}
+              style={!isLoading && !isLoadingMicrosoft ? {backgroundColor: '#1e2938'} : {}}
             >
               {isLoading ? (
                 <>
@@ -174,6 +186,45 @@ export default function Login() {
                 <>
                   <LogIn className="h-5 w-5" />
                   <span>Entrar</span>
+                </>
+              )}
+            </button>
+
+            {/* Divisor */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">ou</span>
+              </div>
+            </div>
+
+            {/* Botão de Login com Microsoft */}
+            <button
+              type="button"
+              onClick={handleMicrosoftLogin}
+              disabled={isLoading || isLoadingMicrosoft}
+              className={`w-full py-3 px-6 rounded-lg font-medium text-gray-700 transition-all duration-200 flex items-center justify-center gap-2 border border-gray-300 bg-white hover:-translate-y-0.5 hover:shadow-md ${
+                isLoading || isLoadingMicrosoft
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 active:scale-[0.98]'
+              }`}
+            >
+              {isLoadingMicrosoft ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-600 border-t-transparent" />
+                  <span>Conectando...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="h-5 w-5" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+                    <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+                    <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+                    <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+                  </svg>
+                  <span>Entrar com Microsoft</span>
                 </>
               )}
             </button>
