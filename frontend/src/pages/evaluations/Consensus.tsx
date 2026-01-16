@@ -228,16 +228,13 @@ const Consensus = () => {
   const loadPdiForEmployee = useCallback(async (employeeId: string) => {
     try {
       const employeeProfile = employees.find(emp => emp.id === employeeId);
-      console.log('Carregando PDI para colaborador:', employeeId, employeeProfile?.name);
-      
+
       // Tentar carregar o PDI, mas sem mostrar erro se não existir
       try {
         const pdi = await pdiService.getPDI(employeeId);
-        console.log('PDI retornado da API:', pdi);
-        
+
         if (pdi) {
           const transformedPDI = pdiService.transformPDIDataFromAPI(pdi);
-          console.log('PDI transformado:', transformedPDI);
           setPdiData({
             ...transformedPDI,
             colaborador: employeeProfile?.name || transformedPDI.colaborador,
@@ -269,7 +266,6 @@ const Consensus = () => {
         }
       } catch (pdiError: any) {
         // Se o erro for 404 ou similar, apenas configurar um PDI vazio
-        console.log('PDI não encontrado para o colaborador, configurando novo PDI');
         setPdiData({
           colaboradorId: employeeId,
           colaborador: employeeProfile?.name || '',
@@ -426,7 +422,7 @@ const Consensus = () => {
           .select('id, consensus_score, potential_score, nine_box_position, evaluation_date, notes, self_evaluation_id, leader_evaluation_id')
           .eq('employee_id', selectedEmployeeId)
           .eq('cycle_id', currentCycle.id)
-          .single();
+          .maybeSingle();
 
         existingConsensus = consensusData;
 
@@ -482,7 +478,7 @@ const Consensus = () => {
         .eq('status', 'completed')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       // Carregar toolkit da autoavaliação
       if (selfEval && !selfError) {
@@ -507,7 +503,7 @@ const Consensus = () => {
         .eq('status', 'completed')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       // Inicializar scores com valores padrão
       const selfScoresMap: ScoreMap = {};
@@ -537,44 +533,30 @@ const Consensus = () => {
 
       // Processar scores da autoavaliação (apenas se não houver consenso existente)
       if (!existingConsensus && selfEval && !selfError && selfEval.evaluation_competencies) {
-        console.log('📊 Autoavaliação encontrada - Competências:', selfEval.evaluation_competencies);
-        setSelfEvaluationId(selfEval.id); // Armazenar o ID da autoavaliação
+        setSelfEvaluationId(selfEval.id);
 
         selfEval.evaluation_competencies.forEach((comp: any) => {
-          console.log(`  - ${comp.criterion_name}: ${comp.score} (categoria: ${comp.category})`);
           const criterionId = criterionNameToId[comp.criterion_name.toUpperCase()];
           if (criterionId && comp.score !== null) {
             selfScoresMap[criterionId] = comp.score;
-            console.log(`    ✅ Mapeado para ID: ${criterionId}`);
-          } else if (!criterionId) {
-            console.warn(`    ⚠️ Competência não mapeada: ${comp.criterion_name}`);
           }
         });
       } else if (!existingConsensus) {
-        console.log('❌ Nenhuma autoavaliação encontrada para este colaborador');
         setSelfEvaluationId(null);
       }
 
       // Processar scores da avaliação do líder (apenas se não houver consenso existente)
       if (!existingConsensus && leaderEval && !leaderError && leaderEval.evaluation_competencies) {
-        console.log('👔 Avaliação do Líder encontrada - Competências:', leaderEval.evaluation_competencies);
-        setLeaderEvaluationId(leaderEval.id); // Armazenar o ID da avaliação do líder
-        setPotentialScore(leaderEval.potential_score || null); // Armazenar a nota de potencial
-
-        console.log('📈 Nota de Potencial do Líder:', leaderEval.potential_score);
+        setLeaderEvaluationId(leaderEval.id);
+        setPotentialScore(leaderEval.potential_score || null);
 
         leaderEval.evaluation_competencies.forEach((comp: any) => {
-          console.log(`  - ${comp.criterion_name}: ${comp.score} (categoria: ${comp.category})`);
           const criterionId = criterionNameToId[comp.criterion_name.toUpperCase()];
           if (criterionId && comp.score !== null) {
             leaderScoresMap[criterionId] = comp.score;
-            console.log(`    ✅ Mapeado para ID: ${criterionId}`);
-          } else if (!criterionId) {
-            console.warn(`    ⚠️ Competência não mapeada: ${comp.criterion_name}`);
           }
         });
       } else if (!existingConsensus) {
-        console.log('❌ Nenhuma avaliação do líder encontrada para este colaborador');
         setLeaderEvaluationId(null);
         setPotentialScore(null);
       }
@@ -587,13 +569,6 @@ const Consensus = () => {
         setConsensusObservations({});
       }
 
-      // Informar se não encontrou avaliações
-      if (selfError && selfError.code === 'PGRST116') {
-        console.log('Nenhuma autoavaliação encontrada');
-      }
-      if (leaderError && leaderError.code === 'PGRST116') {
-        console.log('Nenhuma avaliação do líder encontrada');
-      }
     } catch (error) {
       console.error('Error loading evaluations:', error);
       toast.error('Erro ao carregar avaliações');
@@ -716,7 +691,7 @@ const Consensus = () => {
         .select('id')
         .eq('employee_id', selectedEmployeeId)
         .eq('cycle_id', currentCycle.id)
-        .single();
+        .maybeSingle();
 
       if (checkError && checkError.code !== 'PGRST116') {
         // PGRST116 = no rows found, que é o esperado
@@ -733,7 +708,6 @@ const Consensus = () => {
 
       // Calculate nine box position
       const nineBoxPosition = calculateNineBoxCode(finalScore, potentialScore);
-      console.log('📊 Posição Nine Box calculada:', nineBoxPosition, '(Performance:', finalScore, '/ Potencial:', potentialScore, ')');
 
       // Create notes with all observations and scores
       const notesContent = {
@@ -758,8 +732,6 @@ const Consensus = () => {
         notes: JSON.stringify(notesContent),
         evaluation_date: new Date().toISOString().split('T')[0]
       };
-
-      console.log('💾 Salvando consenso com dados:', consensusData);
 
       // Insert consensus evaluation
       const { data: evaluation, error: evalError } = await supabase
