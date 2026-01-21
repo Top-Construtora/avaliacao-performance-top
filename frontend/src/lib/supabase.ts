@@ -12,19 +12,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
-    persistSession: false, // Mudado para false - não persiste a sessão
+    persistSession: true, // Habilitado para permitir refresh automático adequado
     detectSessionInUrl: true,
     storage: {
-      // Usa sessionStorage em vez de localStorage
-      // sessionStorage é limpo quando o navegador fecha
+      // Usa localStorage para permitir refresh automático entre abas/recarregamentos
+      // Isso é necessário para que o autoRefreshToken funcione corretamente
       getItem: (key: string) => {
-        return sessionStorage.getItem(key)
+        return localStorage.getItem(key)
       },
       setItem: (key: string, value: string) => {
-        sessionStorage.setItem(key, value)
+        localStorage.setItem(key, value)
       },
       removeItem: (key: string) => {
-        sessionStorage.removeItem(key)
+        localStorage.removeItem(key)
       }
     }
   },

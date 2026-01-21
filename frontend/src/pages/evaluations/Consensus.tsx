@@ -309,6 +309,21 @@ const Consensus = () => {
 
     setLoading(true);
     try {
+      // Verificar sessão antes de salvar PDI
+      console.log('💾 Iniciando salvamento do PDI...');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        console.error('❌ Sessão inválida ao tentar salvar PDI:', sessionError);
+        toast.error('Sua sessão expirou. Por favor, faça login novamente.');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+        return;
+      }
+
+      console.log('✅ Sessão válida, salvando PDI...');
+
       const currentCycle = await evaluationService.getCurrentCycle();
       const pdiParams = pdiService.transformPDIDataForAPI(
         pdiData,
@@ -317,14 +332,34 @@ const Consensus = () => {
       );
 
       await pdiService.savePDI(pdiParams);
+      console.log('✅ PDI salvo com sucesso');
       toast.success('PDI atualizado com sucesso!');
-      
+
       // Recarregar o PDI para mostrar a versão atualizada
       await loadPdiForEmployee(pdiData.colaboradorId);
       setPdiViewMode('view');
-    } catch (error) {
-      console.error('Erro ao salvar PDI na reunião de consenso:', error);
-      toast.error('Erro ao salvar PDI');
+    } catch (error: any) {
+      console.error('❌ Erro ao salvar PDI:', error);
+
+      // Verificar se é erro de timeout
+      if (error?.isTimeout || error?.name === 'AbortError') {
+        toast.error('Tempo limite excedido. O servidor demorou para responder. Tente novamente.', {
+          duration: 5000
+        });
+        console.log('⏱️ Timeout ao salvar PDI');
+      }
+      // Verificar se é erro de autenticação
+      else if (error?.message?.includes('JWT') ||
+          error?.message?.includes('session') ||
+          error?.message?.includes('expired') ||
+          error?.code === 'PGRST301') {
+        toast.error('Sua sessão expirou. Por favor, faça login novamente.');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3000);
+      } else {
+        toast.error('Erro ao salvar PDI. Tente novamente.');
+      }
     } finally {
       setLoading(false);
     }
@@ -565,8 +600,42 @@ const Consensus = () => {
       if (!existingConsensus) {
         setSelfScores(selfScoresMap);
         setLeaderScores(leaderScoresMap);
-        setConsensusScores({});
-        setConsensusObservations({});
+
+        // Verificar se há dados salvos no autosave antes de limpar
+        const autoSaveKey = `consensus_autosave_${selectedEmployeeId}`;
+        const savedData = localStorage.getItem(autoSaveKey);
+
+        if (savedData) {
+          try {
+            const parsed = JSON.parse(savedData);
+            const savedTime = new Date(parsed.timestamp);
+            const now = new Date();
+            const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60);
+
+            // Se os dados foram salvos há menos de 24 horas, restaurar aqui
+            if (hoursDiff < 24) {
+              console.log('📝 Restaurando dados do auto-save após carregar avaliações...');
+              if (parsed.consensusScores) setConsensusScores(parsed.consensusScores);
+              if (parsed.consensusObservations) setConsensusObservations(parsed.consensusObservations);
+              if (parsed.potentialScore) setPotentialScore(parsed.potentialScore);
+              toast.success('Dados restaurados do último preenchimento', { duration: 3000 });
+            } else {
+              // Remover dados antigos e limpar scores
+              localStorage.removeItem(autoSaveKey);
+              setConsensusScores({});
+              setConsensusObservations({});
+            }
+          } catch (error) {
+            console.error('Erro ao restaurar auto-save:', error);
+            // Em caso de erro, limpar normalmente
+            setConsensusScores({});
+            setConsensusObservations({});
+          }
+        } else {
+          // Não há autosave, limpar normalmente
+          setConsensusScores({});
+          setConsensusObservations({});
+        }
       }
 
     } catch (error) {
@@ -576,6 +645,29 @@ const Consensus = () => {
       setLoading(false);
     }
   }, [selectedEmployeeId, deliveriesCriteria]);
+
+  // Auto-save restore foi movido para dentro de loadEmployeeEvaluations
+  // para evitar race condition onde os dados restaurados eram sobrescritos
+
+  // Auto-save: Salvar dados no localStorage quando houver mudanças
+  useEffect(() => {
+    if (selectedEmployeeId && (Object.keys(consensusScores).length > 0 || Object.keys(consensusObservations).length > 0)) {
+      const autoSaveKey = `consensus_autosave_${selectedEmployeeId}`;
+      const dataToSave = {
+        consensusScores,
+        consensusObservations,
+        potentialScore,
+        timestamp: new Date().toISOString()
+      };
+
+      localStorage.setItem(autoSaveKey, JSON.stringify(dataToSave));
+      console.log('💾 Auto-save realizado:', {
+        numScores: Object.keys(consensusScores).length,
+        numObservations: Object.keys(consensusObservations).length,
+        potentialScore
+      });
+    }
+  }, [consensusScores, consensusObservations, potentialScore, selectedEmployeeId]);
 
   // Load evaluations and PDI when employee is selected
   useEffect(() => {
@@ -677,7 +769,23 @@ const Consensus = () => {
     }
 
     setLoading(true);
+
     try {
+      // Verificar se a sessão está válida antes de salvar
+      console.log('💾 Iniciando salvamento do consenso...');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        console.error('❌ Sessão inválida ao tentar salvar:', sessionError);
+        toast.error('Sua sessão expirou. Por favor, faça login novamente.');
+        // Aguardar 2 segundos e redirecionar para login
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+        return;
+      }
+
+      console.log('✅ Sessão válida, prosseguindo com salvamento...');
       // Get current cycle
       const currentCycle = await evaluationService.getCurrentCycle();
       if (!currentCycle) {
@@ -742,6 +850,12 @@ const Consensus = () => {
 
       if (evalError) throw evalError;
 
+      // Limpar auto-save após salvar com sucesso
+      const autoSaveKey = `consensus_autosave_${selectedEmployeeId}`;
+      localStorage.removeItem(autoSaveKey);
+      console.log('🗑️ Auto-save limpo após salvar consenso');
+      console.log('✅ Consenso salvo com sucesso!');
+
       toast.success('Consenso salvo com sucesso!');
 
       // Reset form
@@ -752,9 +866,31 @@ const Consensus = () => {
       setSelfEvaluationId(null);
       setLeaderEvaluationId(null);
       setPotentialScore(null);
-    } catch (error) {
-      console.error('Error saving consensus:', error);
-      toast.error('Erro ao salvar consenso');
+    } catch (error: any) {
+      console.error('❌ Erro ao salvar consenso:', error);
+
+      // Verificar se é erro de timeout
+      if (error?.isTimeout || error?.name === 'AbortError') {
+        toast.error('Tempo limite excedido. O servidor demorou para responder. Seus dados foram preservados. Tente novamente.', {
+          duration: 5000
+        });
+        console.log('⏱️ Timeout ao salvar - dados preservados no autosave');
+      }
+      // Verificar se é erro de autenticação
+      else if (error?.message?.includes('JWT') ||
+          error?.message?.includes('session') ||
+          error?.message?.includes('expired') ||
+          error?.code === 'PGRST301') {
+        toast.error('Sua sessão expirou. Os dados foram salvos localmente. Por favor, faça login novamente.');
+        // Aguardar 3 segundos e redirecionar para login
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3000);
+      } else {
+        // Erro genérico - dados permanecem no autosave
+        toast.error('Erro ao salvar consenso. Seus dados foram preservados. Tente novamente.');
+        console.log('💾 Dados preservados no autosave devido ao erro');
+      }
     } finally {
       setLoading(false);
     }

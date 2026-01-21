@@ -235,65 +235,66 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [hierarchicalRelations]);
 
   // Setup real-time subscriptions
-  useEffect(() => {
-    // Subscribe to changes in users table
-    const userSubscription = supabase
-      .channel('users-changes')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'users' 
-        },
-        (payload) => {
-          console.log('User change detected:', payload);
-          // Aguarda um pouco para garantir que a transação foi completada
-          setTimeout(() => {
-            reloadUsers();
-          }, 1000);
-        }
-      )
-      .subscribe();
+  // DESABILITADO: Realtime está desabilitado no supabase.ts para evitar erros de WebSocket
+  // useEffect(() => {
+  //   // Subscribe to changes in users table
+  //   const userSubscription = supabase
+  //     .channel('users-changes')
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: '*',
+  //         schema: 'public',
+  //         table: 'users'
+  //       },
+  //       (payload) => {
+  //         console.log('User change detected:', payload);
+  //         // Aguarda um pouco para garantir que a transação foi completada
+  //         setTimeout(() => {
+  //           reloadUsers();
+  //         }, 1000);
+  //       }
+  //     )
+  //     .subscribe();
 
-    // Subscribe to changes in teams table
-    const teamSubscription = supabase
-      .channel('teams-changes')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'teams' 
-        },
-        () => {
-          reloadTeams();
-        }
-      )
-      .subscribe();
+  //   // Subscribe to changes in teams table
+  //   const teamSubscription = supabase
+  //     .channel('teams-changes')
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: '*',
+  //         schema: 'public',
+  //         table: 'teams'
+  //       },
+  //       () => {
+  //         reloadTeams();
+  //       }
+  //     )
+  //     .subscribe();
 
-    // Subscribe to changes in departments table
-    const departmentSubscription = supabase
-      .channel('departments-changes')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'departments' 
-        },
-        () => {
-          reloadDepartments();
-        }
-      )
-      .subscribe();
+  //   // Subscribe to changes in departments table
+  //   const departmentSubscription = supabase
+  //     .channel('departments-changes')
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: '*',
+  //         schema: 'public',
+  //         table: 'departments'
+  //       },
+  //       () => {
+  //         reloadDepartments();
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      userSubscription.unsubscribe();
-      teamSubscription.unsubscribe();
-      departmentSubscription.unsubscribe();
-    };
-  }, []);
+  //   return () => {
+  //     userSubscription.unsubscribe();
+  //     teamSubscription.unsubscribe();
+  //     departmentSubscription.unsubscribe();
+  //   };
+  // }, []);
 
   // Reload functions
   const reloadUsers = async () => {

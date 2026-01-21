@@ -9,26 +9,34 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
 
 export const api = {
   baseURL: API_BASE_URL,
-  
-  async request(endpoint: string, options: RequestInit = {}) {
-    const token = sessionStorage.getItem('access_token');
-    
+
+  async request(endpoint: string, options: RequestInit = {}, isRetry: boolean = false) {
+    const token = localStorage.getItem('access_token');
+
     // Headers padrão limpos
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
-    
+
     // Adiciona token se existir
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    
+
+    // Criar AbortController para timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      console.error('⏱️ Request timeout após 60 segundos');
+    }, 60000); // 60 segundos de timeout
+
     // Não adiciona headers customizados que possam causar problemas
     const config: RequestInit = {
       ...options,
       credentials: 'include', // Importante para CORS
       mode: 'cors', // Explicitamente define modo CORS
+      signal: controller.signal, // Adiciona signal para timeout
       headers: {
         ...headers,
         ...options.headers,
@@ -37,8 +45,35 @@ export const api = {
 
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
-            
+      clearTimeout(timeoutId); // Limpa timeout se resposta chegou
+
       if (!response.ok) {
+        // Se for erro 401 (não autorizado) e não for uma retry, tentar refresh do token
+        if (response.status === 401 && !isRetry) {
+          console.log('🔄 Token expirado, tentando renovar...');
+
+          // Importar supabase dinamicamente para evitar circular dependency
+          const { supabase } = await import('../lib/supabase');
+
+          // Tentar renovar o token
+          const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+
+          if (!refreshError && session?.access_token) {
+            console.log('✅ Token renovado com sucesso, tentando novamente...');
+            localStorage.setItem('access_token', session.access_token);
+
+            // Tentar novamente com o novo token
+            return this.request(endpoint, options, true);
+          } else {
+            console.error('❌ Falha ao renovar token:', refreshError);
+            // Se falhar, fazer logout
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/login';
+            throw new Error('Sessão expirada. Por favor, faça login novamente.');
+          }
+        }
+
         let errorData: any = { message: `HTTP error! status: ${response.status}` };
 
         try {
@@ -108,11 +143,21 @@ export const api = {
         return await response.text();
       }
     } catch (error: any) {
+      clearTimeout(timeoutId); // Limpa timeout em caso de erro
+
+      // Detectar se foi timeout (AbortError)
+      if (error.name === 'AbortError') {
+        console.error('❌ Timeout: Servidor não respondeu em 60 segundos');
+        const timeoutError: any = new Error('Tempo limite excedido. O servidor está demorando muito para responder. Tente novamente.');
+        timeoutError.isTimeout = true;
+        throw timeoutError;
+      }
+
       // Se for erro de rede/conexão
       if (!error.response) {
         error.request = true;
       }
-      
+
       // Log de debug em desenvolvimento
       if (import.meta.env.DEV) {
         console.error('API Request Error:', {
@@ -123,7 +168,7 @@ export const api = {
           data: error.response?.data
         });
       }
-      
+
       throw error;
     }
   },
@@ -168,7 +213,7 @@ export const api = {
 
   // Método específico para download de arquivos (blob)
   async downloadFile(endpoint: string): Promise<Blob> {
-    const token = sessionStorage.getItem('access_token');
+    const token = localStorage.getItem('access_token');
 
     const headers: HeadersInit = {};
 

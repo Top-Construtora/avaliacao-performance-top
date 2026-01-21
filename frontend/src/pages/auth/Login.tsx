@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, Mail, Lock, Eye, EyeOff, AlertCircle, Sparkles } from 'lucide-react';
@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn, signInWithMicrosoft } = useAuth();
+  const { signIn, signInWithMicrosoft, isAuthenticated, loading } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,26 +16,42 @@ export default function Login() {
   const [isLoadingMicrosoft, setIsLoadingMicrosoft] = useState(false);
   const [error, setError] = useState('');
 
+  // Redirecionar se já estiver autenticado
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      console.log('✅ Usuário já autenticado, redirecionando para home...');
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     if (!email || !password) {
       setError('Por favor, preencha todos os campos');
       return;
     }
-  
+
     try {
       setIsLoading(true);
+      console.log('🔑 Tentando fazer login...');
+
       const success = await signIn(email, password);
+
+      console.log('📊 Resultado do login:', success);
+
       if (success) {
+        console.log('✅ Login bem-sucedido, redirecionando...');
         navigate('/');
       } else {
+        console.log('❌ Login falhou');
         setError('Email ou senha inválidos');
+        setIsLoading(false);
       }
     } catch (err: any) {
+      console.error('❌ Erro ao fazer login:', err);
       setError('Email ou senha inválidos');
-    } finally {
       setIsLoading(false);
     }
   };

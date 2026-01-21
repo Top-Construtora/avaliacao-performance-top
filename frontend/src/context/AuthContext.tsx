@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { api } from '../config/api';
 import { User } from '../types/user';
 import toast from 'react-hot-toast';
@@ -75,56 +75,102 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const isFetchingProfileRef = useRef(false);
+  const hasInitializedRef = useRef(false);
+  const profileRef = useRef<User | null>(null);
+  const isCheckingAuthRef = useRef(false);
+
+  // Manter profileRef sincronizado com profile
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
 
   useEffect(() => {
+    // Resetar as refs quando o componente monta
+    isFetchingProfileRef.current = false;
+    hasInitializedRef.current = false;
+    isCheckingAuthRef.current = false;
+
     checkAuth();
 
     // Configurar listener para renovação automática de token
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔐 Auth state change:', event);
-
         if (event === 'TOKEN_REFRESHED' && session) {
           console.log('✅ Token renovado automaticamente');
-          // Atualizar token no sessionStorage quando o Supabase renovar automaticamente
-          sessionStorage.setItem('access_token', session.access_token);
+          // Atualizar token no localStorage quando o Supabase renovar automaticamente
+          localStorage.setItem('access_token', session.access_token);
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 Usuário deslogado');
-          sessionStorage.removeItem('access_token');
-          sessionStorage.removeItem('refresh_token');
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
           setUser(null);
           setProfile(null);
           setIsAuthenticated(false);
+          isFetchingProfileRef.current = false;
+          hasInitializedRef.current = false;
+          isCheckingAuthRef.current = false;
         } else if (event === 'SIGNED_IN' && session) {
-          console.log('👤 Usuário logado');
-          sessionStorage.setItem('access_token', session.access_token);
+          console.log('👤 Evento SIGNED_IN detectado');
+          localStorage.setItem('access_token', session.access_token);
 
-          // Para login OAuth, carregar o perfil do usuário
-          if (!profile) {
-            const { data: profileData, error } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-
-            if (!error && profileData) {
-              // Verifica se o usuário está ativo
-              if (!profileData.active) {
-                await supabase.auth.signOut();
-                toast.error('Usuário inativo. Entre em contato com o administrador.');
-                return;
-              }
-
-              setUser(profileData);
-              setProfile(profileData);
-              setIsAuthenticated(true);
-              toast.success('Login realizado com sucesso!');
-            } else if (error) {
-              console.error('Erro ao buscar perfil:', error);
-              toast.error('Usuário não encontrado no sistema. Entre em contato com o administrador.');
-              await supabase.auth.signOut();
-            }
+          // Ignorar durante checkAuth inicial
+          if (isCheckingAuthRef.current) {
+            console.log('⏭️ checkAuth em andamento, ignorando evento SIGNED_IN');
+            return;
           }
+
+          // IMPORTANTE: Durante signIn manual, isFetchingProfileRef estará true
+          // Isso significa que o perfil já está sendo buscado pela função signIn
+          // e devemos ignorar este evento para evitar duplicação
+          if (isFetchingProfileRef.current) {
+            console.log('⏭️ Login manual em andamento, ignorando evento SIGNED_IN');
+            return;
+          }
+
+          // Se já temos um perfil carregado do mesmo usuário, ignorar
+          // Isso evita buscas duplicadas no carregamento inicial da página
+          if (profileRef.current && profileRef.current.id === session.user.id) {
+            console.log('✅ Perfil já carregado, ignorando evento SIGNED_IN');
+            return;
+          }
+
+          // Este ponto só deve ser alcançado para:
+          // 1. Login OAuth (Microsoft)
+          // 2. Refresh de sessão sem perfil carregado
+          console.log('🔄 Buscando perfil do usuário via evento SIGNED_IN');
+
+          const fetchProfile = async () => {
+            try {
+              const { data: profileData, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+
+              if (!error && profileData) {
+                // Verifica se o usuário está ativo
+                if (!profileData.active) {
+                  await supabase.auth.signOut();
+                  toast.error('Usuário inativo. Entre em contato com o administrador.');
+                  return;
+                }
+
+                setUser(profileData);
+                setProfile(profileData);
+                setIsAuthenticated(true);
+                toast.success('Login realizado com sucesso!');
+              } else if (error) {
+                console.error('Erro ao buscar perfil:', error);
+                toast.error('Usuário não encontrado no sistema. Entre em contato com o administrador.');
+                await supabase.auth.signOut();
+              }
+            } catch (err) {
+              console.error('Erro ao processar perfil:', err);
+            }
+          };
+
+          fetchProfile();
         }
       }
     );
@@ -136,14 +182,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const checkAuth = async () => {
+    console.log('🔍 Verificando autenticação inicial...');
+    isCheckingAuthRef.current = true;
+
     try {
       // Primeiro verifica se há sessão no Supabase
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
+        console.log('❌ Nenhuma sessão encontrada');
         setLoading(false);
+        hasInitializedRef.current = true;
         return;
       }
+
+      console.log('✅ Sessão encontrada, buscando perfil...');
 
       // Se houver sessão, busca o perfil do usuário
       const { data: profileData, error } = await supabase
@@ -153,25 +206,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (!error && profileData) {
+        // Verificar se usuário está ativo
+        if (!profileData.active) {
+          console.warn('⚠️ Usuário inativo detectado no checkAuth');
+          await supabase.auth.signOut();
+          setLoading(false);
+          hasInitializedRef.current = true;
+          return;
+        }
+
+        console.log('✅ Perfil carregado no checkAuth');
         setUser(profileData);
         setProfile(profileData);
         setIsAuthenticated(true);
-        
-        // Salva o token no sessionStorage para uso com a API
-        // sessionStorage é limpo quando o navegador fecha
-        sessionStorage.setItem('access_token', session.access_token);
+
+        // Salva o token no localStorage para uso com a API
+        localStorage.setItem('access_token', session.access_token);
+      } else if (error) {
+        console.error('❌ Erro ao buscar perfil no checkAuth:', error);
+        // Se o perfil não existir, fazer logout
+        await supabase.auth.signOut();
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
-      sessionStorage.removeItem('access_token');
-      sessionStorage.removeItem('refresh_token');
+      console.error('❌ Falha no checkAuth:', error);
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
     } finally {
+      console.log('✅ checkAuth finalizado, loading = false');
       setLoading(false);
+      hasInitializedRef.current = true;
+      isCheckingAuthRef.current = false;
     }
   };
 
   const signIn = async (email: string, password: string): Promise<boolean> => {
+    // Marca que o signIn está processando ANTES de fazer qualquer chamada
+    // Isso garante que o listener SIGNED_IN veja e ignore o evento
+    isFetchingProfileRef.current = true;
+
     try {
+      console.log('🔐 Iniciando login manual...');
+
       // Faz login via Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -179,14 +254,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
+        console.error('❌ Erro ao fazer login:', error.message);
         toast.error(error.message || 'Erro ao fazer login');
         return false;
       }
 
       if (!data.user || !data.session) {
+        console.error('❌ Login sem dados de usuário ou sessão');
         toast.error('Erro ao fazer login');
         return false;
       }
+
+      console.log('✅ Login bem-sucedido, buscando perfil...');
+
+      // Aguardar um pouco para garantir que o evento SIGNED_IN foi disparado e ignorado
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Busca o perfil do usuário
       const { data: profileData, error: profileError } = await supabase
@@ -195,30 +277,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', data.user.id)
         .single();
 
-      if (profileError || !profileData) {
+      if (profileError) {
+        console.error('❌ Erro ao buscar perfil:', profileError);
         toast.error('Erro ao buscar perfil do usuário');
+        await supabase.auth.signOut();
+        return false;
+      }
+
+      if (!profileData) {
+        console.error('❌ Perfil não encontrado');
+        toast.error('Perfil não encontrado no sistema');
+        await supabase.auth.signOut();
         return false;
       }
 
       // Verifica se o usuário está ativo
       if (!profileData.active) {
+        console.warn('⚠️ Usuário inativo');
         await supabase.auth.signOut();
         toast.error('Usuário inativo. Entre em contato com o administrador.');
         return false;
       }
 
-      // Salva os dados no sessionStorage (limpo ao fechar navegador)
-      sessionStorage.setItem('access_token', data.session.access_token);
+      console.log('✅ Perfil carregado com sucesso, configurando estado...');
+
+      // Salva os dados no localStorage para permitir refresh automático
+      localStorage.setItem('access_token', data.session.access_token);
       setUser(profileData);
       setProfile(profileData);
       setIsAuthenticated(true);
-      
+      hasInitializedRef.current = true;
+
+      console.log('🎉 Login completado com sucesso!');
       toast.success('Login realizado com sucesso!');
       return true;
     } catch (error: any) {
-      console.error('Error signing in:', error);
+      console.error('❌ Exceção no signIn:', error);
       toast.error('Erro ao fazer login. Verifique suas credenciais.');
       return false;
+    } finally {
+      // Sempre resetar a ref, mesmo em caso de erro
+      console.log('🔓 Liberando lock de login (finally)');
+      isFetchingProfileRef.current = false;
     }
   };
 
@@ -250,8 +350,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error signing out:', error);
     } finally {
-      sessionStorage.removeItem('access_token');
-      sessionStorage.removeItem('refresh_token');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
       setUser(null);
       setProfile(null);
       setIsAuthenticated(false);
