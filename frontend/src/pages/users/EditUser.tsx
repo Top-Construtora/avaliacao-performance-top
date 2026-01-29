@@ -7,12 +7,12 @@ import { supabase } from '../../lib/supabase';
 import { api } from '../../config/api';
 import Button from '../../components/Button';
 
-import { 
-  Users, Shield, Mail, Calendar, AlertCircle, Briefcase, UserCheck, 
+import {
+  Users, Shield, Mail, Calendar, AlertCircle, Briefcase, UserCheck,
   Sparkles, Crown, User, Phone, CalendarDays, Camera, Upload,
   ArrowLeft, Save, Loader2, CheckCircle2, ChevronDown, UserPlus,
   Edit2, X, Check, Info, Building2, Lock, Unlock, TrendingUp, Route, Layers,
-  FileText, UserCog, GitBranch, Network
+  FileText, UserCog, GitBranch, Network, MessageSquare
 } from 'lucide-react';
 import { PermissionGuard } from '../../components/PermissionGuard';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -93,8 +93,7 @@ const EditUser = () => {
     positionId: '', // ID do track_position
     internLevel: 'A' as 'A' | 'B' | 'C' | 'D' | 'E', // Este é o nível salarial
     contractType: 'CLT' as 'CLT' | 'PJ',
-
-    // Campos has_children e children_age_ranges removidos - não existem no banco
+    observations: '',
   });
 
   const [originalData, setOriginalData] = useState(formData);
@@ -306,8 +305,7 @@ const EditUser = () => {
         positionId: user.position_id || '',
         internLevel: user.intern_level || 'A' as 'A' | 'B' | 'C' | 'D' | 'E', // Internível é o nível salarial
         contractType: user.contract_type || 'CLT' as 'CLT' | 'PJ',
-
-        // has_children e children_age_ranges removidos - não existem no banco
+        observations: user.observations || '',
       };
 
       setFormData(userData);
@@ -494,7 +492,7 @@ const EditUser = () => {
         current_salary: calculatedSalary || null,
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
-        // has_children e children_age_ranges removidos - colunas não existem no banco
+        observations: formData.observations || null,
       });
 
       // Atualizar times do usuário
@@ -1192,6 +1190,29 @@ const EditUser = () => {
               </div>
             </motion.div>
           )}
+
+          {/* Observations */}
+          <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+              <MessageSquare className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+              Observações / Anotações
+            </h3>
+            <div>
+              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                Observações sobre o colaborador
+              </label>
+              <textarea
+                className="w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400 resize-none"
+                rows={4}
+                value={formData.observations}
+                onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
+                placeholder="Adicione observações, anotações ou informações relevantes sobre este colaborador..."
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Este campo é opcional e será exibido no Comitê de Gente
+              </p>
+            </div>
+          </motion.div>
 
           {/* Account Settings */}
           <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">

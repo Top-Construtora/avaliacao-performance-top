@@ -6,14 +6,14 @@ import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../.
 import { userService } from '../../services/user.service';
 import { supabase } from '../../lib/supabase';
 import Button from '../../components/Button';
-import { 
-  Users, Shield, Mail, Calendar, 
-  X, Check, AlertCircle, Briefcase, UserCheck, 
+import {
+  Users, Shield, Mail, Calendar,
+  X, Check, AlertCircle, Briefcase, UserCheck,
   Sparkles, Crown, User, Phone, CalendarDays, Upload,
   Eye, EyeOff, Save, Loader2,
   CheckCircle2, ChevronDown, UserPlus, Building2,
   FileText, UserCog, GitBranch,
-  Route, Layers, TrendingUp
+  Route, Layers, TrendingUp, MessageSquare
 } from 'lucide-react';
 
 interface Track {
@@ -84,6 +84,7 @@ const RegisterUser = () => {
     positionId: '',
     internLevel: 'A' as 'A' | 'B' | 'C' | 'D' | 'E',
     contractType: 'CLT' as 'CLT' | 'PJ',
+    observations: '',
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -392,6 +393,7 @@ const RegisterUser = () => {
         current_salary: calculatedSalary || null,
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
+        observations: formData.observations || null,
       });
 
       // Adicionar usuário aos times, se especificado
@@ -1076,6 +1078,29 @@ const RegisterUser = () => {
             </div>
           </motion.div>
         )}
+
+        {/* Observations */}
+        <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+            <MessageSquare className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
+            Observações / Anotações
+          </h3>
+          <div>
+            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              Observações sobre o colaborador
+            </label>
+            <textarea
+              className="w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400 resize-none"
+              rows={4}
+              value={formData.observations}
+              onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
+              placeholder="Adicione observações, anotações ou informações relevantes sobre este colaborador..."
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Este campo é opcional e será exibido no Comitê de Gente
+            </p>
+          </div>
+        </motion.div>
       </motion.div>
 
       {/* Action Buttons */}

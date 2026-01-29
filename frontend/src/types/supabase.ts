@@ -57,6 +57,7 @@ export interface Database {
           current_salary?: number | null
           admission_date?: string | null
           position_start_date?: string | null
+          observations?: string | null
           created_at: string
           updated_at: string
           // Campos adicionados para consistência com formulários de frontend
@@ -84,6 +85,7 @@ export interface Database {
           current_salary?: number | null
           admission_date?: string | null
           position_start_date?: string | null
+          observations?: string | null
           created_at?: string
           updated_at?: string
           // Campos adicionados
@@ -91,7 +93,7 @@ export interface Database {
           track_id?: string | null
           position_id?: string | null
           intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null
-          
+
         }
         Update: {
           id?: string
@@ -112,6 +114,7 @@ export interface Database {
           current_salary?: number | null
           admission_date?: string | null
           position_start_date?: string | null
+          observations?: string | null
           created_at?: string
           updated_at?: string
           // Campos adicionados
@@ -119,9 +122,9 @@ export interface Database {
           track_id?: string | null
           position_id?: string | null
           intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null
-          
+
           // Novos campos de perfil pessoal
-          
+
           hobbies?: string | null
           favorite_color?: string | null
           supports_team?: boolean

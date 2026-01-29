@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { User, BarChart3, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3, Mail, Cake } from 'lucide-react';
+import { User, BarChart3, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3, Mail, Cake, MessageSquare } from 'lucide-react';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { supabase } from '../../lib/supabase';
 
@@ -564,6 +564,19 @@ const NineBoxMatrix = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Observações do colaborador */}
+          {selectedEmp && selectedEmp.observations && (
+            <div className="mt-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-700">
+              <label className="block text-sm font-medium text-amber-800 dark:text-amber-300 mb-2 flex items-center">
+                <MessageSquare className="inline h-4 w-4 mr-2" />
+                Observações / Anotações
+              </label>
+              <p className="text-sm text-amber-900 dark:text-amber-200 whitespace-pre-wrap">
+                {selectedEmp.observations}
+              </p>
             </div>
           )}
         </div>
