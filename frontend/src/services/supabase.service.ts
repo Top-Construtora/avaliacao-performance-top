@@ -146,70 +146,36 @@ export const departmentsService = {
 // ====================================
 export const usersService = {
   // Listar todos os usuários
+  // OTIMIZADO: Uma única query com JOINs em vez de N+1 queries
   async getAll(): Promise<UserWithDetails[]> {
     try {
-      // Query simplificada
+      // Query otimizada com todos os JOINs necessários
+      // Primeiro buscar usuários com track e salary_level
       const { data: users, error } = await supabase
         .from('users')
-        .select('*')
+        .select(`
+          *,
+          track:career_tracks(id, name, code),
+          salary_level:salary_levels(id, name, percentage)
+        `)
         .order('name');
 
       if (error) throw error;
 
-      // Buscar dados relacionados
-      const usersWithDetails = await Promise.all(
-        (users || []).map(async (user) => {
-          // Buscar manager
-          let manager = null;
-          if (user.reports_to) {
-            const { data: managerData } = await supabase
-              .from('users')
-              .select('id, name, email')
-              .eq('id', user.reports_to)
-              .single();
-            manager = managerData;
-          }
+      // Preparar IDs para queries em batch
+      const userIds = (users || []).map(u => u.id);
+      const managerIds = [...new Set((users || []).filter(u => u.reports_to).map(u => u.reports_to))];
+      const trackPositionIds = [...new Set(
+        (users || [])
+          .filter(u => u.current_track_position_id)
+          .map(u => u.current_track_position_id)
+      )];
 
-          // Buscar times
-          const { data: teamMemberships } = await supabase
-            .from('team_members')
-            .select('team_id')
-            .eq('user_id', user.id);
-
-          const teamIds = teamMemberships?.map(tm => tm.team_id) || [];
-          let teams: Team[] = [];
-
-          if (teamIds.length > 0) {
-            const { data: teamsData } = await supabase
-              .from('teams')
-              .select('*')
-              .in('id', teamIds);
-            teams = teamsData || [];
-          }
-
-          // Buscar subordinados
-          const { data: directReports } = await supabase
-            .from('users')
-            .select('id, name, email, position')
-            .eq('reports_to', user.id);
-
-          // Buscar trilha de carreira
-          let track = null;
-          if (user.track_id) {
-            const { data: trackData } = await supabase
-              .from('career_tracks')
-              .select('id, name, code')
-              .eq('id', user.track_id)
-              .single();
-            track = trackData;
-          }
-
-          // Buscar posição na trilha com classe salarial
-          // Tenta usar current_track_position_id primeiro, depois position_id como fallback
-          let trackPosition = null;
-          const positionIdToUse = user.current_track_position_id || user.position_id;
-          if (positionIdToUse) {
-            const { data: positionData } = await supabase
+      // OTIMIZAÇÃO: Executar todas as queries auxiliares em PARALELO
+      const [trackPositionsResult, managersResult, directReportsResult] = await Promise.all([
+        // Query 1: track_positions
+        trackPositionIds.length > 0
+          ? supabase
               .from('track_positions')
               .select(`
                 id,
@@ -217,33 +183,56 @@ export const usersService = {
                 position:job_positions(id, name, code),
                 class:salary_classes(id, name, code)
               `)
-              .eq('id', positionIdToUse)
-              .single();
-            trackPosition = positionData;
-          }
+              .in('id', trackPositionIds)
+          : Promise.resolve({ data: [] }),
 
-          // Buscar nível salarial
-          let salaryLevel = null;
-          if (user.current_salary_level_id) {
-            const { data: levelData } = await supabase
-              .from('salary_levels')
-              .select('id, name, percentage')
-              .eq('id', user.current_salary_level_id)
-              .single();
-            salaryLevel = levelData;
-          }
+        // Query 2: managers
+        managerIds.length > 0
+          ? supabase
+              .from('users')
+              .select('id, name, email')
+              .in('id', managerIds)
+          : Promise.resolve({ data: [] }),
 
-          return {
-            ...user,
-            manager,
-            teams,
-            direct_reports: directReports || [],
-            track,
-            track_position: trackPosition,
-            salary_level: salaryLevel,
-          } as UserWithDetails;
-        })
-      );
+        // Query 3: direct_reports
+        userIds.length > 0
+          ? supabase
+              .from('users')
+              .select('id, name, email, position, reports_to')
+              .in('reports_to', userIds)
+          : Promise.resolve({ data: [] })
+      ]);
+
+      // Criar mapas para lookup O(1)
+      const trackPositionsMap = new Map((trackPositionsResult.data || []).map(tp => [tp.id, tp]));
+      const managersMap = new Map((managersResult.data || []).map(m => [m.id, m]));
+
+      // Agrupar direct_reports por manager
+      const directReportsMap = new Map<string, any[]>();
+      (directReportsResult.data || []).forEach((dr: any) => {
+        if (!directReportsMap.has(dr.reports_to)) {
+          directReportsMap.set(dr.reports_to, []);
+        }
+        directReportsMap.get(dr.reports_to)!.push({
+          id: dr.id,
+          name: dr.name,
+          email: dr.email,
+          position: dr.position
+        });
+      });
+
+      // Montar resultado final
+      const usersWithDetails = (users || []).map(user => ({
+        ...user,
+        manager: user.reports_to ? managersMap.get(user.reports_to) || null : null,
+        teams: [], // Teams não são usados no NineBox, carregar sob demanda se necessário
+        direct_reports: directReportsMap.get(user.id) || [],
+        track: user.track,
+        track_position: user.current_track_position_id
+          ? trackPositionsMap.get(user.current_track_position_id) || null
+          : null,
+        salary_level: user.salary_level,
+      } as UserWithDetails));
 
       return usersWithDetails;
     } catch (error) {

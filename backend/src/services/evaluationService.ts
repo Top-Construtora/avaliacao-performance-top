@@ -142,67 +142,65 @@ export const evaluationService = {
   // Dashboard do ciclo
   async getCycleDashboard(supabase: any, cycleId: string, currentUserEmail?: string) {
     try {
-      // Buscar TODOS os usuários ativos (exceto admins)
-      const { data: allUsers, error: usersError } = await supabase
-        .from('users')
-        .select(`
-          id,
-          name,
-          email,
-          position,
-          is_director,
-          department_id,
-          departments:department_id(id, name)
-        `)
-        .eq('active', true)
-        .eq('is_admin', false);
+      // OTIMIZAÇÃO: Executar todas as 4 queries em PARALELO com Promise.all
+      const [usersResult, selfEvalsResult, leaderEvalsResult, consensusEvalsResult] = await Promise.all([
+        // Query 1: Buscar TODOS os usuários ativos (exceto admins)
+        supabase
+          .from('users')
+          .select(`
+            id,
+            name,
+            email,
+            position,
+            is_director,
+            department_id,
+            departments:department_id(id, name)
+          `)
+          .eq('active', true)
+          .eq('is_admin', false),
 
-      if (usersError) {
-        console.error('Error fetching users:', usersError);
-      }
+        // Query 2: Buscar autoavaliações
+        supabase
+          .from('self_evaluations')
+          .select(`
+            *,
+            employee:users!employee_id(id, name, email, position)
+          `)
+          .eq('cycle_id', cycleId),
+
+        // Query 3: Buscar avaliações de líder
+        supabase
+          .from('leader_evaluations')
+          .select(`
+            *,
+            employee:users!employee_id(id, name, email, position),
+            evaluator:users!evaluator_id(id, name)
+          `)
+          .eq('cycle_id', cycleId),
+
+        // Query 4: Buscar avaliações de consenso
+        supabase
+          .from('consensus_evaluations')
+          .select(`
+            *,
+            employee:users!employee_id(id, name, email, position)
+          `)
+          .eq('cycle_id', cycleId)
+      ]);
+
+      // Extrair dados e verificar erros
+      const { data: allUsers, error: usersError } = usersResult;
+      const { data: selfEvals, error: selfError } = selfEvalsResult;
+      const { data: leaderEvals, error: leaderError } = leaderEvalsResult;
+      const { data: consensusEvals, error: consensusError } = consensusEvalsResult;
+
+      if (usersError) console.error('Error fetching users:', usersError);
+      if (selfError) console.error('Error fetching self evaluations:', selfError);
+      if (leaderError) console.error('Error fetching leader evaluations:', leaderError);
+      if (consensusError) console.error('Error fetching consensus evaluations:', consensusError);
 
       // Aplicar filtro de usuários restritos
       const filteredUsers = filterRestrictedUsers(currentUserEmail, allUsers || []);
-
-      // Buscar autoavaliações
-      const { data: selfEvals, error: selfError } = await supabase
-        .from('self_evaluations')
-        .select(`
-          *,
-          employee:users!employee_id(id, name, email, position)
-        `)
-        .eq('cycle_id', cycleId);
-
-      if (selfError) {
-        console.error('Error fetching self evaluations:', selfError);
-      }
-
-      // Buscar avaliações de líder
-      const { data: leaderEvals, error: leaderError } = await supabase
-        .from('leader_evaluations')
-        .select(`
-          *,
-          employee:users!employee_id(id, name, email, position),
-          evaluator:users!evaluator_id(id, name)
-        `)
-        .eq('cycle_id', cycleId);
-
-      if (leaderError) {
-        console.error('Error fetching leader evaluations:', leaderError);
-      }
-
-      // Buscar avaliações de consenso
-      const { data: consensusEvals, error: consensusError } = await supabase
-        .from('consensus_evaluations')
-        .select(`
-          *,
-          employee:users!employee_id(id, name, email, position)
-        `)
-        .eq('cycle_id', cycleId);
-
-      if (consensusError) {
-        console.error('Error fetching consensus evaluations:', consensusError);
-      }
 
       // Aplicar filtro nas avaliações também
       const filteredSelfEvals = filterRestrictedEmployeeRelations(currentUserEmail, selfEvals || []);

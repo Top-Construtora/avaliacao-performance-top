@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { User, BarChart3, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3, Mail, Cake } from 'lucide-react';
 import { useEvaluation } from '../../hooks/useEvaluation';
-import { useSupabaseUsers } from '../../hooks/useSupabaseData';
 import { supabase } from '../../lib/supabase';
 
 interface MatrixConfig {
@@ -90,18 +89,22 @@ const matrixConfig: Record<string, MatrixConfig> = {
   }
 };
 
+const CYCLE_CACHE_KEY = 'ninebox_last_cycle_id';
+
 const NineBoxMatrix = () => {
   const {
     currentCycle,
     dashboard,
-    loadDashboard
+    loadDashboard,
+    employees,
+    loading // Adicionar loading para feedback visual
   } = useEvaluation();
-  const { users } = useSupabaseUsers();
 
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [hoveredQuadrant, setHoveredQuadrant] = useState<string | null>(null);
-  const [eligibleEmployees, setEligibleEmployees] = useState<any[]>([]);
   const [salaryLevels, setSalaryLevels] = useState<Array<{ id: string; name: string; percentage: number }>>([]);
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
+  const dashboardLoadedRef = useRef(false);
 
   // Carregar níveis salariais
   useEffect(() => {
@@ -121,49 +124,76 @@ const NineBoxMatrix = () => {
     loadSalaryLevels();
   }, []);
 
-  // Carregar dados do dashboard quando o ciclo atual mudar
+  // OTIMIZAÇÃO: Carregar dashboard imediatamente usando ciclo em cache
+  useEffect(() => {
+    const cachedCycleId = localStorage.getItem(CYCLE_CACHE_KEY);
+
+    // Se temos ciclo em cache e ainda não carregamos, começar a carregar imediatamente
+    if (cachedCycleId && !dashboardLoadedRef.current) {
+      dashboardLoadedRef.current = true;
+      setIsLoadingDashboard(true);
+      loadDashboard(cachedCycleId).finally(() => setIsLoadingDashboard(false));
+    } else if (!cachedCycleId) {
+      // Se não há cache, aguardar o ciclo carregar (mas não mostrar loading infinito)
+      // O loading será controlado pelo useEffect abaixo quando currentCycle carregar
+    }
+  }, [loadDashboard]);
+
+  // Quando o ciclo atual carregar, atualizar cache e recarregar se necessário
   useEffect(() => {
     if (currentCycle) {
-      loadDashboard(currentCycle.id);
+      const cachedCycleId = localStorage.getItem(CYCLE_CACHE_KEY);
+
+      // Salvar ciclo atual no cache
+      localStorage.setItem(CYCLE_CACHE_KEY, currentCycle.id);
+
+      // Se o ciclo mudou ou ainda não carregamos, carregar dashboard
+      if (cachedCycleId !== currentCycle.id || !dashboardLoadedRef.current) {
+        dashboardLoadedRef.current = true;
+        setIsLoadingDashboard(true);
+        loadDashboard(currentCycle.id).finally(() => setIsLoadingDashboard(false));
+      } else {
+        // Ciclo é o mesmo do cache e já carregamos - não está mais loading
+        setIsLoadingDashboard(false);
+      }
     }
   }, [currentCycle, loadDashboard]);
 
   // Filtrar colaboradores com avaliações de consenso completas
-  useEffect(() => {
-    if (dashboard && users) {
-      const eligible = dashboard
-        .filter(d => {
-          // Apenas incluir colaboradores que tenham avaliação de consenso com notas reais
-          const hasValidScores = d &&
-                 d.employee_id &&
-                 d.consensus_performance_score !== null &&
-                 d.consensus_performance_score !== undefined &&
-                 d.consensus_potential_score !== null &&
-                 d.consensus_potential_score !== undefined;
+  // Usando useMemo + Map para lookup O(1) em vez de O(n²)
+  const eligibleEmployees = useMemo(() => {
+    if (!dashboard || !employees || employees.length === 0) return [];
 
-          return hasValidScores;
-        })
-        .map(d => {
-          const user = users.find(u => u && u.id === d.employee_id);
+    // Criar Map para lookup O(1) em vez de .find() O(n)
+    const usersMap = new Map(employees.map(u => [u.id, u]));
 
-          return {
-            ...d,
-            user: user || null,
-            // Usa notas reais do banco de dados (consensus_evaluations)
-            // Os dados já vêm com os nomes corretos do backend
-            consensus_score: d.consensus_performance_score,
-            potential_score: d.consensus_potential_score,
-            // Garante que outros campos necessários existam
-            employee_name: d.employee_name || user?.name || 'Sem nome',
-            position: d.position || user?.position || 'Sem cargo'
-          };
-        })
-        // Filtra apenas os que têm dados completos
-        .filter(d => d.user !== null);
+    return dashboard
+      .filter(d => {
+        // Apenas incluir colaboradores que tenham avaliação de consenso com notas reais
+        return d &&
+          d.employee_id &&
+          d.consensus_performance_score !== null &&
+          d.consensus_performance_score !== undefined &&
+          d.consensus_potential_score !== null &&
+          d.consensus_potential_score !== undefined;
+      })
+      .map(d => {
+        const user = usersMap.get(d.employee_id) || null; // O(1) lookup
 
-      setEligibleEmployees(eligible);
-    }
-  }, [dashboard, users]);
+        return {
+          ...d,
+          user,
+          // Usa notas reais do banco de dados (consensus_evaluations)
+          consensus_score: d.consensus_performance_score,
+          potential_score: d.consensus_potential_score,
+          // Garante que outros campos necessários existam
+          employee_name: d.employee_name || user?.name || 'Sem nome',
+          position: d.position || user?.position || 'Sem cargo'
+        };
+      })
+      // Filtra apenas os que têm dados completos
+      .filter(d => d.user !== null);
+  }, [dashboard, employees]);
 
   const selectedEvaluation = eligibleEmployees.find(e => e.employee_id === selectedEmployee);
   const selectedEmp = selectedEvaluation?.user;
@@ -394,18 +424,28 @@ const NineBoxMatrix = () => {
             <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
               Colaborador
             </label>
-            <select
-              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-naue-black dark:text-gray-300 font-medium text-sm sm:text-base"
-              value={selectedEmployee}
-              onChange={(e) => setSelectedEmployee(e.target.value)}
-            >
-              <option value="">Selecione um colaborador</option>
-              {eligibleEmployees.map((employee) => (
-                <option key={employee.employee_id} value={employee.employee_id}>
-                  {employee.employee_name}
+            <div className="relative">
+              <select
+                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-naue-black dark:text-gray-300 font-medium text-sm sm:text-base disabled:opacity-50 disabled:cursor-wait"
+                value={selectedEmployee}
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+                disabled={isLoadingDashboard || loading}
+              >
+                <option value="">
+                  {isLoadingDashboard || loading ? 'Carregando colaboradores...' : 'Selecione um colaborador'}
                 </option>
-              ))}
-            </select>
+                {eligibleEmployees.map((employee) => (
+                  <option key={employee.employee_id} value={employee.employee_id}>
+                    {employee.employee_name}
+                  </option>
+                ))}
+              </select>
+              {(isLoadingDashboard || loading) && (
+                <div className="absolute right-10 top-1/2 -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-800 border-t-transparent"></div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Informações do colaborador com foto à esquerda e dados à direita */}

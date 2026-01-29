@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import UserSalaryAssignment from '../../components/UserSalaryAssignment';
-import { 
+import {
   Users, Edit, Search, Filter,
-  Shield, Mail, Calendar, UserCheck, MoreVertical, Crown, 
+  Shield, Mail, Calendar, UserCheck, MoreVertical, Crown,
   Copy, Download, Phone, CalendarDays, Upload, FileText, GitBranch,
-  Network, UserX, Plus, Grid3x3, List, FileSpreadsheet, 
-  FileDown, DollarSign, Loader2, Database, UsersIcon
+  Network, UserX, Plus, Grid3x3, List, FileSpreadsheet,
+  FileDown, DollarSign, Loader2, Database, UsersIcon, UserPlus
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
@@ -29,6 +29,7 @@ declare module 'jspdf' {
 
 type ViewMode = 'grid' | 'list';
 type ExportFormat = 'excel' | 'notion' | 'pdf';
+type StatusFilter = 'all' | 'active' | 'inactive';
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ const UserManagement = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('');
   const [showOnlyLeaders, setShowOnlyLeaders] = useState(false);
-  const [showInactiveUsers, setShowInactiveUsers] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'department'>('name');
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -133,6 +134,22 @@ const UserManagement = () => {
         }
       } catch (error) {
         toast.error(isActive ? 'Erro ao desativar usuário' : 'Erro ao excluir usuário');
+      }
+    }
+  };
+
+  const handleReactivate = async (id: string) => {
+    if (!permissions.hasPermission('users', 'delete')) {
+      toast.error('Você não tem permissão para esta ação');
+      return;
+    }
+
+    if (window.confirm('Tem certeza que deseja reativar este usuário?')) {
+      try {
+        await actions.users.activate(id);
+        toast.success('Usuário reativado com sucesso!');
+      } catch (error) {
+        toast.error('Erro ao reativar usuário');
       }
     }
   };
@@ -262,13 +279,12 @@ const UserManagement = () => {
         if (user.is_admin) return false;
 
         // Filtrar por status ativo/inativo
-        if (showInactiveUsers) {
-          // Mostrar apenas usuários inativos
-          if (user.active !== false) return false;
-        } else {
-          // Mostrar apenas usuários ativos (comportamento padrão)
+        if (statusFilter === 'active') {
           if (user.active === false) return false;
+        } else if (statusFilter === 'inactive') {
+          if (user.active !== false) return false;
         }
+        // statusFilter === 'all' mostra todos
 
         const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                              user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -298,7 +314,7 @@ const UserManagement = () => {
             return 0;
         }
       });
-  }, [users, searchTerm, selectedDepartment, selectedTeam, showOnlyLeaders, showInactiveUsers, sortBy]);
+  }, [users, searchTerm, selectedDepartment, selectedTeam, showOnlyLeaders, statusFilter, sortBy]);
 
   const stats = useMemo(() => {
     const nonAdminUsers = users.filter(u => !u.is_admin);
@@ -339,11 +355,8 @@ const UserManagement = () => {
     const age = user.birth_date ? calculateAge(user.birth_date) : null;
     
     return (
-      <motion.div
-        layout
-        variants={itemVariants}
-        whileHover={{ y: -4, transition: { duration: 0.2 } }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group"
+      <div
+        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group hover:-translate-y-1"
       >
         <div className={`h-2 bg-gradient-to-r ${
           user.is_director 
@@ -423,7 +436,20 @@ const UserManagement = () => {
                   <DollarSign className="h-4 w-4" />
                 </button>
               </RoleGuard>
-              
+
+              {/* Botão de reativar - só aparece para usuários inativos */}
+              {user.active === false && (
+                <ActionGuard can={permissions.canDeactivateUser}>
+                  <button
+                    onClick={() => handleReactivate(user.id)}
+                    className="p-2 rounded-xl transition-colors hover:bg-green-100 dark:hover:bg-green-900/20 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400"
+                    title="Reativar usuário"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                  </button>
+                </ActionGuard>
+              )}
+
               <ActionGuard can={permissions.canDeactivateUser}>
                 <button
                   onClick={() => handleDelete(user.id)}
@@ -503,7 +529,126 @@ const UserManagement = () => {
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
+    );
+  };
+
+  const renderUserListItem = (user: UserWithDetails) => {
+    const leader = user.manager;
+
+    return (
+      <div
+        className="bg-naue-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300"
+      >
+        <div className="flex items-center p-4 gap-4">
+          {/* Avatar */}
+          <div className="flex-shrink-0">
+            {user.profile_image ? (
+              <img
+                src={user.profile_image}
+                alt={user.name}
+                className="h-10 w-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm bg-gradient-to-br ${
+                user.is_director
+                  ? 'from-stone-800 to-stone-900'
+                  : user.is_leader
+                    ? 'from-primary-900 to-primary-800'
+                    : 'from-gray-600 to-gray-700'
+              }`}>
+                {user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+              </div>
+            )}
+          </div>
+
+          {/* Nome e Cargo */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{user.name}</h3>
+              {user.is_director && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                  Diretor
+                </span>
+              )}
+              {user.is_leader && !user.is_director && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+                  Avaliador
+                </span>
+              )}
+              {user.active === false && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                  Inativo
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user.position}</p>
+          </div>
+
+          {/* Email */}
+          <div className="hidden md:flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
+            <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
+            <span className="truncate">{user.email}</span>
+          </div>
+
+          {/* Líder */}
+          <div className="hidden lg:flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
+            {leader ? (
+              <>
+                <GitBranch className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <span className="truncate">{leader.name}</span>
+              </>
+            ) : (
+              <span className="text-gray-400">-</span>
+            )}
+          </div>
+
+          {/* Ações */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <ActionGuard can={() => permissions.canEditUser(user.id)}>
+              <button
+                onClick={() => handleEdit(user)}
+                className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary-600"
+                title="Editar"
+              >
+                <Edit className="h-4 w-4" />
+              </button>
+            </ActionGuard>
+
+            <RoleGuard allowedRoles={['director', 'leader']}>
+              <button
+                onClick={() => handleOpenSalaryModal(user)}
+                className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-green-600"
+                title="Gestão Salarial"
+              >
+                <DollarSign className="h-4 w-4" />
+              </button>
+            </RoleGuard>
+
+            {user.active === false && (
+              <ActionGuard can={permissions.canDeactivateUser}>
+                <button
+                  onClick={() => handleReactivate(user.id)}
+                  className="p-2 rounded-lg transition-colors hover:bg-green-100 dark:hover:bg-green-900/20 text-gray-500 dark:text-gray-400 hover:text-green-600"
+                  title="Reativar usuário"
+                >
+                  <UserPlus className="h-4 w-4" />
+                </button>
+              </ActionGuard>
+            )}
+
+            <ActionGuard can={permissions.canDeactivateUser}>
+              <button
+                onClick={() => handleDelete(user.id)}
+                className="p-2 rounded-lg transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-600"
+                title={user.active === false ? "Excluir permanentemente" : "Desativar usuário"}
+              >
+                <UserX className="h-4 w-4" />
+              </button>
+            </ActionGuard>
+          </div>
+        </div>
+      </div>
     );
   };
 
@@ -594,6 +739,41 @@ const UserManagement = () => {
         <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-3">
+              {/* Tabs de status */}
+              <div className="flex items-center bg-gray-100/80 dark:bg-gray-700/50 backdrop-blur-sm rounded-xl p-1.5">
+                <button
+                  onClick={() => setStatusFilter('active')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    statusFilter === 'active'
+                      ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm dark:shadow-lg'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  Ativos
+                </button>
+                <button
+                  onClick={() => setStatusFilter('inactive')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    statusFilter === 'inactive'
+                      ? 'bg-white dark:bg-gray-700 text-red-600 dark:text-red-400 shadow-sm dark:shadow-lg'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  Inativos
+                </button>
+                <button
+                  onClick={() => setStatusFilter('all')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    statusFilter === 'all'
+                      ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm dark:shadow-lg'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  Todos
+                </button>
+              </div>
+
+              {/* Modo de visualização */}
               <div className="flex items-center bg-gray-100/80 dark:bg-gray-700/50 backdrop-blur-sm rounded-xl p-1.5">
                 <button
                   onClick={() => setViewMode('grid')}
@@ -744,15 +924,6 @@ const UserManagement = () => {
                         />
                         <span className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Apenas avaliadores</span>
                       </label>
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={showInactiveUsers}
-                          onChange={(e) => setShowInactiveUsers(e.target.checked)}
-                          className="rounded border-gray-300 dark:border-gray-600 text-red-600 dark:text-red-500 focus:ring-red-500 dark:focus:ring-red-400 mr-3"
-                        />
-                        <span className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Usuários desativados</span>
-                      </label>
                     </div>
                   </div>
                 </motion.div>
@@ -761,22 +932,13 @@ const UserManagement = () => {
           </div>
 
           <div className="mt-6">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key="users"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                exit={{ opacity: 0 }}
-                className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
-              >
-                {filteredUsers.map(user => (
-                  <div key={user.id}>
-                    {renderUserCard(user)}
-                  </div>
-                ))}
-              </motion.div>
-            </AnimatePresence>
+            <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-2'}>
+              {filteredUsers.map(user => (
+                <div key={user.id}>
+                  {viewMode === 'grid' ? renderUserCard(user) : renderUserListItem(user)}
+                </div>
+              ))}
+            </div>
           </div>
 
           {filteredUsers.length === 0 && (
