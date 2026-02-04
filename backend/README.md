@@ -5,9 +5,8 @@ API REST desenvolvida com Express, TypeScript e Supabase para o sistema de avali
 ## Stack Tecnológico
 
 - **Express 4.18** - Framework web
-- **TypeScript 5.5** - Tipagem estática
+- **TypeScript 5.3** - Tipagem estática
 - **Supabase** - Banco de dados PostgreSQL e autenticação
-- **Nodemailer** - Envio de emails
 - **PDFKit** - Geração de PDFs no servidor
 - **ExcelJS** - Geração de planilhas Excel
 - **Helmet** - Segurança HTTP headers
@@ -48,14 +47,6 @@ SUPABASE_SERVICE_KEY=sua-service-key
 
 # JWT
 JWT_SECRET=sua-chave-secreta
-
-# E-mail (SMTP)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=seu-email@gmail.com
-EMAIL_PASS=sua-senha-de-app
-EMAIL_FROM=seu-email@gmail.com
-EMAIL_REPLY_TO=seu-email@gmail.com
 ```
 
 3. Inicie o servidor:
