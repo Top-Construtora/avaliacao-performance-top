@@ -67,36 +67,53 @@ npm start            # Inicia o servidor de produção
 ## Endpoints da API
 
 ### Autenticação (`/api/auth`)
-- `POST /login` - Login com email/senha
-- `POST /register` - Cadastro de usuário
-- `POST /logout` - Logout
-- `GET /profile` - Perfil do usuário autenticado
+- `POST /api/auth/login` - Login com email/senha
+- `POST /api/auth/register` - Cadastro de usuário
+- `POST /api/auth/logout` - Logout
+- `GET /api/auth/profile` - Perfil do usuário autenticado
 
 ### Usuários (`/api/users`)
-- `GET /` - Listar usuários (com filtros)
-- `POST /` - Criar usuário
-- `GET /:id` - Detalhes do usuário
-- `PUT /:id` - Atualizar usuário
-- `DELETE /:id` - Remover usuário
-- `GET /leader/:id/subordinates` - Listar subordinados
+- `GET /api/users` - Listar usuários (com filtros)
+- `POST /api/users` - Criar usuário
+- `GET /api/users/:id` - Detalhes do usuário
+- `PUT /api/users/:id` - Atualizar usuário
+- `DELETE /api/users/:id` - Remover usuário
+- `GET /api/users/leader/:id/subordinates` - Listar subordinados
 
 ### Avaliações (`/api/evaluations`)
-- Gestão de ciclos de avaliação
-- Autoavaliação e avaliação do líder
-- Matriz Nine Box
-- Dashboard analítico
+- `GET /api/evaluations/cycles` - Listar ciclos
+- `GET /api/evaluations/cycles/current` - Ciclo atual
+- `POST /api/evaluations/cycles` - Criar ciclo
+- `PUT /api/evaluations/cycles/:id/open` - Abrir ciclo
+- `PUT /api/evaluations/cycles/:id/close` - Fechar ciclo
+- `POST /api/evaluations/self` - Criar autoavaliação
+- `POST /api/evaluations/leader` - Criar avaliação do líder
+- `GET /api/evaluations/employee/:id` - Avaliações do colaborador
+- `GET /api/evaluations/cycles/:id/nine-box` - Dados da Matriz Nine Box
+- `GET /api/evaluations/cycles/:id/dashboard` - Dashboard do ciclo
 
 ### PDI (`/api/pdi`)
-- Criação e gestão de planos de desenvolvimento
-- Acompanhamento de itens por ciclo
+- `POST /api/pdi` - Salvar PDI
+- `GET /api/pdi/:employeeId` - PDI do colaborador
+- `PUT /api/pdi/:pdiId` - Atualizar PDI
+- `GET /api/pdi/cycle/:cycleId` - PDIs do ciclo
 
 ### Departamentos (`/api/departments`)
-- CRUD de departamentos e equipes
+- `GET /api/departments` - Listar departamentos
+- `POST /api/departments` - Criar departamento
+- `PUT /api/departments/:id` - Atualizar departamento
+- `DELETE /api/departments/:id` - Remover departamento
 
 ### Salários & Carreira (`/api/salary`)
-- Gestão de classes salariais
-- Trilhas de carreira
-- Relatórios salariais
+- `GET/POST/PUT/DELETE /api/salary/classes` - Classes salariais
+- `GET/POST/PUT/DELETE /api/salary/positions` - Cargos
+- `GET/POST/PUT/DELETE /api/salary/levels` - Níveis salariais
+- `GET/POST/PUT/DELETE /api/salary/career-tracks` - Trilhas de carreira
+- `GET/POST/PUT/DELETE /api/salary/track-positions` - Cargos nas trilhas
+- `GET/POST/PUT/DELETE /api/salary/progression-rules` - Regras de progressão
+- `POST /api/salary/assign-user` - Atribuir colaborador a trilha
+- `POST /api/salary/progress-user` - Progredir colaborador
+- `GET /api/salary/reports/*` - Relatórios salariais
 
 ## Segurança
 
