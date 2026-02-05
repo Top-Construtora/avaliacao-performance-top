@@ -7,6 +7,7 @@ import Button from '../../components/Button';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { pdiService } from '../../services/pdiService';
 import { evaluationService } from '../../services/evaluation.service';
+import { userService } from '../../services/user.service';
 import PotentialAndPDI from '../../components/PotentialAndPDI';
 import PDIViewer from '../../components/PDIViewer';
 import { UserWithDetails } from '../../types/supabase';
@@ -406,17 +407,27 @@ const Consensus = () => {
 
   const fetchLeaders = async () => {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('active', true)
-        .eq('is_admin', false)
-        .or('is_leader.eq.true,is_director.eq.true')
-        .order('name');
+      // Buscar líderes ativos via API (que aplica filtro de usuários restritos)
+      const leadersData = await userService.getUsers({
+        active: true,
+        is_leader: true
+      });
 
-      if (error) throw error;
+      // Buscar diretores ativos via API
+      const directorsData = await userService.getUsers({
+        active: true,
+        is_director: true
+      });
 
-      setLeaders(data || []);
+      // Combinar líderes e diretores, removendo duplicados
+      const combinedLeaders = [...leadersData, ...directorsData].filter((leader, index, self) =>
+        index === self.findIndex((l) => l.id === leader.id)
+      );
+
+      // Filtrar admins
+      const filteredLeaders = combinedLeaders.filter(leader => !leader.is_admin);
+
+      setLeaders(filteredLeaders as any[]);
     } catch (error) {
       console.error('Error fetching leaders:', error);
       toast.error('Erro ao carregar líderes');
@@ -425,16 +436,10 @@ const Consensus = () => {
 
   const fetchEmployeesByLeader = async (leaderId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('reports_to', leaderId)
-        .eq('active', true)
-        .order('name');
+      // Buscar subordinados via API (que aplica filtro de usuários restritos)
+      const subordinates = await userService.getSubordinates(leaderId);
 
-      if (error) throw error;
-
-      setEmployees(data || []);
+      setEmployees(subordinates as any[]);
     } catch (error) {
       console.error('Error fetching employees:', error);
       toast.error('Erro ao carregar colaboradores');
