@@ -10,6 +10,7 @@ export const userController = {
         active: req.query.active === 'true',
         is_leader: req.query.is_leader === 'true',
         is_director: req.query.is_director === 'true',
+        is_leader_or_director: req.query.is_leader_or_director === 'true',
         reports_to: req.query.reports_to as string,
         currentUserEmail: authReq.user?.email
       };

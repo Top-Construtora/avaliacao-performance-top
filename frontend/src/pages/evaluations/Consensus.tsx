@@ -407,25 +407,14 @@ const Consensus = () => {
 
   const fetchLeaders = async () => {
     try {
-      // Buscar líderes ativos via API (que aplica filtro de usuários restritos)
+      // Buscar líderes e diretores ativos via API usando o filtro OR
       const leadersData = await userService.getUsers({
         active: true,
-        is_leader: true
+        is_leader_or_director: true
       });
-
-      // Buscar diretores ativos via API
-      const directorsData = await userService.getUsers({
-        active: true,
-        is_director: true
-      });
-
-      // Combinar líderes e diretores, removendo duplicados
-      const combinedLeaders = [...leadersData, ...directorsData].filter((leader, index, self) =>
-        index === self.findIndex((l) => l.id === leader.id)
-      );
 
       // Filtrar admins
-      const filteredLeaders = combinedLeaders.filter(leader => !leader.is_admin);
+      const filteredLeaders = leadersData.filter(leader => !leader.is_admin);
 
       setLeaders(filteredLeaders as any[]);
     } catch (error) {

@@ -6,6 +6,7 @@ export const userService = {
     active?: boolean;
     is_leader?: boolean;
     is_director?: boolean;
+    is_leader_or_director?: boolean;
     reports_to?: string;
   }): Promise<User[]> {
     const queryParams = new URLSearchParams(
@@ -14,7 +15,7 @@ export const userService = {
         return acc;
       }, {} as Record<string, string>)
     ).toString();
-    
+
     const response = await api.get(`/users?${queryParams}`);
     return response.data;
   },

@@ -9,6 +9,7 @@ export const userService = {
     active?: boolean;
     is_leader?: boolean;
     is_director?: boolean;
+    is_leader_or_director?: boolean;
     reports_to?: string;
     currentUserEmail?: string;
   }) {
@@ -17,12 +18,20 @@ export const userService = {
     if (filters?.active !== undefined) {
       query = query.eq('active', filters.active);
     }
-    if (filters?.is_leader !== undefined) {
-      query = query.eq('is_leader', filters.is_leader);
+
+    // Se is_leader_or_director for true, buscar usuários que são líderes OU diretores
+    if (filters?.is_leader_or_director === true) {
+      query = query.or('is_leader.eq.true,is_director.eq.true');
+    } else {
+      // Caso contrário, aplicar filtros individuais
+      if (filters?.is_leader !== undefined) {
+        query = query.eq('is_leader', filters.is_leader);
+      }
+      if (filters?.is_director !== undefined) {
+        query = query.eq('is_director', filters.is_director);
+      }
     }
-    if (filters?.is_director !== undefined) {
-      query = query.eq('is_director', filters.is_director);
-    }
+
     if (filters?.reports_to) {
       query = query.eq('reports_to', filters.reports_to);
     }
