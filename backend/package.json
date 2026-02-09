@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",
-    "start": "node dist/app.js"
+    "start": "node dist/app.js",
+    "recalculate-ninebox": "ts-node src/scripts/recalculate-ninebox.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",

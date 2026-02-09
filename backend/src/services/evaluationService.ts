@@ -792,25 +792,26 @@ export const evaluationService = {
 
   // Calcular posição no Nine Box no formato B1-B9
   calculateNineBoxCode(performance: number, potential: number): string {
-    // Performance: 1-2 = baixo (B1, B2, B3), 2.01-3 = médio (B4, B5, B6), 3.01-4 = alto (B7, B8, B9)
-    // Potential: 1-2 = baixo (coluna 1), 2.01-3 = médio (coluna 2), 3.01-4 = alto (coluna 3)
+    // Lógica padronizada: 1.0-1.999 = baixo, 2.0-2.999 = médio, 3.0-4.0 = alto
+    // Performance: 1-1.999 = baixo (B1, B2, B3), 2.0-2.999 = médio (B4, B5, B6), 3.0-4.0 = alto (B7, B8, B9)
+    // Potential: 1-1.999 = baixo (coluna 1), 2.0-2.999 = médio (coluna 2), 3.0-4.0 = alto (coluna 3)
 
     let perfRow: number;
     let potCol: number;
 
     // Determinar linha (baseado em performance)
-    if (performance <= 2) {
+    if (performance < 2) {
       perfRow = 0; // Linha inferior (B1, B2, B3)
-    } else if (performance <= 3) {
+    } else if (performance < 3) {
       perfRow = 1; // Linha do meio (B4, B5, B6)
     } else {
       perfRow = 2; // Linha superior (B7, B8, B9)
     }
 
     // Determinar coluna (baseado em potencial)
-    if (potential <= 2) {
+    if (potential < 2) {
       potCol = 0; // Coluna esquerda
-    } else if (potential <= 3) {
+    } else if (potential < 3) {
       potCol = 1; // Coluna do meio
     } else {
       potCol = 2; // Coluna direita
