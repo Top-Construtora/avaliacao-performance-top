@@ -464,7 +464,7 @@ const Consensus = () => {
           setExistingConsensusData(existingConsensus);
           setViewMode('view');
           toast.success(
-            `Visualizando consenso salvo (Nota: ${existingConsensus.consensus_score}, Posição: ${existingConsensus.nine_box_position})`,
+            `Visualizando consenso salvo (Nota: ${parseFloat(existingConsensus.consensus_score).toFixed(3)}, Posição: ${existingConsensus.nine_box_position})`,
             { duration: 4000 }
           );
 
@@ -712,6 +712,13 @@ const Consensus = () => {
 
     // Arredondar para 10 casas decimais para eliminar erros de precisão de ponto flutuante
     return Math.round(weightedScore * 10000000000) / 10000000000;
+  };
+
+  // Formatar nota com no máximo 3 casas decimais
+  const formatScore = (score: number): string => {
+    if (score === 0) return '0';
+    // Arredondar para 3 casas decimais e remover zeros desnecessários
+    return parseFloat(score.toFixed(3)).toString();
   };
 
   // Função para calcular o código Nine Box (B1-B9)
@@ -1145,7 +1152,7 @@ const Consensus = () => {
               <div className="mt-2 flex items-center space-x-4 text-xs text-blue-600 dark:text-blue-400">
                 <span className="flex items-center">
                   <BarChart3 className="h-3 w-3 mr-1" />
-                  Nota Final: <strong className="ml-1">{existingConsensusData?.consensus_score}</strong>
+                  Nota Final: <strong className="ml-1">{existingConsensusData?.consensus_score ? parseFloat(existingConsensusData.consensus_score).toFixed(3) : 'N/A'}</strong>
                 </span>
                 <span className="flex items-center">
                   <Target className="h-3 w-3 mr-1" />
@@ -1508,25 +1515,25 @@ const Consensus = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-primary-200 dark:border-primary-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Técnicas</h4>
-                    <p className="text-2xl sm:text-3xl font-bold text-primary-00 dark:text-primary-700">{calculateCategoryAverage('Técnica')}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-primary-00 dark:text-primary-700">{formatScore(calculateCategoryAverage('Técnica'))}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 50%</p>
                   </div>
 
                   <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Comportamentais</h4>
-                    <p className="text-2xl sm:text-3xl font-bold text-gray-600 dark:text-gray-400">{calculateCategoryAverage('Comportamental')}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-gray-600 dark:text-gray-400">{formatScore(calculateCategoryAverage('Comportamental'))}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 30%</p>
                   </div>
 
                   <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-stone-200 dark:border-stone-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Organizacionais</h4>
-                    <p className="text-2xl sm:text-3xl font-bold text-stone-700 dark:text-stone-600">{calculateCategoryAverage('Organizacional')}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-stone-700 dark:text-stone-600">{formatScore(calculateCategoryAverage('Organizacional'))}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 20%</p>
                   </div>
 
                   <div className="bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700 p-4 sm:p-6 rounded-xl text-white">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-100 dark:text-gray-200 mb-1">Nota Final</h4>
-                    <p className="text-2xl sm:text-3xl font-bold">{calculateOverallAverage()}</p>
+                    <p className="text-2xl sm:text-3xl font-bold">{formatScore(calculateOverallAverage())}</p>
                     <p className="text-xs text-gray-100 dark:text-gray-200 mt-1">Média Ponderada</p>
                   </div>
 
