@@ -217,9 +217,8 @@ const NineBoxMatrix = () => {
    */
   const getQuadrant = (performance: number, potential: number): { row: number; col: number } => {
     // Determina o quadrante baseado nos intervalos:
-    // 1.0-1.999 = quadrante 1
-    // 2.0-2.999 = quadrante 2
-    // 3.0-4.0 = quadrante 3
+    // Performance: < 2.0 = quadrante 1, 2.0-2.99 = quadrante 2, >= 3.0 = quadrante 3
+    // Potencial: <= 2.0 = quadrante 1 (inclui 2.0), 2.01-3.0 = quadrante 2, > 3.0 = quadrante 3
 
     let perfQuadrant: number;
     let potQuadrant: number;
@@ -234,9 +233,9 @@ const NineBoxMatrix = () => {
     }
 
     // Potencial (linha)
-    if (potential < 2.0) {
+    if (potential <= 2.0) {
       potQuadrant = 1;
-    } else if (potential < 3.0) {
+    } else if (potential <= 3.0) {
       potQuadrant = 2;
     } else {
       potQuadrant = 3;

@@ -727,7 +727,8 @@ const Consensus = () => {
     let potCol: number;
 
     // Determinar linha baseada na performance (consensus_score)
-    // Lógica padronizada: 1.0-1.999 = quadrante 1, 2.0-2.999 = quadrante 2, 3.0-4.0 = quadrante 3
+    // Performance: < 2.0 = Baixo, 2.0-2.99 = Médio, >= 3.0 = Alto
+    // Potencial: <= 2.0 = Baixo (inclui 2.0), 2.01-3.0 = Médio, > 3.0 = Alto
     if (performance < 2) {
       perfRow = 0; // B1, B2, B3
     } else if (performance < 3) {
@@ -737,9 +738,9 @@ const Consensus = () => {
     }
 
     // Determinar coluna baseada no potencial
-    if (potential < 2) {
+    if (potential <= 2) {
       potCol = 0; // Coluna 1
-    } else if (potential < 3) {
+    } else if (potential <= 3) {
       potCol = 1; // Coluna 2
     } else {
       potCol = 2; // Coluna 3
