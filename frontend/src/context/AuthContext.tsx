@@ -3,6 +3,7 @@ import { api } from '../config/api';
 import { User } from '../types/user';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import { userService } from '../services/user.service';
 
 interface AuthContextType {
   user: User | null;
@@ -142,13 +143,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           const fetchProfile = async () => {
             try {
-              const { data: profileData, error } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
+              const profileData = await userService.getUserById(session.user.id);
 
-              if (!error && profileData) {
+              if (profileData) {
                 // Verifica se o usuário está ativo
                 if (!profileData.active) {
                   await supabase.auth.signOut();
@@ -160,13 +157,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setProfile(profileData);
                 setIsAuthenticated(true);
                 toast.success('Login realizado com sucesso!');
-              } else if (error) {
-                console.error('Erro ao buscar perfil:', error);
+              } else {
+                console.error('Perfil não encontrado');
                 toast.error('Usuário não encontrado no sistema. Entre em contato com o administrador.');
                 await supabase.auth.signOut();
               }
             } catch (err) {
               console.error('Erro ao processar perfil:', err);
+              toast.error('Erro ao buscar perfil. Entre em contato com o administrador.');
+              await supabase.auth.signOut();
             }
           };
 
@@ -198,33 +197,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('✅ Sessão encontrada, buscando perfil...');
 
-      // Se houver sessão, busca o perfil do usuário
-      const { data: profileData, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
+      // Se houver sessão, busca o perfil do usuário usando a API
+      try {
+        const profileData = await userService.getUserById(session.user.id);
 
-      if (!error && profileData) {
-        // Verificar se usuário está ativo
-        if (!profileData.active) {
-          console.warn('⚠️ Usuário inativo detectado no checkAuth');
+        if (profileData) {
+          // Verificar se usuário está ativo
+          if (!profileData.active) {
+            console.warn('⚠️ Usuário inativo detectado no checkAuth');
+            await supabase.auth.signOut();
+            setLoading(false);
+            hasInitializedRef.current = true;
+            return;
+          }
+
+          console.log('✅ Perfil carregado no checkAuth');
+          setUser(profileData);
+          setProfile(profileData);
+          setIsAuthenticated(true);
+
+          // Salva o token no localStorage para uso com a API
+          localStorage.setItem('access_token', session.access_token);
+        } else {
+          console.error('❌ Perfil não encontrado no checkAuth');
+          // Se o perfil não existir, fazer logout
           await supabase.auth.signOut();
-          setLoading(false);
-          hasInitializedRef.current = true;
-          return;
         }
-
-        console.log('✅ Perfil carregado no checkAuth');
-        setUser(profileData);
-        setProfile(profileData);
-        setIsAuthenticated(true);
-
-        // Salva o token no localStorage para uso com a API
-        localStorage.setItem('access_token', session.access_token);
-      } else if (error) {
+      } catch (error) {
         console.error('❌ Erro ao buscar perfil no checkAuth:', error);
-        // Se o perfil não existir, fazer logout
+        // Se houver erro ao buscar o perfil, fazer logout
         await supabase.auth.signOut();
       }
     } catch (error) {
@@ -270,15 +271,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Aguardar um pouco para garantir que o evento SIGNED_IN foi disparado e ignorado
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Busca o perfil do usuário
-      const { data: profileData, error: profileError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-
-      if (profileError) {
-        console.error('❌ Erro ao buscar perfil:', profileError);
+      // Busca o perfil do usuário usando a API
+      let profileData: User | null = null;
+      try {
+        profileData = await userService.getUserById(data.user.id);
+      } catch (error) {
+        console.error('❌ Erro ao buscar perfil:', error);
         toast.error('Erro ao buscar perfil do usuário');
         await supabase.auth.signOut();
         return false;
@@ -369,20 +367,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // @ts-ignore
       delete updateData.children_age_ranges;
 
-      // Atualiza no Supabase
-      const { data, error } = await supabase
-        .from('users')
-        .update({
-          ...updateData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', profile.id)
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
+      // Atualiza usando a API
+      const data = await userService.updateUser(profile.id, updateData);
 
       if (data) {
         setProfile(data);

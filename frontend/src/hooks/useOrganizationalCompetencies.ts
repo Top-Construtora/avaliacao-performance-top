@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { competencyService } from '../services/competency.service';
 
 interface OrganizationalCompetency {
   name: string;
@@ -11,7 +11,7 @@ interface OrganizationalCompetency {
  * Hook para buscar competências organizacionais dinâmicas do banco de dados
  * Substitui o const EVALUATION_COMPETENCIES.deliveries
  */
-export const useOrganizational Competencies = () => {
+export const useOrganizationalCompetencies = () => {
   const [competencies, setCompetencies] = useState<OrganizationalCompetency[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,18 +25,12 @@ export const useOrganizational Competencies = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
-        .from('organizational_competencies')
-        .select('name, description')
-        .eq('is_active', true)
-        .order('position', { ascending: true });
-
-      if (fetchError) throw fetchError;
+      const data = await competencyService.getOrganizationalCompetencies();
 
       if (data && data.length > 0) {
         const mapped = data.map(comp => ({
           name: comp.name,
-          description: comp.description,
+          description: comp.description || '',
           category: 'deliveries' as const
         }));
         setCompetencies(mapped);

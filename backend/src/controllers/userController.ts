@@ -139,5 +139,50 @@ export const userController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async checkEmailExists(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.params;
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          error: 'Email é obrigatório'
+        });
+      }
+
+      const exists = await userService.checkEmailExists(email);
+
+      res.json({
+        success: true,
+        data: { exists }
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async addUserToTeams(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { teamIds } = req.body;
+
+      if (!teamIds || !Array.isArray(teamIds)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Lista de IDs de times é obrigatória'
+        });
+      }
+
+      await userService.addUserToTeams(id, teamIds);
+
+      res.json({
+        success: true,
+        message: 'Usuário adicionado aos times com sucesso'
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 };

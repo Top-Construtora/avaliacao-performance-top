@@ -47,5 +47,14 @@ export const userService = {
   async createUserWithAuth(userData: any): Promise<User> {
     const response = await api.post('/auth/register', userData);
     return response.data;
+  },
+
+  async checkEmailExists(email: string): Promise<boolean> {
+    const response = await api.get(`/users/check-email/${encodeURIComponent(email)}`);
+    return response.data.exists;
+  },
+
+  async addUserToTeams(userId: string, teamIds: string[]): Promise<void> {
+    await api.post(`/users/${userId}/teams`, { teamIds });
   }
 };

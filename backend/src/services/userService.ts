@@ -360,5 +360,53 @@ export const userService = {
       }
       throw new ApiError(500, error.message || 'Erro ao redefinir senha');
     }
+  },
+
+  // Verificar se email já existe
+  async checkEmailExists(email: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('email', email.toLowerCase())
+        .maybeSingle();
+
+      if (error) {
+        console.error('Erro ao verificar email:', error);
+        return false;
+      }
+
+      return !!data;
+    } catch (error) {
+      console.error('Erro ao verificar email:', error);
+      return false;
+    }
+  },
+
+  // Adicionar usuário a múltiplos times
+  async addUserToTeams(userId: string, teamIds: string[]): Promise<void> {
+    try {
+      if (!teamIds || teamIds.length === 0) {
+        return;
+      }
+
+      const teamMembers = teamIds.map(teamId => ({
+        team_id: teamId,
+        user_id: userId,
+      }));
+
+      const { error } = await supabaseAdmin
+        .from('team_members')
+        .insert(teamMembers);
+
+      if (error) {
+        throw new ApiError(500, 'Erro ao adicionar usuário aos times: ' + error.message);
+      }
+    } catch (error: any) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError(500, error.message || 'Erro ao adicionar usuário aos times');
+    }
   }
 };

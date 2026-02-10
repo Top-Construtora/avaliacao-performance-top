@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth, useUserRole } from '../../context/AuthContext';
-import { supabase } from '../../lib/supabase';
+import { competencyService } from '../../services/competency.service';
 import Button from '../../components/Button';
 import {
   Award,
@@ -69,13 +69,7 @@ const CodigoCultural = () => {
   const loadCompetencies = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('organizational_competencies')
-        .select('*')
-        .order('position', { ascending: true });
-
-      if (error) throw error;
-
+      const data = await competencyService.getOrganizationalCompetencies();
       setCompetencies(data || []);
     } catch (error: any) {
       console.error('Erro ao carregar competências:', error);
@@ -128,32 +122,17 @@ const CodigoCultural = () => {
     try {
       if (editingId) {
         // Atualizar existente
-        const { error } = await supabase
-          .from('organizational_competencies')
-          .update({
-            name: formData.name,
-            description: formData.description,
-            position: formData.position,
-            is_active: formData.is_active,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingId);
-
-        if (error) throw error;
+        await competencyService.updateOrganizationalCompetency(editingId, {
+          name: formData.name,
+          description: formData.description,
+        });
         toast.success('Competência atualizada com sucesso!');
       } else {
         // Criar nova
-        const { error } = await supabase
-          .from('organizational_competencies')
-          .insert({
-            name: formData.name,
-            description: formData.description,
-            position: formData.position,
-            is_active: formData.is_active,
-            created_by: profile?.id
-          });
-
-        if (error) throw error;
+        await competencyService.createOrganizationalCompetency({
+          name: formData.name,
+          description: formData.description,
+        });
         toast.success('Competência criada com sucesso!');
       }
 
@@ -174,13 +153,7 @@ const CodigoCultural = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('organizational_competencies')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
+      await competencyService.deleteOrganizationalCompetency(id);
       toast.success('Competência excluída com sucesso!');
       loadCompetencies();
     } catch (error: any) {
@@ -191,15 +164,9 @@ const CodigoCultural = () => {
 
   const toggleActive = async (competency: OrganizationalCompetency) => {
     try {
-      const { error } = await supabase
-        .from('organizational_competencies')
-        .update({
-          is_active: !competency.is_active,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', competency.id);
-
-      if (error) throw error;
+      await competencyService.updateOrganizationalCompetency(competency.id, {
+        is_active: !competency.is_active,
+      });
 
       toast.success(
         competency.is_active

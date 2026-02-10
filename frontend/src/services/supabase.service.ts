@@ -1,5 +1,7 @@
 // src/services/supabase.service.ts
-import { supabase } from '../lib/supabase';
+import { departmentService } from './department.service';
+import { userService } from './user.service';
+import { teamService } from './team.service';
 import type {
   Department,
   DepartmentInsert,
@@ -21,13 +23,7 @@ export const departmentsService = {
   // Listar todos os departamentos
   async getAll(): Promise<DepartmentWithDetails[]> {
     try {
-      // Query simplificada sem joins complexos
-      const { data: departments, error } = await supabase
-        .from('departments')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
+      const departments = await departmentService.getAll();
 
       // Buscar dados relacionados separadamente
       const departmentsWithDetails = await Promise.all(
@@ -35,31 +31,22 @@ export const departmentsService = {
           // Buscar responsável
           let responsible = null;
           if (dept.responsible_id) {
-            const { data: respData } = await supabase
-              .from('users')
-              .select('id, name, email')
-              .eq('id', dept.responsible_id)
-              .single();
-            responsible = respData;
+            responsible = await userService.getUserById(dept.responsible_id);
           }
 
           // Buscar times
-          const { data: teams } = await supabase
-            .from('teams')
-            .select('id, name')
-            .eq('department_id', dept.id);
+          const allTeams = await teamService.getAll();
+          const teams = allTeams.filter(t => t.department_id === dept.id);
 
-          // Contar membros
-          const { count } = await supabase
-            .from('users')
-            .select('*', { count: 'exact', head: true })
-            .eq('active', true);
+          // Contar membros ativos
+          const allUsers = await userService.getUsers({ active: true });
+          const member_count = allUsers.length;
 
           return {
             ...dept,
             responsible,
             teams: teams || [],
-            member_count: count || 0,
+            member_count: member_count || 0,
           } as DepartmentWithDetails;
         })
       );
@@ -73,30 +60,18 @@ export const departmentsService = {
 
   // Buscar departamento por ID
   async getById(id: string): Promise<DepartmentWithDetails | null> {
-    const { data, error } = await supabase
-      .from('departments')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) return null;
+    const data = await departmentService.getById(id);
+    if (!data) return null;
 
     // Buscar responsável
     let responsible = null;
     if (data.responsible_id) {
-      const { data: respData } = await supabase
-        .from('users')
-        .select('id, name, email')
-        .eq('id', data.responsible_id)
-        .single();
-      responsible = respData;
+      responsible = await userService.getUserById(data.responsible_id);
     }
 
     // Buscar times
-    const { data: teams } = await supabase
-      .from('teams')
-      .select('id, name')
-      .eq('department_id', id);
+    const allTeams = await teamService.getAll();
+    const teams = allTeams.filter(t => t.department_id === id);
 
     return {
       ...data,
@@ -107,37 +82,17 @@ export const departmentsService = {
 
   // Criar departamento
   async create(department: DepartmentInsert): Promise<Department> {
-    const { data, error } = await supabase
-      .from('departments')
-      .insert(department)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return await departmentService.create(department);
   },
 
   // Atualizar departamento
   async update(id: string, department: DepartmentUpdate): Promise<Department> {
-    const { data, error } = await supabase
-      .from('departments')
-      .update(department)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return await departmentService.update(id, department);
   },
 
   // Deletar departamento
   async delete(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('departments')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    await departmentService.delete(id);
   },
 };
 
@@ -146,92 +101,19 @@ export const departmentsService = {
 // ====================================
 export const usersService = {
   // Listar todos os usuários
-  // OTIMIZADO: Uma única query com JOINs em vez de N+1 queries
   async getAll(): Promise<UserWithDetails[]> {
     try {
-      // Query otimizada com todos os JOINs necessários
-      // Primeiro buscar usuários com track e salary_level
-      const { data: users, error } = await supabase
-        .from('users')
-        .select(`
-          *,
-          track:career_tracks(id, name, code),
-          salary_level:salary_levels(id, name, percentage)
-        `)
-        .order('name');
+      const users = await userService.getUsers();
 
-      if (error) throw error;
-
-      // Preparar IDs para queries em batch
-      const userIds = (users || []).map(u => u.id);
-      const managerIds = [...new Set((users || []).filter(u => u.reports_to).map(u => u.reports_to))];
-      const trackPositionIds = [...new Set(
-        (users || [])
-          .filter(u => u.current_track_position_id)
-          .map(u => u.current_track_position_id)
-      )];
-
-      // OTIMIZAÇÃO: Executar todas as queries auxiliares em PARALELO
-      const [trackPositionsResult, managersResult, directReportsResult] = await Promise.all([
-        // Query 1: track_positions
-        trackPositionIds.length > 0
-          ? supabase
-              .from('track_positions')
-              .select(`
-                id,
-                base_salary,
-                position:job_positions(id, name, code),
-                class:salary_classes(id, name, code)
-              `)
-              .in('id', trackPositionIds)
-          : Promise.resolve({ data: [] }),
-
-        // Query 2: managers
-        managerIds.length > 0
-          ? supabase
-              .from('users')
-              .select('id, name, email')
-              .in('id', managerIds)
-          : Promise.resolve({ data: [] }),
-
-        // Query 3: direct_reports
-        userIds.length > 0
-          ? supabase
-              .from('users')
-              .select('id, name, email, position, reports_to')
-              .in('reports_to', userIds)
-          : Promise.resolve({ data: [] })
-      ]);
-
-      // Criar mapas para lookup O(1)
-      const trackPositionsMap = new Map((trackPositionsResult.data || []).map(tp => [tp.id, tp]));
-      const managersMap = new Map((managersResult.data || []).map(m => [m.id, m]));
-
-      // Agrupar direct_reports por manager
-      const directReportsMap = new Map<string, any[]>();
-      (directReportsResult.data || []).forEach((dr: any) => {
-        if (!directReportsMap.has(dr.reports_to)) {
-          directReportsMap.set(dr.reports_to, []);
-        }
-        directReportsMap.get(dr.reports_to)!.push({
-          id: dr.id,
-          name: dr.name,
-          email: dr.email,
-          position: dr.position
-        });
-      });
-
-      // Montar resultado final
+      // Converter para UserWithDetails
       const usersWithDetails = (users || []).map(user => ({
         ...user,
-        manager: user.reports_to ? managersMap.get(user.reports_to) || null : null,
-        teams: [], // Teams não são usados no NineBox, carregar sob demanda se necessário
-        direct_reports: directReportsMap.get(user.id) || [],
-        track: user.track,
-        track_position: user.current_track_position_id
-          ? trackPositionsMap.get(user.current_track_position_id) || null
-          : null,
-        salary_level: user.salary_level,
+        manager: null, // Carregar sob demanda
+        teams: [], // Carregar sob demanda
+        direct_reports: [], // Carregar sob demanda
+        track: null,
+        track_position: null,
+        salary_level: null,
       } as UserWithDetails));
 
       return usersWithDetails;
@@ -243,165 +125,45 @@ export const usersService = {
 
   // Buscar usuário por ID
   async getById(id: string): Promise<UserWithDetails | null> {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', id)
-      .single();
+    try {
+      const data = await userService.getUserById(id);
+      if (!data) return null;
 
-    if (error) return null;
-
-    // Buscar manager
-    let manager = null;
-    if (data.reports_to) {
-      const { data: managerData } = await supabase
-        .from('users')
-        .select('id, name, email')
-        .eq('id', data.reports_to)
-        .single();
-      manager = managerData;
+      return {
+        ...data,
+        manager: null,
+        teams: [],
+        direct_reports: [],
+      } as UserWithDetails;
+    } catch (error) {
+      console.error('Erro ao buscar usuário:', error);
+      return null;
     }
-
-    // Buscar times
-    const { data: teamMemberships } = await supabase
-      .from('team_members')
-      .select('team_id')
-      .eq('user_id', id);
-
-    const teamIds = teamMemberships?.map(tm => tm.team_id) || [];
-    let teams: Team[] = [];
-    
-    if (teamIds.length > 0) {
-      const { data: teamsData } = await supabase
-        .from('teams')
-        .select('*')
-        .in('id', teamIds);
-      teams = teamsData || [];
-    }
-
-    // Buscar subordinados
-    const { data: directReports } = await supabase
-      .from('users')
-      .select('id, name, email, position')
-      .eq('reports_to', id);
-
-    return {
-      ...data,
-      manager,
-      teams,
-      direct_reports: directReports || [],
-    };
   },
 
   // Atualizar usuário
   async update(id: string, user: UserUpdate): Promise<User> {
-    const { data, error } = await supabase
-      .from('users')
-      .update(user)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return await userService.updateUser(id, user);
   },
 
   // Desativar usuário
   async deactivate(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('users')
-      .update({ active: false })
-      .eq('id', id);
-
-    if (error) throw error;
+    await userService.updateUser(id, { active: false });
   },
 
   // Reativar usuário
   async activate(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('users')
-      .update({ active: true })
-      .eq('id', id);
-
-    if (error) throw error;
+    await userService.updateUser(id, { active: true });
   },
 
-  // Deletar usuário (soft delete primeiro, hard delete se já estiver desativado)
+  // Deletar usuário
   async delete(id: string): Promise<void> {
-    // Verificar se o usuário já está desativado
-    const { data: user, error: getUserError } = await supabase
-      .from('users')
-      .select('active')
-      .eq('id', id)
-      .single();
-
-    if (getUserError) throw getUserError;
-
-    // Se usuário já está desativado, fazer hard delete em cascata
-    if (user.active === false) {
-      // Deletar avaliações
-      await supabase.from('self_evaluations').delete().eq('employee_id', id);
-      await supabase.from('leader_evaluations').delete().eq('employee_id', id);
-      await supabase.from('leader_evaluations').delete().eq('evaluator_id', id);
-      await supabase.from('consensus_evaluations').delete().eq('employee_id', id);
-
-      // Deletar PDIs
-      await supabase.from('development_plans').delete().eq('employee_id', id);
-
-      // Deletar membros de times
-      await supabase.from('team_members').delete().eq('user_id', id);
-
-      // Remover como responsável
-      await supabase.from('teams').update({ responsible_id: null }).eq('responsible_id', id);
-      await supabase.from('departments').update({ responsible_id: null }).eq('responsible_id', id);
-
-      // Remover reports_to
-      await supabase.from('users').update({ reports_to: null }).eq('reports_to', id);
-
-      // Deletar competências de avaliação
-      const { data: selfEvals } = await supabase.from('self_evaluations').select('id').eq('employee_id', id);
-      const { data: leaderEvals } = await supabase.from('leader_evaluations').select('id').eq('employee_id', id);
-
-      const evalIds = [
-        ...(selfEvals?.map(e => e.id) || []),
-        ...(leaderEvals?.map(e => e.id) || [])
-      ];
-
-      if (evalIds.length > 0) {
-        await supabase.from('evaluation_competencies').delete().in('evaluation_id', evalIds);
-      }
-
-      // Finalmente deletar o usuário
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    } else {
-      // Se usuário está ativo, fazer soft delete
-      const { error } = await supabase
-        .from('users')
-        .update({
-          active: false,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id);
-
-      if (error) throw error;
-    }
+    await userService.deleteUser(id);
   },
 
   // Buscar líderes
   async getLeaders(): Promise<User[]> {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('is_leader', true)
-      .order('name');
-
-    if (error) throw error;
-    return data || [];
+    return await userService.getUsers({ is_leader: true });
   },
 };
 
@@ -412,13 +174,7 @@ export const teamsService = {
   // Listar todos os times
   async getAll(): Promise<TeamWithDetails[]> {
     try {
-      // Query simplificada
-      const { data: teams, error } = await supabase
-        .from('teams')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
+      const teams = await teamService.getAll();
 
       // Buscar dados relacionados
       const teamsWithDetails = await Promise.all(
@@ -426,41 +182,17 @@ export const teamsService = {
           // Buscar departamento
           let department = null;
           if (team.department_id) {
-            const { data: deptData } = await supabase
-              .from('departments')
-              .select('*')
-              .eq('id', team.department_id)
-              .single();
-            department = deptData;
+            department = await departmentService.getById(team.department_id);
           }
 
           // Buscar responsável
           let responsible = null;
           if (team.responsible_id) {
-            const { data: respData } = await supabase
-              .from('users')
-              .select('id, name, email')
-              .eq('id', team.responsible_id)
-              .single();
-            responsible = respData;
+            responsible = await userService.getUserById(team.responsible_id);
           }
 
           // Buscar membros
-          const { data: teamMembers } = await supabase
-            .from('team_members')
-            .select('user_id')
-            .eq('team_id', team.id);
-
-          const memberIds = teamMembers?.map(tm => tm.user_id) || [];
-          let members: any[] = [];
-          
-          if (memberIds.length > 0) {
-            const { data: membersData } = await supabase
-              .from('users')
-              .select('id, name, email, position, profile_image')
-              .in('id', memberIds);
-            members = membersData || [];
-          }
+          const members = await teamService.getMembers(team.id);
 
           return {
             ...team,
@@ -480,144 +212,65 @@ export const teamsService = {
 
   // Buscar time por ID
   async getById(id: string): Promise<TeamWithDetails | null> {
-    const { data, error } = await supabase
-      .from('teams')
-      .select('*')
-      .eq('id', id)
-      .single();
+    try {
+      const data = await teamService.getById(id);
+      if (!data) return null;
 
-    if (error) return null;
+      // Buscar departamento
+      let department = null;
+      if (data.department_id) {
+        department = await departmentService.getById(data.department_id);
+      }
 
-    // Buscar departamento
-    let department = null;
-    if (data.department_id) {
-      const { data: deptData } = await supabase
-        .from('departments')
-        .select('*')
-        .eq('id', data.department_id)
-        .single();
-      department = deptData;
+      // Buscar responsável
+      let responsible = null;
+      if (data.responsible_id) {
+        responsible = await userService.getUserById(data.responsible_id);
+      }
+
+      // Buscar membros
+      const members = await teamService.getMembers(id);
+
+      return {
+        ...data,
+        department,
+        responsible,
+        members,
+      };
+    } catch (error) {
+      console.error('Erro ao buscar time:', error);
+      return null;
     }
-
-    // Buscar responsável
-    let responsible = null;
-    if (data.responsible_id) {
-      const { data: respData } = await supabase
-        .from('users')
-        .select('id, name, email')
-        .eq('id', data.responsible_id)
-        .single();
-      responsible = respData;
-    }
-
-    // Buscar membros
-    const { data: teamMembers } = await supabase
-      .from('team_members')
-      .select('user_id')
-      .eq('team_id', id);
-
-    const memberIds = teamMembers?.map(tm => tm.user_id) || [];
-    let members: any[] = [];
-    
-    if (memberIds.length > 0) {
-      const { data: membersData } = await supabase
-        .from('users')
-        .select('id, name, email, position, profile_image')
-        .in('id', memberIds);
-      members = membersData || [];
-    }
-
-    return {
-      ...data,
-      department,
-      responsible,
-      members,
-    };
   },
 
   // Criar time
   async create(team: TeamInsert): Promise<Team> {
-    const { data, error } = await supabase
-      .from('teams')
-      .insert(team)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return await teamService.create(team);
   },
 
   // Atualizar time
   async update(id: string, team: TeamUpdate): Promise<Team> {
-    const { data, error } = await supabase
-      .from('teams')
-      .update(team)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return await teamService.update(id, team);
   },
 
   // Deletar time
   async delete(id: string): Promise<void> {
-    // Primeiro remove todos os membros
-    await supabase
-      .from('team_members')
-      .delete()
-      .eq('team_id', id);
-
-    // Depois deleta o time
-    const { error } = await supabase
-      .from('teams')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    await teamService.delete(id);
   },
 
   // Adicionar membro ao time
   async addMember(teamId: string, userId: string): Promise<void> {
-    const { error } = await supabase
-      .from('team_members')
-      .insert({ team_id: teamId, user_id: userId });
-
-    if (error) throw error;
+    await teamService.addMember(teamId, userId);
   },
 
   // Remover membro do time
   async removeMember(teamId: string, userId: string): Promise<void> {
-    const { error } = await supabase
-      .from('team_members')
-      .delete()
-      .eq('team_id', teamId)
-      .eq('user_id', userId);
-
-    if (error) throw error;
+    await teamService.removeMember(teamId, userId);
   },
 
   // Substituir todos os membros do time
   async replaceMembers(teamId: string, userIds: string[]): Promise<void> {
-    // Remove todos os membros atuais
-    await supabase
-      .from('team_members')
-      .delete()
-      .eq('team_id', teamId);
-
-    // Adiciona os novos membros
-    if (userIds.length > 0) {
-      const members = userIds.map(userId => ({
-        team_id: teamId,
-        user_id: userId,
-      }));
-
-      const { error } = await supabase
-        .from('team_members')
-        .insert(members);
-
-      if (error) throw error;
-    }
+    await teamService.replaceMembers(teamId, userIds);
   },
 };
 
@@ -627,44 +280,23 @@ export const teamsService = {
 export const supabaseHelpers = {
   // Buscar usuários por time
   async getUsersByTeam(teamId: string): Promise<User[]> {
-    const { data } = await supabase
-      .from('team_members')
-      .select('user_id')
-      .eq('team_id', teamId);
-
-    const userIds = data?.map(tm => tm.user_id) || [];
-    
-    if (userIds.length === 0) return [];
-
-    const { data: users } = await supabase
-      .from('users')
-      .select('*')
-      .in('id', userIds)
-      .order('name');
-
-    return users || [];
+    return await teamService.getMembers(teamId);
   },
 
   // Buscar times de um usuário
   async getUserTeams(userId: string): Promise<Team[]> {
     try {
-      // Evitar query direta em team_members se possível
-      const { data } = await supabase
-        .from('team_members')
-        .select('team_id')
-        .eq('user_id', userId);
+      const allTeams = await teamService.getAll();
+      const userTeams: Team[] = [];
 
-      const teamIds = data?.map(tm => tm.team_id) || [];
-      
-      if (teamIds.length === 0) return [];
+      for (const team of allTeams) {
+        const members = await teamService.getMembers(team.id);
+        if (members.some(m => m.id === userId)) {
+          userTeams.push(team);
+        }
+      }
 
-      const { data: teams } = await supabase
-        .from('teams')
-        .select('*')
-        .in('id', teamIds)
-        .order('name');
-
-      return teams || [];
+      return userTeams;
     } catch (error) {
       console.error('Erro ao buscar times do usuário:', error);
       return [];
@@ -673,18 +305,12 @@ export const supabaseHelpers = {
 
   // Verificar se usuário é responsável por algum time/departamento
   async isUserResponsible(userId: string): Promise<boolean> {
-    const { data: teamData } = await supabase
-      .from('teams')
-      .select('id')
-      .eq('responsible_id', userId)
-      .limit(1);
+    const teams = await teamService.getAll();
+    const departments = await departmentService.getAll();
 
-    const { data: deptData } = await supabase
-      .from('departments')
-      .select('id')
-      .eq('responsible_id', userId)
-      .limit(1);
+    const isTeamResponsible = teams.some(t => t.responsible_id === userId);
+    const isDeptResponsible = departments.some(d => d.responsible_id === userId);
 
-    return !!(teamData?.length || deptData?.length);
+    return isTeamResponsible || isDeptResponsible;
   },
 };

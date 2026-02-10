@@ -5,7 +5,9 @@
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/app.js",
-    "recalculate-ninebox": "ts-node src/scripts/recalculate-ninebox.ts"
+    "recalculate-ninebox": "ts-node src/scripts/recalculate-ninebox.ts",
+    "apply-rls": "ts-node src/scripts/apply-rls.ts",
+    "verify-rls": "ts-node src/scripts/verify-rls-status.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",

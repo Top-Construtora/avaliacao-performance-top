@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../types/supabase';
+import { supabaseAdmin } from '../config/supabase';
 
 export interface AuthRequest extends Request {
   user?: Database['public']['Tables']['users']['Row'];
@@ -73,8 +74,8 @@ export const authenticateToken = async (
     console.log('✅ Auth middleware - Usuário autenticado:', user.id, user.email);
     console.log('📡 Auth middleware - Buscando dados do usuário na tabela');
 
-    // Buscar dados completos do usuário
-    const { data: userData, error: userError } = await supabase
+    // Buscar dados completos do usuário usando supabaseAdmin (bypassa RLS)
+    const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
       .select('*')
       .eq('id', user.id)
@@ -107,9 +108,9 @@ export const authenticateToken = async (
       });
     }
 
-    // Adicionar user e supabase ao request
+    // Adicionar user e supabaseAdmin ao request (para bypas sar RLS)
     req.user = userData;
-    req.supabase = supabase;
+    req.supabase = supabaseAdmin;
 
     console.log('✅ Auth middleware - Autenticação concluída com sucesso');
     next();

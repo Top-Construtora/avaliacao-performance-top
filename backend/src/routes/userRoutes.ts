@@ -14,5 +14,7 @@ router.put('/:id', userController.updateUser);
 router.delete('/:id', userController.deleteUser);
 router.get('/leader/:leaderId/subordinates', userController.getSubordinates);
 router.post('/:id/reset-password', userController.resetUserPassword);
+router.get('/check-email/:email', userController.checkEmailExists);
+router.post('/:id/teams', userController.addUserToTeams);
 
 export default router;
