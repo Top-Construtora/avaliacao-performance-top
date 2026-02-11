@@ -30,7 +30,10 @@ const LeaderDashboard = () => {
     selfEvaluation: 'pending' as string,
     leaderEvaluation: 'pending' as string,
     consensus: 'pending' as string,
-    ppiDefined: false
+    ppiDefined: false,
+    selfScore: null as number | null,
+    leaderScore: null as number | null,
+    consensusScore: null as number | null
   });
   const [teamStatus, setTeamStatus] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +66,10 @@ const LeaderDashboard = () => {
             selfEvaluation: normalizeStatus(myData.self_evaluation_status),
             leaderEvaluation: normalizeStatus(myData.leader_evaluation_status),
             consensus: normalizeStatus(myData.consensus_status),
-            ppiDefined: !!myData.ninebox_position || myData.consensus_status === 'completed'
+            ppiDefined: !!myData.ninebox_position || myData.consensus_status === 'completed',
+            selfScore: myData.self_evaluation_score ?? myData.self_score ?? null,
+            leaderScore: myData.leader_evaluation_score ?? myData.leader_score ?? null,
+            consensusScore: myData.consensus_score ?? myData.consensus_performance_score ?? null
           });
         }
 
@@ -261,7 +267,9 @@ const LeaderDashboard = () => {
                   ? 'text-blue-500'
                   : 'text-gray-400'
               }`}>
-                {myStatus.selfEvaluation === 'completed' ? 'Feito' : myStatus.selfEvaluation === 'in-progress' ? 'Fazendo' : 'Pendente'}
+                {myStatus.selfEvaluation === 'completed'
+                  ? (myStatus.selfScore !== null ? `Nota: ${myStatus.selfScore.toFixed(2)}` : 'Feito')
+                  : myStatus.selfEvaluation === 'in-progress' ? 'Fazendo' : 'Pendente'}
               </span>
             </div>
 
@@ -317,7 +325,9 @@ const LeaderDashboard = () => {
                   ? 'text-blue-500'
                   : 'text-gray-400'
               }`}>
-                {myStatus.leaderEvaluation === 'completed' ? 'Feito' : myStatus.leaderEvaluation === 'in-progress' ? 'Fazendo' : 'Pendente'}
+                {myStatus.leaderEvaluation === 'completed'
+                  ? (myStatus.leaderScore !== null ? `Nota: ${myStatus.leaderScore.toFixed(2)}` : 'Feito')
+                  : myStatus.leaderEvaluation === 'in-progress' ? 'Fazendo' : 'Pendente'}
               </span>
             </div>
 
@@ -373,12 +383,17 @@ const LeaderDashboard = () => {
                   ? 'text-blue-500'
                   : 'text-gray-400'
               }`}>
-                {myStatus.consensus === 'completed' ? 'Feito' : myStatus.consensus === 'in-progress' ? 'Fazendo' : 'Pendente'}
+                {myStatus.consensus === 'completed'
+                  ? (myStatus.consensusScore !== null ? `Nota: ${myStatus.consensusScore.toFixed(2)}` : 'Feito')
+                  : myStatus.consensus === 'in-progress' ? 'Fazendo' : 'Pendente'}
               </span>
             </div>
 
             {/* PDI */}
-            <div className="flex flex-col items-center">
+            <div
+              className={`flex flex-col items-center ${myStatus.ppiDefined ? 'cursor-pointer' : ''}`}
+              onClick={() => myStatus.ppiDefined && navigate('/my-pdi')}
+            >
               <div className="relative">
                 <svg className="w-16 h-16 sm:w-20 sm:h-20 transform -rotate-90">
                   <circle
@@ -414,8 +429,8 @@ const LeaderDashboard = () => {
               <span className="mt-2 text-xs sm:text-sm text-center font-medium text-gray-700 dark:text-gray-300">
                 PDI
               </span>
-              <span className={`text-xs ${myStatus.ppiDefined ? 'text-emerald-600' : 'text-gray-400'}`}>
-                {myStatus.ppiDefined ? 'Definido' : 'Pendente'}
+              <span className={`text-xs ${myStatus.ppiDefined ? 'text-emerald-600 hover:underline' : 'text-gray-400'}`}>
+                {myStatus.ppiDefined ? 'Visualizar' : 'Pendente'}
               </span>
             </div>
           </div>
@@ -452,6 +467,7 @@ const LeaderDashboard = () => {
               />
             </div>
           </div>
+
         </motion.div>
 
         {/* Team Status Card - Meus Liderados */}

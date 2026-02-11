@@ -361,7 +361,7 @@ export interface EvaluationMetrics {
 // ====================================
 
 export const calculateNineBoxPosition = (performance: number, potential: number): string => {
-  const perfLevel = performance <= 2 ? 'low' : performance <= 3 ? 'medium' : 'high';
+  const perfLevel = performance < 2 ? 'low' : performance < 3 ? 'medium' : 'high';
   const potLevel = potential <= 2 ? 'low' : potential <= 3 ? 'medium' : 'high';
   
   const positions: { [key: string]: string } = {
@@ -380,7 +380,7 @@ export const calculateNineBoxPosition = (performance: number, potential: number)
 };
 
 export const getNineBoxPositionNumber = (performance: number, potential: number): number => {
-  const perfLevel = performance <= 2 ? 0 : performance <= 3 ? 1 : 2;
+  const perfLevel = performance < 2 ? 0 : performance < 3 ? 1 : 2;
   const potLevel = potential <= 2 ? 0 : potential <= 3 ? 1 : 2;
   
   // Matriz 3x3: performance (linha) x potential (coluna)

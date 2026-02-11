@@ -772,7 +772,7 @@ export const evaluationService = {
 
   // Calcular posição no Nine Box
   calculateNineBoxPosition(performance: number, potential: number): string {
-    const perfLevel = performance <= 2 ? 'low' : performance <= 3 ? 'medium' : 'high';
+    const perfLevel = performance < 2 ? 'low' : performance < 3 ? 'medium' : 'high';
     const potLevel = potential <= 2 ? 'low' : potential <= 3 ? 'medium' : 'high';
 
     const positions: { [key: string]: string } = {
