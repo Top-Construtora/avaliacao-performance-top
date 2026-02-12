@@ -10,6 +10,9 @@ router.use(authenticateToken as any);
 // Listar times - todos podem ver
 router.get('/', teamController.getTeams as any);
 
+// Buscar todos os membros de todos os times (batch) - todos podem ver
+router.get('/members/all', teamController.getAllTeamMembers as any);
+
 // Buscar time por ID - todos podem ver
 router.get('/:id', teamController.getTeamById as any);
 

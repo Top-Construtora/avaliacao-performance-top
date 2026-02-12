@@ -266,5 +266,44 @@ export const teamController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  // Buscar todos os membros de todos os times (para evitar N+1 queries)
+  async getAllTeamMembers(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      // Buscar todos os relacionamentos team_members
+      const { data: teamMembers, error: membersError } = await req.supabase
+        .from('team_members')
+        .select('team_id, user_id');
+
+      if (membersError) throw membersError;
+
+      if (!teamMembers || teamMembers.length === 0) {
+        return res.json({ success: true, data: [] });
+      }
+
+      // Buscar dados dos usuários únicos
+      const userIds = [...new Set(teamMembers.map((tm: any) => tm.user_id))];
+
+      const { data: users, error: usersError } = await req.supabase
+        .from('users')
+        .select('id, name, email, position, profile_image')
+        .in('id', userIds);
+
+      if (usersError) throw usersError;
+
+      // Criar mapa de usuários
+      const usersMap = new Map((users || []).map((u: any) => [u.id, u]));
+
+      // Retornar dados agrupados por team_id
+      const result = teamMembers.map((tm: any) => ({
+        team_id: tm.team_id,
+        user: usersMap.get(tm.user_id) || null
+      })).filter((item: any) => item.user !== null);
+
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
   }
 };

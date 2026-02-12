@@ -2,6 +2,7 @@
 import { departmentService } from './department.service';
 import { userService } from './user.service';
 import { teamService } from './team.service';
+import { dataCacheService } from './dataCache.service';
 import type {
   Department,
   DepartmentInsert,
@@ -23,33 +24,30 @@ export const departmentsService = {
   // Listar todos os departamentos
   async getAll(): Promise<DepartmentWithDetails[]> {
     try {
-      const departments = await departmentService.getAll();
+      // Usar cache centralizado
+      const { departments, teams: allTeams, users: allUsers } = await dataCacheService.getAll();
 
-      // Buscar dados relacionados separadamente
-      const departmentsWithDetails = await Promise.all(
-        (departments || []).map(async (dept) => {
-          // Buscar responsável
-          let responsible = null;
-          if (dept.responsible_id) {
-            responsible = await userService.getUserById(dept.responsible_id);
-          }
+      // Criar mapa de usuários para lookup rápido
+      const usersMap = new Map(allUsers.map(u => [u.id, u]));
 
-          // Buscar times
-          const allTeams = await teamService.getAll();
-          const teams = allTeams.filter(t => t.department_id === dept.id);
+      // Mapear departamentos com detalhes
+      const departmentsWithDetails = (departments || []).map((dept) => {
+        // Buscar responsável do mapa
+        const responsible = dept.responsible_id ? usersMap.get(dept.responsible_id) || null : null;
 
-          // Contar membros ativos
-          const allUsers = await userService.getUsers({ active: true });
-          const member_count = allUsers.length;
+        // Filtrar times deste departamento
+        const teams = allTeams.filter(t => t.department_id === dept.id);
 
-          return {
-            ...dept,
-            responsible,
-            teams: teams || [],
-            member_count: member_count || 0,
-          } as DepartmentWithDetails;
-        })
-      );
+        // Contar membros (usuários com department_id igual)
+        const member_count = allUsers.filter(u => u.department_id === dept.id).length;
+
+        return {
+          ...dept,
+          responsible,
+          teams: teams || [],
+          member_count: member_count || 0,
+        } as DepartmentWithDetails;
+      });
 
       return departmentsWithDetails;
     } catch (error) {
@@ -60,39 +58,45 @@ export const departmentsService = {
 
   // Buscar departamento por ID
   async getById(id: string): Promise<DepartmentWithDetails | null> {
-    const data = await departmentService.getById(id);
-    if (!data) return null;
+    try {
+      const { departments, teams: allTeams, users: allUsers } = await dataCacheService.getAll();
 
-    // Buscar responsável
-    let responsible = null;
-    if (data.responsible_id) {
-      responsible = await userService.getUserById(data.responsible_id);
+      const data = departments.find(d => d.id === id);
+      if (!data) return null;
+
+      const usersMap = new Map(allUsers.map(u => [u.id, u]));
+      const responsible = data.responsible_id ? usersMap.get(data.responsible_id) || null : null;
+      const teams = allTeams.filter(t => t.department_id === id);
+
+      return {
+        ...data,
+        responsible,
+        teams: teams || [],
+      };
+    } catch (error) {
+      console.error('Erro ao buscar departamento:', error);
+      return null;
     }
-
-    // Buscar times
-    const allTeams = await teamService.getAll();
-    const teams = allTeams.filter(t => t.department_id === id);
-
-    return {
-      ...data,
-      responsible,
-      teams: teams || [],
-    };
   },
 
   // Criar departamento
   async create(department: DepartmentInsert): Promise<Department> {
-    return await departmentService.create(department);
+    const result = await departmentService.create(department);
+    dataCacheService.invalidate();
+    return result;
   },
 
   // Atualizar departamento
   async update(id: string, department: DepartmentUpdate): Promise<Department> {
-    return await departmentService.update(id, department);
+    const result = await departmentService.update(id, department);
+    dataCacheService.invalidate();
+    return result;
   },
 
   // Deletar departamento
   async delete(id: string): Promise<void> {
     await departmentService.delete(id);
+    dataCacheService.invalidate();
   },
 };
 
@@ -103,18 +107,52 @@ export const usersService = {
   // Listar todos os usuários
   async getAll(): Promise<UserWithDetails[]> {
     try {
-      const users = await userService.getUsers();
+      // Usar cache centralizado - UMA única chamada
+      const { users, teams, departments, teamMembers: allTeamMembers } = await dataCacheService.getAll();
+
+      // Criar mapas para lookup rápido
+      const usersMap = new Map(users.map(u => [u.id, u]));
+      const departmentsMap = new Map(departments.map(d => [d.id, d]));
+      const teamsMap = new Map(teams.map(t => [t.id, t]));
+
+      // Criar mapa de times por usuário usando dados batch
+      const userTeamsMap = new Map<string, Team[]>();
+      allTeamMembers.forEach(({ team_id, user }) => {
+        if (user && user.id) {
+          const currentTeams = userTeamsMap.get(user.id) || [];
+          const team = teamsMap.get(team_id);
+          if (team) {
+            currentTeams.push(team);
+            userTeamsMap.set(user.id, currentTeams);
+          }
+        }
+      });
 
       // Converter para UserWithDetails
-      const usersWithDetails = (users || []).map(user => ({
-        ...user,
-        manager: null, // Carregar sob demanda
-        teams: [], // Carregar sob demanda
-        direct_reports: [], // Carregar sob demanda
-        track: null,
-        track_position: null,
-        salary_level: null,
-      } as UserWithDetails));
+      const usersWithDetails = (users || []).map(user => {
+        // Buscar manager do mapa
+        const manager = user.manager_id ? usersMap.get(user.manager_id) || null : null;
+
+        // Buscar times do usuário do mapa
+        const userTeams = userTeamsMap.get(user.id) || [];
+
+        // Buscar departamento do usuário
+        const userDepartment = user.department_id ? departmentsMap.get(user.department_id) || null : null;
+
+        // Buscar liderados diretos
+        const direct_reports = users.filter(u => u.manager_id === user.id);
+
+        return {
+          ...user,
+          manager,
+          teams: userTeams,
+          departments: userDepartment ? [userDepartment] : [],
+          direct_reports,
+          track: null,
+          track_position: null,
+          salary_level: null,
+        } as UserWithDetails;
+      });
 
       return usersWithDetails;
     } catch (error) {
@@ -126,14 +164,31 @@ export const usersService = {
   // Buscar usuário por ID
   async getById(id: string): Promise<UserWithDetails | null> {
     try {
-      const data = await userService.getUserById(id);
+      const { users, teams, departments, teamMembers } = await dataCacheService.getAll();
+
+      const data = users.find(u => u.id === id);
       if (!data) return null;
+
+      const usersMap = new Map(users.map(u => [u.id, u]));
+      const departmentsMap = new Map(departments.map(d => [d.id, d]));
+      const teamsMap = new Map(teams.map(t => [t.id, t]));
+
+      // Buscar times do usuário
+      const userTeams = teamMembers
+        .filter(({ user }) => user && user.id === id)
+        .map(({ team_id }) => teamsMap.get(team_id))
+        .filter(Boolean) as Team[];
+
+      const manager = data.manager_id ? usersMap.get(data.manager_id) || null : null;
+      const userDepartment = data.department_id ? departmentsMap.get(data.department_id) || null : null;
+      const direct_reports = users.filter(u => u.manager_id === id);
 
       return {
         ...data,
-        manager: null,
-        teams: [],
-        direct_reports: [],
+        manager,
+        teams: userTeams,
+        departments: userDepartment ? [userDepartment] : [],
+        direct_reports,
       } as UserWithDetails;
     } catch (error) {
       console.error('Erro ao buscar usuário:', error);
@@ -143,27 +198,33 @@ export const usersService = {
 
   // Atualizar usuário
   async update(id: string, user: UserUpdate): Promise<User> {
-    return await userService.updateUser(id, user);
+    const result = await userService.updateUser(id, user);
+    dataCacheService.invalidate();
+    return result;
   },
 
   // Desativar usuário
   async deactivate(id: string): Promise<void> {
     await userService.updateUser(id, { active: false });
+    dataCacheService.invalidate();
   },
 
   // Reativar usuário
   async activate(id: string): Promise<void> {
     await userService.updateUser(id, { active: true });
+    dataCacheService.invalidate();
   },
 
   // Deletar usuário
   async delete(id: string): Promise<void> {
     await userService.deleteUser(id);
+    dataCacheService.invalidate();
   },
 
   // Buscar líderes
   async getLeaders(): Promise<User[]> {
-    return await userService.getUsers({ is_leader: true });
+    const { users } = await dataCacheService.getAll();
+    return users.filter(u => u.is_leader);
   },
 };
 
@@ -174,34 +235,36 @@ export const teamsService = {
   // Listar todos os times
   async getAll(): Promise<TeamWithDetails[]> {
     try {
-      const teams = await teamService.getAll();
+      // Usar cache centralizado - UMA única chamada
+      const { teams, departments, users: allUsers, teamMembers: allTeamMembers } = await dataCacheService.getAll();
 
-      // Buscar dados relacionados
-      const teamsWithDetails = await Promise.all(
-        (teams || []).map(async (team) => {
-          // Buscar departamento
-          let department = null;
-          if (team.department_id) {
-            department = await departmentService.getById(team.department_id);
-          }
+      // Criar mapas para lookup rápido
+      const departmentsMap = new Map(departments.map(d => [d.id, d]));
+      const usersMap = new Map(allUsers.map(u => [u.id, u]));
 
-          // Buscar responsável
-          let responsible = null;
-          if (team.responsible_id) {
-            responsible = await userService.getUserById(team.responsible_id);
-          }
+      // Criar mapa de membros por time usando dados batch
+      const membersMap = new Map<string, User[]>();
+      allTeamMembers.forEach(({ team_id, user }) => {
+        if (user) {
+          const currentMembers = membersMap.get(team_id) || [];
+          currentMembers.push(user);
+          membersMap.set(team_id, currentMembers);
+        }
+      });
 
-          // Buscar membros
-          const members = await teamService.getMembers(team.id);
+      // Mapear times com detalhes
+      const teamsWithDetails = (teams || []).map((team) => {
+        const department = team.department_id ? departmentsMap.get(team.department_id) || null : null;
+        const responsible = team.responsible_id ? usersMap.get(team.responsible_id) || null : null;
+        const members = membersMap.get(team.id) || [];
 
-          return {
-            ...team,
-            department,
-            responsible,
-            members,
-          } as TeamWithDetails;
-        })
-      );
+        return {
+          ...team,
+          department,
+          responsible,
+          members,
+        } as TeamWithDetails;
+      });
 
       return teamsWithDetails;
     } catch (error) {
@@ -213,23 +276,20 @@ export const teamsService = {
   // Buscar time por ID
   async getById(id: string): Promise<TeamWithDetails | null> {
     try {
-      const data = await teamService.getById(id);
+      const { teams, departments, users: allUsers, teamMembers } = await dataCacheService.getAll();
+
+      const data = teams.find(t => t.id === id);
       if (!data) return null;
 
-      // Buscar departamento
-      let department = null;
-      if (data.department_id) {
-        department = await departmentService.getById(data.department_id);
-      }
+      const departmentsMap = new Map(departments.map(d => [d.id, d]));
+      const usersMap = new Map(allUsers.map(u => [u.id, u]));
 
-      // Buscar responsável
-      let responsible = null;
-      if (data.responsible_id) {
-        responsible = await userService.getUserById(data.responsible_id);
-      }
-
-      // Buscar membros
-      const members = await teamService.getMembers(id);
+      const department = data.department_id ? departmentsMap.get(data.department_id) || null : null;
+      const responsible = data.responsible_id ? usersMap.get(data.responsible_id) || null : null;
+      const members = teamMembers
+        .filter(({ team_id }) => team_id === id)
+        .map(({ user }) => user)
+        .filter(Boolean);
 
       return {
         ...data,
@@ -245,32 +305,40 @@ export const teamsService = {
 
   // Criar time
   async create(team: TeamInsert): Promise<Team> {
-    return await teamService.create(team);
+    const result = await teamService.create(team);
+    dataCacheService.invalidate();
+    return result;
   },
 
   // Atualizar time
   async update(id: string, team: TeamUpdate): Promise<Team> {
-    return await teamService.update(id, team);
+    const result = await teamService.update(id, team);
+    dataCacheService.invalidate();
+    return result;
   },
 
   // Deletar time
   async delete(id: string): Promise<void> {
     await teamService.delete(id);
+    dataCacheService.invalidate();
   },
 
   // Adicionar membro ao time
   async addMember(teamId: string, userId: string): Promise<void> {
     await teamService.addMember(teamId, userId);
+    dataCacheService.invalidate();
   },
 
   // Remover membro do time
   async removeMember(teamId: string, userId: string): Promise<void> {
     await teamService.removeMember(teamId, userId);
+    dataCacheService.invalidate();
   },
 
   // Substituir todos os membros do time
   async replaceMembers(teamId: string, userIds: string[]): Promise<void> {
     await teamService.replaceMembers(teamId, userIds);
+    dataCacheService.invalidate();
   },
 };
 
@@ -280,23 +348,27 @@ export const teamsService = {
 export const supabaseHelpers = {
   // Buscar usuários por time
   async getUsersByTeam(teamId: string): Promise<User[]> {
-    return await teamService.getMembers(teamId);
+    const { teamMembers } = await dataCacheService.getAll();
+    return teamMembers
+      .filter(({ team_id }) => team_id === teamId)
+      .map(({ user }) => user)
+      .filter(Boolean);
   },
 
   // Buscar times de um usuário
   async getUserTeams(userId: string): Promise<Team[]> {
     try {
-      const allTeams = await teamService.getAll();
-      const userTeams: Team[] = [];
+      const { teams, teamMembers } = await dataCacheService.getAll();
 
-      for (const team of allTeams) {
-        const members = await teamService.getMembers(team.id);
-        if (members.some(m => m.id === userId)) {
-          userTeams.push(team);
-        }
-      }
+      // Encontrar team_ids onde o usuário é membro
+      const userTeamIds = new Set(
+        teamMembers
+          .filter(({ user }) => user && user.id === userId)
+          .map(({ team_id }) => team_id)
+      );
 
-      return userTeams;
+      // Filtrar times
+      return teams.filter(team => userTeamIds.has(team.id));
     } catch (error) {
       console.error('Erro ao buscar times do usuário:', error);
       return [];
@@ -305,12 +377,21 @@ export const supabaseHelpers = {
 
   // Verificar se usuário é responsável por algum time/departamento
   async isUserResponsible(userId: string): Promise<boolean> {
-    const teams = await teamService.getAll();
-    const departments = await departmentService.getAll();
+    const { teams, departments } = await dataCacheService.getAll();
 
     const isTeamResponsible = teams.some(t => t.responsible_id === userId);
     const isDeptResponsible = departments.some(d => d.responsible_id === userId);
 
     return isTeamResponsible || isDeptResponsible;
+  },
+
+  // Invalidar cache manualmente
+  invalidateCache(): void {
+    dataCacheService.invalidate();
+  },
+
+  // Recarregar cache
+  async reloadCache(): Promise<void> {
+    await dataCacheService.reload();
   },
 };

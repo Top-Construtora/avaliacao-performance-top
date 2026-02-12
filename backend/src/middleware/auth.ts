@@ -14,21 +14,15 @@ export const authenticateToken = async (
   next: NextFunction
 ) => {
   try {
-    console.log('🔐 Auth middleware - Iniciando autenticação');
-    console.log('📍 Endpoint:', req.method, req.path);
-
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
-      console.log('❌ Auth middleware - Token não fornecido');
       return res.status(401).json({
         success: false,
         error: 'Token de autenticação não fornecido'
       });
     }
-
-    console.log('✅ Auth middleware - Token encontrado (primeiros 20 chars):', token.substring(0, 20) + '...');
 
     // Criar cliente Supabase com o token do usuário
     const supabase = createClient<Database>(
@@ -47,18 +41,12 @@ export const authenticateToken = async (
       }
     );
 
-    console.log('📡 Auth middleware - Verificando token com Supabase');
     // Verificar o token e obter o usuário
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user) {
-      console.error('❌ Auth middleware - Token inválido ou expirado:', {
-        error: error?.message,
-        code: error?.code,
-        status: error?.status
-      });
+      console.error('❌ Auth: Token inválido -', error?.message);
 
-      // Mensagem mais específica se o erro for de token expirado
       const errorMessage = error?.message?.toLowerCase().includes('expired') ||
                            error?.message?.toLowerCase().includes('invalid')
         ? 'Token expirado ou inválido. Por favor, faça login novamente.'
@@ -71,9 +59,6 @@ export const authenticateToken = async (
       });
     }
 
-    console.log('✅ Auth middleware - Usuário autenticado:', user.id, user.email);
-    console.log('📡 Auth middleware - Buscando dados do usuário na tabela');
-
     // Buscar dados completos do usuário usando supabaseAdmin (bypassa RLS)
     const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
@@ -82,44 +67,29 @@ export const authenticateToken = async (
       .single();
 
     if (userError || !userData) {
-      console.error('❌ Auth middleware - Usuário não encontrado na tabela:', {
-        userId: user.id,
-        error: userError?.message
-      });
+      console.error('❌ Auth: Usuário não encontrado -', user.id);
       return res.status(401).json({
         success: false,
         error: 'Usuário não encontrado'
       });
     }
 
-    console.log('✅ Auth middleware - Dados do usuário encontrados:', {
-      id: userData.id,
-      name: userData.name,
-      email: userData.email,
-      active: userData.active
-    });
-
     // Verificar se o usuário está ativo
     if (!userData.active) {
-      console.warn('⚠️ Auth middleware - Usuário inativo tentou acessar:', userData.email);
+      console.warn('⚠️ Auth: Usuário inativo -', userData.email);
       return res.status(403).json({
         success: false,
         error: 'Usuário inativo'
       });
     }
 
-    // Adicionar user e supabaseAdmin ao request (para bypas sar RLS)
+    // Adicionar user e supabaseAdmin ao request (para bypassar RLS)
     req.user = userData;
     req.supabase = supabaseAdmin;
 
-    console.log('✅ Auth middleware - Autenticação concluída com sucesso');
     next();
   } catch (error: any) {
-    console.error('❌ Auth middleware - Erro crítico:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code
-    });
+    console.error('❌ Auth: Erro crítico -', error.message);
     res.status(500).json({
       success: false,
       error: 'Erro interno no servidor'

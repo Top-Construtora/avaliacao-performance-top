@@ -89,5 +89,19 @@ export const teamService = {
       console.error('Erro ao buscar times do usuário:', error);
       return [];
     }
+  },
+
+  // Buscar todos os membros de todos os times (batch - evita N+1 queries)
+  async getAllMembers(): Promise<{ team_id: string; user: any }[]> {
+    try {
+      const response = await api.get('/teams/members/all');
+      if (response && response.success) {
+        return response.data || [];
+      }
+      return response.data || response || [];
+    } catch (error) {
+      console.error('Erro ao buscar todos os membros:', error);
+      return [];
+    }
   }
 };

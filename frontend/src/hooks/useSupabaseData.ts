@@ -6,6 +6,7 @@ import {
   teamsService,
   supabaseHelpers,
 } from '../services/supabase.service';
+import { dataCacheService } from '../services/dataCache.service';
 import type {
   Department,
   User,
@@ -24,10 +25,12 @@ export function useSupabaseDepartments() {
   const [error, setError] = useState<Error | null>(null);
 
   // Carregar departamentos
-  const loadDepartments = useCallback(async () => {
-    
+  const loadDepartments = useCallback(async (forceReload = false) => {
     try {
       setLoading(true);
+      if (forceReload) {
+        dataCacheService.invalidate();
+      }
       const data = await departmentsService.getAll();
       setDepartments(data);
       setError(null);
@@ -105,10 +108,12 @@ export function useSupabaseUsers() {
   const [error, setError] = useState<Error | null>(null);
 
   // Carregar usuários
-  const loadUsers = useCallback(async () => {
-    
+  const loadUsers = useCallback(async (forceReload = false) => {
     try {
       setLoading(true);
+      if (forceReload) {
+        dataCacheService.invalidate();
+      }
       const data = await usersService.getAll();
       setUsers(data);
       setError(null);
@@ -189,10 +194,12 @@ export function useSupabaseTeams() {
   const [error, setError] = useState<Error | null>(null);
 
   // Carregar times
-  const loadTeams = useCallback(async () => {
-    
+  const loadTeams = useCallback(async (forceReload = false) => {
     try {
       setLoading(true);
+      if (forceReload) {
+        dataCacheService.invalidate();
+      }
       const data = await teamsService.getAll();
       setTeams(data);
       setError(null);
