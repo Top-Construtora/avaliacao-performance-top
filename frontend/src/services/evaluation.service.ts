@@ -100,7 +100,11 @@ export const evaluationService = {
   async getEmployeeEvaluations(cycleId: string, employeeId: string): Promise<EvaluationExtended[]> {
     try {
       const response = await api.get(`/evaluations/employee/${employeeId}?cycleId=${cycleId}`);
-      return response.data || [];
+      // O backend retorna { success: true, data: [...] }
+      if (response && response.success) {
+        return response.data || [];
+      }
+      return response.data || response || [];
     } catch (error) {
       console.error('Erro ao buscar avaliações:', error);
       return [];
@@ -116,7 +120,11 @@ export const evaluationService = {
       const response = await api.get(
         `/evaluations/check?cycleId=${cycleId}&employeeId=${employeeId}&type=${type}`
       );
-      return response.data || false;
+      // O backend retorna { success: true, data: boolean }
+      if (response && response.success !== undefined) {
+        return response.data ?? false;
+      }
+      return response ?? false;
     } catch {
       return false;
     }
@@ -128,11 +136,15 @@ export const evaluationService = {
   
   async getSelfEvaluations(employeeId: string, cycleId?: string): Promise<SelfEvaluation[]> {
     try {
-      const url = cycleId 
+      const url = cycleId
         ? `/evaluations/self-evaluations/${employeeId}?cycleId=${cycleId}`
         : `/evaluations/self-evaluations/${employeeId}`;
       const response = await api.get(url);
-      return response.data || [];
+      // O backend retorna { success: true, data: [...] }
+      if (response && response.success) {
+        return response.data || [];
+      }
+      return response.data || response || [];
     } catch (error) {
       console.error('Erro ao buscar autoavaliações:', error);
       return [];
@@ -166,7 +178,8 @@ export const evaluationService = {
       });
 
       console.log('✅ [evaluationService] Autoavaliação salva com sucesso:', response);
-      return response.data;
+      // O backend retorna { success: true, data: {...} }
+      return response.data || response;
     } catch (error: any) {
       console.error('❌ [evaluationService] Erro ao salvar autoavaliação:', {
         message: error.message,
@@ -183,11 +196,15 @@ export const evaluationService = {
   
   async getLeaderEvaluations(employeeId: string, cycleId?: string): Promise<LeaderEvaluation[]> {
     try {
-      const url = cycleId 
+      const url = cycleId
         ? `/evaluations/leader-evaluations/${employeeId}?cycleId=${cycleId}`
         : `/evaluations/leader-evaluations/${employeeId}`;
       const response = await api.get(url);
-      return response.data || [];
+      // O backend retorna { success: true, data: [...] }
+      if (response && response.success) {
+        return response.data || [];
+      }
+      return response.data || response || [];
     } catch (error) {
       console.error('Erro ao buscar avaliações de líder:', error);
       return [];
@@ -222,7 +239,8 @@ export const evaluationService = {
         feedback,
         pdi
       });
-      return response.data;
+      // O backend retorna { success: true, data: {...} }
+      return response.data || response;
     } catch (error: any) {
       console.error('Erro ao salvar avaliação de líder:', error);
       throw error;
@@ -236,7 +254,8 @@ export const evaluationService = {
     meeting: Partial<ConsensusMeeting>
   ): Promise<ConsensusMeeting> {
     const response = await api.post('/evaluations/consensus', meeting);
-    return response.data;
+    // O backend retorna { success: true, data: {...} }
+    return response.data || response;
   },
 
   async completeConsensusMeeting(
@@ -318,7 +337,8 @@ export const evaluationService = {
       // A rota antiga /evaluations/pdi estava marcando PDIs como 'completed' em vez de atualizar
       // Remover /api do endpoint pois o baseURL já inclui /api
       const response = await api.post('/pdi', pdiData);
-      return response.data;
+      // O backend retorna { success: true, data: {...} }
+      return response.data || response;
     } catch (error) {
       console.error('Erro ao salvar PDI:', error);
       throw error;
@@ -349,7 +369,8 @@ export const evaluationService = {
   }): Promise<any> {
     try {
       const response = await api.put(`/evaluations/pdi/${pdiId}`, updates);
-      return response.data;
+      // O backend retorna { success: true, data: {...} }
+      return response.data || response;
     } catch (error) {
       console.error('Erro ao atualizar PDI:', error);
       throw error;

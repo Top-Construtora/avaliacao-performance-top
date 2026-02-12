@@ -543,6 +543,71 @@ export const salaryService = {
     return data;
   },
 
+  // Verificar se o usuário pode visualizar o Comitê de Gente baseado no cargo
+  async checkPeopleCommitteePermission(supabase: SupabaseClient<Database>, userId: string) {
+    // Buscar o usuário com suas informações de trilha
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select(`
+        id,
+        is_admin,
+        is_director,
+        is_leader,
+        current_track_position_id
+      `)
+      .eq('id', userId)
+      .single();
+
+    if (userError) throw userError;
+
+    // Admin e Director sempre podem ver
+    if (user.is_admin || user.is_director) {
+      return { canView: true };
+    }
+
+    // Para líderes, verificar o cargo na trilha
+    if (user.is_leader && user.current_track_position_id) {
+      // Buscar a posição na trilha e depois o cargo (job_position) associado
+      const { data: trackPosition, error: tpError } = await supabase
+        .from('track_positions')
+        .select(`
+          position_id,
+          position:job_positions(
+            id,
+            name,
+            can_view_people_committee
+          )
+        `)
+        .eq('id', user.current_track_position_id)
+        .single();
+
+      if (tpError) {
+        console.error('Erro ao buscar track_position:', tpError);
+        return { canView: false };
+      }
+
+      const position = trackPosition?.position as any;
+      if (position) {
+        // Verifica se o cargo tem permissão (pelo campo OU pelo nome)
+        const positionNameLower = position.name?.toLowerCase() || '';
+        const canViewByName =
+          positionNameLower.includes('diretor') ||
+          positionNameLower.includes('gerente') ||
+          positionNameLower.includes('coordenador') ||
+          positionNameLower.includes('supervisor');
+
+        if (position.can_view_people_committee || canViewByName) {
+          return {
+            canView: true,
+            positionName: position.name
+          };
+        }
+      }
+    }
+
+    return { canView: false };
+  },
+
   async getUserPossibleProgressions(supabase: SupabaseClient<Database>, userId: string) {
     const { data, error } = await supabase
       .from('user_possible_progressions')

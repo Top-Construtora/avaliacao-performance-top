@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -25,6 +25,7 @@ import {
   Award,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
+import { usePeopleCommitteePermission } from '../hooks/usePeopleCommittee';
 import logo from '../../assets/images/logo.png';
 import { toast } from 'react-hot-toast';
 
@@ -54,6 +55,7 @@ export default function Sidebar({
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const { isDirector, isLeader, isAdmin, role } = useUserRole();
+  const { canViewPeopleCommittee } = usePeopleCommitteePermission();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   // Definir itens de navegação com permissões
@@ -158,10 +160,10 @@ export default function Sidebar({
       allowedRoles: ['admin', 'director'],
     },
     {
-      label: 'Comitê  de Gente',
+      label: 'Comitê de Gente',
       icon: Grid3X3,
       path: '/nine-box',
-      allowedRoles: ['admin', 'director'],
+      allowedRoles: ['admin', 'director', 'leader'], // Leader pode ver se tiver permissão no cargo
     },
     {
       label: 'Relatórios',
@@ -194,6 +196,11 @@ export default function Sidebar({
 
     if (item.hideForRoles && item.hideForRoles.includes(role as 'admin' | 'director' | 'leader' | 'collaborator')) {
       return false;
+    }
+
+    // Verificação especial para o Comitê de Gente - líderes precisam de permissão no cargo
+    if (item.path === '/nine-box' && isLeader && !isDirector) {
+      return canViewPeopleCommittee;
     }
 
     if (item.allowedRoles && !item.allowedRoles.includes(role as 'admin' | 'director' | 'leader' | 'collaborator')) {

@@ -17,6 +17,7 @@ export interface SalaryClass {
     code?: string;
     description?: string;
     is_multifunctional: boolean;
+    can_view_people_committee: boolean;
     active: boolean;
     created_at: string;
     updated_at: string;

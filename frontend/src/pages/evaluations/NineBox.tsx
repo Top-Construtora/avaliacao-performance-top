@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { User, BarChart3, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3, Mail, Cake, MessageSquare } from 'lucide-react';
 import { useEvaluation } from '../../hooks/useEvaluation';
+import { useAuth } from '../../context/AuthContext';
+import { usePeopleCommitteePermission } from '../../hooks/usePeopleCommittee';
 import { supabase } from '../../lib/supabase';
 
 interface MatrixConfig {
@@ -100,10 +102,14 @@ const NineBoxMatrix = () => {
     loading // Adicionar loading para feedback visual
   } = useEvaluation();
 
+  const { profile } = useAuth();
+  const { isRestrictedView } = usePeopleCommitteePermission();
+
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [hoveredQuadrant, setHoveredQuadrant] = useState<string | null>(null);
   const [salaryLevels, setSalaryLevels] = useState<Array<{ id: string; name: string; percentage: number }>>([]);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
+  const [subordinateIds, setSubordinateIds] = useState<Set<string>>(new Set());
   const dashboardLoadedRef = useRef(false);
 
   // Carregar níveis salariais
@@ -123,6 +129,51 @@ const NineBoxMatrix = () => {
 
     loadSalaryLevels();
   }, []);
+
+  // Carregar todos os subordinados (diretos e indiretos) para líderes com visualização restrita
+  useEffect(() => {
+    const loadAllSubordinates = async () => {
+      if (!isRestrictedView || !profile?.id) {
+        setSubordinateIds(new Set());
+        return;
+      }
+
+      try {
+        // Buscar todos os usuários para construir a hierarquia
+        const { data: allUsers } = await supabase
+          .from('users')
+          .select('id, reports_to')
+          .eq('active', true);
+
+        if (!allUsers) return;
+
+        // Função recursiva para encontrar todos os subordinados
+        const findAllSubordinates = (leaderId: string, visited = new Set<string>()): Set<string> => {
+          const directSubordinates = allUsers.filter(u => u.reports_to === leaderId);
+          const result = new Set<string>();
+
+          for (const sub of directSubordinates) {
+            if (!visited.has(sub.id)) {
+              visited.add(sub.id);
+              result.add(sub.id);
+              // Buscar subordinados dos subordinados (para líderes que lideram outros líderes)
+              const indirectSubs = findAllSubordinates(sub.id, visited);
+              indirectSubs.forEach(id => result.add(id));
+            }
+          }
+
+          return result;
+        };
+
+        const subs = findAllSubordinates(profile.id);
+        setSubordinateIds(subs);
+      } catch (error) {
+        console.error('Erro ao carregar subordinados:', error);
+      }
+    };
+
+    loadAllSubordinates();
+  }, [isRestrictedView, profile?.id]);
 
   // OTIMIZAÇÃO: Carregar dashboard imediatamente usando ciclo em cache
   useEffect(() => {
@@ -170,12 +221,21 @@ const NineBoxMatrix = () => {
     return dashboard
       .filter(d => {
         // Apenas incluir colaboradores que tenham avaliação de consenso com notas reais
-        return d &&
+        const hasConsensus = d &&
           d.employee_id &&
           d.consensus_performance_score !== null &&
           d.consensus_performance_score !== undefined &&
           d.consensus_potential_score !== null &&
           d.consensus_potential_score !== undefined;
+
+        if (!hasConsensus) return false;
+
+        // Se for visualização restrita (líder), filtrar apenas subordinados
+        if (isRestrictedView && subordinateIds.size > 0) {
+          return subordinateIds.has(d.employee_id);
+        }
+
+        return true;
       })
       .map(d => {
         const user = usersMap.get(d.employee_id) || null; // O(1) lookup
@@ -193,7 +253,7 @@ const NineBoxMatrix = () => {
       })
       // Filtra apenas os que têm dados completos
       .filter(d => d.user !== null);
-  }, [dashboard, employees]);
+  }, [dashboard, employees, isRestrictedView, subordinateIds]);
 
   const selectedEvaluation = eligibleEmployees.find(e => e.employee_id === selectedEmployee);
   const selectedEmp = selectedEvaluation?.user;

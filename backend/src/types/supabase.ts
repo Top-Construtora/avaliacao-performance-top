@@ -477,6 +477,7 @@ export interface Database {
           description: string | null
           is_multifunctional: boolean
           active: boolean
+          can_view_people_committee: boolean
           created_at: string
           updated_at: string
         }
@@ -487,6 +488,7 @@ export interface Database {
           description?: string | null
           is_multifunctional?: boolean
           active?: boolean
+          can_view_people_committee?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -497,6 +499,7 @@ export interface Database {
           description?: string | null
           is_multifunctional?: boolean
           active?: boolean
+          can_view_people_committee?: boolean
           created_at?: string
           updated_at?: string
         }

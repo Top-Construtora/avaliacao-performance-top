@@ -13,7 +13,11 @@ export const competencyService = {
   async getOrganizationalCompetencies(): Promise<OrganizationalCompetency[]> {
     try {
       const response = await api.get('/competencies/organizational');
-      return response.data || [];
+      // O backend retorna { success: true, data: [...] }
+      if (response && response.success) {
+        return response.data || [];
+      }
+      return response.data || response || [];
     } catch (error) {
       console.error('Erro ao buscar competências organizacionais:', error);
       return [];
@@ -24,7 +28,8 @@ export const competencyService = {
   async getOrganizationalCompetencyById(id: string): Promise<OrganizationalCompetency | null> {
     try {
       const response = await api.get(`/competencies/organizational/${id}`);
-      return response.data;
+      // O backend retorna { success: true, data: {...} }
+      return response.data || response || null;
     } catch (error) {
       console.error('Erro ao buscar competência:', error);
       return null;
@@ -34,13 +39,13 @@ export const competencyService = {
   // Criar competência
   async createOrganizationalCompetency(data: Omit<OrganizationalCompetency, 'id' | 'created_at' | 'updated_at'>): Promise<OrganizationalCompetency> {
     const response = await api.post('/competencies/organizational', data);
-    return response.data;
+    return response.data || response;
   },
 
   // Atualizar competência
   async updateOrganizationalCompetency(id: string, data: Partial<OrganizationalCompetency>): Promise<OrganizationalCompetency> {
     const response = await api.put(`/competencies/organizational/${id}`, data);
-    return response.data;
+    return response.data || response;
   },
 
   // Deletar competência

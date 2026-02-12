@@ -31,6 +31,7 @@ interface NewPositionData {
   code: string;
   description: string;
   is_multifunctional: boolean;
+  can_view_people_committee: boolean;
 }
 
 interface LevelSalary {
@@ -79,7 +80,8 @@ const TrackPositionsPage = () => {
     name: '',
     code: '',
     description: '',
-    is_multifunctional: false
+    is_multifunctional: false,
+    can_view_people_committee: false
   });
 
   // Estado para porcentagens editáveis dos níveis
@@ -149,7 +151,8 @@ const TrackPositionsPage = () => {
       name: '',
       code: '',
       description: '',
-      is_multifunctional: false
+      is_multifunctional: false,
+      can_view_people_committee: false
     });
     setSelectedPosition(null);
     setShowNewPositionForm(false);
@@ -246,6 +249,7 @@ const TrackPositionsPage = () => {
           code: newPositionData.code || newPositionData.name.toUpperCase().replace(/\s+/g, ''),
           description: newPositionData.description,
           is_multifunctional: newPositionData.is_multifunctional,
+          can_view_people_committee: newPositionData.can_view_people_committee,
           active: true
         });
 
@@ -872,6 +876,23 @@ const TrackPositionsPage = () => {
                             Cargo multifuncional
                           </span>
                         </label>
+                      </div>
+
+                      <div className="flex items-center">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={newPositionData.can_view_people_committee}
+                            onChange={(e) => setNewPositionData({ ...newPositionData, can_view_people_committee: e.target.checked })}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">
+                            Pode visualizar Comitê de Gente
+                          </span>
+                        </label>
+                        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                          (permite ver Nine Box dos liderados)
+                        </span>
                       </div>
 
                       <div className="border-t border-gray-200 dark:border-gray-700 pt-4">

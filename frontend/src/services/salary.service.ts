@@ -18,6 +18,7 @@ export interface JobPosition {
   code?: string;
   description?: string;
   is_multifunctional: boolean;
+  can_view_people_committee: boolean;
   active: boolean;
   created_at: string;
   updated_at: string;
@@ -115,10 +116,24 @@ export interface UserSalaryInfo {
   track_position_id?: string;
 }
 
+// Interface para verificação de permissão do Comitê de Gente
+export interface PeopleCommitteePermission {
+  canView: boolean;
+  positionName?: string;
+}
+
 class SalaryService {
   // Método auxiliar para processar respostas da API
   private processResponse<T>(response: any): T {
-    // Se a resposta tem data.data
+    // Se a resposta é nula ou undefined
+    if (response === null || response === undefined) {
+      return response;
+    }
+    // Se a resposta tem success e data (formato padrão do backend)
+    if (response.success !== undefined && response.data !== undefined) {
+      return response.data;
+    }
+    // Se a resposta tem data.data (duplo encapsulamento)
     if (response?.data?.data !== undefined) {
       return response.data.data;
     }
@@ -446,6 +461,17 @@ class SalaryService {
   }
 
   // ===== MÉTODOS AUXILIARES =====
+
+  // Verificar se o usuário pode visualizar o Comitê de Gente
+  async checkPeopleCommitteePermission(userId: string): Promise<PeopleCommitteePermission> {
+    try {
+      const response = await api.get(`/salary/users/${userId}/people-committee-permission`);
+      return this.processResponse<PeopleCommitteePermission>(response);
+    } catch (error) {
+      console.error('Erro ao verificar permissão do Comitê de Gente:', error);
+      return { canView: false };
+    }
+  }
 
   // Verificar se o sistema de salários está configurado
   async checkSystemStatus(): Promise<{

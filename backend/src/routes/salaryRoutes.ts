@@ -60,6 +60,7 @@ router.put('/users/:userId/assign-track', authorizeRoles(['director', 'leader'])
 router.put('/users/:userId/update-level', authorizeRoles(['director', 'leader']) as any, salaryController.updateUserSalaryLevel as any);
 router.get('/users/:userId/salary-info', salaryController.getUserSalaryInfo as any);
 router.get('/users/:userId/possible-progressions', salaryController.getUserPossibleProgressions as any);
+router.get('/users/:userId/people-committee-permission', salaryController.checkPeopleCommitteePermission as any);
 
 // ===== PROGRESSÃO DE CARREIRA =====
 router.post('/users/:userId/progress', authorizeRoles(['director', 'leader']) as any, salaryController.progressUser as any);

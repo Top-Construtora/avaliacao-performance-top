@@ -6,7 +6,11 @@ export const teamService = {
   async getAll(): Promise<Team[]> {
     try {
       const response = await api.get('/teams');
-      return response.data || [];
+      // O backend retorna { success: true, data: [...] }
+      if (response && response.success) {
+        return response.data || [];
+      }
+      return response.data || response || [];
     } catch (error) {
       console.error('Erro ao buscar times:', error);
       return [];
@@ -17,7 +21,8 @@ export const teamService = {
   async getById(id: string): Promise<Team | null> {
     try {
       const response = await api.get(`/teams/${id}`);
-      return response.data;
+      // O backend retorna { success: true, data: {...} }
+      return response.data || response || null;
     } catch (error) {
       console.error('Erro ao buscar time:', error);
       return null;
@@ -27,13 +32,13 @@ export const teamService = {
   // Criar time
   async create(team: TeamInsert): Promise<Team> {
     const response = await api.post('/teams', team);
-    return response.data;
+    return response.data || response;
   },
 
   // Atualizar time
   async update(id: string, team: TeamUpdate): Promise<Team> {
     const response = await api.put(`/teams/${id}`, team);
-    return response.data;
+    return response.data || response;
   },
 
   // Deletar time
@@ -45,7 +50,11 @@ export const teamService = {
   async getMembers(teamId: string): Promise<any[]> {
     try {
       const response = await api.get(`/teams/${teamId}/members`);
-      return response.data || [];
+      // O backend retorna { success: true, data: [...] }
+      if (response && response.success) {
+        return response.data || [];
+      }
+      return response.data || response || [];
     } catch (error) {
       console.error('Erro ao buscar membros do time:', error);
       return [];
@@ -71,7 +80,11 @@ export const teamService = {
   async getUserTeams(userId: string): Promise<Team[]> {
     try {
       const response = await api.get(`/teams/user/${userId}`);
-      return response.data || [];
+      // O backend retorna { success: true, data: [...] }
+      if (response && response.success) {
+        return response.data || [];
+      }
+      return response.data || response || [];
     } catch (error) {
       console.error('Erro ao buscar times do usuário:', error);
       return [];

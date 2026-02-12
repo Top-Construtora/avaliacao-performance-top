@@ -374,6 +374,16 @@ export const salaryController = {
     }
   },
 
+  async checkPeopleCommitteePermission(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { userId } = req.params;
+      const permission = await salaryService.checkPeopleCommitteePermission(req.supabase, userId);
+      res.json({ success: true, data: permission });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async getUserPossibleProgressions(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { userId } = req.params;
