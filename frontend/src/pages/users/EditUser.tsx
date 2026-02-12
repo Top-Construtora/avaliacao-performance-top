@@ -6,6 +6,7 @@ import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../.
 import { supabase } from '../../lib/supabase';
 import { api } from '../../config/api';
 import Button from '../../components/Button';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 import {
   Users, Shield, Mail, Calendar, AlertCircle, Briefcase, UserCheck,
@@ -543,14 +544,7 @@ const EditUser = () => {
 
   // Loading state
   if (usersLoading || teamsLoading || depsLoading || loadingUser || tracksLoading || positionsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary-500 dark:text-primary-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400 text-lg">Carregando dados...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

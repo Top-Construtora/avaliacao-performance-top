@@ -27,6 +27,7 @@ import { departmentsService, usersService, teamsService } from '../../services/s
 import type { Department, UserWithDetails, Team } from '../../types/supabase';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { CycleDashboard, EvaluationCycle } from '../../types/evaluation.types';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -548,11 +549,7 @@ const Reports = () => {
   };
 
   if (loading || evaluationLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 dark:border-primary-400"></div>
-      </div>
-    );
+    return <LoadingSpinner minHeight="min-h-[60vh]" />;
   }
 
   if (!currentCycle) {

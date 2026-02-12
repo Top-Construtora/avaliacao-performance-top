@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth, useUserRole } from '../../context/AuthContext';
 import { competencyService } from '../../services/competency.service';
 import Button from '../../components/Button';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import {
   Award,
   Plus,
@@ -181,11 +182,7 @@ const CodigoCultural = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-00 dark:border-primary-700"></div>
-      </div>
-    );
+    return <LoadingSpinner minHeight="min-h-[60vh]" />;
   }
 
   return (

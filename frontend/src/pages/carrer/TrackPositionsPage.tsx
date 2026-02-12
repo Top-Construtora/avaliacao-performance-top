@@ -12,6 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 import { RoleGuard } from '../../components/RoleGuard';
 import { salaryService, CareerTrack, JobPosition, SalaryClass, TrackPosition, SalaryLevel } from '../../services/salary.service';
 import { departmentsService } from '../../services/departments.service';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 interface PositionFormData {
   position_id: string;
@@ -437,14 +438,7 @@ const TrackPositionsPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-800 dark:border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Carregando...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!track) {

@@ -11,6 +11,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { usersService, departmentsService } from '../../services/supabase.service';
 import type { CycleDashboard } from '../../types/evaluation.types';
 import type { UserWithDetails, Department } from '../../types/supabase';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 const EvaluationDashboard: React.FC = () => {
   const { cycleId } = useParams<{ cycleId: string }>();
@@ -188,11 +189,7 @@ const EvaluationDashboard: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

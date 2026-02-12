@@ -12,6 +12,7 @@ import PotentialAndPDI from '../../components/PotentialAndPDI';
 import { AlertCircle, CheckCircle, Save, ArrowRight, BookOpen, Target, Award, Info } from 'lucide-react';
 import Button from '../../components/Button';
 import { motion } from 'framer-motion';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 // Define SectionProps interface for type consistency
 interface CompetencyItem {
@@ -607,11 +608,7 @@ const LeaderEvaluation = () => {
   const selectedEmployee = subordinates.find(emp => emp.id === selectedEmployeeId);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-800 dark:border-green-700"></div>
-      </div>
-    );
+    return <LoadingSpinner minHeight="min-h-[60vh]" />;
   }
 
   if (!currentCycle || !isCycleInValidPeriod()) {

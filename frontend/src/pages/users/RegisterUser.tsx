@@ -6,6 +6,7 @@ import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../.
 import { userService } from '../../services/user.service';
 import { supabase } from '../../lib/supabase';
 import Button from '../../components/Button';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import {
   Users, Shield, Mail, Calendar,
   X, Check, AlertCircle, Briefcase, UserCheck,
@@ -423,14 +424,7 @@ const RegisterUser = () => {
   };
 
   if (usersLoading || teamsLoading || depsLoading || tracksLoading || positionsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary-900 dark:text-primary-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Carregando dados...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

@@ -17,6 +17,7 @@ import { usePermissions, useUIPermissions, useOperationValidator } from '../../h
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { PermissionGuard, ActionGuard, UIGuard, OperationWarning } from '../../components/PermissionGuard';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -335,14 +336,7 @@ const DepartmentManagement = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-stone-600 dark:text-stone-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Carregando dados...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

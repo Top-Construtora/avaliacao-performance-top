@@ -4,8 +4,9 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../../hooks/useSupabaseData';
 import Button from '../../components/Button';
-import { 
-  Users, Building2, Crown, AlertCircle, UserCheck, 
+import LoadingSpinner from '../../components/LoadingSpinner';
+import {
+  Users, Building2, Crown, AlertCircle, UserCheck,
   CheckCircle2, ChevronDown, Save, Loader2
 } from 'lucide-react';
 
@@ -102,14 +103,7 @@ const RegisterTeam = () => {
   };
 
   if (usersLoading || teamsLoading || depsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-gray-600 dark:text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Carregando dados...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { BookOpen, Calendar, Info, FileText, TrendingUp, Target } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../config/api';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 interface ActionItem {
   id: string;
@@ -225,28 +226,7 @@ const MyPdi: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-4 sm:space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
-        >
-          <div className="flex items-center space-x-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-primary-900 dark:text-stone-700 mr-3" />
-                Meu PDI
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">Plano de Desenvolvimento Individual</p>
-            </div>
-          </div>
-        </motion.div>
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stone-700 dark:border-stone-600"></div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!pdiData) {

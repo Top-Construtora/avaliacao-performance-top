@@ -13,6 +13,7 @@ import { RoleGuard } from '../../components/RoleGuard';
 import { useAuth } from '../../context/AuthContext';
 import { departmentsService } from '../../services/departments.service';
 import { salaryService, CareerTrack } from '../../services/salary.service';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 // Interface para Department estendida com active
 interface DepartmentWithActive {
@@ -210,14 +211,7 @@ const SalaryAdminPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary dark:border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Carregando dados...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { salaryService, CareerTrack, TrackPosition } from '../../services/salary.service';
 import { RoleGuard } from '../../components/RoleGuard';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 interface PositionWithDetails extends Omit<TrackPosition, 'position' | 'class'> {
     position?: {
@@ -144,11 +145,7 @@ const CareerTrackDetail = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!track) {
