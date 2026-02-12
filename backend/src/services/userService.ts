@@ -23,12 +23,12 @@ export const userService = {
     if (filters?.is_leader_or_director === true) {
       query = query.or('is_leader.eq.true,is_director.eq.true');
     } else {
-      // Caso contrário, aplicar filtros individuais
-      if (filters?.is_leader !== undefined) {
-        query = query.eq('is_leader', filters.is_leader);
+      // Caso contrário, aplicar filtros individuais apenas se explicitamente true
+      if (filters?.is_leader === true) {
+        query = query.eq('is_leader', true);
       }
-      if (filters?.is_director !== undefined) {
-        query = query.eq('is_director', filters.is_director);
+      if (filters?.is_director === true) {
+        query = query.eq('is_director', true);
       }
     }
 

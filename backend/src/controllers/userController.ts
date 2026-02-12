@@ -7,10 +7,11 @@ export const userController = {
     try {
       const authReq = req as AuthRequest;
       const filters = {
-        active: req.query.active === 'true',
-        is_leader: req.query.is_leader === 'true',
-        is_director: req.query.is_director === 'true',
-        is_leader_or_director: req.query.is_leader_or_director === 'true',
+        // Só aplica filtro active se o parâmetro foi explicitamente enviado
+        active: req.query.active !== undefined ? req.query.active === 'true' : undefined,
+        is_leader: req.query.is_leader === 'true' ? true : undefined,
+        is_director: req.query.is_director === 'true' ? true : undefined,
+        is_leader_or_director: req.query.is_leader_or_director === 'true' ? true : undefined,
         reports_to: req.query.reports_to as string,
         currentUserEmail: authReq.user?.email
       };
