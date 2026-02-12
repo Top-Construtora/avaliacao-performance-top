@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   BarChart3, 
@@ -80,6 +80,15 @@ const Reports = () => {
       completionRate: number;
     }>;
   }>>([]);
+
+  // === OTIMIZAÇÃO: Criar Maps para lookups rápidos (O(1) em vez de O(n)) ===
+  const usersMap = useMemo(() => {
+    return new Map(users.map(u => [u.id, u]));
+  }, [users]);
+
+  const departmentsMap = useMemo(() => {
+    return new Map(departments.map(d => [d.id, d]));
+  }, [departments]);
 
   // Carregar dados ao montar o componente
   useEffect(() => {
@@ -203,105 +212,159 @@ const Reports = () => {
            !!d.ninebox_position;
   };
 
-  // Calcular progresso por departamento (com times)
-  useEffect(() => {
-    if (dashboard && dashboard.length > 0 && departments.length > 0 && teams.length > 0) {
-      const progressByDept = departments.map(dept => {
-        // Filtrar colaboradores do departamento
-        const deptEmployees = dashboard.filter((d: CycleDashboard) => {
-          return d.department_name?.toLowerCase() === dept.name.toLowerCase();
-        });
+  // Calcular progresso por departamento (com times) - OTIMIZADO com useMemo
+  const calculatedDepartmentProgress = useMemo(() => {
+    if (!dashboard || dashboard.length === 0 || departments.length === 0 || teams.length === 0) {
+      return [];
+    }
 
-        const total = deptEmployees.length;
-        const completed = deptEmployees.filter(isEvaluationCompleted).length;
+    // Criar índice de departamento por nome (lowercase) para lookup rápido
+    const deptNameMap = new Map(departments.map(d => [d.name.toLowerCase(), d]));
 
-        // Calcular em andamento
-        const inProgress = deptEmployees.filter((d: CycleDashboard) => {
-          if (isEvaluationCompleted(d)) return false;
-          const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
-          if (isDirector) {
-            return d.leader_evaluation_status === 'completed' || d.leader_evaluation_status === 'in-progress';
-          }
-          return d.self_evaluation_status === 'completed' || d.leader_evaluation_status === 'completed';
-        }).length;
+    // Agrupar dashboard por departamento (uma única passagem)
+    const dashboardByDept = new Map<string, CycleDashboard[]>();
+    dashboard.forEach((d: CycleDashboard) => {
+      const deptNameLower = d.department_name?.toLowerCase() || '';
+      if (!dashboardByDept.has(deptNameLower)) {
+        dashboardByDept.set(deptNameLower, []);
+      }
+      dashboardByDept.get(deptNameLower)!.push(d);
+    });
 
-        const pending = total - completed - inProgress;
+    // Agrupar times por departamento
+    const teamsByDept = new Map<string, Team[]>();
+    teams.forEach(t => {
+      if (!teamsByDept.has(t.department_id)) {
+        teamsByDept.set(t.department_id, []);
+      }
+      teamsByDept.get(t.department_id)!.push(t);
+    });
 
-        // Calcular progresso por time dentro do departamento
-        const deptTeams = teams.filter(t => t.department_id === dept.id);
-        const teamsProgress = deptTeams.map(team => {
-          const teamEmployees = deptEmployees.filter((d: CycleDashboard) => {
-            return d.team_name?.toLowerCase() === team.name.toLowerCase();
-          });
-          const teamTotal = teamEmployees.length;
-          const teamCompleted = teamEmployees.filter(isEvaluationCompleted).length;
+    return departments.map(dept => {
+      const deptEmployees = dashboardByDept.get(dept.name.toLowerCase()) || [];
+      const total = deptEmployees.length;
+      const completed = deptEmployees.filter(isEvaluationCompleted).length;
 
-          return {
-            id: team.id,
-            name: team.name,
-            total: teamTotal,
-            completed: teamCompleted,
-            completionRate: teamTotal > 0 ? Math.round((teamCompleted / teamTotal) * 100) : 0
-          };
-        }).filter(t => t.total > 0); // Apenas times com colaboradores
+      const inProgress = deptEmployees.filter((d: CycleDashboard) => {
+        if (isEvaluationCompleted(d)) return false;
+        const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+        if (isDirector) {
+          return d.leader_evaluation_status === 'completed' || d.leader_evaluation_status === 'in-progress';
+        }
+        return d.self_evaluation_status === 'completed' || d.leader_evaluation_status === 'completed';
+      }).length;
 
-        return {
-          id: dept.id,
-          name: dept.name,
-          total,
-          completed,
-          inProgress,
-          pending,
-          teams: teamsProgress
-        };
+      const pending = total - completed - inProgress;
+
+      // Calcular progresso por time
+      const deptTeams = teamsByDept.get(dept.id) || [];
+
+      // Criar índice de employees por team_name
+      const employeesByTeam = new Map<string, CycleDashboard[]>();
+      deptEmployees.forEach(d => {
+        const teamNameLower = d.team_name?.toLowerCase() || '';
+        if (!employeesByTeam.has(teamNameLower)) {
+          employeesByTeam.set(teamNameLower, []);
+        }
+        employeesByTeam.get(teamNameLower)!.push(d);
       });
 
-      setDepartmentProgress(progressByDept);
-    }
+      const teamsProgress = deptTeams.map(team => {
+        const teamEmployees = employeesByTeam.get(team.name.toLowerCase()) || [];
+        const teamTotal = teamEmployees.length;
+        const teamCompleted = teamEmployees.filter(isEvaluationCompleted).length;
+
+        return {
+          id: team.id,
+          name: team.name,
+          total: teamTotal,
+          completed: teamCompleted,
+          completionRate: teamTotal > 0 ? Math.round((teamCompleted / teamTotal) * 100) : 0
+        };
+      }).filter(t => t.total > 0);
+
+      return {
+        id: dept.id,
+        name: dept.name,
+        total,
+        completed,
+        inProgress,
+        pending,
+        teams: teamsProgress
+      };
+    });
   }, [dashboard, departments, teams]);
 
-  // Filtrar dados para a visão detalhada
-  const filteredData = dashboard.filter((item: CycleDashboard) => {
-    // Não mostrar diretores na tabela
-    if (item.self_evaluation_status === 'n/a' && item.consensus_status === 'n/a') {
-      return false;
+  // Atualizar estado quando o cálculo mudar
+  useEffect(() => {
+    setDepartmentProgress(calculatedDepartmentProgress);
+  }, [calculatedDepartmentProgress]);
+
+  // Memoizar lista ordenada para renderização
+  const sortedDepartmentProgress = useMemo(() => {
+    return departmentProgress
+      .filter(dept => dept.total > 0)
+      .sort((a, b) => {
+        const rateA = a.total > 0 ? (a.completed / a.total) * 100 : 0;
+        const rateB = b.total > 0 ? (b.completed / b.total) * 100 : 0;
+        return rateB - rateA;
+      });
+  }, [departmentProgress]);
+
+  // Filtrar dados para a visão detalhada (OTIMIZADO com useMemo e Map)
+  const filteredData = useMemo(() => {
+    const searchTermLower = searchTerm.toLowerCase();
+
+    return dashboard.filter((item: CycleDashboard) => {
+      // Não mostrar diretores na tabela
+      if (item.self_evaluation_status === 'n/a' && item.consensus_status === 'n/a') {
+        return false;
+      }
+
+      // Usar Map para lookup O(1) em vez de O(n)
+      const user = usersMap.get(item.employee_id);
+      if (!user) return false;
+
+      const matchesSearch = !searchTerm ||
+        user.name.toLowerCase().includes(searchTermLower) ||
+        user.position.toLowerCase().includes(searchTermLower);
+
+      const matchesDepartment = !selectedDepartment ||
+        user.teams?.some(t => t.department_id === selectedDepartment);
+
+      const matchesStatus = !selectedStatus ||
+        item.self_evaluation_status === selectedStatus ||
+        item.leader_evaluation_status === selectedStatus ||
+        item.consensus_status === selectedStatus;
+
+      return matchesSearch && matchesDepartment && matchesStatus;
+    });
+  }, [dashboard, usersMap, searchTerm, selectedDepartment, selectedStatus]);
+
+  // Função auxiliar para obter nome do departamento (usa Map)
+  const getDeptName = (item: CycleDashboard, user: UserWithDetails | undefined): string => {
+    if (item.department_name) return item.department_name;
+    if (user?.teams && user.teams[0]) {
+      return departmentsMap.get(user.teams[0].department_id)?.name || '-';
     }
-
-    const user = users.find(u => u.id === item.employee_id);
-    if (!user) return false;
-
-    const matchesSearch = !searchTerm ||
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.position.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesDepartment = !selectedDepartment ||
-      user.teams?.some(t => t.department_id === selectedDepartment);
-
-    const matchesStatus = !selectedStatus ||
-      item.self_evaluation_status === selectedStatus ||
-      item.leader_evaluation_status === selectedStatus ||
-      item.consensus_status === selectedStatus;
-
-    return matchesSearch && matchesDepartment && matchesStatus;
-  });
+    return '-';
+  };
 
   const exportPDF = () => {
     const doc = new jsPDF();
-    
+
     doc.setFontSize(16);
     doc.text('Relatório de Avaliações', 14, 15);
-    
+
     doc.setFontSize(10);
     doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 25);
     if (currentCycle) {
       doc.text(`Ciclo: ${currentCycle.title}`, 14, 32);
     }
-    
+
     const tableData = filteredData.map((item: CycleDashboard) => {
-      const user = users.find(u => u.id === item.employee_id);
-      const deptName = item.department_name ||
-        (user?.teams && user.teams[0] ?
-          departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-');
+      const user = usersMap.get(item.employee_id);
+      const deptName = getDeptName(item, user);
 
       return [
         user?.name || '-',
@@ -322,17 +385,15 @@ const Reports = () => {
       styles: { fontSize: 8 },
       headStyles: { fillColor: [22, 101, 52] }
     });
-    
+
     doc.save('relatorio_avaliacoes.pdf');
     toast.success('Relatório PDF gerado com sucesso!');
   };
-  
+
   const exportExcel = () => {
     const data = filteredData.map((item: CycleDashboard) => {
-      const user = users.find(u => u.id === item.employee_id);
-      const deptName = item.department_name ||
-        (user?.teams && user.teams[0] ?
-          departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-');
+      const user = usersMap.get(item.employee_id);
+      const deptName = getDeptName(item, user);
 
       return {
         'Nome': user?.name || '-',
@@ -345,11 +406,11 @@ const Reports = () => {
         'Posição Nine Box': item.ninebox_position || 'Pendente'
       };
     });
-    
+
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
-    
+
     XLSX.writeFile(wb, 'relatorio_avaliacoes.xlsx');
     toast.success('Relatório Excel gerado com sucesso!');
   };
@@ -712,14 +773,8 @@ const Reports = () => {
             </h2>
 
             <div className="space-y-3">
-              {departmentProgress
-                .filter(dept => dept.total > 0)
-                .sort((a, b) => {
-                  const rateA = a.total > 0 ? (a.completed / a.total) * 100 : 0;
-                  const rateB = b.total > 0 ? (b.completed / b.total) * 100 : 0;
-                  return rateB - rateA;
-                })
-                .map((dept, index) => {
+              {/* OTIMIZADO: Usar lista já ordenada e memoizada */}
+              {sortedDepartmentProgress.map((dept, index) => {
                 const completionRate = dept.total > 0
                   ? Math.round((dept.completed / dept.total) * 100)
                   : 0;
@@ -865,7 +920,7 @@ const Reports = () => {
                 );
               })}
 
-              {departmentProgress.filter(dept => dept.total > 0).length === 0 && (
+              {sortedDepartmentProgress.length === 0 && (
                 <p className="text-center text-gray-500 dark:text-gray-400 py-4">
                   Nenhum departamento com colaboradores
                 </p>
@@ -954,11 +1009,9 @@ const Reports = () => {
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-naue-border-gray dark:divide-gray-700">
                   {filteredData.map((item: CycleDashboard) => {
-                    const user = users.find(u => u.id === item.employee_id);
-                    // Priorizar department_name do dashboard, depois buscar por teams
-                    const deptName = item.department_name ||
-                      (user?.teams && user.teams[0] ?
-                        departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-');
+                    // OTIMIZADO: Usar Map para lookup O(1)
+                    const user = usersMap.get(item.employee_id);
+                    const deptName = getDeptName(item, user);
 
                     return (
                       <tr key={item.employee_id} className="hover:bg-primary-50 dark:hover:bg-gray-700 transition-colors">
@@ -1003,12 +1056,10 @@ const Reports = () => {
           {/* Mobile Cards */}
           <div className="md:hidden space-y-3">
             {filteredData.map((item: CycleDashboard, index: number) => {
-              const user = users.find(u => u.id === item.employee_id);
-              // Priorizar department_name do dashboard, depois buscar por teams
-              const deptName = item.department_name ||
-                (user?.teams && user.teams[0] ?
-                  departments.find(d => d.id === user.teams![0].department_id)?.name || '-' : '-');
-              
+              // OTIMIZADO: Usar Map para lookup O(1)
+              const user = usersMap.get(item.employee_id);
+              const deptName = getDeptName(item, user);
+
               return (
                 <motion.div
                   key={item.employee_id}

@@ -57,8 +57,22 @@ const UserManagement = () => {
     callback: () => void;
   } | null>(null);
 
+  // === OTIMIZAÇÃO: Criar Map de subordinados para lookup O(1) ===
+  const subordinatesMap = useMemo(() => {
+    const map = new Map<string, UserWithDetails[]>();
+    users.forEach(u => {
+      if (u.reports_to) {
+        if (!map.has(u.reports_to)) {
+          map.set(u.reports_to, []);
+        }
+        map.get(u.reports_to)!.push(u);
+      }
+    });
+    return map;
+  }, [users]);
+
   const getSubordinates = (userId: string) => {
-    return users.filter(u => u.reports_to === userId);
+    return subordinatesMap.get(userId) || [];
   };
 
   const calculateAge = (birthDate: string) => {
