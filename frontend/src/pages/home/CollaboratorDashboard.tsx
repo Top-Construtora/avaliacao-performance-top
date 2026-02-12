@@ -11,7 +11,7 @@ import {
   Clock,
   Users,
   Crown,
-  Lightbulb,
+  BarChart2,
   Calendar
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -33,28 +33,6 @@ const CollaboratorDashboard = () => {
     consensusScore: null as number | null
   });
   const [loading, setLoading] = useState(true);
-
-  // Frases motivacionais
-  const motivationalQuotes = [
-    { quote: "O sucesso é a soma de pequenos esforços repetidos dia após dia.", author: "Robert Collier" },
-    { quote: "Feedback é o café da manhã dos campeões.", author: "Ken Blanchard" },
-    { quote: "Conhecer a si mesmo é o começo de toda sabedoria.", author: "Aristóteles" },
-    { quote: "O único modo de fazer um excelente trabalho é amar o que você faz.", author: "Steve Jobs" },
-    { quote: "Crescimento e conforto não coexistem.", author: "Ginni Rometty" },
-    { quote: "O talento vence jogos, mas só o trabalho em equipe ganha campeonatos.", author: "Michael Jordan" },
-    { quote: "A excelência não é um ato, mas um hábito.", author: "Aristóteles" },
-    { quote: "O progresso é impossível sem mudança.", author: "George Bernard Shaw" },
-    { quote: "A persistência é o caminho do êxito.", author: "Charles Chaplin" },
-    { quote: "A melhor maneira de prever o futuro é criá-lo.", author: "Peter Drucker" },
-    { quote: "O único lugar onde o sucesso vem antes do trabalho é no dicionário.", author: "Vidal Sassoon" },
-    { quote: "O insucesso é apenas uma oportunidade para recomeçar com mais inteligência.", author: "Henry Ford" },
-    { quote: "A única maneira de fazer um ótimo trabalho é amar o que você faz.", author: "Steve Jobs" },
-    { quote: "O segredo de progredir é começar.", author: "Mark Twain" },
-  ];
-
-  const [quote] = useState(() =>
-    motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]
-  );
 
   useEffect(() => {
     if (profile?.id && currentCycle) {
@@ -241,7 +219,7 @@ const CollaboratorDashboard = () => {
                   : 'text-gray-400'
               }`}>
                 {myStatus.selfEvaluation === 'completed'
-                  ? (myStatus.selfScore !== null ? `Nota: ${myStatus.selfScore.toFixed(2)}` : 'Feito')
+                  ? 'Feito'
                   : myStatus.selfEvaluation === 'in-progress' ? 'Fazendo' : 'Pendente'}
               </span>
             </div>
@@ -299,7 +277,7 @@ const CollaboratorDashboard = () => {
                   : 'text-gray-400'
               }`}>
                 {myStatus.leaderEvaluation === 'completed'
-                  ? (myStatus.leaderScore !== null ? `Nota: ${myStatus.leaderScore.toFixed(2)}` : 'Feito')
+                  ? 'Feito'
                   : myStatus.leaderEvaluation === 'in-progress' ? 'Fazendo' : 'Pendente'}
               </span>
             </div>
@@ -357,7 +335,7 @@ const CollaboratorDashboard = () => {
                   : 'text-gray-400'
               }`}>
                 {myStatus.consensus === 'completed'
-                  ? (myStatus.consensusScore !== null ? `Nota: ${myStatus.consensusScore.toFixed(2)}` : 'Feito')
+                  ? 'Feito'
                   : myStatus.consensus === 'in-progress' ? 'Fazendo' : 'Pendente'}
               </span>
             </div>
@@ -402,8 +380,8 @@ const CollaboratorDashboard = () => {
               <span className="mt-2 text-xs sm:text-sm text-center font-medium text-gray-700 dark:text-gray-300">
                 PDI
               </span>
-              <span className={`text-xs ${myStatus.ppiDefined ? 'text-emerald-600 hover:underline' : 'text-gray-400'}`}>
-                {myStatus.ppiDefined ? 'Visualizar' : 'Pendente'}
+              <span className={`text-xs ${myStatus.ppiDefined ? 'text-emerald-600' : 'text-gray-400'}`}>
+                {myStatus.ppiDefined ? 'Feito' : 'Pendente'}
               </span>
             </div>
           </div>
@@ -444,29 +422,88 @@ const CollaboratorDashboard = () => {
 
         </motion.div>
 
-        {/* Motivational Quote Card */}
+        {/* Minhas Notas Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 rounded-2xl p-6 shadow-sm border border-primary-200 dark:border-primary-800 flex flex-col justify-between"
+          className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
         >
-          <div>
-            <div className="flex items-center mb-4">
-              <div className="p-2 bg-primary-500 rounded-lg">
-                <Lightbulb className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+            <BarChart2 className="mr-2 text-primary-500" size={20} />
+            Minhas Notas
+          </h2>
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Nota Autoavaliação */}
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <div className="flex items-center mb-2">
+                <User className="h-4 w-4 text-primary-500 mr-2" />
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Autoavaliação</span>
               </div>
-              <h2 className="ml-3 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Inspiração do Dia
-              </h2>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {myStatus.selfEvaluation === 'completed' && myStatus.selfScore !== null
+                  ? myStatus.selfScore.toFixed(2)
+                  : '-'}
+              </div>
+              <span className={`text-xs ${myStatus.selfEvaluation === 'completed' ? 'text-emerald-600' : 'text-gray-400'}`}>
+                {myStatus.selfEvaluation === 'completed' ? 'Concluída' : 'Pendente'}
+              </span>
             </div>
-            <blockquote className="text-lg sm:text-xl text-gray-700 dark:text-gray-200 italic leading-relaxed">
-              "{quote.quote}"
-            </blockquote>
+
+            {/* Nota Líder */}
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <div className="flex items-center mb-2">
+                <Crown className="h-4 w-4 text-primary-500 mr-2" />
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Líder</span>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {myStatus.leaderEvaluation === 'completed' && myStatus.leaderScore !== null
+                  ? myStatus.leaderScore.toFixed(2)
+                  : '-'}
+              </div>
+              <span className={`text-xs ${myStatus.leaderEvaluation === 'completed' ? 'text-emerald-600' : 'text-gray-400'}`}>
+                {myStatus.leaderEvaluation === 'completed' ? 'Concluída' : 'Pendente'}
+              </span>
+            </div>
+
+            {/* Nota Consenso */}
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <div className="flex items-center mb-2">
+                <Users className="h-4 w-4 text-primary-500 mr-2" />
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Consenso</span>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {myStatus.consensus === 'completed' && myStatus.consensusScore !== null
+                  ? myStatus.consensusScore.toFixed(2)
+                  : '-'}
+              </div>
+              <span className={`text-xs ${myStatus.consensus === 'completed' ? 'text-emerald-600' : 'text-gray-400'}`}>
+                {myStatus.consensus === 'completed' ? 'Concluído' : 'Pendente'}
+              </span>
+            </div>
+
+            {/* PDI */}
+            <div
+              className={`bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 ${myStatus.ppiDefined ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors' : ''}`}
+              onClick={() => myStatus.ppiDefined && navigate('/my-pdi')}
+            >
+              <div className="flex items-center mb-2">
+                <FileText className="h-4 w-4 text-primary-500 mr-2" />
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">PDI</span>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {myStatus.ppiDefined ? (
+                  <CheckCircle className="h-7 w-7 text-emerald-600" />
+                ) : (
+                  '-'
+                )}
+              </div>
+              <span className={`text-xs ${myStatus.ppiDefined ? 'text-emerald-600' : 'text-gray-400'}`}>
+                {myStatus.ppiDefined ? 'Definido' : 'Pendente'}
+              </span>
+            </div>
           </div>
-          <p className="text-right text-sm text-gray-600 dark:text-gray-400 mt-4 font-medium">
-            — {quote.author}
-          </p>
         </motion.div>
       </div>
 

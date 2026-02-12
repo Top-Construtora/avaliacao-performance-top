@@ -167,6 +167,8 @@ export interface CycleDashboard {
   promoted_potential_quadrant?: number | null; // Quadrante promovido (1=Baixo, 2=Médio, 3=Alto)
   promoted_by?: string | null; // ID do usuário que fez a promoção
   promoted_at?: string | null; // Data da promoção
+  // Deliberações do comitê
+  committee_deliberations?: string | null; // Anotações do Comitê de Gente
 }
 
 export interface NineBoxData {

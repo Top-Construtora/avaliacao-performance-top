@@ -400,5 +400,30 @@ export const evaluationService = {
       console.error('Erro ao promover quadrante:', error);
       throw error;
     }
+  },
+
+  // ====================================
+  // DELIBERAÇÕES DO COMITÊ
+  // ====================================
+
+  /**
+   * Salva as deliberações do comitê para um colaborador
+   * @param consensusId - ID da avaliação de consenso
+   * @param deliberations - Texto das deliberações
+   */
+  async saveCommitteeDeliberations(
+    consensusId: string,
+    deliberations: string
+  ): Promise<any> {
+    try {
+      const response = await api.put(`/evaluations/consensus/${consensusId}/deliberations`, {
+        deliberations
+      });
+      // O backend retorna { success: true, data: {...} }
+      return response.data || response;
+    } catch (error: any) {
+      console.error('Erro ao salvar deliberações:', error);
+      throw error;
+    }
   }
 };

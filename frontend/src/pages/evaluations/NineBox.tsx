@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, BarChart3, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3, Mail, Cake, MessageSquare, ArrowUp, CheckCircle, AlertCircle, Lock, Loader2 } from 'lucide-react';
+import { User, BarChart3, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3, Mail, Cake, MessageSquare, ArrowUp, CheckCircle, AlertCircle, Lock, Loader2, FileText, Save } from 'lucide-react';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 import { usePeopleCommitteePermission } from '../../hooks/usePeopleCommittee';
@@ -115,6 +115,9 @@ const NineBoxMatrix = () => {
   const [subordinateIds, setSubordinateIds] = useState<Set<string>>(new Set());
   const [isPromoting, setIsPromoting] = useState(false);
   const [selectedQuadrantToMove, setSelectedQuadrantToMove] = useState<number | null>(null);
+  const [deliberations, setDeliberations] = useState('');
+  const [isSavingDeliberations, setIsSavingDeliberations] = useState(false);
+  const [deliberationsLoaded, setDeliberationsLoaded] = useState(false);
   const dashboardLoadedRef = useRef(false);
 
   // Verificar se o usuário pode definir posição (admin ou diretor)
@@ -383,10 +386,37 @@ const NineBoxMatrix = () => {
     }
   };
 
-  // Limpar seleção de quadrante ao mudar de colaborador
+  // Limpar seleção de quadrante e carregar deliberações ao mudar de colaborador
   useEffect(() => {
     setSelectedQuadrantToMove(null);
-  }, [selectedEmployee]);
+    setDeliberationsLoaded(false);
+
+    // Carregar deliberações do colaborador selecionado
+    if (selectedEvaluation?.committee_deliberations !== undefined) {
+      setDeliberations(selectedEvaluation.committee_deliberations || '');
+      setDeliberationsLoaded(true);
+    } else {
+      setDeliberations('');
+    }
+  }, [selectedEmployee, selectedEvaluation?.committee_deliberations]);
+
+  /**
+   * Salva as deliberações do comitê
+   */
+  const handleSaveDeliberations = async () => {
+    if (!selectedEvaluation?.consensus_id) return;
+
+    setIsSavingDeliberations(true);
+    try {
+      await evaluationService.saveCommitteeDeliberations(selectedEvaluation.consensus_id, deliberations);
+      toast.success('Deliberações salvas com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao salvar deliberações:', error);
+      toast.error('Erro ao salvar deliberações');
+    } finally {
+      setIsSavingDeliberations(false);
+    }
+  };
 
   /**
    * Obtém o quadrante baseado nas notas (retorna índices de 1-3)
@@ -989,17 +1019,6 @@ const NineBoxMatrix = () => {
               </div>
             </div>
 
-            {/* Card de Status Atual */}
-            {getActiveQuadrantInfo() && (
-              <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 ${getActiveQuadrantInfo()!.borderColor} bg-gradient-to-br ${getActiveQuadrantInfo()!.gradient}`}>
-                <h4 className={`text-base sm:text-lg font-bold mb-3 ${getActiveQuadrantInfo()!.textColor}`}>
-                  Status Atual
-                </h4>
-                <p className={`text-sm ${getActiveQuadrantInfo()!.textColor} opacity-90`}>
-                  {getActiveQuadrantInfo()!.description}
-                </p>
-              </div>
-            )}
           </div>
 
           {/* Coluna Central e Direita - Matriz */}
@@ -1096,19 +1115,52 @@ const NineBoxMatrix = () => {
                 </div>
               </div>
 
-              {/* Info Box */}
-              <div className="mt-6 sm:mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg sm:rounded-xl border border-blue-200 dark:border-blue-700 flex items-start">
-                <Info className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400 mr-3 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-700 dark:text-blue-300">
-                  <p className="font-semibold mb-1">Como interpretar a matriz:</p>
-                  <p className="opacity-90">
-                    A posição do colaborador é determinada pela combinação de sua performance (eixo horizontal) 
-                    e potencial (eixo vertical). Cada quadrante indica uma estratégia de desenvolvimento específica.
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
+        </motion.div>
+      )}
+
+      {/* Deliberações do Comitê */}
+      {selectedEvaluation && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-6 sm:p-8"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600 dark:text-gray-400" />
+              Deliberações do Comitê
+            </h3>
+            <Button
+              onClick={handleSaveDeliberations}
+              disabled={isSavingDeliberations}
+              variant="primary"
+              size="sm"
+            >
+              {isSavingDeliberations ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Salvando...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
+                  Salvar
+                </span>
+              )}
+            </Button>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Registre as decisões e anotações do Comitê de Gente sobre {selectedEmp?.name}.
+          </p>
+          <textarea
+            value={deliberations}
+            onChange={(e) => setDeliberations(e.target.value)}
+            placeholder="Digite as deliberações, decisões e observações do comitê sobre este colaborador..."
+            className="w-full h-40 px-4 py-3 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+          />
         </motion.div>
       )}
 

@@ -52,4 +52,9 @@ router.put('/pdi/:pdiId', evaluationController.updatePDI);
 // ====================================
 router.put('/consensus/:consensusId/promote', evaluationController.promoteNineBoxQuadrant);
 
+// ====================================
+// ROTAS DE DELIBERAÇÕES DO COMITÊ
+// ====================================
+router.put('/consensus/:consensusId/deliberations', evaluationController.saveCommitteeDeliberations);
+
 export default router;

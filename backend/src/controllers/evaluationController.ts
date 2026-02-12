@@ -494,5 +494,28 @@ export const evaluationController = {
       console.error('Controller error:', error);
       next(error);
     }
+  },
+
+  // Salvar deliberações do comitê
+  async saveCommitteeDeliberations(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { consensusId } = req.params;
+      const { deliberations } = req.body;
+
+      const result = await evaluationService.saveCommitteeDeliberations(
+        authReq.supabase,
+        consensusId,
+        deliberations
+      );
+
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (error: any) {
+      console.error('Controller error:', error);
+      next(error);
+    }
   }
 };

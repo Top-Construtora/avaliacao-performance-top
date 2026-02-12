@@ -309,6 +309,8 @@ export const evaluationService = {
           emp.promoted_potential_quadrant = ce.promoted_potential_quadrant || null;
           emp.promoted_by = ce.promoted_by || null;
           emp.promoted_at = ce.promoted_at || null;
+          // Deliberações do comitê
+          emp.committee_deliberations = ce.committee_deliberations || null;
         }
       });
 
@@ -1102,6 +1104,65 @@ export const evaluationService = {
       }
 
       return updated;
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  // ====================================
+  // DELIBERAÇÕES DO COMITÊ
+  // ====================================
+
+  /**
+   * Salva as deliberações do comitê para um colaborador
+   */
+  async saveCommitteeDeliberations(
+    supabase: any,
+    consensusId: string,
+    deliberations: string
+  ) {
+    try {
+      const { data, error } = await supabase
+        .from('consensus_evaluations')
+        .update({
+          committee_deliberations: deliberations,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', consensusId)
+        .select()
+        .single();
+
+      if (error) {
+        throw new ApiError(500, 'Erro ao salvar deliberações: ' + error.message);
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Busca as deliberações do comitê para um colaborador
+   */
+  async getCommitteeDeliberations(
+    supabase: any,
+    consensusId: string
+  ) {
+    try {
+      const { data, error } = await supabase
+        .from('consensus_evaluations')
+        .select('committee_deliberations')
+        .eq('id', consensusId)
+        .single();
+
+      if (error) {
+        throw new ApiError(500, 'Erro ao buscar deliberações: ' + error.message);
+      }
+
+      return data?.committee_deliberations || '';
     } catch (error: any) {
       console.error('Service error:', error);
       throw error;

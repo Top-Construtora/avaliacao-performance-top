@@ -234,6 +234,7 @@ export interface CycleDashboard {
   promoted_potential_quadrant?: string | null; // Quadrante de potencial promovido manualmente
   promoted_by?: string | null; // ID do usuário que promoveu
   promoted_at?: string | null; // Data/hora da promoção
+  committee_deliberations?: string | null; // Deliberações do Comitê de Gente
 }
 
 // Dados do Nine Box
