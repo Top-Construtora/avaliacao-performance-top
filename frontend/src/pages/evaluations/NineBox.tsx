@@ -260,7 +260,9 @@ const NineBoxMatrix = () => {
         };
       })
       // Filtra apenas os que têm dados completos
-      .filter(d => d.user !== null);
+      .filter(d => d.user !== null)
+      // Ordena alfabeticamente pelo nome
+      .sort((a, b) => a.employee_name.localeCompare(b.employee_name, 'pt-BR'));
   }, [dashboard, employees, isRestrictedView, subordinateIds]);
 
   const selectedEvaluation = eligibleEmployees.find(e => e.employee_id === selectedEmployee);
