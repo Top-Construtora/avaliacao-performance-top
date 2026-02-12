@@ -142,8 +142,8 @@ export const evaluationService = {
   // Dashboard do ciclo
   async getCycleDashboard(supabase: any, cycleId: string, currentUserEmail?: string) {
     try {
-      // OTIMIZAÇÃO: Executar todas as 4 queries em PARALELO com Promise.all
-      const [usersResult, selfEvalsResult, leaderEvalsResult, consensusEvalsResult] = await Promise.all([
+      // OTIMIZAÇÃO: Executar todas as 5 queries em PARALELO com Promise.all
+      const [usersResult, selfEvalsResult, leaderEvalsResult, consensusEvalsResult, teamMembersResult] = await Promise.all([
         // Query 1: Buscar TODOS os usuários ativos (exceto admins)
         supabase
           .from('users')
@@ -185,7 +185,20 @@ export const evaluationService = {
             *,
             employee:users!employee_id(id, name, email, position)
           `)
-          .eq('cycle_id', cycleId)
+          .eq('cycle_id', cycleId),
+
+        // Query 5: Buscar membros de times com departamento
+        supabase
+          .from('team_members')
+          .select(`
+            user_id,
+            teams!inner(
+              id,
+              name,
+              department_id,
+              departments!inner(id, name)
+            )
+          `)
       ]);
 
       // Extrair dados e verificar erros
@@ -193,11 +206,25 @@ export const evaluationService = {
       const { data: selfEvals, error: selfError } = selfEvalsResult;
       const { data: leaderEvals, error: leaderError } = leaderEvalsResult;
       const { data: consensusEvals, error: consensusError } = consensusEvalsResult;
+      const { data: teamMembers, error: teamMembersError } = teamMembersResult;
 
       if (usersError) console.error('Error fetching users:', usersError);
       if (selfError) console.error('Error fetching self evaluations:', selfError);
       if (leaderError) console.error('Error fetching leader evaluations:', leaderError);
       if (consensusError) console.error('Error fetching consensus evaluations:', consensusError);
+      if (teamMembersError) console.error('Error fetching team members:', teamMembersError);
+
+      // Criar mapas de usuário -> departamento e usuário -> time via team_members
+      const userDepartmentMap = new Map<string, string>();
+      const userTeamMap = new Map<string, string>();
+      teamMembers?.forEach((tm: any) => {
+        if (tm.teams?.departments?.name && !userDepartmentMap.has(tm.user_id)) {
+          userDepartmentMap.set(tm.user_id, tm.teams.departments.name);
+        }
+        if (tm.teams?.name && !userTeamMap.has(tm.user_id)) {
+          userTeamMap.set(tm.user_id, tm.teams.name);
+        }
+      });
 
       // Aplicar filtro de usuários restritos
       const filteredUsers = filterRestrictedUsers(currentUserEmail, allUsers || []);
@@ -219,15 +246,17 @@ export const evaluationService = {
           console.log(`🔍 Director detected: ${user.name} (${user.id}) - Setting self and consensus to 'n/a'`);
         }
 
-        // Tentar obter o nome do departamento do relacionamento ou usar department_id
-        const departmentName = user.departments?.name || user.department_id || '';
+        // Tentar obter o nome do departamento: 1) via teams, 2) via department_id direto
+        const departmentName = userDepartmentMap.get(user.id) || user.departments?.name || '';
+        const teamName = userTeamMap.get(user.id) || '';
 
         employeeMap.set(user.id, {
           employee_id: user.id,
           employee_name: user.name || '',
           employee_email: user.email || '',
           employee_position: user.position || '',
-          department_name: departmentName, // Adicionar nome do departamento
+          department_name: departmentName,
+          team_name: teamName,
           self_evaluation_id: null,
           self_evaluation_status: isDirector ? 'n/a' : 'pending',
           self_evaluation_score: null,

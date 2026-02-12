@@ -23,8 +23,9 @@ import * as XLSX from 'xlsx';
 import { toast } from 'react-hot-toast';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { evaluationService } from '../../services/evaluation.service';
-import { departmentsService, usersService } from '../../services/supabase.service';
-import type { Department, UserWithDetails } from '../../types/supabase';
+import { departmentsService, usersService, teamsService } from '../../services/supabase.service';
+import type { Department, UserWithDetails, Team } from '../../types/supabase';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { CycleDashboard, EvaluationCycle } from '../../types/evaluation.types';
 
 declare module 'jspdf' {
@@ -59,7 +60,11 @@ const Reports = () => {
     completionRate: 0
   });
 
-  // Estados para o progresso por departamento
+  // Estados para times e departamentos expandidos
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [expandedDepts, setExpandedDepts] = useState<Set<string>>(new Set());
+
+  // Estados para o progresso por departamento (com times)
   const [departmentProgress, setDepartmentProgress] = useState<Array<{
     id: string;
     name: string;
@@ -67,6 +72,13 @@ const Reports = () => {
     completed: number;
     inProgress: number;
     pending: number;
+    teams: Array<{
+      id: string;
+      name: string;
+      total: number;
+      completed: number;
+      completionRate: number;
+    }>;
   }>>([]);
 
   // Carregar dados ao montar o componente
@@ -93,6 +105,10 @@ const Reports = () => {
       // Carregar departamentos
       const depts = await departmentsService.getAll();
       setDepartments(depts);
+
+      // Carregar times
+      const allTeams = await teamsService.getAll();
+      setTeams(allTeams);
 
       // Carregar usuários
       const allUsers = await usersService.getAll();
@@ -175,59 +191,59 @@ const Reports = () => {
     }
   }, [dashboard]);
 
-  // Calcular progresso por departamento
+  // Função auxiliar para verificar se avaliação está completa
+  const isEvaluationCompleted = (d: CycleDashboard): boolean => {
+    const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+    if (isDirector) {
+      return d.leader_evaluation_status === 'completed' && !!d.ninebox_position;
+    }
+    return d.self_evaluation_status === 'completed' &&
+           d.leader_evaluation_status === 'completed' &&
+           d.consensus_status === 'completed' &&
+           !!d.ninebox_position;
+  };
+
+  // Calcular progresso por departamento (com times)
   useEffect(() => {
-    if (dashboard && dashboard.length > 0 && departments.length > 0) {
+    if (dashboard && dashboard.length > 0 && departments.length > 0 && teams.length > 0) {
       const progressByDept = departments.map(dept => {
-        // Filtrar colaboradores do departamento usando department_name do dashboard
+        // Filtrar colaboradores do departamento
         const deptEmployees = dashboard.filter((d: CycleDashboard) => {
-          // Comparar o nome do departamento (case insensitive)
           return d.department_name?.toLowerCase() === dept.name.toLowerCase();
         });
 
         const total = deptEmployees.length;
+        const completed = deptEmployees.filter(isEvaluationCompleted).length;
 
-        // COMPLETO: autoavaliação + líder + consenso + PDI (ninebox_position) todos completos
-        const completed = deptEmployees.filter(
-          (d: CycleDashboard) => {
-            const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
-            if (isDirector) {
-              // Para diretor: apenas leader completo e ninebox definido
-              return d.leader_evaluation_status === 'completed' && d.ninebox_position;
-            }
-            // Para não-diretor: self + leader + consensus completos E ninebox definido
-            return d.self_evaluation_status === 'completed' &&
-                   d.leader_evaluation_status === 'completed' &&
-                   d.consensus_status === 'completed' &&
-                   d.ninebox_position;
+        // Calcular em andamento
+        const inProgress = deptEmployees.filter((d: CycleDashboard) => {
+          if (isEvaluationCompleted(d)) return false;
+          const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+          if (isDirector) {
+            return d.leader_evaluation_status === 'completed' || d.leader_evaluation_status === 'in-progress';
           }
-        ).length;
+          return d.self_evaluation_status === 'completed' || d.leader_evaluation_status === 'completed';
+        }).length;
 
-        // EM ANDAMENTO: pelo menos UMA avaliação completa mas não tudo
-        const inProgress = deptEmployees.filter(
-          (d: CycleDashboard) => {
-            const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
-
-            // Se já está completo, não conta como em andamento
-            if (isDirector) {
-              const isComplete = d.leader_evaluation_status === 'completed' && d.ninebox_position;
-              if (isComplete) return false;
-              // Em andamento se leader foi iniciado ou completo sem ninebox
-              return d.leader_evaluation_status === 'completed' || d.leader_evaluation_status === 'in-progress';
-            } else {
-              const isComplete = d.self_evaluation_status === 'completed' &&
-                                d.leader_evaluation_status === 'completed' &&
-                                d.consensus_status === 'completed' &&
-                                d.ninebox_position;
-              if (isComplete) return false;
-              // Em andamento se pelo menos autoavaliação OU líder está completo
-              return d.self_evaluation_status === 'completed' || d.leader_evaluation_status === 'completed';
-            }
-          }
-        ).length;
-
-        // PENDENTE: nada foi iniciado
         const pending = total - completed - inProgress;
+
+        // Calcular progresso por time dentro do departamento
+        const deptTeams = teams.filter(t => t.department_id === dept.id);
+        const teamsProgress = deptTeams.map(team => {
+          const teamEmployees = deptEmployees.filter((d: CycleDashboard) => {
+            return d.team_name?.toLowerCase() === team.name.toLowerCase();
+          });
+          const teamTotal = teamEmployees.length;
+          const teamCompleted = teamEmployees.filter(isEvaluationCompleted).length;
+
+          return {
+            id: team.id,
+            name: team.name,
+            total: teamTotal,
+            completed: teamCompleted,
+            completionRate: teamTotal > 0 ? Math.round((teamCompleted / teamTotal) * 100) : 0
+          };
+        }).filter(t => t.total > 0); // Apenas times com colaboradores
 
         return {
           id: dept.id,
@@ -235,13 +251,14 @@ const Reports = () => {
           total,
           completed,
           inProgress,
-          pending
+          pending,
+          teams: teamsProgress
         };
       });
 
       setDepartmentProgress(progressByDept);
     }
-  }, [dashboard, departments]);
+  }, [dashboard, departments, teams]);
 
   // Filtrar dados para a visão detalhada
   const filteredData = dashboard.filter((item: CycleDashboard) => {
@@ -693,67 +710,166 @@ const Reports = () => {
               <BarChart3 className="mr-2 text-primary-500 dark:text-primary-400" size={20} />
               Progresso por Departamento
             </h2>
-            
-            <div className="space-y-4">
-              {departmentProgress.map((dept, index) => {
-                const completionRate = dept.total > 0 
-                  ? Math.round((dept.completed / dept.total) * 100) 
+
+            <div className="space-y-3">
+              {departmentProgress
+                .filter(dept => dept.total > 0)
+                .sort((a, b) => {
+                  const rateA = a.total > 0 ? (a.completed / a.total) * 100 : 0;
+                  const rateB = b.total > 0 ? (b.completed / b.total) * 100 : 0;
+                  return rateB - rateA;
+                })
+                .map((dept, index) => {
+                const completionRate = dept.total > 0
+                  ? Math.round((dept.completed / dept.total) * 100)
                   : 0;
-                
+                const isExpanded = expandedDepts.has(dept.id);
+                const hasTeams = dept.teams && dept.teams.length > 0;
+
                 return (
                   <motion.div
                     key={dept.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="space-y-2"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
                   >
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                        {dept.name}
-                      </h3>
-                      <div className="flex items-center space-x-4 text-sm">
-                        <span className="flex items-center text-primary-500 dark:text-primary-400">
-                          <CheckCircle size={14} className="mr-1" />
-                          {dept.completed} completos
+                    {/* Header do departamento (clicável) */}
+                    <div
+                      className={`flex items-center gap-4 p-4 ${hasTeams ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50' : ''} transition-colors`}
+                      onClick={() => {
+                        if (hasTeams) {
+                          setExpandedDepts(prev => {
+                            const next = new Set(prev);
+                            if (next.has(dept.id)) {
+                              next.delete(dept.id);
+                            } else {
+                              next.add(dept.id);
+                            }
+                            return next;
+                          });
+                        }
+                      }}
+                    >
+                      {/* Ícone de expandir */}
+                      <div className="w-6 flex-shrink-0">
+                        {hasTeams && (
+                          isExpanded
+                            ? <ChevronDown size={18} className="text-gray-500" />
+                            : <ChevronRight size={18} className="text-gray-500" />
+                        )}
+                      </div>
+
+                      {/* Nome do departamento */}
+                      <div className="w-36 flex-shrink-0">
+                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                          {dept.name}
                         </span>
-                        <span className="flex items-center text-blue-600 dark:text-blue-500">
-                          <Clock size={14} className="mr-1" />
-                          {dept.inProgress} em andamento
-                        </span>
-                        <span className="flex items-center text-yellow-600 dark:text-yellow-500">
-                          <AlertTriangle size={14} className="mr-1" />
-                          {dept.pending} pendentes
-                        </span>
-                        <span className="flex items-center text-gray-500 dark:text-gray-400">
-                          <Users size={14} className="mr-1" />
-                          {dept.total} total
+                      </div>
+
+                      {/* Barra de progresso */}
+                      <div className="flex-1 relative">
+                        <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-5 overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${completionRate}%` }}
+                            transition={{ duration: 0.8, delay: index * 0.05 }}
+                            className="h-full rounded-full flex items-center justify-end pr-2"
+                            style={{
+                              backgroundColor: completionRate === 100
+                                ? '#1e40af'
+                                : completionRate >= 70
+                                  ? '#3b82f6'
+                                  : completionRate >= 40
+                                    ? '#60a5fa'
+                                    : '#93c5fd'
+                            }}
+                          >
+                            {completionRate >= 20 && (
+                              <span className="text-xs font-semibold text-white">
+                                {completionRate}%
+                              </span>
+                            )}
+                          </motion.div>
+                        </div>
+                        {completionRate < 20 && (
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                            {completionRate}%
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Contador */}
+                      <div className="w-16 flex-shrink-0 text-right">
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          {dept.completed}/{dept.total}
                         </span>
                       </div>
                     </div>
-                    
-                    <div className="relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                      {/* Barra de completos (verde escuro) */}
+
+                    {/* Times expandidos */}
+                    {isExpanded && hasTeams && (
                       <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${completionRate}%` }}
-                        transition={{ duration: 1, delay: index * 0.1 }}
-                        className="absolute top-0 left-0 h-full bg-[#0a5d47]"
-                      />
-                      {/* Barra de em andamento (azul) */}
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{
-                          width: `${dept.total > 0 ? ((dept.inProgress / dept.total) * 100) : 0}%`,
-                          left: `${completionRate}%`
-                        }}
-                        transition={{ duration: 1, delay: index * 0.1 + 0.2 }}
-                        className="absolute top-0 h-full bg-gradient-to-r from-blue-500 to-blue-600"
-                      />
-                    </div>
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
+                      >
+                        <div className="p-4 pl-14 space-y-3">
+                          {dept.teams
+                            .sort((a, b) => b.completionRate - a.completionRate)
+                            .map((team) => (
+                            <div key={team.id} className="flex items-center gap-4">
+                              {/* Nome do time */}
+                              <div className="w-32 flex-shrink-0">
+                                <span className="text-xs font-medium text-gray-600 dark:text-gray-400 truncate block">
+                                  {team.name}
+                                </span>
+                              </div>
+
+                              {/* Barra de progresso do time */}
+                              <div className="flex-1 relative">
+                                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3 overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full"
+                                    style={{
+                                      width: `${team.completionRate}%`,
+                                      backgroundColor: team.completionRate === 100
+                                        ? '#1e40af'
+                                        : team.completionRate >= 70
+                                          ? '#3b82f6'
+                                          : team.completionRate >= 40
+                                            ? '#60a5fa'
+                                            : '#93c5fd'
+                                    }}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Porcentagem e contador */}
+                              <div className="w-24 flex-shrink-0 text-right flex items-center justify-end gap-1">
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {team.completionRate}% ({team.completed}/{team.total})
+                                </span>
+                                {team.completionRate === 100 && (
+                                  <CheckCircle size={14} className="text-green-500 flex-shrink-0" />
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
                   </motion.div>
                 );
               })}
+
+              {departmentProgress.filter(dept => dept.total > 0).length === 0 && (
+                <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                  Nenhum departamento com colaboradores
+                </p>
+              )}
             </div>
           </div>
         </motion.div>

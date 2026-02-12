@@ -139,6 +139,7 @@ export interface CycleDashboard {
   employee_email: string;
   employee_position: string;
   department_name?: string; // Nome do departamento
+  team_name?: string; // Nome do time
   self_evaluation_status: string;
   self_evaluation_score?: number | null;
   leader_evaluation_status: string;
