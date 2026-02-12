@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useEvaluation } from '../../hooks/useEvaluation';
-import { useUsers } from '../../context/UserContext';
 import {
   Users,
   UserCheck,
@@ -11,10 +10,10 @@ import {
   ClipboardList,
   CheckCircle,
   Clock,
-  AlertCircle,
   User,
   Crown,
-  Calendar
+  Calendar,
+  BarChart2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { evaluationService } from '../../services/evaluation.service';
@@ -23,7 +22,6 @@ const LeaderDashboard = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { currentCycle } = useEvaluation();
-  const { users } = useUsers();
   const firstName = profile?.name?.split(' ')[0];
 
   const [myStatus, setMyStatus] = useState({
@@ -35,7 +33,6 @@ const LeaderDashboard = () => {
     leaderScore: null as number | null,
     consensusScore: null as number | null
   });
-  const [teamStatus, setTeamStatus] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,7 +41,7 @@ const LeaderDashboard = () => {
     } else {
       setLoading(false);
     }
-  }, [profile?.id, currentCycle, users]);
+  }, [profile?.id, currentCycle]);
 
   const loadData = async () => {
     try {
@@ -72,28 +69,6 @@ const LeaderDashboard = () => {
             consensusScore: myData.consensus_score ?? myData.consensus_performance_score ?? null
           });
         }
-
-        // Status dos liderados
-        const subordinates = users.filter(u => u.reports_to === profile.id && u.active);
-        const teamData = subordinates.map(subordinate => {
-          const evalData = dashboard.find((d: any) => String(d.employee_id) === String(subordinate.id));
-
-          const normalizeStatus = (status: string | null | undefined): string => {
-            if (!status) return 'pending';
-            if (status === 'completed' || status === 'Completed' || status === 'COMPLETED') return 'completed';
-            if (status === 'in-progress' || status === 'in_progress' || status === 'InProgress') return 'in-progress';
-            return 'pending';
-          };
-
-          return {
-            id: subordinate.id,
-            name: subordinate.name,
-            position: subordinate.position,
-            leaderEvaluation: normalizeStatus(evalData?.leader_evaluation_status),
-          };
-        });
-
-        setTeamStatus(teamData);
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -101,30 +76,6 @@ const LeaderDashboard = () => {
       setLoading(false);
     }
   };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-            <CheckCircle className="w-3 h-3" />
-            Avaliado
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-            <AlertCircle className="w-3 h-3" />
-            Pendente
-          </span>
-        );
-    }
-  };
-
-  // Calcular estatísticas
-  const totalSubordinates = teamStatus.length;
-  const completedLeaderEvaluations = teamStatus.filter(t => t.leaderEvaluation === 'completed').length;
-  const pendingLeaderEvaluations = totalSubordinates - completedLeaderEvaluations;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -470,75 +421,88 @@ const LeaderDashboard = () => {
 
         </motion.div>
 
-        {/* Team Status Card - Meus Liderados */}
+        {/* Minhas Notas Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-              <Users className="mr-2 text-primary-500" size={20} />
-              Meus Liderados
-            </h2>
-            <div className="flex items-center gap-3">
-              <div className="text-center">
-                <span className="text-xl font-bold text-emerald-600">{completedLeaderEvaluations}</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 block">Avaliados</span>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+            <BarChart2 className="mr-2 text-primary-500" size={20} />
+            Minhas Notas
+          </h2>
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Nota Autoavaliação */}
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <div className="flex items-center mb-2">
+                <User className="h-4 w-4 text-primary-500 mr-2" />
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Autoavaliação</span>
               </div>
-              <div className="text-center">
-                <span className="text-xl font-bold text-amber-500">{pendingLeaderEvaluations}</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 block">Pendentes</span>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {myStatus.selfEvaluation === 'completed' && myStatus.selfScore !== null
+                  ? myStatus.selfScore.toFixed(2)
+                  : '-'}
               </div>
+              <span className={`text-xs ${myStatus.selfEvaluation === 'completed' ? 'text-emerald-600' : 'text-gray-400'}`}>
+                {myStatus.selfEvaluation === 'completed' ? 'Concluída' : 'Pendente'}
+              </span>
+            </div>
+
+            {/* Nota Líder */}
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <div className="flex items-center mb-2">
+                <Crown className="h-4 w-4 text-primary-500 mr-2" />
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Líder</span>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {myStatus.leaderEvaluation === 'completed' && myStatus.leaderScore !== null
+                  ? myStatus.leaderScore.toFixed(2)
+                  : '-'}
+              </div>
+              <span className={`text-xs ${myStatus.leaderEvaluation === 'completed' ? 'text-emerald-600' : 'text-gray-400'}`}>
+                {myStatus.leaderEvaluation === 'completed' ? 'Concluída' : 'Pendente'}
+              </span>
+            </div>
+
+            {/* Nota Consenso */}
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <div className="flex items-center mb-2">
+                <Users className="h-4 w-4 text-primary-500 mr-2" />
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Consenso</span>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {myStatus.consensus === 'completed' && myStatus.consensusScore !== null
+                  ? myStatus.consensusScore.toFixed(2)
+                  : '-'}
+              </div>
+              <span className={`text-xs ${myStatus.consensus === 'completed' ? 'text-emerald-600' : 'text-gray-400'}`}>
+                {myStatus.consensus === 'completed' ? 'Concluído' : 'Pendente'}
+              </span>
+            </div>
+
+            {/* PDI */}
+            <div
+              className={`bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 ${myStatus.ppiDefined ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors' : ''}`}
+              onClick={() => myStatus.ppiDefined && navigate('/my-pdi')}
+            >
+              <div className="flex items-center mb-2">
+                <FileText className="h-4 w-4 text-primary-500 mr-2" />
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">PDI</span>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {myStatus.ppiDefined ? (
+                  <CheckCircle className="h-7 w-7 text-emerald-600" />
+                ) : (
+                  '-'
+                )}
+              </div>
+              <span className={`text-xs ${myStatus.ppiDefined ? 'text-emerald-600' : 'text-gray-400'}`}>
+                {myStatus.ppiDefined ? 'Definido' : 'Pendente'}
+              </span>
             </div>
           </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-            </div>
-          ) : teamStatus.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>Nenhum liderado encontrado</p>
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-[280px] overflow-y-auto">
-              {teamStatus.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{member.name}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{member.position}</p>
-                  </div>
-                  {getStatusBadge(member.leaderEvaluation)}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Progress bar */}
-          {totalSubordinates > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Avaliações concluídas</span>
-                <span className="text-sm font-bold text-emerald-600">
-                  {completedLeaderEvaluations}/{totalSubordinates}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(completedLeaderEvaluations / totalSubordinates) * 100}%` }}
-                  transition={{ duration: 1, delay: 0.5 }}
-                  className="h-2 rounded-full bg-emerald-500"
-                />
-              </div>
-            </div>
-          )}
         </motion.div>
       </div>
 
