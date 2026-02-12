@@ -348,59 +348,65 @@ const NineBoxMatrix = () => {
   };
 
   /**
-   * Calcula a posição do ponto dentro da matriz
-   * Garante que o ponto fique sempre dentro dos limites do quadrante correto
+   * Calcula a posição EXATA do ponto dentro da matriz
+   *
+   * A matriz 9-Box visual tem:
+   * - Eixo X (Performance): Baixo (<2) | Médio (2-3) | Alto (≥3)
+   * - Eixo Y (Potencial): Alto (>3) | Médio (2-3) | Baixo (≤2) - de cima para baixo
+   *
+   * Mapeamento das notas para posições no grid (0-100%):
+   *
+   * Performance (X):
+   * - Nota 1 -> 0% (início do Baixo)
+   * - Nota 2 -> 33.33% (linha entre Baixo e Médio)
+   * - Nota 3 -> 66.66% (linha entre Médio e Alto)
+   * - Nota 4 -> 100% (fim do Alto)
+   *
+   * Potencial (Y) - invertido pois Alto fica no topo:
+   * - Nota 4 -> 0% (topo, Alto)
+   * - Nota 3 -> 33.33% (linha entre Alto e Médio)
+   * - Nota 2 -> 66.66% (linha entre Médio e Baixo)
+   * - Nota 1 -> 100% (fundo, Baixo)
    */
   const getPointPosition = (performance: number, potential: number) => {
     // Limita as notas entre 1 e 4
     const clampedPerf = Math.max(1, Math.min(4, performance));
     const clampedPot = Math.max(1, Math.min(4, potential));
 
-    // Determina o quadrante
-    const quadrant = getQuadrant(clampedPerf, clampedPot);
-
-    // Padding interno para o ponto não ultrapassar as bordas (15% de cada lado do quadrante)
-    const PADDING = 0.15;
-
-    // Calcula a posição relativa dentro do quadrante (0 a 1)
-    let perfRelative: number;
-    let potRelative: number;
-
-    // Performance (eixo X / coluna)
-    if (quadrant.col === 1) {
-      // Quadrante 1: notas 1.0-1.999
-      perfRelative = (clampedPerf - 1.0) / 1.0; // 0 a 1
-    } else if (quadrant.col === 2) {
-      // Quadrante 2: notas 2.0-2.999
-      perfRelative = (clampedPerf - 2.0) / 1.0; // 0 a 1
-    } else {
-      // Quadrante 3: notas 3.0-4.0
-      perfRelative = (clampedPerf - 3.0) / 1.0; // 0 a 1
-    }
-
-    // Potencial (eixo Y / linha)
-    if (quadrant.row === 1) {
-      // Quadrante 1: notas 1.0-1.999
-      potRelative = (clampedPot - 1.0) / 1.0; // 0 a 1
-    } else if (quadrant.row === 2) {
-      // Quadrante 2: notas 2.0-2.999
-      potRelative = (clampedPot - 2.0) / 1.0; // 0 a 1
-    } else {
-      // Quadrante 3: notas 3.0-4.0
-      potRelative = (clampedPot - 3.0) / 1.0; // 0 a 1
-    }
-
-    // Aplica padding para manter o ponto dentro do quadrante
-    perfRelative = perfRelative * (1 - 2 * PADDING) + PADDING;
-    potRelative = potRelative * (1 - 2 * PADDING) + PADDING;
-
-    // Cada quadrante ocupa 33.33% da matriz
+    // Cada quadrante ocupa 33.33% do grid
     const quadrantSize = 100 / 3;
 
-    // Calcula a posição final em porcentagem (0-100%)
-    const xPercent = (quadrant.col - 1) * quadrantSize + (perfRelative * quadrantSize);
-    // Inverte o Y porque o grid visual cresce de baixo para cima (linha 3 = topo)
-    const yPercent = (3 - quadrant.row) * quadrantSize + ((1 - potRelative) * quadrantSize);
+    // Performance (X): mapeia nota para posição
+    // Quadrante Baixo: 1-2 ocupa 0-33.33%
+    // Quadrante Médio: 2-3 ocupa 33.33-66.66%
+    // Quadrante Alto: 3-4 ocupa 66.66-100%
+    let xPercent: number;
+    if (clampedPerf < 2) {
+      // Dentro do quadrante Baixo: 1-2 -> 0-33.33%
+      xPercent = (clampedPerf - 1) * quadrantSize;
+    } else if (clampedPerf < 3) {
+      // Dentro do quadrante Médio: 2-3 -> 33.33-66.66%
+      xPercent = quadrantSize + (clampedPerf - 2) * quadrantSize;
+    } else {
+      // Dentro do quadrante Alto: 3-4 -> 66.66-100%
+      xPercent = 2 * quadrantSize + (clampedPerf - 3) * quadrantSize;
+    }
+
+    // Potencial (Y): mapeia nota para posição (invertido)
+    // Quadrante Alto: 3-4 ocupa 0-33.33% (topo)
+    // Quadrante Médio: 2-3 ocupa 33.33-66.66%
+    // Quadrante Baixo: 1-2 ocupa 66.66-100% (fundo)
+    let yPercent: number;
+    if (clampedPot > 3) {
+      // Dentro do quadrante Alto: 3-4 -> 33.33-0% (invertido)
+      yPercent = quadrantSize - (clampedPot - 3) * quadrantSize;
+    } else if (clampedPot > 2) {
+      // Dentro do quadrante Médio: 2-3 -> 66.66-33.33% (invertido)
+      yPercent = 2 * quadrantSize - (clampedPot - 2) * quadrantSize;
+    } else {
+      // Dentro do quadrante Baixo: 1-2 -> 100-66.66% (invertido)
+      yPercent = 100 - (clampedPot - 1) * quadrantSize;
+    }
 
     return { x: xPercent, y: yPercent };
   };
@@ -794,7 +800,7 @@ const NineBoxMatrix = () => {
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                        className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 rounded-full shadow-lg dark:shadow-xl z-20 ring-4 ring-white dark:ring-gray-800"
+                        className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-primary-500 dark:bg-primary-600 rounded-full shadow-lg dark:shadow-xl z-20 ring-4 ring-white dark:ring-gray-800"
                         style={{
                           left: `${getPointPosition(selectedEvaluation.consensus_score, selectedEvaluation.potential_score).x}%`,
                           top: `${getPointPosition(selectedEvaluation.consensus_score, selectedEvaluation.potential_score).y}%`,
