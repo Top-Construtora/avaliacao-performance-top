@@ -375,5 +375,30 @@ export const evaluationService = {
       console.error('Erro ao atualizar PDI:', error);
       throw error;
     }
+  },
+
+  // ====================================
+  // PROMOÇÃO DE QUADRANTE NINE BOX
+  // ====================================
+
+  /**
+   * Promove um colaborador para um quadrante de potencial superior no Nine Box
+   * @param consensusId - ID da avaliação de consenso
+   * @param promotedPotentialQuadrant - Quadrante de destino (1=Baixo, 2=Médio, 3=Alto)
+   */
+  async promoteNineBoxQuadrant(
+    consensusId: string,
+    promotedPotentialQuadrant: number
+  ): Promise<any> {
+    try {
+      const response = await api.put(`/evaluations/consensus/${consensusId}/promote`, {
+        promotedPotentialQuadrant
+      });
+      // O backend retorna { success: true, data: {...} }
+      return response.data || response;
+    } catch (error: any) {
+      console.error('Erro ao promover quadrante:', error);
+      throw error;
+    }
   }
 };

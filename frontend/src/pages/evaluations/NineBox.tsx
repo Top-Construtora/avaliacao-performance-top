@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { User, BarChart3, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3, Mail, Cake, MessageSquare } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, BarChart3, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3, Mail, Cake, MessageSquare, ArrowUp, CheckCircle, AlertCircle, Lock, Loader2 } from 'lucide-react';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 import { usePeopleCommitteePermission } from '../../hooks/usePeopleCommittee';
 import { supabase } from '../../lib/supabase';
+import { evaluationService } from '../../services/evaluation.service';
+import { toast } from 'react-hot-toast';
+import Button from '../../components/Button';
 
 interface MatrixConfig {
   bgColor: string;
@@ -103,14 +106,19 @@ const NineBoxMatrix = () => {
   } = useEvaluation();
 
   const { profile } = useAuth();
-  const { isRestrictedView } = usePeopleCommitteePermission();
+  const { canViewPeopleCommittee, isRestrictedView, loading: permissionLoading } = usePeopleCommitteePermission();
 
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [hoveredQuadrant, setHoveredQuadrant] = useState<string | null>(null);
   const [salaryLevels, setSalaryLevels] = useState<Array<{ id: string; name: string; percentage: number }>>([]);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
   const [subordinateIds, setSubordinateIds] = useState<Set<string>>(new Set());
+  const [isPromoting, setIsPromoting] = useState(false);
+  const [selectedQuadrantToMove, setSelectedQuadrantToMove] = useState<number | null>(null);
   const dashboardLoadedRef = useRef(false);
+
+  // Verificar se o usuário pode definir posição (admin ou diretor)
+  const canPromote = profile?.role === 'admin' || profile?.is_admin === true || profile?.is_director === true;
 
   // Carregar níveis salariais
   useEffect(() => {
@@ -259,6 +267,28 @@ const NineBoxMatrix = () => {
   const selectedEmp = selectedEvaluation?.user;
 
   /**
+   * Retorna o potencial efetivo do colaborador
+   * Se foi movimentado, usa o quadrante definido para calcular a nota equivalente
+   * Quadrante 1 (Baixo) = 1.5, Quadrante 2 (Médio) = 2.5, Quadrante 3 (Alto) = 3.5
+   */
+  const getEffectivePotential = (evaluation: any): number => {
+    if (!evaluation) return 0;
+
+    // Se foi movimentado, usar o quadrante definido
+    if (evaluation.promoted_potential_quadrant !== null && evaluation.promoted_potential_quadrant !== undefined) {
+      // Converter quadrante para nota equivalente (centro do quadrante)
+      switch (evaluation.promoted_potential_quadrant) {
+        case 1: return 1.5; // Baixo
+        case 2: return 2.5; // Médio
+        case 3: return 3.5; // Alto
+        default: return evaluation.potential_score;
+      }
+    }
+
+    return evaluation.potential_score;
+  };
+
+  /**
    * Calcula o salário baseado no cargo e nível salarial (intern_level)
    */
   const calculateSalary = (trackPosition: any, internLevel: string): number | null => {
@@ -271,6 +301,90 @@ const NineBoxMatrix = () => {
     const percentage = salaryLevel.percentage / 100;
     return baseSalary + (baseSalary * percentage);
   };
+
+  /**
+   * Verifica se o colaborador pode ser promovido (nota de potencial exatamente 2.0 ou 3.0)
+   */
+  const canBePromoted = (evaluation: any): boolean => {
+    if (!evaluation) return false;
+    const potentialScore = evaluation.potential_score;
+    // Só pode promover se a nota for exatamente 2 ou 3 (limites entre quadrantes)
+    return potentialScore === 2 || potentialScore === 3;
+  };
+
+  /**
+   * Verifica se o colaborador já foi promovido
+   */
+  const isAlreadyPromoted = (evaluation: any): boolean => {
+    return evaluation?.promoted_potential_quadrant !== null && evaluation?.promoted_potential_quadrant !== undefined;
+  };
+
+  /**
+   * Retorna os quadrantes disponíveis para movimentação (atual e superior)
+   */
+  const getAvailableQuadrantOptions = (evaluation: any): { quadrant: number; label: string; isCurrent: boolean }[] => {
+    if (!evaluation) return [];
+    const potentialScore = evaluation.potential_score;
+
+    if (potentialScore === 2) {
+      // Nota 2.0 está no limite Baixo/Médio
+      // Pode manter em Baixo (1) ou mover para Médio (2)
+      return [
+        { quadrant: 1, label: 'Baixo (manter posição atual)', isCurrent: true },
+        { quadrant: 2, label: 'Médio (mover para cima)', isCurrent: false }
+      ];
+    } else if (potentialScore === 3) {
+      // Nota 3.0 está no limite Médio/Alto
+      // Pode manter em Médio (2) ou mover para Alto (3)
+      return [
+        { quadrant: 2, label: 'Médio (manter posição atual)', isCurrent: true },
+        { quadrant: 3, label: 'Alto (mover para cima)', isCurrent: false }
+      ];
+    }
+
+    return [];
+  };
+
+  /**
+   * Retorna o label do quadrante de potencial
+   */
+  const getPotentialQuadrantLabel = (quadrant: number): string => {
+    switch (quadrant) {
+      case 1: return 'Baixo';
+      case 2: return 'Médio';
+      case 3: return 'Alto';
+      default: return 'Desconhecido';
+    }
+  };
+
+  /**
+   * Salva a posição do colaborador no quadrante
+   */
+  const handlePromote = async (quadrant: number) => {
+    if (!selectedEvaluation?.consensus_id || !canPromote) return;
+
+    setIsPromoting(true);
+    try {
+      await evaluationService.promoteNineBoxQuadrant(selectedEvaluation.consensus_id, quadrant);
+      toast.success(`Posição definida como ${getPotentialQuadrantLabel(quadrant)} com sucesso!`);
+      // Limpar seleção
+      setSelectedQuadrantToMove(null);
+      // Recarregar dashboard para atualizar os dados
+      if (currentCycle?.id) {
+        await loadDashboard(currentCycle.id);
+      }
+    } catch (error: any) {
+      console.error('Erro ao salvar posição:', error);
+      toast.error(error.response?.data?.error || 'Erro ao salvar posição');
+    } finally {
+      setIsPromoting(false);
+    }
+  };
+
+  // Limpar seleção de quadrante ao mudar de colaborador
+  useEffect(() => {
+    setSelectedQuadrantToMove(null);
+  }, [selectedEmployee]);
 
   /**
    * Obtém o quadrante baseado nas notas (retorna índices de 1-3)
@@ -413,21 +527,26 @@ const NineBoxMatrix = () => {
 
   /**
    * Verifica se um quadrante está ativo (contém o colaborador selecionado)
+   * Usa a nota original de potencial (onde a bolinha está posicionada)
    */
   const isQuadrantActive = (row: number, col: number): boolean => {
     if (!selectedEvaluation) return false;
-    
+
     const quadrant = getQuadrant(
-      selectedEvaluation.consensus_score, 
+      selectedEvaluation.consensus_score,
       selectedEvaluation.potential_score
     );
     return quadrant.row === row && quadrant.col === col;
   };
 
+  /**
+   * Retorna informações do quadrante ativo
+   * Usa a nota original de potencial
+   */
   const getActiveQuadrantInfo = () => {
     if (!selectedEvaluation) return null;
     const quadrant = getQuadrant(
-      selectedEvaluation.consensus_score, 
+      selectedEvaluation.consensus_score,
       selectedEvaluation.potential_score
     );
     const key = `${quadrant.row},${quadrant.col}`;
@@ -459,6 +578,51 @@ const NineBoxMatrix = () => {
 
     return `${age} anos`;
   };
+
+  // Verificar permissão para líderes
+  if (permissionLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center"
+        >
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Verificando permissões...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Bloquear acesso se líder não tiver permissão no cargo
+  if (!canViewPeopleCommittee) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 max-w-md w-full mx-4 text-center"
+        >
+          <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            Acesso Restrito
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            Seu cargo não possui permissão para acessar o Comitê de Gente. Entre em contato com o RH caso precise de acesso.
+          </p>
+          <button
+            onClick={() => window.history.back()}
+            className="w-full py-3 px-4 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors"
+          >
+            Voltar
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -704,18 +868,122 @@ const NineBoxMatrix = () => {
                     <p className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Quadrante</p>
                     <Grid3x3 className="h-4 w-4 text-blue-800 dark:text-blue-700" />
                   </div>
-                  <div className="flex items-baseline gap-2">
+                  <div className="flex items-baseline gap-2 flex-wrap">
                     <p className="text-2xl sm:text-3xl font-bold text-blue-800 dark:text-blue-700">
-                      Box {getQuadrantName(selectedEvaluation.consensus_score, selectedEvaluation.potential_score)}
+                      Box {getQuadrantName(selectedEvaluation.consensus_score, getEffectivePotential(selectedEvaluation))}
                     </p>
                     <p className="text-sm font-semibold text-blue-700 dark:text-blue-400">
-                      {getBoxDescriptiveName(getQuadrantName(selectedEvaluation.consensus_score, selectedEvaluation.potential_score))}
+                      {getBoxDescriptiveName(getQuadrantName(selectedEvaluation.consensus_score, getEffectivePotential(selectedEvaluation)))}
                     </p>
                   </div>
                   <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
-                    Performance: {selectedEvaluation.consensus_score < 2 ? 'Baixo' : selectedEvaluation.consensus_score < 3 ? 'Médio' : 'Alto'} | Potencial: {selectedEvaluation.potential_score < 2 ? 'Baixo' : selectedEvaluation.potential_score < 3 ? 'Médio' : 'Alto'}
+                    Performance: {selectedEvaluation.consensus_score < 2 ? 'Baixo' : selectedEvaluation.consensus_score < 3 ? 'Médio' : 'Alto'} | Potencial: {getEffectivePotential(selectedEvaluation) <= 2 ? 'Baixo' : getEffectivePotential(selectedEvaluation) <= 3 ? 'Médio' : 'Alto'}
                   </p>
+                  {isAlreadyPromoted(selectedEvaluation) && (
+                    <div className="mt-2 flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded">
+                      <ArrowUp className="h-3 w-3" />
+                      <span>
+                        Movimentado do Box {getQuadrantName(selectedEvaluation.consensus_score, selectedEvaluation.potential_score)} para Box {getQuadrantName(selectedEvaluation.consensus_score, getEffectivePotential(selectedEvaluation))}
+                      </span>
+                    </div>
+                  )}
                 </div>
+
+                {/* Card de Movimentação de Quadrante - Aparece quando nota de potencial é 2.0 ou 3.0 */}
+                {canBePromoted(selectedEvaluation) && (
+                  <div className={`rounded-lg sm:rounded-xl p-4 border-2 ${
+                    isAlreadyPromoted(selectedEvaluation)
+                      ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-900/20 border-emerald-300 dark:border-emerald-700'
+                      : 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-900/20 border-purple-300 dark:border-purple-700'
+                  }`}>
+                    {isAlreadyPromoted(selectedEvaluation) ? (
+                      // Colaborador já foi movimentado
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                          <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+                            Posição Definida
+                          </p>
+                          <Lock className="h-4 w-4 text-emerald-600 dark:text-emerald-400 ml-auto" />
+                        </div>
+                        <p className="text-xs text-emerald-700 dark:text-emerald-400">
+                          Quadrante de potencial definido como: <span className="font-bold">{getPotentialQuadrantLabel(selectedEvaluation.promoted_potential_quadrant!)}</span>
+                        </p>
+                        <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-1 opacity-75">
+                          Esta decisão não pode mais ser alterada.
+                        </p>
+                      </div>
+                    ) : (
+                      // Opção de movimentar
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <ArrowUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                          <p className="text-sm font-semibold text-purple-800 dark:text-purple-300">
+                            Movimentação de Posição
+                          </p>
+                        </div>
+                        <p className="text-xs text-purple-700 dark:text-purple-400 mb-4">
+                          A nota de potencial <span className="font-bold">({selectedEvaluation.potential_score})</span> está exatamente no limite entre dois quadrantes.
+                          {canPromote
+                            ? ' Selecione em qual quadrante de potencial este colaborador deve ser posicionado.'
+                            : ''
+                          }
+                        </p>
+                        {canPromote ? (
+                          <div className="space-y-3">
+                            {/* Select de posição */}
+                            <div>
+                              <label className="block text-xs font-medium text-purple-800 dark:text-purple-300 mb-1.5">
+                                Selecione a posição de potencial:
+                              </label>
+                              <select
+                                value={selectedQuadrantToMove ?? ''}
+                                onChange={(e) => setSelectedQuadrantToMove(e.target.value ? Number(e.target.value) : null)}
+                                className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-purple-300 dark:border-purple-600 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                              >
+                                <option value="">-- Selecione uma opção --</option>
+                                {getAvailableQuadrantOptions(selectedEvaluation).map((option) => (
+                                  <option key={option.quadrant} value={option.quadrant}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {/* Botão Salvar */}
+                            <Button
+                              onClick={() => selectedQuadrantToMove && handlePromote(selectedQuadrantToMove)}
+                              disabled={isPromoting || !selectedQuadrantToMove}
+                              variant="primary"
+                              size="sm"
+                              className="w-full"
+                            >
+                              {isPromoting ? (
+                                <span className="flex items-center justify-center gap-2">
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  Salvando...
+                                </span>
+                              ) : (
+                                <span className="flex items-center justify-center gap-2">
+                                  <CheckCircle className="h-4 w-4" />
+                                  Salvar Posição
+                                </span>
+                              )}
+                            </Button>
+
+                            <p className="text-[10px] text-purple-600 dark:text-purple-500 text-center">
+                              Atenção: após salvar, esta decisão não poderá ser alterada.
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-purple-600 dark:text-purple-500 italic">
+                            Apenas administradores ou diretores podem definir a posição.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -794,7 +1062,7 @@ const NineBoxMatrix = () => {
                       ))}
                     </div>
 
-                    {/* Ponto do Colaborador */}
+                    {/* Ponto do Colaborador - usa a nota original de potencial */}
                     {selectedEvaluation && (
                       <motion.div
                         initial={{ scale: 0, opacity: 0 }}

@@ -305,6 +305,10 @@ export const evaluationService = {
           emp.consensus_performance_score = ce.consensus_score;
           emp.consensus_potential_score = ce.potential_score;
           emp.ninebox_position = ce.nine_box_position;
+          // Campos de promoção Nine Box
+          emp.promoted_potential_quadrant = ce.promoted_potential_quadrant || null;
+          emp.promoted_by = ce.promoted_by || null;
+          emp.promoted_at = ce.promoted_at || null;
         }
       });
 
@@ -1023,6 +1027,81 @@ export const evaluationService = {
 
       if (error) throw new ApiError(500, error.message);
       return data;
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
+  // ====================================
+  // PROMOÇÃO DE QUADRANTE NINE BOX
+  // ====================================
+
+  /**
+   * Define a posição de potencial de um colaborador no Nine Box
+   * Só é permitido quando a nota de potencial é exatamente 2.0 ou 3.0 (limite entre quadrantes)
+   * Permite manter na posição atual ou mover para o quadrante superior
+   */
+  async promoteNineBoxQuadrant(
+    supabase: any,
+    consensusId: string,
+    promotedPotentialQuadrant: number,
+    promotedBy: string
+  ) {
+    try {
+      // Primeiro, buscar a avaliação de consenso atual
+      const { data: consensus, error: fetchError } = await supabase
+        .from('consensus_evaluations')
+        .select('*')
+        .eq('id', consensusId)
+        .single();
+
+      if (fetchError) {
+        throw new ApiError(404, 'Avaliação de consenso não encontrada');
+      }
+
+      // Verificar se já foi definido
+      if (consensus.promoted_potential_quadrant !== null) {
+        throw new ApiError(400, 'A posição deste colaborador já foi definida e não pode ser alterada');
+      }
+
+      // Verificar se a nota de potencial permite movimentação (exatamente 2.0 ou 3.0)
+      const potentialScore = consensus.potential_score;
+      if (potentialScore !== 2 && potentialScore !== 3) {
+        throw new ApiError(400, 'Movimentação só é permitida quando a nota de potencial é exatamente 2.0 ou 3.0');
+      }
+
+      // Validar quadrantes permitidos baseado na nota de potencial
+      // Nota 2.0 = pode escolher quadrante 1 (Baixo) ou 2 (Médio)
+      // Nota 3.0 = pode escolher quadrante 2 (Médio) ou 3 (Alto)
+      let validQuadrants: number[];
+      if (potentialScore === 2) {
+        validQuadrants = [1, 2]; // Baixo ou Médio
+      } else {
+        validQuadrants = [2, 3]; // Médio ou Alto
+      }
+
+      if (!validQuadrants.includes(promotedPotentialQuadrant)) {
+        throw new ApiError(400, `Quadrante inválido. Para nota ${potentialScore}, os quadrantes válidos são: ${validQuadrants.join(' ou ')}`);
+      }
+
+      // Atualizar a avaliação de consenso com a posição definida
+      const { data: updated, error: updateError } = await supabase
+        .from('consensus_evaluations')
+        .update({
+          promoted_potential_quadrant: promotedPotentialQuadrant,
+          promoted_by: promotedBy,
+          promoted_at: new Date().toISOString()
+        })
+        .eq('id', consensusId)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw new ApiError(500, 'Erro ao salvar posição: ' + updateError.message);
+      }
+
+      return updated;
     } catch (error: any) {
       console.error('Service error:', error);
       throw error;

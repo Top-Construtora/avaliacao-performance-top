@@ -163,6 +163,10 @@ export interface CycleDashboard {
   consensus_id?: string;
   consensus_performance_score?: number | null;
   consensus_potential_score?: number | null;
+  // Campos de promoção Nine Box
+  promoted_potential_quadrant?: number | null; // Quadrante promovido (1=Baixo, 2=Médio, 3=Alto)
+  promoted_by?: string | null; // ID do usuário que fez a promoção
+  promoted_at?: string | null; // Data da promoção
 }
 
 export interface NineBoxData {

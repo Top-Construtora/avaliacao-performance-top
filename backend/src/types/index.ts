@@ -231,6 +231,9 @@ export interface CycleDashboard {
   consensus_performance_score?: number | null;
   consensus_potential_score?: number | null;
   ninebox_position?: string | null; // Posição Nine Box (B1-B9)
+  promoted_potential_quadrant?: string | null; // Quadrante de potencial promovido manualmente
+  promoted_by?: string | null; // ID do usuário que promoveu
+  promoted_at?: string | null; // Data/hora da promoção
 }
 
 // Dados do Nine Box

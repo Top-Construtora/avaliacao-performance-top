@@ -47,4 +47,9 @@ router.post('/pdi', evaluationController.savePDI);
 router.get('/pdi/:employeeId', evaluationController.getPDI);
 router.put('/pdi/:pdiId', evaluationController.updatePDI);
 
+// ====================================
+// ROTAS DE PROMOÇÃO NINE BOX
+// ====================================
+router.put('/consensus/:consensusId/promote', evaluationController.promoteNineBoxQuadrant);
+
 export default router;

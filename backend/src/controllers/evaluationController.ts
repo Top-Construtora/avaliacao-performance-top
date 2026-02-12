@@ -434,7 +434,7 @@ export const evaluationController = {
       const authReq = req as AuthRequest;
       const { pdiId } = req.params;
       const { goals, actions, resources, timeline } = req.body;
-      
+
       const pdi = await evaluationService.updatePDI(
         authReq.supabase,
         pdiId,
@@ -445,12 +445,52 @@ export const evaluationController = {
           timeline
         }
       );
-      
+
       res.json({
         success: true,
         data: pdi
       });
     } catch (error) {
+      console.error('Controller error:', error);
+      next(error);
+    }
+  },
+
+  // Promover quadrante no Nine Box
+  async promoteNineBoxQuadrant(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { consensusId } = req.params;
+      const { promotedPotentialQuadrant } = req.body;
+      const promotedBy = authReq.user?.id;
+
+      if (!promotedBy) {
+        return res.status(401).json({
+          success: false,
+          error: 'Usuário não autenticado'
+        });
+      }
+
+      // Validar quadrante (1=Baixo, 2=Médio, 3=Alto)
+      if (![1, 2, 3].includes(promotedPotentialQuadrant)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Quadrante inválido. Use 1 (Baixo), 2 (Médio) ou 3 (Alto)'
+        });
+      }
+
+      const result = await evaluationService.promoteNineBoxQuadrant(
+        authReq.supabase,
+        consensusId,
+        promotedPotentialQuadrant,
+        promotedBy
+      );
+
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (error: any) {
       console.error('Controller error:', error);
       next(error);
     }

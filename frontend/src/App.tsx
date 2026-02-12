@@ -142,7 +142,7 @@ function App() {
                     <Route
                       path="nine-box"
                       element={
-                        <ProtectedRoute allowedRoles={['director']}>
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
                           <NineBoxMatrix />
                         </ProtectedRoute>
                       }
