@@ -1068,17 +1068,20 @@ export const evaluationService = {
         throw new ApiError(400, 'A posição deste colaborador já foi definida e não pode ser alterada');
       }
 
-      // Verificar se a nota de potencial permite movimentação (exatamente 2.0 ou 3.0)
-      const potentialScore = consensus.potential_score;
-      if (potentialScore !== 2 && potentialScore !== 3) {
-        throw new ApiError(400, 'Movimentação só é permitida quando a nota de potencial é exatamente 2.0 ou 3.0');
+      // Verificar se a nota de potencial permite movimentação (~2.0 ou ~3.0)
+      const potentialScore = Number(consensus.potential_score);
+      const isScore2 = potentialScore >= 1.99 && potentialScore <= 2.01;
+      const isScore3 = potentialScore >= 2.99 && potentialScore <= 3.01;
+
+      if (!isScore2 && !isScore3) {
+        throw new ApiError(400, `Movimentação só é permitida quando a nota de potencial é 2.0 ou 3.0. Nota atual: ${potentialScore}`);
       }
 
       // Validar quadrantes permitidos baseado na nota de potencial
-      // Nota 2.0 = pode escolher quadrante 1 (Baixo) ou 2 (Médio)
-      // Nota 3.0 = pode escolher quadrante 2 (Médio) ou 3 (Alto)
+      // Nota ~2.0 = pode escolher quadrante 1 (Baixo) ou 2 (Médio)
+      // Nota ~3.0 = pode escolher quadrante 2 (Médio) ou 3 (Alto)
       let validQuadrants: number[];
-      if (potentialScore === 2) {
+      if (isScore2) {
         validQuadrants = [1, 2]; // Baixo ou Médio
       } else {
         validQuadrants = [2, 3]; // Médio ou Alto

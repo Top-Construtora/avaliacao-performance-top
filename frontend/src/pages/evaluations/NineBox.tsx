@@ -264,19 +264,23 @@ const NineBoxMatrix = () => {
   const getEffectivePotential = (evaluation: any): number => {
     if (!evaluation) return 0;
 
-    const originalScore = evaluation.potential_score;
+    const originalScore = Number(evaluation.potential_score);
+    const promotedQuadrant = evaluation.promoted_potential_quadrant;
 
-    // Se foi movimentado, posicionar logo acima do limite
-    if (evaluation.promoted_potential_quadrant !== null && evaluation.promoted_potential_quadrant !== undefined) {
-      // Se nota é 2 e foi movido para Médio (quadrante 2), posicionar em 2.01
-      if (originalScore === 2 && evaluation.promoted_potential_quadrant === 2) {
-        return 2.01;
+    // Se foi movimentado (tem um quadrante definido)
+    if (promotedQuadrant !== null && promotedQuadrant !== undefined) {
+      const quadrant = Number(promotedQuadrant);
+
+      // Nota original ~2.0 e foi movido para Médio (quadrante 2) -> posicionar em 2.01
+      if (originalScore >= 1.99 && originalScore <= 2.01 && quadrant === 2) {
+        return 2.05;
       }
-      // Se nota é 3 e foi movido para Alto (quadrante 3), posicionar em 3.01
-      if (originalScore === 3 && evaluation.promoted_potential_quadrant === 3) {
-        return 3.01;
+      // Nota original ~3.0 e foi movido para Alto (quadrante 3) -> posicionar em 3.01
+      if (originalScore >= 2.99 && originalScore <= 3.01 && quadrant === 3) {
+        return 3.05;
       }
-      // Se manteve no quadrante inferior, manter a nota original
+      // Se manteve no quadrante inferior (quadrante 1 para nota 2, ou quadrante 2 para nota 3)
+      // manter a nota original
       return originalScore;
     }
 
@@ -284,13 +288,15 @@ const NineBoxMatrix = () => {
   };
 
   /**
-   * Verifica se o colaborador pode ser promovido (nota de potencial exatamente 2.0 ou 3.0)
+   * Verifica se o colaborador pode ser promovido (nota de potencial ~2.0 ou ~3.0)
    */
   const canBePromoted = (evaluation: any): boolean => {
     if (!evaluation) return false;
-    const potentialScore = evaluation.potential_score;
-    // Só pode promover se a nota for exatamente 2 ou 3 (limites entre quadrantes)
-    return potentialScore === 2 || potentialScore === 3;
+    const potentialScore = Number(evaluation.potential_score);
+    // Só pode promover se a nota for ~2 ou ~3 (limites entre quadrantes)
+    const isScore2 = potentialScore >= 1.99 && potentialScore <= 2.01;
+    const isScore3 = potentialScore >= 2.99 && potentialScore <= 3.01;
+    return isScore2 || isScore3;
   };
 
   /**
@@ -305,17 +311,19 @@ const NineBoxMatrix = () => {
    */
   const getAvailableQuadrantOptions = (evaluation: any): { quadrant: number; label: string; isCurrent: boolean }[] => {
     if (!evaluation) return [];
-    const potentialScore = evaluation.potential_score;
+    const potentialScore = Number(evaluation.potential_score);
+    const isScore2 = potentialScore >= 1.99 && potentialScore <= 2.01;
+    const isScore3 = potentialScore >= 2.99 && potentialScore <= 3.01;
 
-    if (potentialScore === 2) {
-      // Nota 2.0 está no limite Baixo/Médio
+    if (isScore2) {
+      // Nota ~2.0 está no limite Baixo/Médio
       // Pode manter em Baixo (1) ou mover para Médio (2)
       return [
         { quadrant: 1, label: 'Baixo (manter posição atual)', isCurrent: true },
         { quadrant: 2, label: 'Médio (mover para cima)', isCurrent: false }
       ];
-    } else if (potentialScore === 3) {
-      // Nota 3.0 está no limite Médio/Alto
+    } else if (isScore3) {
+      // Nota ~3.0 está no limite Médio/Alto
       // Pode manter em Médio (2) ou mover para Alto (3)
       return [
         { quadrant: 2, label: 'Médio (manter posição atual)', isCurrent: true },
@@ -1075,19 +1083,21 @@ const NineBoxMatrix = () => {
                     </div>
 
                     {/* Ponto do Colaborador - usa potencial efetivo (considera movimentação) */}
-                    {selectedEvaluation && (
-                      <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                        className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-primary-500 dark:bg-primary-600 rounded-full shadow-lg dark:shadow-xl z-20 ring-4 ring-white dark:ring-gray-800"
-                        style={{
-                          left: `${getPointPosition(selectedEvaluation.consensus_score, getEffectivePotential(selectedEvaluation)).x}%`,
-                          top: `${getPointPosition(selectedEvaluation.consensus_score, getEffectivePotential(selectedEvaluation)).y}%`,
-                          transform: 'translate(-50%, -50%)'
-                        }}
-                      />
-                    )}
+                    {selectedEvaluation && (() => {
+                      const effectivePotential = getEffectivePotential(selectedEvaluation);
+                      const position = getPointPosition(selectedEvaluation.consensus_score, effectivePotential);
+
+                      return (
+                        <div
+                          className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-primary-500 dark:bg-primary-600 rounded-full shadow-lg dark:shadow-xl z-20 ring-4 ring-white dark:ring-gray-800 transition-all duration-500 ease-out"
+                          style={{
+                            left: `${position.x}%`,
+                            top: `${position.y}%`,
+                            transform: 'translate(-50%, -50%)'
+                          }}
+                        />
+                      );
+                    })()}
                   </div>
 
                   {/* Labels do eixo X */}
