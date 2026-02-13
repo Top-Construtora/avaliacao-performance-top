@@ -13,7 +13,18 @@ export const userService = {
     reports_to?: string;
     currentUserEmail?: string;
   }) {
-    let query = supabaseAdmin.from('users').select('*');
+    // Select com relacionamentos para trilha e posição salarial
+    let query = supabaseAdmin.from('users').select(`
+      *,
+      track_position:track_positions!current_track_position_id(
+        id,
+        base_salary,
+        class:salary_classes!class_id(id, code, name),
+        position:job_positions!position_id(id, name),
+        track:career_tracks!track_id(id, name, code)
+      ),
+      salary_level:salary_levels!current_salary_level_id(id, name, percentage)
+    `);
 
     if (filters?.active !== undefined) {
       query = query.eq('active', filters.active);
@@ -407,6 +418,155 @@ export const userService = {
         throw error;
       }
       throw new ApiError(500, error.message || 'Erro ao adicionar usuário aos times');
+    }
+  },
+
+  // Migração: corrigir usuários que têm position_id mas não têm current_track_position_id
+  async migrateTrackPositions() {
+    try {
+      // Buscar usuários que têm position_id preenchido mas current_track_position_id está nulo
+      const { data: usersToFix, error: fetchError } = await supabaseAdmin
+        .from('users')
+        .select('id, name, position_id, track_id, current_track_position_id')
+        .not('position_id', 'is', null)
+        .is('current_track_position_id', null);
+
+      if (fetchError) {
+        throw new ApiError(500, 'Erro ao buscar usuários: ' + fetchError.message);
+      }
+
+      if (!usersToFix || usersToFix.length === 0) {
+        return { message: 'Nenhum usuário precisa de correção', fixed: 0 };
+      }
+
+      const results: { userId: string; name: string; status: string; details?: string }[] = [];
+
+      for (const user of usersToFix) {
+        try {
+          // O position_id estava recebendo o ID do track_position erroneamente
+          // Então vamos verificar se esse ID existe na tabela track_positions
+          const { data: trackPosition, error: tpError } = await supabaseAdmin
+            .from('track_positions')
+            .select('id, track_id, position_id, base_salary')
+            .eq('id', user.position_id)
+            .maybeSingle();
+
+          if (tpError) {
+            results.push({
+              userId: user.id,
+              name: user.name,
+              status: 'error',
+              details: 'Erro ao buscar track_position: ' + tpError.message
+            });
+            continue;
+          }
+
+          if (trackPosition) {
+            // O position_id é realmente um track_position_id
+            // Atualizar current_track_position_id com esse valor
+            const { error: updateError } = await supabaseAdmin
+              .from('users')
+              .update({
+                current_track_position_id: trackPosition.id,
+                track_id: trackPosition.track_id, // Garantir que track_id também está correto
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', user.id);
+
+            if (updateError) {
+              results.push({
+                userId: user.id,
+                name: user.name,
+                status: 'error',
+                details: 'Erro ao atualizar: ' + updateError.message
+              });
+            } else {
+              results.push({
+                userId: user.id,
+                name: user.name,
+                status: 'fixed',
+                details: `current_track_position_id definido como ${trackPosition.id}`
+              });
+            }
+          } else {
+            // O position_id não é um track_position válido
+            // Tentar encontrar pelo track_id
+            if (user.track_id) {
+              const { data: possiblePositions, error: ppError } = await supabaseAdmin
+                .from('track_positions')
+                .select('id')
+                .eq('track_id', user.track_id)
+                .order('order_index')
+                .limit(1);
+
+              if (!ppError && possiblePositions && possiblePositions.length > 0) {
+                const { error: updateError } = await supabaseAdmin
+                  .from('users')
+                  .update({
+                    current_track_position_id: possiblePositions[0].id,
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('id', user.id);
+
+                if (updateError) {
+                  results.push({
+                    userId: user.id,
+                    name: user.name,
+                    status: 'error',
+                    details: 'Erro ao atualizar com primeira posição da trilha: ' + updateError.message
+                  });
+                } else {
+                  results.push({
+                    userId: user.id,
+                    name: user.name,
+                    status: 'fixed_with_default',
+                    details: `Atribuído à primeira posição da trilha: ${possiblePositions[0].id}`
+                  });
+                }
+              } else {
+                results.push({
+                  userId: user.id,
+                  name: user.name,
+                  status: 'skipped',
+                  details: 'position_id inválido e nenhuma posição encontrada na trilha'
+                });
+              }
+            } else {
+              results.push({
+                userId: user.id,
+                name: user.name,
+                status: 'skipped',
+                details: 'position_id inválido e sem track_id definido'
+              });
+            }
+          }
+        } catch (err: any) {
+          results.push({
+            userId: user.id,
+            name: user.name,
+            status: 'error',
+            details: err.message
+          });
+        }
+      }
+
+      const fixed = results.filter(r => r.status === 'fixed' || r.status === 'fixed_with_default').length;
+      const errors = results.filter(r => r.status === 'error').length;
+      const skipped = results.filter(r => r.status === 'skipped').length;
+
+      return {
+        message: `Migração concluída: ${fixed} corrigidos, ${errors} erros, ${skipped} ignorados`,
+        total: usersToFix.length,
+        fixed,
+        errors,
+        skipped,
+        details: results
+      };
+    } catch (error: any) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError(500, error.message || 'Erro na migração');
     }
   }
 };

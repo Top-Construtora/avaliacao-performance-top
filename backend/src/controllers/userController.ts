@@ -185,5 +185,19 @@ export const userController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  // Migração: corrigir current_track_position_id dos usuários
+  async migrateTrackPositions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await userService.migrateTrackPositions();
+
+      res.json({
+        success: true,
+        ...result
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 };

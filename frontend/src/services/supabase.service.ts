@@ -148,9 +148,10 @@ export const usersService = {
           teams: userTeams,
           departments: userDepartment ? [userDepartment] : [],
           direct_reports,
-          track: null,
-          track_position: null,
-          salary_level: null,
+          // Manter os dados de trilha e nível salarial que vêm do backend
+          track: (user as any).track || null,
+          track_position: (user as any).track_position || null,
+          salary_level: (user as any).salary_level || null,
         } as UserWithDetails;
       });
 

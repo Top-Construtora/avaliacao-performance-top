@@ -44,8 +44,16 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
     }
   }, [selectedTrack]);
 
+  // Função para validar se é um UUID válido
+  const isValidUUID = (value: string | undefined | null): boolean => {
+    if (!value || value === 'undefined' || value === 'null' || value === '') return false;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(value);
+  };
+
   useEffect(() => {
-    if (selectedPosition && selectedLevel) {
+    // Só calcula se ambos os valores forem UUIDs válidos
+    if (isValidUUID(selectedPosition) && isValidUUID(selectedLevel)) {
       calculateNewSalary();
     }
   }, [selectedPosition, selectedLevel]);
@@ -97,6 +105,10 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
   };
 
   const calculateNewSalary = async () => {
+    // Validação extra usando a função de UUID
+    if (!isValidUUID(selectedPosition) || !isValidUUID(selectedLevel)) {
+      return;
+    }
     try {
       const result = await salaryService.calculateSalary(selectedPosition, selectedLevel);
       setCalculatedSalary(result.calculatedSalary);
@@ -191,15 +203,17 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Cargo Atual</p>
                 <p className="font-medium text-gray-900 dark:text-gray-100">
-                  {currentSalaryInfo.position_name || 'Não definido'}
+                  {currentSalaryInfo.position_name || user.position || 'Não definido'}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Classe/Nível</p>
                 <p className="font-medium text-gray-900 dark:text-gray-100">
-                  {currentSalaryInfo.class_code ? 
-                    `Classe ${currentSalaryInfo.class_code} - Nível ${currentSalaryInfo.salary_level}` : 
-                    'Não definido'}
+                  {currentSalaryInfo.class_code && currentSalaryInfo.salary_level ?
+                    `Classe ${currentSalaryInfo.class_code} - Nível ${currentSalaryInfo.salary_level}` :
+                    currentSalaryInfo.salary_level ?
+                    `Nível ${currentSalaryInfo.salary_level}` :
+                    'Não atribuído à trilha'}
                 </p>
               </div>
               <div>

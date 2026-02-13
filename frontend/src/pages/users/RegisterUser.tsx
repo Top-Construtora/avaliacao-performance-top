@@ -389,7 +389,7 @@ const RegisterUser = () => {
         reports_to: formData.reportsTo || null,
         department_id: formData.departmentId || null,
         track_id: formData.trackId || null,
-        position_id: formData.positionId || null,
+        current_track_position_id: formData.positionId || null,
         current_salary_level_id: selectedSalaryLevel?.id || null,
         current_salary: calculatedSalary || null,
         intern_level: formData.internLevel || 'A',

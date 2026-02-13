@@ -777,7 +777,7 @@ const NineBoxMatrix = () => {
                     Trilha
                   </label>
                   <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
-                    {selectedEmp.track?.name || '-'}
+                    {selectedEmp.track_position?.track?.name || '-'}
                   </div>
                 </div>
 
@@ -787,7 +787,7 @@ const NineBoxMatrix = () => {
                     Nível Salarial
                   </label>
                   <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
-                    {selectedEmp.intern_level || '-'}
+                    {selectedEmp.salary_level?.name || selectedEmp.intern_level || '-'}
                   </div>
                 </div>
 
@@ -797,7 +797,7 @@ const NineBoxMatrix = () => {
                     Classe Salarial
                   </label>
                   <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
-                    {selectedEmp.track_position?.class?.name || '-'}
+                    {selectedEmp.track_position?.class?.name || selectedEmp.track_position?.class?.code || '-'}
                   </div>
                 </div>
 

@@ -444,16 +444,20 @@ export const salaryService = {
 
   // ===== GESTÃO DE USUÁRIOS =====
   async assignUserToTrack(
-    supabase: SupabaseClient<Database>, 
-    userId: string, 
-    trackPositionId: string, 
+    supabase: SupabaseClient<Database>,
+    userId: string,
+    trackPositionId: string,
     salaryLevelId: string
   ) {
+    // Calcular o novo salário
+    const salaryCalc = await this.calculateSalary(supabase, trackPositionId, salaryLevelId);
+
     const { data, error } = await supabase
       .from('users')
       .update({
         current_track_position_id: trackPositionId,
         current_salary_level_id: salaryLevelId,
+        current_salary: salaryCalc.calculatedSalary,
         position_start_date: new Date().toISOString()
       })
       .eq('id', userId)
@@ -515,14 +519,31 @@ export const salaryService = {
   },
 
   async updateUserSalaryLevel(
-    supabase: SupabaseClient<Database>, 
-    userId: string, 
+    supabase: SupabaseClient<Database>,
+    userId: string,
     salaryLevelId: string
   ) {
+    // Buscar o track_position atual do usuário para recalcular o salário
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('current_track_position_id')
+      .eq('id', userId)
+      .single();
+
+    if (userError) throw userError;
+
+    // Se o usuário tem uma posição na trilha, recalcular o salário
+    let newSalary: number | undefined;
+    if (user.current_track_position_id) {
+      const salaryCalc = await this.calculateSalary(supabase, user.current_track_position_id, salaryLevelId);
+      newSalary = salaryCalc.calculatedSalary;
+    }
+
     const { data, error } = await supabase
       .from('users')
       .update({
-        current_salary_level_id: salaryLevelId
+        current_salary_level_id: salaryLevelId,
+        ...(newSalary !== undefined && { current_salary: newSalary })
       })
       .eq('id', userId)
       .select()

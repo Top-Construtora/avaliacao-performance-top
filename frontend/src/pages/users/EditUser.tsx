@@ -303,7 +303,7 @@ const EditUser = () => {
         active: user.active !== false,
         departmentId: user.department_id || '',
         trackId: user.track_id || '',
-        positionId: user.position_id || '',
+        positionId: user.current_track_position_id || '',
         internLevel: user.intern_level || 'A' as 'A' | 'B' | 'C' | 'D' | 'E', // Internível é o nível salarial
         contractType: user.contract_type || 'CLT' as 'CLT' | 'PJ',
         observations: user.observations || '',
@@ -488,7 +488,7 @@ const EditUser = () => {
         active: formData.active,
         department_id: formData.departmentId || null,
         track_id: formData.trackId || null,
-        position_id: formData.positionId || null,
+        current_track_position_id: formData.positionId || null,
         current_salary_level_id: selectedSalaryLevel?.id || null,
         current_salary: calculatedSalary || null,
         intern_level: formData.internLevel || 'A',

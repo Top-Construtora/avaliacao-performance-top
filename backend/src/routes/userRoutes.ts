@@ -17,4 +17,7 @@ router.post('/:id/reset-password', userController.resetUserPassword);
 router.get('/check-email/:email', userController.checkEmailExists);
 router.post('/:id/teams', userController.addUserToTeams);
 
+// Rota de migração para corrigir current_track_position_id
+router.post('/migrate/fix-track-positions', userController.migrateTrackPositions);
+
 export default router;

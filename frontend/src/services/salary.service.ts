@@ -332,14 +332,14 @@ class SalaryService {
 
   // ===== ATRIBUIÇÃO E PROGRESSÃO =====
   async assignUserToTrack(
-    userId: string, 
-    trackPositionId: string, 
+    userId: string,
+    trackPositionId: string,
     salaryLevelId: string
   ): Promise<any> {
     return this.handleRequest<any>(
       api.put(`/salary/users/${userId}/assign-track`, {
-        track_position_id: trackPositionId,
-        salary_level_id: salaryLevelId
+        trackPositionId,
+        salaryLevelId
       })
     );
   }
@@ -347,7 +347,7 @@ class SalaryService {
   async updateUserSalaryLevel(userId: string, salaryLevelId: string): Promise<any> {
     return this.handleRequest<any>(
       api.put(`/salary/users/${userId}/update-level`, {
-        salary_level_id: salaryLevelId
+        salaryLevelId
       })
     );
   }
@@ -405,8 +405,8 @@ class SalaryService {
       calculatedSalary: number;
     }>(
       api.post('/salary/calculate', {
-        track_position_id: trackPositionId,
-        salary_level_id: salaryLevelId
+        trackPositionId,
+        salaryLevelId
       })
     );
   }
