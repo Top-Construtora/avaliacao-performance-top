@@ -296,24 +296,31 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
                 Internível
               </label>
               <div className="grid grid-cols-5 gap-2">
-                {salaryLevels.map(level => (
-                  <button
-                    key={level.id}
-                    onClick={() => setSelectedLevel(level.id)}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      selectedLevel === level.id
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                        : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
-                    }`}
-                  >
-                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                      {level.name}
-                    </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      +{level.percentage}%
-                    </div>
-                  </button>
-                ))}
+                {salaryLevels.map(level => {
+                  // Buscar porcentagem customizada do cargo selecionado
+                  const selectedTrackPosition = trackPositions.find(p => p.id === selectedPosition);
+                  const customPercentage = selectedTrackPosition?.custom_level_percentages?.[level.id];
+                  const displayPercentage = customPercentage !== undefined ? customPercentage : level.percentage;
+
+                  return (
+                    <button
+                      key={level.id}
+                      onClick={() => setSelectedLevel(level.id)}
+                      className={`p-3 rounded-lg border-2 transition-all ${
+                        selectedLevel === level.id
+                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                          : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                      }`}
+                    >
+                      <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                        {level.name}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        +{displayPercentage.toFixed(2).replace(/\.?0+$/, '')}%
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

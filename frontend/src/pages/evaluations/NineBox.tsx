@@ -110,7 +110,6 @@ const NineBoxMatrix = () => {
 
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [hoveredQuadrant, setHoveredQuadrant] = useState<string | null>(null);
-  const [salaryLevels, setSalaryLevels] = useState<Array<{ id: string; name: string; percentage: number }>>([]);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
   const [subordinateIds, setSubordinateIds] = useState<Set<string>>(new Set());
   const [isPromoting, setIsPromoting] = useState(false);
@@ -123,23 +122,6 @@ const NineBoxMatrix = () => {
   // Verificar se o usuário pode definir posição (admin ou diretor)
   const canPromote = profile?.role === 'admin' || profile?.is_admin === true || profile?.is_director === true;
 
-  // Carregar níveis salariais
-  useEffect(() => {
-    const loadSalaryLevels = async () => {
-      try {
-        const { data } = await supabase
-          .from('salary_levels')
-          .select('id, name, percentage')
-          .order('order_index');
-
-        if (data) setSalaryLevels(data);
-      } catch (error) {
-        console.error('Erro ao carregar níveis salariais:', error);
-      }
-    };
-
-    loadSalaryLevels();
-  }, []);
 
   // Carregar todos os subordinados (diretos e indiretos) para líderes com visualização restrita
   useEffect(() => {
@@ -291,20 +273,6 @@ const NineBoxMatrix = () => {
     }
 
     return evaluation.potential_score;
-  };
-
-  /**
-   * Calcula o salário baseado no cargo e nível salarial (intern_level)
-   */
-  const calculateSalary = (trackPosition: any, internLevel: string): number | null => {
-    if (!trackPosition?.base_salary || !internLevel) return null;
-
-    const salaryLevel = salaryLevels.find(l => l.name === internLevel);
-    if (!salaryLevel) return null;
-
-    const baseSalary = trackPosition.base_salary;
-    const percentage = salaryLevel.percentage / 100;
-    return baseSalary + (baseSalary * percentage);
   };
 
   /**
@@ -807,21 +775,9 @@ const NineBoxMatrix = () => {
                     Salário
                   </label>
                   <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
-                    {(() => {
-                      // Calcular salário baseado no intern_level e cargo
-                      const calculatedSalary = calculateSalary(selectedEmp.track_position, selectedEmp.intern_level);
-
-                      if (calculatedSalary) {
-                        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculatedSalary);
-                      }
-
-                      // Fallback para current_salary se o cálculo falhar
-                      if (selectedEmp.current_salary) {
-                        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedEmp.current_salary);
-                      }
-
-                      return '-';
-                    })()}
+                    {selectedEmp.current_salary
+                      ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedEmp.current_salary)
+                      : '-'}
                   </div>
                 </div>
               </div>

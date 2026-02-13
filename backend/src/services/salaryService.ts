@@ -1007,20 +1007,20 @@ export const salaryService = {
 
   // ===== CÁLCULO =====
   async calculateSalary(
-    supabase: SupabaseClient<Database>, 
-    trackPositionId: string, 
+    supabase: SupabaseClient<Database>,
+    trackPositionId: string,
     salaryLevelId: string
   ) {
-    // Buscar posição na trilha
+    // Buscar posição na trilha com porcentagens customizadas
     const { data: position, error: posError } = await supabase
       .from('track_positions')
-      .select('base_salary')
+      .select('base_salary, custom_level_percentages')
       .eq('id', trackPositionId)
       .single();
 
     if (posError) throw posError;
 
-    // Buscar internível
+    // Buscar internível (para fallback se não houver porcentagem customizada)
     const { data: level, error: levelError } = await supabase
       .from('salary_levels')
       .select('percentage')
@@ -1029,9 +1029,12 @@ export const salaryService = {
 
     if (levelError) throw levelError;
 
-    // Calcular salário
+    // Calcular salário usando porcentagem customizada do cargo ou a padrão
     const baseSalary = position.base_salary;
-    const percentage = level.percentage;
+    const customPercentages = position.custom_level_percentages as Record<string, number> | null;
+    const percentage = customPercentages?.[salaryLevelId] !== undefined
+      ? customPercentages[salaryLevelId]
+      : level.percentage;
     const calculatedSalary = baseSalary * (1 + percentage / 100);
 
     return {
