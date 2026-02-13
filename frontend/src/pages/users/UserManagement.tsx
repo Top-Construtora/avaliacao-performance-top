@@ -337,12 +337,13 @@ const UserManagement = () => {
   }, [users, searchTerm, selectedDepartment, selectedTeam, showOnlyLeaders, statusFilter, sortBy]);
 
   const stats = useMemo(() => {
-    const nonAdminUsers = users.filter(u => !u.is_admin);
+    // Contar apenas usuários ativos (excluindo admins)
+    const activeNonAdminUsers = users.filter(u => !u.is_admin && u.active !== false);
     return {
-      totalUsers: nonAdminUsers.length,
-      totalLeaders: nonAdminUsers.filter(u => u.is_leader && !u.is_director).length,
-      totalDirectors: nonAdminUsers.filter(u => u.is_director).length,
-      totalCollaborators: nonAdminUsers.filter(u => !u.is_leader && !u.is_director).length,
+      totalUsers: activeNonAdminUsers.length,
+      totalLeaders: activeNonAdminUsers.filter(u => u.is_leader && !u.is_director).length,
+      totalDirectors: activeNonAdminUsers.filter(u => u.is_director).length,
+      totalCollaborators: activeNonAdminUsers.filter(u => !u.is_leader && !u.is_director).length,
     };
   }, [users]);
 
