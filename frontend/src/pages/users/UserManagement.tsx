@@ -16,6 +16,7 @@ import { useSupabaseData } from '../../hooks/useSupabaseData';
 import type { UserWithDetails } from '../../types/supabase';
 import { RoleGuard } from '../../components/RoleGuard';
 import { usePermissions, useUIPermissions, useOperationValidator } from '../../hooks/usePermissions';
+import { useAuth } from '../../context/AuthContext';
 import type { User } from '../../types/supabase';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -34,11 +35,15 @@ type StatusFilter = 'all' | 'active' | 'inactive';
 
 const UserManagement = () => {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const permissions = usePermissions();
   const uiPermissions = useUIPermissions();
   const operationValidator = useOperationValidator();
-  
+
   const { users, teams, departments, loading, actions } = useSupabaseData();
+
+  // Verificar se o usuário pode ver informações salariais
+  const canViewSalary = profile?.email !== 'recrutatop@topconstrutora.com';
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -442,15 +447,17 @@ const UserManagement = () => {
                 </button>
               </ActionGuard>
 
-              <RoleGuard allowedRoles={['director', 'leader']}>
-                <button
-                  onClick={() => handleOpenSalaryModal(user)}
-                  className="p-2 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400"
-                  title="Gestão Salarial"
-                >
-                  <DollarSign className="h-4 w-4" />
-                </button>
-              </RoleGuard>
+              {canViewSalary && (
+                <RoleGuard allowedRoles={['director', 'leader']}>
+                  <button
+                    onClick={() => handleOpenSalaryModal(user)}
+                    className="p-2 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400"
+                    title="Gestão Salarial"
+                  >
+                    <DollarSign className="h-4 w-4" />
+                  </button>
+                </RoleGuard>
+              )}
 
               {/* Botão de reativar - só aparece para usuários inativos */}
               {user.active === false && (
@@ -630,15 +637,17 @@ const UserManagement = () => {
               </button>
             </ActionGuard>
 
-            <RoleGuard allowedRoles={['director', 'leader']}>
-              <button
-                onClick={() => handleOpenSalaryModal(user)}
-                className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-green-600"
-                title="Gestão Salarial"
-              >
-                <DollarSign className="h-4 w-4" />
-              </button>
-            </RoleGuard>
+            {canViewSalary && (
+              <RoleGuard allowedRoles={['director', 'leader']}>
+                <button
+                  onClick={() => handleOpenSalaryModal(user)}
+                  className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-green-600"
+                  title="Gestão Salarial"
+                >
+                  <DollarSign className="h-4 w-4" />
+                </button>
+              </RoleGuard>
+            )}
 
             {user.active === false && (
               <ActionGuard can={permissions.canDeactivateUser}>

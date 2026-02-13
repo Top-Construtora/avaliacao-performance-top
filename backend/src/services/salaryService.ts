@@ -566,7 +566,7 @@ export const salaryService = {
 
   // Verificar se o usuário pode visualizar o Comitê de Gente baseado no cargo
   async checkPeopleCommitteePermission(supabase: SupabaseClient<Database>, userId: string) {
-    // Buscar o usuário com suas informações de trilha
+    // Buscar o usuário com suas informações de trilha e cargo textual
     const { data: user, error: userError } = await supabase
       .from('users')
       .select(`
@@ -574,6 +574,7 @@ export const salaryService = {
         is_admin,
         is_director,
         is_leader,
+        position,
         current_track_position_id
       `)
       .eq('id', userId)
@@ -585,6 +586,18 @@ export const salaryService = {
     if (user.is_admin || user.is_director) {
       return { canView: true };
     }
+
+    // Função auxiliar para verificar permissão pelo nome do cargo
+    const canViewByPositionName = (positionName: string | null | undefined): boolean => {
+      if (!positionName) return false;
+      const positionNameLower = positionName.toLowerCase();
+      return (
+        positionNameLower.includes('diretor') ||
+        positionNameLower.includes('gerente') ||
+        positionNameLower.includes('coordenador') ||
+        positionNameLower.includes('supervisor')
+      );
+    };
 
     // Para líderes, verificar o cargo na trilha
     if (user.is_leader && user.current_track_position_id) {
@@ -604,26 +617,34 @@ export const salaryService = {
 
       if (tpError) {
         console.error('Erro ao buscar track_position:', tpError);
+        // Se falhar, tentar pelo campo position do usuário
+        if (canViewByPositionName(user.position)) {
+          return {
+            canView: true,
+            positionName: user.position
+          };
+        }
         return { canView: false };
       }
 
       const position = trackPosition?.position as any;
       if (position) {
         // Verifica se o cargo tem permissão (pelo campo OU pelo nome)
-        const positionNameLower = position.name?.toLowerCase() || '';
-        const canViewByName =
-          positionNameLower.includes('diretor') ||
-          positionNameLower.includes('gerente') ||
-          positionNameLower.includes('coordenador') ||
-          positionNameLower.includes('supervisor');
-
-        if (position.can_view_people_committee || canViewByName) {
+        if (position.can_view_people_committee || canViewByPositionName(position.name)) {
           return {
             canView: true,
             positionName: position.name
           };
         }
       }
+    }
+
+    // Fallback: Se for líder sem current_track_position_id, verificar pelo campo position do usuário
+    if (user.is_leader && canViewByPositionName(user.position)) {
+      return {
+        canView: true,
+        positionName: user.position
+      };
     }
 
     return { canView: false };
