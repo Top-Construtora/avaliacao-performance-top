@@ -117,6 +117,8 @@ const NineBoxMatrix = () => {
   const [deliberations, setDeliberations] = useState('');
   const [isSavingDeliberations, setIsSavingDeliberations] = useState(false);
   const [deliberationsLoaded, setDeliberationsLoaded] = useState(false);
+  const [potentialDetails, setPotentialDetails] = useState<Record<string, { name: string; score: number }> | null>(null);
+  const [isLoadingPotentialDetails, setIsLoadingPotentialDetails] = useState(false);
   const dashboardLoadedRef = useRef(false);
 
   // Verificar se o usuário pode definir posição (admin ou diretor)
@@ -255,24 +257,30 @@ const NineBoxMatrix = () => {
 
   /**
    * Retorna o potencial efetivo do colaborador
-   * Se foi movimentado, usa o quadrante definido para calcular a nota equivalente
-   * Quadrante 1 (Baixo) = 1.5, Quadrante 2 (Médio) = 2.5, Quadrante 3 (Alto) = 3.5
+   * Se foi movimentado para cima, posiciona logo acima do limite original
+   * Ex: nota 3 movida para Alto -> 3.01 (logo acima do limite)
+   * Ex: nota 2 movida para Médio -> 2.01 (logo acima do limite)
    */
   const getEffectivePotential = (evaluation: any): number => {
     if (!evaluation) return 0;
 
-    // Se foi movimentado, usar o quadrante definido
+    const originalScore = evaluation.potential_score;
+
+    // Se foi movimentado, posicionar logo acima do limite
     if (evaluation.promoted_potential_quadrant !== null && evaluation.promoted_potential_quadrant !== undefined) {
-      // Converter quadrante para nota equivalente (centro do quadrante)
-      switch (evaluation.promoted_potential_quadrant) {
-        case 1: return 1.5; // Baixo
-        case 2: return 2.5; // Médio
-        case 3: return 3.5; // Alto
-        default: return evaluation.potential_score;
+      // Se nota é 2 e foi movido para Médio (quadrante 2), posicionar em 2.01
+      if (originalScore === 2 && evaluation.promoted_potential_quadrant === 2) {
+        return 2.01;
       }
+      // Se nota é 3 e foi movido para Alto (quadrante 3), posicionar em 3.01
+      if (originalScore === 3 && evaluation.promoted_potential_quadrant === 3) {
+        return 3.01;
+      }
+      // Se manteve no quadrante inferior, manter a nota original
+      return originalScore;
     }
 
-    return evaluation.potential_score;
+    return originalScore;
   };
 
   /**
@@ -358,6 +366,7 @@ const NineBoxMatrix = () => {
   useEffect(() => {
     setSelectedQuadrantToMove(null);
     setDeliberationsLoaded(false);
+    setPotentialDetails(null);
 
     // Carregar deliberações do colaborador selecionado
     if (selectedEvaluation?.committee_deliberations !== undefined) {
@@ -366,7 +375,33 @@ const NineBoxMatrix = () => {
     } else {
       setDeliberations('');
     }
-  }, [selectedEmployee, selectedEvaluation?.committee_deliberations]);
+
+    // Carregar detalhes de potencial da avaliação do líder
+    const loadPotentialDetails = async () => {
+      if (!selectedEvaluation?.leader_evaluation_id || !currentCycle?.id) return;
+
+      setIsLoadingPotentialDetails(true);
+      try {
+        const { data, error } = await supabase
+          .from('leader_evaluations')
+          .select('potential_details')
+          .eq('id', selectedEvaluation.leader_evaluation_id)
+          .single();
+
+        if (!error && data?.potential_details) {
+          setPotentialDetails(data.potential_details as Record<string, { name: string; score: number }>);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar detalhes de potencial:', error);
+      } finally {
+        setIsLoadingPotentialDetails(false);
+      }
+    };
+
+    if (selectedEmployee) {
+      loadPotentialDetails();
+    }
+  }, [selectedEmployee, selectedEvaluation?.committee_deliberations, selectedEvaluation?.leader_evaluation_id, currentCycle?.id]);
 
   /**
    * Salva as deliberações do comitê
@@ -527,27 +562,27 @@ const NineBoxMatrix = () => {
 
   /**
    * Verifica se um quadrante está ativo (contém o colaborador selecionado)
-   * Usa a nota original de potencial (onde a bolinha está posicionada)
+   * Usa o potencial efetivo (considera movimentação de quadrante)
    */
   const isQuadrantActive = (row: number, col: number): boolean => {
     if (!selectedEvaluation) return false;
 
     const quadrant = getQuadrant(
       selectedEvaluation.consensus_score,
-      selectedEvaluation.potential_score
+      getEffectivePotential(selectedEvaluation)
     );
     return quadrant.row === row && quadrant.col === col;
   };
 
   /**
    * Retorna informações do quadrante ativo
-   * Usa a nota original de potencial
+   * Usa o potencial efetivo (considera movimentação de quadrante)
    */
   const getActiveQuadrantInfo = () => {
     if (!selectedEvaluation) return null;
     const quadrant = getQuadrant(
       selectedEvaluation.consensus_score,
-      selectedEvaluation.potential_score
+      getEffectivePotential(selectedEvaluation)
     );
     const key = `${quadrant.row},${quadrant.col}`;
     return matrixConfig[key];
@@ -1039,7 +1074,7 @@ const NineBoxMatrix = () => {
                       ))}
                     </div>
 
-                    {/* Ponto do Colaborador - usa a nota original de potencial */}
+                    {/* Ponto do Colaborador - usa potencial efetivo (considera movimentação) */}
                     {selectedEvaluation && (
                       <motion.div
                         initial={{ scale: 0, opacity: 0 }}
@@ -1047,8 +1082,8 @@ const NineBoxMatrix = () => {
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
                         className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-primary-500 dark:bg-primary-600 rounded-full shadow-lg dark:shadow-xl z-20 ring-4 ring-white dark:ring-gray-800"
                         style={{
-                          left: `${getPointPosition(selectedEvaluation.consensus_score, selectedEvaluation.potential_score).x}%`,
-                          top: `${getPointPosition(selectedEvaluation.consensus_score, selectedEvaluation.potential_score).y}%`,
+                          left: `${getPointPosition(selectedEvaluation.consensus_score, getEffectivePotential(selectedEvaluation)).x}%`,
+                          top: `${getPointPosition(selectedEvaluation.consensus_score, getEffectivePotential(selectedEvaluation)).y}%`,
                           transform: 'translate(-50%, -50%)'
                         }}
                       />
@@ -1073,6 +1108,118 @@ const NineBoxMatrix = () => {
 
             </div>
           </div>
+        </motion.div>
+      )}
+
+      {/* Notas de Potencial - Só exibe se potentialDetails tiver dados */}
+      {selectedEvaluation && potentialDetails && Object.keys(potentialDetails).length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-6 sm:p-8"
+        >
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center mb-6">
+            <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600 dark:text-gray-400" />
+            Avaliação de Potencial
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {/* Nota do Líder */}
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                Nota do Líder
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                    {selectedEvaluation.leader_potential_score !== null && selectedEvaluation.leader_potential_score !== undefined
+                      ? selectedEvaluation.leader_potential_score.toFixed(2)
+                      : '-'}
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Média das 4 competências de potencial
+                  </p>
+                </div>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  !selectedEvaluation.leader_potential_score ? 'bg-gray-200 dark:bg-gray-600' :
+                  selectedEvaluation.leader_potential_score >= 3 ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400' :
+                  selectedEvaluation.leader_potential_score >= 2 ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400' :
+                  'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-400'
+                }`}>
+                  <TrendingUp className="h-6 w-6" />
+                </div>
+              </div>
+            </div>
+
+            {/* Nota do Consenso */}
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                Nota Final (Consenso)
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                    {selectedEvaluation.consensus_potential_score !== null && selectedEvaluation.consensus_potential_score !== undefined
+                      ? selectedEvaluation.consensus_potential_score.toFixed(2)
+                      : selectedEvaluation.potential_score !== null && selectedEvaluation.potential_score !== undefined
+                      ? selectedEvaluation.potential_score.toFixed(2)
+                      : '-'}
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Nota validada no consenso
+                  </p>
+                </div>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  !selectedEvaluation.consensus_potential_score && !selectedEvaluation.potential_score ? 'bg-gray-200 dark:bg-gray-600' :
+                  (selectedEvaluation.consensus_potential_score || selectedEvaluation.potential_score || 0) >= 3 ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400' :
+                  (selectedEvaluation.consensus_potential_score || selectedEvaluation.potential_score || 0) >= 2 ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400' :
+                  'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-400'
+                }`}>
+                  <Target className="h-6 w-6" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Notas por Competência */}
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+              Notas por Competência de Potencial
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Object.entries(potentialDetails).map(([id, detail]) => (
+                <div
+                  key={id}
+                  className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-200 dark:border-gray-600"
+                >
+                  <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 truncate" title={detail.name}>
+                    {detail.name}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className={`text-xl font-bold ${
+                      detail.score >= 3 ? 'text-green-600 dark:text-green-400' :
+                      detail.score >= 2 ? 'text-yellow-600 dark:text-yellow-400' :
+                      'text-red-600 dark:text-red-400'
+                    }`}>
+                      {detail.score.toFixed(1)}
+                    </div>
+                    <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          detail.score >= 3 ? 'bg-green-500 dark:bg-green-400' :
+                          detail.score >= 2 ? 'bg-yellow-500 dark:bg-yellow-400' :
+                          'bg-red-500 dark:bg-red-400'
+                        }`}
+                        style={{ width: `${(detail.score / 4) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </motion.div>
       )}
 

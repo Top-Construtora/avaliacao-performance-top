@@ -227,7 +227,8 @@ export const evaluationService = {
       actions: string[];
       resources?: string[];
       timeline?: string;
-    }
+    },
+    potentialDetails?: Record<string, { name: string; score: number }>
   ): Promise<LeaderEvaluation> {
     try {
       const response = await api.post('/evaluations/leader', {
@@ -236,6 +237,7 @@ export const evaluationService = {
         evaluatorId,
         competencies,
         potentialScore,
+        potentialDetails,
         feedback,
         pdi
       });

@@ -87,6 +87,7 @@ interface UseEvaluationReturn {
     evaluatorId: string;
     competencies: EvaluationCompetency[];
     potentialScore: number;
+    potentialDetails?: Record<string, { name: string; score: number }>;
     feedback?: {
       strengths_internal?: string;
       improvements?: string;
@@ -301,6 +302,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
     evaluatorId: string;
     competencies: EvaluationCompetency[];
     potentialScore: number;
+    potentialDetails?: Record<string, { name: string; score: number }>;
     feedback?: {
       strengths_internal?: string;
       improvements?: string;
@@ -322,7 +324,8 @@ export const useEvaluation = (): UseEvaluationReturn => {
         data.competencies,
         data.potentialScore,
         data.feedback,
-        data.pdi
+        data.pdi,
+        data.potentialDetails
       );
       toast.success('Avaliação do líder salva com sucesso!');
     } catch (error) {

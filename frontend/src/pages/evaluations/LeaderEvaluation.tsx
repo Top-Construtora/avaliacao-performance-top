@@ -454,6 +454,17 @@ const LeaderEvaluation = () => {
 
     setIsSaving(true);
     try {
+      // Preparar detalhes de potencial para salvar
+      const potentialDetails: Record<string, { name: string; score: number }> = {};
+      potentialItems.forEach(item => {
+        if (item.score !== undefined) {
+          potentialDetails[item.id] = {
+            name: item.name,
+            score: item.score
+          };
+        }
+      });
+
       // 1. Criar a avaliação do líder
       await saveLeaderEvaluation({
         cycleId: currentCycle.id,
@@ -461,6 +472,7 @@ const LeaderEvaluation = () => {
         evaluatorId: profile.id,
         competencies,
         potentialScore: calculatePotentialScores().final,
+        potentialDetails,
         feedback: {
           strengths_internal: 'Avaliação completa',
           improvements: '',
@@ -532,6 +544,17 @@ const LeaderEvaluation = () => {
       ? calculatePotentialScores().final
       : undefined;
 
+    // Preparar detalhes de potencial para salvar (rascunho)
+    const potentialDetails: Record<string, { name: string; score: number }> = {};
+    potentialItems.forEach(item => {
+      if (item.score !== undefined) {
+        potentialDetails[item.id] = {
+          name: item.name,
+          score: item.score
+        };
+      }
+    });
+
     setIsSaving(true);
     try {
       // Salvar avaliação como rascunho
@@ -541,6 +564,7 @@ const LeaderEvaluation = () => {
         evaluatorId: profile.id,
         competencies,
         potentialScore: potentialScore || 0,
+        potentialDetails: Object.keys(potentialDetails).length > 0 ? potentialDetails : undefined,
         feedback: {
           strengths_internal: '',
           improvements: '',

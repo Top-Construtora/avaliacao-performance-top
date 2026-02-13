@@ -600,6 +600,7 @@ export const evaluationService = {
           deliveries_score: deliveriesScore, // Pode ser null
           final_score: finalScore,
           potential_score: evaluationData.potentialScore,
+          potential_details: evaluationData.potentialDetails || null, // Notas individuais de potencial
           evaluation_date: new Date().toISOString().split('T')[0],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
