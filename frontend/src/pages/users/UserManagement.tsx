@@ -11,7 +11,7 @@ import {
   FileDown, DollarSign, Loader2, Database, UsersIcon, UserPlus
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx-js-style';
 import { useSupabaseData } from '../../hooks/useSupabaseData';
 import type { UserWithDetails } from '../../types/supabase';
 import { RoleGuard } from '../../components/RoleGuard';
@@ -198,24 +198,125 @@ const UserManagement = () => {
   };
 
   const exportToExcel = () => {
+    // Preparar dados
     const data = filteredUsers.map(user => ({
-      Nome: user.name,
-      Email: user.email,
-      Cargo: user.position,
-      Tipo: user.is_director ? 'Diretor' : user.is_leader ? 'Avaliador' : 'Avaliado',
-      Departamentos: user.departments?.map(d => d.name).join(', ') || '-',
-      Times: user.teams?.map(t => t.name).join(', ') || '-',
-      'Data de Entrada': new Date(user.join_date).toLocaleDateString('pt-BR'),
-      Telefone: uiPermissions.showFullContactInfo ? (user.phone || '-') : '***',
-      Idade: user.birth_date ? calculateAge(user.birth_date) : '-',
-      'Reporta para': user.manager?.name || '-'
+      'Nome Completo': user.name,
+      'E-mail': user.email,
+      'Cargo': user.position,
+      'Função': user.is_director ? 'Diretor' : user.is_leader ? 'Avaliador' : 'Colaborador',
+      'Departamento': user.departments?.map(d => d.name).join(', ') || '-',
+      'Time': user.teams?.map(t => t.name).join(', ') || '-',
+      'Trilha': user.track_position?.track?.name || '-',
+      'Classe Salarial': user.track_position?.class?.name || user.track_position?.class?.code || '-',
+      'Nível Salarial': user.salary_level?.name || '-',
+      'Salário': user.current_salary ? `R$ ${user.current_salary.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-',
+      'Data de Admissão': user.join_date ? new Date(user.join_date).toLocaleDateString('pt-BR') : '-',
+      'Telefone': uiPermissions.showFullContactInfo ? (user.phone || '-') : '***',
+      'Data de Nascimento': user.birth_date ? new Date(user.birth_date).toLocaleDateString('pt-BR') : '-',
+      'Idade': user.birth_date ? calculateAge(user.birth_date) : '-',
+      'Status': user.active !== false ? 'Ativo' : 'Inativo'
     }));
 
+    // Criar planilha
     const ws = XLSX.utils.json_to_sheet(data);
+
+    // Estilo do cabeçalho (cor primária com texto branco)
+    const headerStyle = {
+      fill: { fgColor: { rgb: '1E6076' } }, // Cor primária
+      font: { color: { rgb: 'FFFFFF' }, bold: true, sz: 11 },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: {
+        top: { style: 'thin', color: { rgb: '164E5F' } },
+        bottom: { style: 'thin', color: { rgb: '164E5F' } },
+        left: { style: 'thin', color: { rgb: '164E5F' } },
+        right: { style: 'thin', color: { rgb: '164E5F' } }
+      }
+    };
+
+    // Estilo das células de dados
+    const cellStyle = {
+      alignment: { vertical: 'center' },
+      border: {
+        top: { style: 'thin', color: { rgb: 'E5E7EB' } },
+        bottom: { style: 'thin', color: { rgb: 'E5E7EB' } },
+        left: { style: 'thin', color: { rgb: 'E5E7EB' } },
+        right: { style: 'thin', color: { rgb: 'E5E7EB' } }
+      }
+    };
+
+    // Definir larguras das colunas
+    const colWidths = [
+      { wch: 30 },  // Nome Completo
+      { wch: 35 },  // E-mail
+      { wch: 25 },  // Cargo
+      { wch: 12 },  // Função
+      { wch: 20 },  // Departamento
+      { wch: 20 },  // Time
+      { wch: 18 },  // Trilha
+      { wch: 15 },  // Classe Salarial
+      { wch: 15 },  // Nível Salarial
+      { wch: 15 },  // Salário
+      { wch: 18 },  // Data de Admissão
+      { wch: 15 },  // Telefone
+      { wch: 18 },  // Data de Nascimento
+      { wch: 8 },   // Idade
+      { wch: 10 },  // Status
+    ];
+    ws['!cols'] = colWidths;
+
+    // Aplicar estilo ao cabeçalho (primeira linha)
+    const numCols = 15; // Número de colunas
+    const headerRow = 1;
+    for (let col = 0; col < numCols; col++) {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: col });
+      if (ws[cellRef]) {
+        ws[cellRef].s = headerStyle;
+      }
+    }
+
+    // Aplicar estilo às células de dados
+    const numRows = data.length + 1; // +1 para o cabeçalho
+    for (let row = 1; row < numRows; row++) {
+      for (let col = 0; col < numCols; col++) {
+        const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
+        if (ws[cellRef]) {
+          ws[cellRef].s = cellStyle;
+        }
+      }
+    }
+
+    // Criar workbook
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Usuarios');
-    XLSX.writeFile(wb, 'usuarios.xlsx');
-    toast.success('Dados exportados para Excel!');
+    XLSX.utils.book_append_sheet(wb, ws, 'Colaboradores');
+
+    // Adicionar aba de resumo
+    const resumoData = [
+      { 'Indicador': 'Total de Colaboradores', 'Quantidade': stats.totalUsers },
+      { 'Indicador': 'Diretores', 'Quantidade': stats.totalDirectors },
+      { 'Indicador': 'Avaliadores (Líderes)', 'Quantidade': stats.totalLeaders },
+      { 'Indicador': 'Colaboradores', 'Quantidade': stats.totalCollaborators },
+      { 'Indicador': '', 'Quantidade': '' },
+      { 'Indicador': 'Data de Exportação', 'Quantidade': new Date().toLocaleString('pt-BR') },
+    ];
+    const wsResumo = XLSX.utils.json_to_sheet(resumoData);
+    wsResumo['!cols'] = [{ wch: 25 }, { wch: 20 }];
+
+    // Aplicar estilo ao cabeçalho do resumo
+    for (let col = 0; col < 2; col++) {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: col });
+      if (wsResumo[cellRef]) {
+        wsResumo[cellRef].s = headerStyle;
+      }
+    }
+
+    XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+
+    // Gerar nome do arquivo com data
+    const dataAtual = new Date().toISOString().split('T')[0];
+    const nomeArquivo = `colaboradores_${dataAtual}.xlsx`;
+
+    XLSX.writeFile(wb, nomeArquivo);
+    toast.success('Relatório exportado com sucesso!');
   };
 
   const exportToNotion = () => {
@@ -298,6 +399,9 @@ const UserManagement = () => {
         // Excluir usuários admin
         if (user.is_admin) return false;
 
+        // Excluir usuários de teste
+        if (user.name?.toLowerCase().includes('teste') || user.email?.toLowerCase().includes('teste')) return false;
+
         // Filtrar por status ativo/inativo
         if (statusFilter === 'active') {
           if (user.active === false) return false;
@@ -337,8 +441,13 @@ const UserManagement = () => {
   }, [users, searchTerm, selectedDepartment, selectedTeam, showOnlyLeaders, statusFilter, sortBy]);
 
   const stats = useMemo(() => {
-    // Contar apenas usuários ativos (excluindo admins)
-    const activeNonAdminUsers = users.filter(u => !u.is_admin && u.active !== false);
+    // Contar apenas usuários ativos (excluindo admins e usuários de teste)
+    const activeNonAdminUsers = users.filter(u =>
+      !u.is_admin &&
+      u.active !== false &&
+      !u.name?.toLowerCase().includes('teste') &&
+      !u.email?.toLowerCase().includes('teste')
+    );
     return {
       totalUsers: activeNonAdminUsers.length,
       totalLeaders: activeNonAdminUsers.filter(u => u.is_leader && !u.is_director).length,
@@ -833,13 +942,6 @@ const UserManagement = () => {
                   <MoreVertical className="h-4 w-4" />
                 </button>
                 <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-2xl border border-gray-100 dark:border-gray-700 py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                  <button
-                    onClick={() => handleQuickAction('import')}
-                    className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
-                  >
-                    <Upload className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                    <span>Importar dados</span>
-                  </button>
                   <UIGuard show="showExportButton">
                     <button
                       onClick={() => handleQuickAction('export')}
@@ -847,16 +949,6 @@ const UserManagement = () => {
                     >
                       <Download className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <span>Exportar lista</span>
-                    </button>
-                  </UIGuard>
-                  <div className="border-t border-gray-100 dark:border-gray-700 my-2" />
-                  <UIGuard show="showBulkActionsButton">
-                    <button
-                      onClick={() => handleQuickAction('bulk')}
-                      className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
-                    >
-                      <Copy className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                      <span>Ações em massa</span>
                     </button>
                   </UIGuard>
                 </div>
@@ -1013,28 +1105,6 @@ const UserManagement = () => {
                     <div className="flex-1">
                       <p className="font-semibold">Excel</p>
                       <p className="text-xs text-green-600 dark:text-green-400">Arquivo .xlsx para análises</p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => handleExport('notion')}
-                    className="w-full p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/20 dark:to-gray-600/20 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600/30 dark:hover:to-gray-500/30 rounded-xl border border-gray-200 dark:border-gray-700 text-naue-black dark:text-gray-300 font-medium font-medium text-left flex items-center space-x-3 transition-all"
-                  >
-                    <FileText className="h-5 w-5" />
-                    <div className="flex-1">
-                      <p className="font-semibold">Notion</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Markdown para importar</p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => handleExport('pdf')}
-                    className="w-full p-4 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 hover:from-red-100 hover:to-red-200 dark:hover:from-red-800/30 dark:hover:to-red-700/30 rounded-xl border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 font-medium text-left flex items-center space-x-3 transition-all"
-                  >
-                    <FileDown className="h-5 w-5" />
-                    <div className="flex-1">
-                      <p className="font-semibold">PDF</p>
-                      <p className="text-xs text-red-600 dark:text-red-400">Documento para impressão</p>
                     </div>
                   </button>
                 </div>
