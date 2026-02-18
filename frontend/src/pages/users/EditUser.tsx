@@ -202,13 +202,16 @@ const EditUser = () => {
       const selectedLevel = salaryLevels.find(l => l.name === formData.internLevel);
 
       if (selectedLevel) {
+        const toastId = toast.loading('Calculando salário...');
         salaryService.calculateSalary(formData.positionId, selectedLevel.id)
           .then(result => {
             setCalculatedSalary(result.calculatedSalary);
+            toast.success('Salário atualizado!', { id: toastId });
           })
           .catch(error => {
             console.error('Erro ao calcular salário:', error);
             setCalculatedSalary(null);
+            toast.error('Erro ao calcular salário', { id: toastId });
           });
       } else {
         setCalculatedSalary(null);
