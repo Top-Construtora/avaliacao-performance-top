@@ -104,7 +104,8 @@ const UserManagement = () => {
   const handleToggleNineboxPermission = async (user: UserWithDetails) => {
     try {
       const newValue = !user.can_view_subordinate_ninebox;
-      await actions.users.update(user.id, { can_view_subordinate_ninebox: newValue });
+      // Usar atualização otimista para não perder a posição do scroll
+      await actions.users.updateOptimistic(user.id, { can_view_subordinate_ninebox: newValue });
       toast.success(newValue
         ? 'Permissão para visualizar Nine Box habilitada'
         : 'Permissão para visualizar Nine Box removida'
