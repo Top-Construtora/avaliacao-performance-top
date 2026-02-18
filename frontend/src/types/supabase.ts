@@ -65,6 +65,7 @@ export interface Database {
           track_id?: string | null
           position_id?: string | null
           intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null
+          can_view_subordinate_ninebox?: boolean
         }
         Insert: {
           id: string
@@ -93,7 +94,7 @@ export interface Database {
           track_id?: string | null
           position_id?: string | null
           intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null
-
+          can_view_subordinate_ninebox?: boolean
         }
         Update: {
           id?: string
@@ -131,6 +132,7 @@ export interface Database {
           team_name?: string | null
           practices_sports?: boolean
           sports?: string[] | null
+          can_view_subordinate_ninebox?: boolean
         }
       }
       teams: {

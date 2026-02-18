@@ -8,7 +8,7 @@ import {
   Shield, Mail, Calendar, UserCheck, MoreVertical, Crown,
   Copy, Download, Phone, CalendarDays, Upload, FileText, GitBranch,
   Network, UserX, Plus, Grid3x3, List, FileSpreadsheet,
-  FileDown, DollarSign, Loader2, Database, UsersIcon, UserPlus
+  FileDown, DollarSign, Loader2, Database, UsersIcon, UserPlus, Eye
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import XLSX from 'xlsx-js-style';
@@ -99,6 +99,20 @@ const UserManagement = () => {
       return;
     }
     navigate(`/users/edit/${user.id}`);
+  };
+
+  const handleToggleNineboxPermission = async (user: UserWithDetails) => {
+    try {
+      const newValue = !user.can_view_subordinate_ninebox;
+      await actions.users.update(user.id, { can_view_subordinate_ninebox: newValue });
+      toast.success(newValue
+        ? 'Permissão para visualizar Nine Box habilitada'
+        : 'Permissão para visualizar Nine Box removida'
+      );
+    } catch (error) {
+      console.error('Erro ao atualizar permissão:', error);
+      toast.error('Erro ao atualizar permissão');
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -637,9 +651,26 @@ const UserManagement = () => {
                 </div>
               )}
               {subordinates.length > 0 && (
-                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                  <Network className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
-                  <span className="font-medium">{subordinates.length} subordinado{subordinates.length > 1 ? 's' : ''}</span>
+                <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center">
+                    <Network className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
+                    <span className="font-medium">{subordinates.length} subordinado{subordinates.length > 1 ? 's' : ''}</span>
+                  </div>
+                  {/* Comitê de Gente Permission Toggle - Only for Leaders */}
+                  {user.is_leader && !user.is_director && (
+                    <label className="flex items-center gap-1.5 cursor-pointer group ml-3" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={user.can_view_subordinate_ninebox || false}
+                        onChange={() => handleToggleNineboxPermission(user)}
+                        className="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400 cursor-pointer"
+                      />
+                      <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 flex items-center gap-1">
+                        <Eye className="h-3 w-3" />
+                        Comitê de Gente
+                      </span>
+                    </label>
+                  )}
                 </div>
               )}
             </div>
@@ -722,6 +753,24 @@ const UserManagement = () => {
             <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
             <span className="truncate">{user.email}</span>
           </div>
+
+          {/* Comitê de Gente Permission Toggle - Only for Leaders in List View */}
+          {user.is_leader && !user.is_director && (
+            <div className="hidden md:flex items-center min-w-[120px]">
+              <label className="flex items-center gap-1.5 cursor-pointer group" onClick={(e) => e.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  checked={user.can_view_subordinate_ninebox || false}
+                  onChange={() => handleToggleNineboxPermission(user)}
+                  className="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400 cursor-pointer"
+                />
+                <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 flex items-center gap-1">
+                  <Eye className="h-3 w-3" />
+                  Comitê de Gente
+                </span>
+              </label>
+            </div>
+          )}
 
           {/* Líder */}
           <div className="hidden lg:flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
