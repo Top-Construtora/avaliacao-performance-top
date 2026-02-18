@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../../hooks/useSupabaseData';
 import { supabase } from '../../lib/supabase';
 import { api } from '../../config/api';
+import { salaryService } from '../../services/salary.service';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
@@ -195,16 +196,20 @@ const EditUser = () => {
   }, []);
 
   // Calcular salário automaticamente quando mudar cargo ou internível (nível salarial)
+  // Usa o salaryService para considerar porcentagens customizadas por cargo
   useEffect(() => {
     if (formData.positionId && formData.internLevel) {
-      const selectedPosition = positions.find(p => p.id === formData.positionId);
       const selectedLevel = salaryLevels.find(l => l.name === formData.internLevel);
 
-      if (selectedPosition && selectedLevel) {
-        const baseSalary = selectedPosition.base_salary;
-        const percentage = selectedLevel.percentage / 100;
-        const calculatedValue = baseSalary + (baseSalary * percentage);
-        setCalculatedSalary(calculatedValue);
+      if (selectedLevel) {
+        salaryService.calculateSalary(formData.positionId, selectedLevel.id)
+          .then(result => {
+            setCalculatedSalary(result.calculatedSalary);
+          })
+          .catch(error => {
+            console.error('Erro ao calcular salário:', error);
+            setCalculatedSalary(null);
+          });
       } else {
         setCalculatedSalary(null);
       }

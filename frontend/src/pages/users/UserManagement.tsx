@@ -32,6 +32,7 @@ declare module 'jspdf' {
 type ViewMode = 'grid' | 'list';
 type ExportFormat = 'excel' | 'notion' | 'pdf';
 type StatusFilter = 'all' | 'active' | 'inactive';
+type UserTypeFilter = 'all' | 'collaborator' | 'leader' | 'director';
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ const UserManagement = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('');
-  const [showOnlyLeaders, setShowOnlyLeaders] = useState(false);
+  const [userTypeFilter, setUserTypeFilter] = useState<UserTypeFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'department'>('name');
@@ -435,9 +436,17 @@ const UserManagement = () => {
         const matchesTeam = !selectedTeam ||
           user.teams?.some(t => t.id === selectedTeam);
 
-        const matchesLeader = !showOnlyLeaders || user.is_leader || user.is_director;
+        // Filtro por tipo de usuário
+        let matchesUserType = true;
+        if (userTypeFilter === 'collaborator') {
+          matchesUserType = !user.is_leader && !user.is_director;
+        } else if (userTypeFilter === 'leader') {
+          matchesUserType = user.is_leader && !user.is_director;
+        } else if (userTypeFilter === 'director') {
+          matchesUserType = user.is_director;
+        }
 
-        return matchesSearch && matchesDepartment && matchesTeam && matchesLeader;
+        return matchesSearch && matchesDepartment && matchesTeam && matchesUserType;
       })
       .sort((a, b) => {
         switch (sortBy) {
@@ -453,7 +462,7 @@ const UserManagement = () => {
             return 0;
         }
       });
-  }, [users, searchTerm, selectedDepartment, selectedTeam, showOnlyLeaders, statusFilter, sortBy]);
+  }, [users, searchTerm, selectedDepartment, selectedTeam, userTypeFilter, statusFilter, sortBy]);
 
   const stats = useMemo(() => {
     // Contar apenas usuários ativos (excluindo admins e usuários de teste)
@@ -1074,16 +1083,20 @@ const UserManagement = () => {
                       </select>
                     </div>
 
-                    <div className="flex flex-col space-y-2">
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={showOnlyLeaders}
-                          onChange={(e) => setShowOnlyLeaders(e.target.checked)}
-                          className="rounded border-gray-300 dark:border-gray-600 text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400 mr-3"
-                        />
-                        <span className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Apenas avaliadores</span>
+                    <div>
+                      <label className="block text-sm font-semibold text-naue-black dark:text-gray-300 font-medium mb-2">
+                        Tipo de Usuário
                       </label>
+                      <select
+                        value={userTypeFilter}
+                        onChange={(e) => setUserTypeFilter(e.target.value as UserTypeFilter)}
+                        className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      >
+                        <option value="all">Todos</option>
+                        <option value="collaborator">Colaboradores</option>
+                        <option value="leader">Líderes</option>
+                        <option value="director">Diretores</option>
+                      </select>
                     </div>
                   </div>
                 </motion.div>
