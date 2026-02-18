@@ -452,13 +452,23 @@ export const salaryService = {
     // Calcular o novo salário
     const salaryCalc = await this.calculateSalary(supabase, trackPositionId, salaryLevelId);
 
+    // Buscar o nome do cargo a partir da track_position
+    const { data: trackPosition } = await supabase
+      .from('track_positions')
+      .select('position:job_positions(name)')
+      .eq('id', trackPositionId)
+      .single();
+
+    const positionName = (trackPosition?.position as any)?.name;
+
     const { data, error } = await supabase
       .from('users')
       .update({
         current_track_position_id: trackPositionId,
         current_salary_level_id: salaryLevelId,
         current_salary: salaryCalc.calculatedSalary,
-        position_start_date: new Date().toISOString()
+        position_start_date: new Date().toISOString(),
+        ...(positionName && { position: positionName })
       })
       .eq('id', userId)
       .select()
@@ -717,13 +727,23 @@ export const salaryService = {
 
     if (historyError) throw historyError;
 
+    // Buscar o nome do cargo a partir da track_position
+    const { data: trackPosition } = await supabase
+      .from('track_positions')
+      .select('position:job_positions(name)')
+      .eq('id', progressionData.toTrackPositionId)
+      .single();
+
+    const positionName = (trackPosition?.position as any)?.name;
+
     // Atualizar usuário
     const { data: updatedUser, error: updateError } = await supabase
       .from('users')
       .update({
         current_track_position_id: progressionData.toTrackPositionId,
         current_salary_level_id: progressionData.toSalaryLevelId,
-        position_start_date: new Date().toISOString()
+        position_start_date: new Date().toISOString(),
+        ...(positionName && { position: positionName })
       })
       .eq('id', progressionData.userId)
       .select()
