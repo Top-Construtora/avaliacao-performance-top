@@ -37,13 +37,13 @@ const matrixConfig: Record<string, MatrixConfig> = {
     activeBorderColor: 'border-amber-500 dark:border-amber-400',
     gradient: 'from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-900/20',
   },
-  '1,3': { 
-    bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
-    borderColor: 'border-emerald-200 dark:border-emerald-700',
-    textColor: 'text-emerald-700 dark:text-emerald-300',
+  '1,3': {
+    bgColor: 'bg-teal-50 dark:bg-teal-900/20',
+    borderColor: 'border-teal-200 dark:border-teal-700',
+    textColor: 'text-teal-700 dark:text-teal-300',
     description: 'Está no lugar certo. Manter na posição e rever remuneração',
-    activeBorderColor: 'border-emerald-500 dark:border-emerald-400',
-    gradient: 'from-emerald-100 to-emerald-50 dark:from-emerald-900/30 dark:to-emerald-900/20',
+    activeBorderColor: 'border-teal-500 dark:border-teal-400',
+    gradient: 'from-teal-100 to-teal-50 dark:from-teal-900/30 dark:to-teal-900/20',
   },
   '2,1': { 
     bgColor: 'bg-orange-50 dark:bg-orange-900/20',
@@ -53,13 +53,13 @@ const matrixConfig: Record<string, MatrixConfig> = {
     activeBorderColor: 'border-orange-500 dark:border-orange-400',
     gradient: 'from-orange-100 to-orange-50 dark:from-orange-900/30 dark:to-orange-900/20',
   },
-  '2,2': { 
-    bgColor: 'bg-green-50 dark:bg-green-900/20',
-    borderColor: 'border-green-200 dark:border-green-700',
-    textColor: 'text-green-700 dark:text-green-300',
+  '2,2': {
+    bgColor: 'bg-teal-50 dark:bg-teal-900/20',
+    borderColor: 'border-teal-200 dark:border-teal-700',
+    textColor: 'text-teal-700 dark:text-teal-300',
     description: 'Verificar a causa. Local ou Chefe inadequado? Não há desenvolvimento',
-    activeBorderColor: 'border-green-500 dark:border-green-400',
-    gradient: 'from-green-100 to-green-50 dark:from-green-900/30 dark:to-green-900/20',
+    activeBorderColor: 'border-teal-500 dark:border-teal-400',
+    gradient: 'from-teal-100 to-teal-50 dark:from-teal-900/30 dark:to-teal-900/20',
   },
   '2,3': { 
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
@@ -85,13 +85,13 @@ const matrixConfig: Record<string, MatrixConfig> = {
     activeBorderColor: 'border-indigo-500 dark:border-indigo-400',
     gradient: 'from-indigo-100 to-indigo-50 dark:from-indigo-900/30 dark:to-indigo-900/20',
   },
-  '3,3': { 
-    bgColor: 'bg-gradient-to-br from-green-800 to-green-900 dark:from-green-800 dark:to-green-900',
-    borderColor: 'border-green-800 dark:border-green-700',
+  '3,3': {
+    bgColor: 'bg-gradient-to-br from-teal-800 to-teal-900 dark:from-teal-800 dark:to-teal-900',
+    borderColor: 'border-teal-800 dark:border-teal-700',
     textColor: 'text-white',
     description: 'Dar mais atribuições. Preparar para função maior. Líder do futuro!',
-    activeBorderColor: 'border-green-900 dark:border-green-800',
-    gradient: 'from-green-800 to-green-900 dark:from-green-800 dark:to-green-900',
+    activeBorderColor: 'border-teal-900 dark:border-teal-800',
+    gradient: 'from-teal-800 to-teal-900 dark:from-teal-800 dark:to-teal-900',
   }
 };
 
@@ -701,7 +701,7 @@ const NineBoxMatrix = () => {
             </label>
             <div className="relative">
               <select
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-naue-black dark:text-gray-300 font-medium text-sm sm:text-base disabled:opacity-50 disabled:cursor-wait"
+                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-teal-800 dark:focus:border-teal-700 focus:ring-teal-800 dark:focus:ring-teal-700 text-naue-black dark:text-gray-300 font-medium text-sm sm:text-base disabled:opacity-50 disabled:cursor-wait"
                 value={selectedEmployee}
                 onChange={(e) => setSelectedEmployee(e.target.value)}
                 disabled={isLoadingDashboard || loading}
@@ -717,7 +717,7 @@ const NineBoxMatrix = () => {
               </select>
               {(isLoadingDashboard || loading) && (
                 <div className="absolute right-10 top-1/2 -translate-y-1/2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-800 border-t-transparent"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-teal-800 border-t-transparent"></div>
                 </div>
               )}
             </div>
@@ -867,7 +867,7 @@ const NineBoxMatrix = () => {
                       </div>
                       <button
                         onClick={() => setShowSalaryModal(true)}
-                        className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                        className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 hover:bg-teal-200 dark:hover:bg-teal-900/50 transition-colors"
                         title="Gerenciar cargo e salário"
                       >
                         <DollarSign className="h-4 w-4" />
@@ -912,17 +912,17 @@ const NineBoxMatrix = () => {
               
               <div className="space-y-4">
                 {/* Card de Performance */}
-                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-900/20 rounded-lg sm:rounded-xl p-4 border border-green-200 dark:border-green-700">
+                <div className="bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-900/20 rounded-lg sm:rounded-xl p-4 border border-teal-200 dark:border-teal-700">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Performance</p>
-                    <TrendingUp className="h-4 w-4 text-green-800 dark:text-green-700" />
+                    <TrendingUp className="h-4 w-4 text-teal-800 dark:text-teal-700" />
                   </div>
-                  <p className="text-2xl sm:text-3xl font-bold text-green-800 dark:text-green-700">
+                  <p className="text-2xl sm:text-3xl font-bold text-teal-800 dark:text-teal-700">
                     {selectedEvaluation.consensus_score}
                   </p>
-                  <div className="mt-2 bg-green-200 dark:bg-green-900/50 rounded-full h-2">
+                  <div className="mt-2 bg-teal-200 dark:bg-teal-900/50 rounded-full h-2">
                     <div
-                      className="bg-green-800 dark:bg-green-700 h-2 rounded-full transition-all duration-300"
+                      className="bg-teal-800 dark:bg-teal-700 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${(selectedEvaluation.consensus_score / 4) * 100}%` }}
                     />
                   </div>
@@ -1337,8 +1337,8 @@ const NineBoxMatrix = () => {
           className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-16 text-center"
         >
           <div className="max-w-md mx-auto">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-green-50 to-gray-50 dark:from-green-900/30 dark:to-gray-900/30 mb-4 sm:mb-6">
-              <Grid3x3 className="h-8 w-8 sm:h-10 sm:w-10 text-green-800 dark:text-green-700" />
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-teal-50 to-gray-50 dark:from-teal-900/30 dark:to-gray-900/30 mb-4 sm:mb-6">
+              <Grid3x3 className="h-8 w-8 sm:h-10 sm:w-10 text-teal-800 dark:text-teal-700" />
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Nenhum colaborador selecionado

@@ -54,10 +54,10 @@ const NineBoxGuide = () => {
       performance: 'médio',
       potential: 'alto',
       icon: TrendingUp,
-      bgColor: 'bg-green-50 dark:bg-green-900/20',
-      borderColor: 'border-green-300 dark:border-green-700',
-      textColor: 'text-green-700 dark:text-green-300',
-      gradient: 'from-green-400 to-green-600 dark:from-green-600 dark:to-green-800',
+      bgColor: 'bg-teal-50 dark:bg-teal-900/20',
+      borderColor: 'border-teal-300 dark:border-teal-700',
+      textColor: 'text-teal-700 dark:text-teal-300',
+      gradient: 'from-teal-400 to-teal-600 dark:from-teal-600 dark:to-teal-800',
       details: {
         descricao: 'Atende e muitas vezes excede expectativas. Potencial para mudanças na carreira.',
         atribuicoes: 'Trabalhos desafiadores e variados a cada 12-24 meses com aumento de responsabilidades',
@@ -75,10 +75,10 @@ const NineBoxGuide = () => {
       performance: 'alto',
       potential: 'alto',
       icon: Rocket,
-      bgColor: 'bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900/20 dark:to-green-900/20',
+      bgColor: 'bg-gradient-to-br from-gray-50 to-teal-50 dark:from-gray-900/20 dark:to-teal-900/20',
       borderColor: 'border-gray-300 dark:border-gray-700',
       textColor: 'text-gray-700 dark:text-gray-300',
-      gradient: 'from-gray-400 to-green-600 dark:from-gray-600 dark:to-green-800',
+      gradient: 'from-gray-400 to-teal-600 dark:from-gray-600 dark:to-teal-800',
       details: {
         descricao: 'O melhor que existe. Atua bem em quase tudo. Aprende rápido e é engenhoso.',
         atribuicoes: 'Trabalhos desafiadores a cada 12-24 meses. Atribuições com alto risco e pensamento estratégico',
@@ -279,7 +279,7 @@ const NineBoxGuide = () => {
                       className={`
                         ${box.bgColor} ${box.borderColor} border-2 p-3 sm:p-4 cursor-pointer
                         hover:shadow-md dark:hover:shadow-lg aspect-square
-                        ${selectedBox === box.id ? 'ring-2 ring-offset-1 dark:ring-offset-gray-800 ring-green-800 dark:ring-green-700 shadow-lg dark:shadow-xl' : ''}
+                        ${selectedBox === box.id ? 'ring-2 ring-offset-1 dark:ring-offset-gray-800 ring-teal-800 dark:ring-teal-700 shadow-lg dark:shadow-xl' : ''}
                         rounded-lg
                       `}
                     >
@@ -306,7 +306,7 @@ const NineBoxGuide = () => {
                       className={`
                         ${box.bgColor} ${box.borderColor} border-2 p-3 sm:p-4 cursor-pointer
                         hover:shadow-md dark:hover:shadow-lg aspect-square
-                        ${selectedBox === box.id ? 'ring-2 ring-offset-1 dark:ring-offset-gray-800 ring-green-800 dark:ring-green-700 shadow-lg dark:shadow-xl' : ''}
+                        ${selectedBox === box.id ? 'ring-2 ring-offset-1 dark:ring-offset-gray-800 ring-teal-800 dark:ring-teal-700 shadow-lg dark:shadow-xl' : ''}
                         rounded-lg
                       `}
                     >
@@ -333,7 +333,7 @@ const NineBoxGuide = () => {
                       className={`
                         ${box.bgColor} ${box.borderColor} border-2 p-3 sm:p-4 cursor-pointer
                         hover:shadow-md dark:hover:shadow-lg aspect-square
-                        ${selectedBox === box.id ? 'ring-2 ring-offset-1 dark:ring-offset-gray-800 ring-green-800 dark:ring-green-700 shadow-lg dark:shadow-xl' : ''}
+                        ${selectedBox === box.id ? 'ring-2 ring-offset-1 dark:ring-offset-gray-800 ring-teal-800 dark:ring-teal-700 shadow-lg dark:shadow-xl' : ''}
                         rounded-lg
                       `}
                     >
@@ -403,7 +403,7 @@ const NineBoxGuide = () => {
                     {/* Action Items */}
                     <div className="space-y-3">
                       <div className="flex items-start gap-3">
-                        <Briefcase className="w-4 h-4 text-green-800 dark:text-green-700 mt-0.5 flex-shrink-0" />
+                        <Briefcase className="w-4 h-4 text-teal-800 dark:text-teal-700 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
                           <h5 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Atribuições</h5>
                           <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{box.details.atribuicoes}</p>
@@ -411,7 +411,7 @@ const NineBoxGuide = () => {
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <UserCheck className="w-4 h-4 text-green-800 dark:text-green-700 mt-0.5 flex-shrink-0" />
+                        <UserCheck className="w-4 h-4 text-teal-800 dark:text-teal-700 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
                           <h5 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Mentoria</h5>
                           <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{box.details.mentoria}</p>
@@ -419,7 +419,7 @@ const NineBoxGuide = () => {
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <GraduationCap className="w-4 h-4 text-green-800 dark:text-green-700 mt-0.5 flex-shrink-0" />
+                        <GraduationCap className="w-4 h-4 text-teal-800 dark:text-teal-700 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
                           <h5 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Desenvolvimento</h5>
                           <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{box.details.desenvolvimento}</p>
@@ -427,7 +427,7 @@ const NineBoxGuide = () => {
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <DollarSign className="w-4 h-4 text-green-800 dark:text-green-700 mt-0.5 flex-shrink-0" />
+                        <DollarSign className="w-4 h-4 text-teal-800 dark:text-teal-700 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
                           <h5 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Recompensa</h5>
                           <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{box.details.recompensa}</p>
@@ -435,7 +435,7 @@ const NineBoxGuide = () => {
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <Target className="w-4 h-4 text-green-800 dark:text-green-700 mt-0.5 flex-shrink-0" />
+                        <Target className="w-4 h-4 text-teal-800 dark:text-teal-700 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
                           <h5 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Engajamento</h5>
                           <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{box.details.engajamento}</p>
@@ -507,7 +507,7 @@ const NineBoxGuide = () => {
                   <span className="text-gray-600 dark:text-gray-400">Médio performance: Focar no curto prazo</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <div className="w-3 h-3 bg-green-400 dark:bg-green-600 rounded"></div>
+                  <div className="w-3 h-3 bg-teal-400 dark:bg-teal-600 rounded"></div>
                   <span className="text-gray-600 dark:text-gray-400">Alto performance: Preparar para função maior</span>
                 </div>
               </div>
@@ -525,7 +525,7 @@ const NineBoxGuide = () => {
                   <span className="text-gray-600 dark:text-gray-400">Médio performance: Investir para manter</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <div className="w-3 h-3 bg-green-400 dark:bg-green-600 rounded"></div>
+                  <div className="w-3 h-3 bg-teal-400 dark:bg-teal-600 rounded"></div>
                   <span className="text-gray-600 dark:text-gray-400">Alto performance: Considerar promoção</span>
                 </div>
               </div>
@@ -543,7 +543,7 @@ const NineBoxGuide = () => {
                   <span className="text-gray-600 dark:text-gray-400">Médio performance: Movimentação horizontal</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <div className="w-3 h-3 bg-green-400 dark:bg-green-600 rounded"></div>
+                  <div className="w-3 h-3 bg-teal-400 dark:bg-teal-600 rounded"></div>
                   <span className="text-gray-600 dark:text-gray-400">Alto performance: Manter e revisar remuneração</span>
                 </div>
               </div>
