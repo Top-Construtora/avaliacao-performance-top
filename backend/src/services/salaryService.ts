@@ -566,11 +566,18 @@ export const salaryService = {
 
   // Verificar se o usuário pode visualizar o Comitê de Gente baseado no cargo
   async checkPeopleCommitteePermission(supabase: SupabaseClient<Database>, userId: string) {
+    // Emails com acesso especial temporário ao Comitê de Gente
+    const SPECIAL_ACCESS_EMAILS = [
+      'everton.freitas@topconstrutora.com',
+      'ingreed.nabi@topconstrutora.com'
+    ];
+
     // Buscar o usuário com suas informações de trilha e cargo textual
     const { data: user, error: userError } = await supabase
       .from('users')
       .select(`
         id,
+        email,
         is_admin,
         is_director,
         is_leader,
@@ -585,6 +592,11 @@ export const salaryService = {
     // Admin e Director sempre podem ver
     if (user.is_admin || user.is_director) {
       return { canView: true };
+    }
+
+    // Verificar acesso especial por email
+    if (user.email && SPECIAL_ACCESS_EMAILS.includes(user.email.toLowerCase())) {
+      return { canView: true, positionName: 'Acesso Especial' };
     }
 
     // Função auxiliar para verificar permissão pelo nome do cargo

@@ -30,16 +30,12 @@ export function usePeopleCommitteePermission() {
         return;
       }
 
-      // Para líderes, verificar o cargo
-      if (profile.is_leader && profile.position_id) {
-        try {
-          const result = await salaryService.checkPeopleCommitteePermission(profile.id);
-          setPermission(result);
-        } catch (error) {
-          console.error('Erro ao verificar permissão:', error);
-          setPermission({ canView: false });
-        }
-      } else {
+      // Para líderes ou usuários com possível acesso especial, verificar no backend
+      try {
+        const result = await salaryService.checkPeopleCommitteePermission(profile.id);
+        setPermission(result);
+      } catch (error) {
+        console.error('Erro ao verificar permissão:', error);
         setPermission({ canView: false });
       }
 
