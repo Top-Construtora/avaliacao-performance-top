@@ -251,13 +251,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       title: 'Curto Prazo',
       subtitle: '3 meses',
       icon: BookOpen,
-      gradient: 'from-green-500 to-green-600',
-      darkGradient: 'dark:from-green-800 dark:to-green-900',
-      bgColor: 'bg-green-50',
-      darkBgColor: 'dark:bg-green-800/20',
-      borderColor: 'border-green-200',
-      darkBorderColor: 'dark:border-green-700',
-      iconBg: 'bg-gradient-to-br from-green-500 to-green-600 dark:from-green-800 dark:to-green-900',
+      gradient: 'from-top-teal to-top-teal-dark',
+      darkGradient: 'dark:from-top-teal-dark dark:to-top-teal',
+      bgColor: 'bg-top-teal-light',
+      darkBgColor: 'dark:bg-top-teal/10',
+      borderColor: 'border-top-teal/30',
+      darkBorderColor: 'dark:border-top-teal/40',
+      iconBg: 'bg-gradient-to-br from-top-teal to-top-teal-dark dark:from-top-teal-dark dark:to-top-teal',
       description: 'Ações imediatas e de rápido impacto'
     },
     {
@@ -265,13 +265,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       title: 'Médio Prazo',
       subtitle: '3-6 meses',
       icon: Target,
-      gradient: 'from-gray-500 to-gray-600',
-      darkGradient: 'dark:from-gray-600 dark:to-gray-700',
-      bgColor: 'bg-gray-50',
-      darkBgColor: 'dark:bg-gray-800/20',
-      borderColor: 'border-gray-200',
-      darkBorderColor: 'dark:border-gray-600',
-      iconBg: 'bg-gradient-to-br from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-700',
+      gradient: 'from-top-blue to-top-blue-dark',
+      darkGradient: 'dark:from-top-blue-dark dark:to-top-blue',
+      bgColor: 'bg-top-blue-light',
+      darkBgColor: 'dark:bg-top-blue/10',
+      borderColor: 'border-top-blue/30',
+      darkBorderColor: 'dark:border-top-blue/40',
+      iconBg: 'bg-gradient-to-br from-top-blue to-top-blue-dark dark:from-top-blue-dark dark:to-top-blue',
       description: 'Desenvolvimento contínuo e estruturado'
     },
     {
@@ -279,13 +279,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       title: 'Longo Prazo',
       subtitle: '6-12 meses',
       icon: Rocket,
-      gradient: 'from-stone-500 to-stone-600',
-      darkGradient: 'dark:from-stone-700 dark:to-stone-800',
-      bgColor: 'bg-stone-50',
-      darkBgColor: 'dark:bg-stone-800/20',
-      borderColor: 'border-stone-200',
-      darkBorderColor: 'dark:border-stone-700',
-      iconBg: 'bg-gradient-to-br from-stone-500 to-stone-600 dark:from-stone-700 dark:to-stone-800',
+      gradient: 'from-top-gold to-top-gold-dark',
+      darkGradient: 'dark:from-top-gold-dark dark:to-top-gold',
+      bgColor: 'bg-top-gold-light',
+      darkBgColor: 'dark:bg-top-gold/10',
+      borderColor: 'border-top-gold/30',
+      darkBorderColor: 'dark:border-top-gold/40',
+      iconBg: 'bg-gradient-to-br from-top-gold to-top-gold-dark dark:from-top-gold-dark dark:to-top-gold',
       description: 'Visão estratégica e crescimento sustentável'
     }
   ];
@@ -704,36 +704,36 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
               const colorMap: { [key: string]: any } = {
                 'pot1': {
-                  gradient: 'from-green-500 to-green-600',
-                  darkGradient: 'dark:from-green-800 dark:to-green-900',
-                  bgColor: 'bg-green-50',
-                  darkBgColor: 'dark:bg-green-900/20',
-                  borderColor: 'border-green-200',
-                  darkBorderColor: 'dark:border-green-700'
+                  gradient: 'from-top-teal to-top-teal-dark',
+                  darkGradient: 'dark:from-top-teal-dark dark:to-top-teal',
+                  bgColor: 'bg-top-teal-light',
+                  darkBgColor: 'dark:bg-top-teal/10',
+                  borderColor: 'border-top-teal/30',
+                  darkBorderColor: 'dark:border-top-teal/40'
                 },
                 'pot2': {
-                  gradient: 'from-gray-500 to-gray-600',
-                  darkGradient: 'dark:from-gray-600 dark:to-gray-700',
-                  bgColor: 'bg-gray-50',
-                  darkBgColor: 'dark:bg-gray-900/20',
-                  borderColor: 'border-gray-200',
-                  darkBorderColor: 'dark:border-gray-700'
+                  gradient: 'from-top-blue to-top-blue-dark',
+                  darkGradient: 'dark:from-top-blue-dark dark:to-top-blue',
+                  bgColor: 'bg-top-blue-light',
+                  darkBgColor: 'dark:bg-top-blue/10',
+                  borderColor: 'border-top-blue/30',
+                  darkBorderColor: 'dark:border-top-blue/40'
                 },
                 'pot3': {
-                  gradient: 'from-stone-500 to-stone-600',
-                  darkGradient: 'dark:from-stone-700 dark:to-stone-800',
-                  bgColor: 'bg-stone-50',
-                  darkBgColor: 'dark:bg-stone-900/20',
-                  borderColor: 'border-stone-200',
-                  darkBorderColor: 'dark:border-stone-700'
+                  gradient: 'from-top-gold to-top-gold-dark',
+                  darkGradient: 'dark:from-top-gold-dark dark:to-top-gold',
+                  bgColor: 'bg-top-gold-light',
+                  darkBgColor: 'dark:bg-top-gold/10',
+                  borderColor: 'border-top-gold/30',
+                  darkBorderColor: 'dark:border-top-gold/40'
                 },
                 'pot4': {
-                  gradient: 'from-gray-500 to-gray-600',
-                  darkGradient: 'dark:from-gray-600 dark:to-gray-700',
-                  bgColor: 'bg-gray-50',
-                  darkBgColor: 'dark:bg-gray-900/20',
-                  borderColor: 'border-gray-200',
-                  darkBorderColor: 'dark:border-gray-700'
+                  gradient: 'from-top-blue to-top-blue-dark',
+                  darkGradient: 'dark:from-top-blue-dark dark:to-top-blue',
+                  bgColor: 'bg-top-blue-light',
+                  darkBgColor: 'dark:bg-top-blue/10',
+                  borderColor: 'border-top-blue/30',
+                  darkBorderColor: 'dark:border-top-blue/40'
                 }
               };
 
@@ -820,42 +820,42 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-gradient-to-br from-stone-50 to-green-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-stone-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
+            className="bg-gradient-to-br from-top-teal-light to-top-blue-light dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-top-teal/20 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
           >
             <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
-              <Star className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-stone-700 dark:text-stone-600" />
+              <Star className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-top-teal dark:text-top-teal" />
               Análise de Potencial
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-stone-200 dark:border-stone-700">
+              <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-top-blue/30 dark:border-top-blue/40">
                 <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Média Geral</h4>
-                <p className="text-2xl sm:text-3xl font-bold text-stone-700 dark:text-stone-600">{calculatePotentialScores().final}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-top-blue dark:text-top-blue">{calculatePotentialScores().final}</p>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
                   <div
-                    className="bg-gradient-to-r from-stone-600 to-stone-700 dark:from-stone-700 dark:to-stone-800 h-2 rounded-full transition-all duration-300"
+                    className="bg-gradient-to-r from-top-blue to-top-blue-dark dark:from-top-blue-dark dark:to-top-blue h-2 rounded-full transition-all duration-300"
                     style={{ width: `${(calculatePotentialScores().final / 4) * 100}%` }}
                   />
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-green-200 dark:border-green-700">
+              <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-top-teal/30 dark:border-top-teal/40">
                 <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Critérios Avaliados</h4>
-                <p className="text-2xl sm:text-3xl font-bold text-green-800 dark:text-green-600">{potentialItems.filter(c => c.score).length}/{potentialItems.length}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-top-teal dark:text-top-teal">{potentialItems.filter(c => c.score).length}/{potentialItems.length}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   {potentialItems.filter(c => c.score).length === potentialItems.length ? 'Avaliação completa' : 'Em andamento'}
                 </p>
               </div>
 
-              <div className="bg-gradient-to-br from-stone-600 to-green-900 dark:from-stone-700 dark:to-stone-800 p-4 sm:p-6 rounded-lg sm:rounded-xl text-white sm:col-span-2 lg:col-span-1">
-                <h4 className="text-sm font-medium text-stone-100 dark:text-stone-200 mb-2">Classificação</h4>
+              <div className="bg-gradient-to-br from-top-teal to-top-blue dark:from-top-teal-dark dark:to-top-blue-dark p-4 sm:p-6 rounded-lg sm:rounded-xl text-white sm:col-span-2 lg:col-span-1">
+                <h4 className="text-sm font-medium text-white/80 dark:text-white/80 mb-2">Classificação</h4>
                 <p className="text-xl sm:text-2xl font-bold break-words">
                   {calculatePotentialScores().final >= 3.5 ? 'Alto Potencial' :
                    calculatePotentialScores().final >= 2.5 ? 'Potencial Médio' :
                    calculatePotentialScores().final >= 1.5 ? 'Potencial em Desenvolvimento' :
                    'Necessita Desenvolvimento'}
                 </p>
-                <p className="text-xs text-stone-100 dark:text-stone-200 mt-2">
+                <p className="text-xs text-white/80 dark:text-white/80 mt-2">
                   Baseado na média das avaliações
                 </p>
               </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useEvaluation } from '../../hooks/useEvaluation';
@@ -90,9 +90,22 @@ const LeaderEvaluation = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [leaderEvaluationId, setLeaderEvaluationId] = useState<string | null>(null);
 
+  // Verificar se é usuário admin para modo demonstração
+  const isAdminDemo = user?.email === 'admintop@sistema.com';
+
   // Controle de modo de visualização (igual ao Consenso)
   const [viewMode, setViewMode] = useState<'edit' | 'view'>('edit');
   const [existingEvaluationData, setExistingEvaluationData] = useState<any>(null);
+
+  // Auto-save states
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isRestoringData, setIsRestoringData] = useState(false);
+
+  // Storage key for auto-save
+  const getStorageKey = useCallback(() => {
+    if (!currentCycle?.id || !selectedEmployeeId || !profile?.id) return null;
+    return `leader_evaluation_autosave_${currentCycle.id}_${selectedEmployeeId}_${profile.id}`;
+  }, [currentCycle?.id, selectedEmployeeId, profile?.id]);
 
   const [sections, setSections] = useState<SectionProps[]>([]); // Inicializar vazio, será preenchido no useEffect
 
@@ -110,12 +123,12 @@ const LeaderEvaluation = () => {
         weight: 50,
         expanded: true,
         icon: BookOpen,
-        gradient: 'from-green-500 to-green-600',
-        darkGradient: 'dark:from-green-800 dark:to-green-900',
-        bgColor: 'bg-green-50',
-        darkBgColor: 'dark:bg-green-800/20',
-        borderColor: 'border-green-200',
-        darkBorderColor: 'dark:border-green-700',
+        gradient: 'from-top-teal to-top-teal-dark',
+        darkGradient: 'dark:from-top-teal-dark dark:to-top-teal',
+        bgColor: 'bg-top-teal-light',
+        darkBgColor: 'dark:bg-top-teal/10',
+        borderColor: 'border-top-teal/30',
+        darkBorderColor: 'dark:border-top-teal/40',
         items: EVALUATION_COMPETENCIES.technical.map(comp => ({
           id: comp.name.toLowerCase().replace(/\s+/g, '-'),
           name: comp.name,
@@ -129,12 +142,12 @@ const LeaderEvaluation = () => {
         weight: 30,
         expanded: false,
         icon: Target,
-        gradient: 'from-gray-500 to-gray-600',
-        darkGradient: 'dark:from-gray-600 dark:to-gray-700',
-        bgColor: 'bg-gray-50',
-        darkBgColor: 'dark:bg-gray-800/20',
-        borderColor: 'border-gray-200',
-        darkBorderColor: 'dark:border-gray-700',
+        gradient: 'from-top-blue to-top-blue-dark',
+        darkGradient: 'dark:from-top-blue-dark dark:to-top-blue',
+        bgColor: 'bg-top-blue-light',
+        darkBgColor: 'dark:bg-top-blue/10',
+        borderColor: 'border-top-blue/30',
+        darkBorderColor: 'dark:border-top-blue/40',
         items: EVALUATION_COMPETENCIES.behavioral.map(comp => ({
           id: comp.name.toLowerCase().replace(/\s+/g, '-'),
           name: comp.name,
@@ -148,12 +161,12 @@ const LeaderEvaluation = () => {
         weight: 20,
         expanded: false,
         icon: Award,
-        gradient: 'from-stone-500 to-stone-600',
-        darkGradient: 'dark:from-stone-700 dark:to-stone-800',
-        bgColor: 'bg-stone-50',
-        darkBgColor: 'dark:bg-stone-800/20',
-        borderColor: 'border-stone-200',
-        darkBorderColor: 'dark:border-stone-700',
+        gradient: 'from-top-gold to-top-gold-dark',
+        darkGradient: 'dark:from-top-gold-dark dark:to-top-gold',
+        bgColor: 'bg-top-gold-light',
+        darkBgColor: 'dark:bg-top-gold/10',
+        borderColor: 'border-top-gold/30',
+        darkBorderColor: 'dark:border-top-gold/40',
         items: organizationalCompetencies.map((comp: any) => ({
           id: comp.name.toLowerCase().replace(/\s+/g, '-'),
           name: comp.name,
@@ -211,6 +224,97 @@ const LeaderEvaluation = () => {
     };
     loadData();
   }, [loadSubordinates]);
+
+  // Auto-save: Restaurar dados do localStorage ao selecionar colaborador
+  useEffect(() => {
+    const storageKey = getStorageKey();
+    if (!storageKey || hasExistingEvaluation || viewMode === 'view') return;
+
+    const savedData = localStorage.getItem(storageKey);
+    if (savedData) {
+      try {
+        setIsRestoringData(true);
+        const parsed = JSON.parse(savedData);
+
+        if (parsed.sections) {
+          setSections(parsed.sections);
+        }
+
+        if (parsed.potentialItems) {
+          setPotentialItems(parsed.potentialItems);
+        }
+
+        if (parsed.pdiData) {
+          setPdiData(prev => ({ ...prev, ...parsed.pdiData }));
+        }
+
+        if (parsed.currentStep) {
+          setCurrentStep(parsed.currentStep);
+        }
+
+        if (parsed.timestamp) {
+          setLastSaved(new Date(parsed.timestamp));
+        }
+
+        toast.success('Dados restaurados automaticamente', {
+          icon: '💾',
+          duration: 3000
+        });
+
+        console.log('📝 Dados restaurados do auto-save:', {
+          sections: !!parsed.sections,
+          potentialItems: !!parsed.potentialItems,
+          pdiData: !!parsed.pdiData,
+          step: parsed.currentStep
+        });
+      } catch (error) {
+        console.error('Erro ao restaurar auto-save:', error);
+        localStorage.removeItem(storageKey);
+      } finally {
+        setIsRestoringData(false);
+      }
+    }
+  }, [getStorageKey, hasExistingEvaluation, viewMode]);
+
+  // Auto-save: Salvar dados no localStorage quando houver mudanças
+  useEffect(() => {
+    const storageKey = getStorageKey();
+    if (!storageKey || viewMode === 'view' || hasExistingEvaluation || isRestoringData) return;
+
+    // Verificar se há dados para salvar
+    const hasSectionScores = sections.some(s => s.items.some(i => i.score !== undefined));
+    const hasPotentialScores = potentialItems.some(i => i.score !== undefined);
+    const hasPdiItems = pdiData.curtosPrazos.length > 0 || pdiData.mediosPrazos.length > 0 || pdiData.longosPrazos.length > 0;
+
+    if (hasSectionScores || hasPotentialScores || hasPdiItems) {
+      const dataToSave = {
+        sections,
+        potentialItems,
+        pdiData,
+        currentStep,
+        timestamp: new Date().toISOString()
+      };
+
+      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+      setLastSaved(new Date());
+
+      console.log('💾 Auto-save realizado:', {
+        hasSectionScores,
+        hasPotentialScores,
+        hasPdiItems,
+        step: currentStep
+      });
+    }
+  }, [sections, potentialItems, pdiData, currentStep, getStorageKey, viewMode, hasExistingEvaluation, isRestoringData]);
+
+  // Limpar auto-save após salvar com sucesso
+  const clearAutoSave = useCallback(() => {
+    const storageKey = getStorageKey();
+    if (storageKey) {
+      localStorage.removeItem(storageKey);
+      console.log('🗑️ Auto-save limpo após salvar com sucesso');
+    }
+  }, [getStorageKey]);
 
   // Load existing PDI when employee is selected
   const loadExistingPDI = async (employeeId: string) => {
@@ -388,10 +492,11 @@ const LeaderEvaluation = () => {
   };
 
   const handleNextStep = () => {
-    if (currentStep === 1 && canProceedToStep2()) {
+    // Admin demo pode navegar livremente entre etapas
+    if (currentStep === 1 && (canProceedToStep2() || isAdminDemo)) {
       setCurrentStep(2);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (currentStep === 2 && canProceedToStep3()) {
+    } else if (currentStep === 2 && (canProceedToStep3() || isAdminDemo)) {
       setCurrentStep(3);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -488,6 +593,9 @@ const LeaderEvaluation = () => {
       );
 
       await pdiService.savePDI(pdiParams);
+
+      // Limpar auto-save após salvar com sucesso
+      clearAutoSave();
 
       toast.success('Avaliação e PDI salvos com sucesso!');
       setTimeout(() => {
@@ -698,10 +806,33 @@ const LeaderEvaluation = () => {
         periodMessage={getCyclePeriodMessage()}
         pdiData={pdiData}
         setPdiData={setPdiData}
+        lastSaved={lastSaved}
       />
 
-      {selectedEmployeeId && (
+      {/* Modo demonstração para admin ou colaborador selecionado */}
+      {(selectedEmployeeId || isAdminDemo) && (
         <>
+          {/* Banner de modo demonstração para admin */}
+          {isAdminDemo && !selectedEmployeeId && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 dark:border-amber-600 rounded-lg p-4 shadow-sm"
+            >
+              <div className="flex items-start">
+                <Info className="h-5 w-5 text-amber-500 dark:text-amber-400 mt-0.5 mr-3 flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                    Modo Demonstração
+                  </h4>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    Você está visualizando a interface em modo demonstração. As funcionalidades estão disponíveis para visualização, mas não é possível salvar avaliações sem selecionar um colaborador.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {currentStep === 1 && (
             <>
               {sections.map((section, index) => (
@@ -712,7 +843,7 @@ const LeaderEvaluation = () => {
                   sectionIndex={index}
                   calculateScores={calculateScores}
                   isSaving={isSaving}
-                  readOnly={viewMode === 'view'}
+                  readOnly={viewMode === 'view' || (isAdminDemo && !selectedEmployeeId)}
                 />
               ))}
               {viewMode === 'edit' && (
@@ -735,7 +866,7 @@ const LeaderEvaluation = () => {
                     )}
                   </div>
                   <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                    <Button variant="primary" onClick={handleNextStep} icon={<ArrowRight size={18} />} size="lg" disabled={!canProceedToStep2()}>
+                    <Button variant="primary" onClick={handleNextStep} icon={<ArrowRight size={18} />} size="lg" disabled={!canProceedToStep2() && !isAdminDemo}>
                       Próxima Etapa
                     </Button>
                   </div>
@@ -759,7 +890,7 @@ const LeaderEvaluation = () => {
               canProceedToStep3={canProceedToStep3}
               selectedEmployee={selectedEmployee}
               hideActionButtons={viewMode === 'view'}
-              readOnly={viewMode === 'view'}
+              readOnly={viewMode === 'view' || (isAdminDemo && !selectedEmployeeId)}
             />
           )}
 
@@ -778,13 +909,13 @@ const LeaderEvaluation = () => {
               canProceedToStep3={canProceedToStep3}
               selectedEmployee={selectedEmployee}
               hideActionButtons={viewMode === 'view'}
-              readOnly={viewMode === 'view'}
+              readOnly={viewMode === 'view' || (isAdminDemo && !selectedEmployeeId)}
             />
           )}
         </>
       )}
 
-      {!selectedEmployeeId && (
+      {!selectedEmployeeId && !isAdminDemo && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}

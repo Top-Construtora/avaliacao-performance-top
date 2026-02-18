@@ -2,6 +2,31 @@
 export default {
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  safelist: [
+    // Cores Top - Teal
+    'bg-top-teal', 'bg-top-teal-light', 'bg-top-teal-dark',
+    'from-top-teal', 'to-top-teal', 'from-top-teal-dark', 'to-top-teal-dark',
+    'border-top-teal', 'text-top-teal',
+    'bg-top-teal/10', 'bg-top-teal/20', 'border-top-teal/20', 'border-top-teal/30', 'border-top-teal/40',
+    'dark:from-top-teal', 'dark:to-top-teal', 'dark:from-top-teal-dark', 'dark:to-top-teal-dark',
+    'dark:bg-top-teal/10', 'dark:border-top-teal/30', 'dark:border-top-teal/40', 'dark:text-top-teal',
+    'focus:ring-top-teal', 'dark:focus:ring-top-teal',
+    // Cores Top - Blue
+    'bg-top-blue', 'bg-top-blue-light', 'bg-top-blue-dark',
+    'from-top-blue', 'to-top-blue', 'from-top-blue-dark', 'to-top-blue-dark',
+    'border-top-blue', 'text-top-blue',
+    'bg-top-blue/10', 'bg-top-blue/20', 'border-top-blue/30', 'border-top-blue/40',
+    'dark:from-top-blue', 'dark:to-top-blue', 'dark:from-top-blue-dark', 'dark:to-top-blue-dark',
+    'dark:bg-top-blue/10', 'dark:border-top-blue/40', 'dark:text-top-blue',
+    'focus:ring-top-blue', 'dark:focus:ring-top-blue',
+    // Cores Top - Gold
+    'bg-top-gold', 'bg-top-gold-light', 'bg-top-gold-dark',
+    'from-top-gold', 'to-top-gold', 'from-top-gold-dark', 'to-top-gold-dark',
+    'border-top-gold', 'text-top-gold',
+    'bg-top-gold/10', 'bg-top-gold/20', 'border-top-gold/30', 'border-top-gold/40',
+    'dark:from-top-gold', 'dark:to-top-gold', 'dark:from-top-gold-dark', 'dark:to-top-gold-dark',
+    'dark:bg-top-gold/10', 'dark:border-top-gold/40', 'dark:text-top-gold',
+  ],
   theme: {
     extend: {
       fontFamily: {
@@ -71,6 +96,18 @@ export default {
         },
         'dark-navy': '#1e2938',
         'naue-green': '#1e2938',
+        // Cores Top
+        'top': {
+          teal: '#12b0a0',
+          'teal-light': '#e6f7f5',
+          'teal-dark': '#0e8c80',
+          blue: '#1e6076',
+          'blue-light': '#e8f0f3',
+          'blue-dark': '#184d5e',
+          gold: '#baa673',
+          'gold-light': '#f5f1e6',
+          'gold-dark': '#9a8a5f',
+        },
       },
       boxShadow: {
         'primary-500/20': '0 10px 15px -3px rgba(18, 176, 160, 0.2), 0 4px 6px -2px rgba(18, 176, 160, 0.1)',

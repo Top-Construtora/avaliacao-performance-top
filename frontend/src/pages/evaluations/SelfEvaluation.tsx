@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -21,7 +21,9 @@ import {
   ChevronRight,
   Zap,
   Pen,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  RefreshCw
 } from 'lucide-react';
 import Button from '../../components/Button';
 import { useEvaluation } from '../../hooks/useEvaluation';
@@ -74,6 +76,20 @@ const SelfEvaluation = () => {
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
   const [competencyCategories, setCompetencyCategories] = useState<any[]>([]);
+
+  // Auto-save states
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isRestoringData, setIsRestoringData] = useState(false);
+
+  // Validation states
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Storage key for auto-save
+  const getStorageKey = useCallback(() => {
+    if (!currentCycle?.id || !user?.id) return null;
+    return `self_evaluation_autosave_${currentCycle.id}_${user.id}`;
+  }, [currentCycle?.id, user?.id]);
 
   // Check for existing evaluation (igual ao Consenso)
   useEffect(() => {
@@ -131,6 +147,122 @@ const SelfEvaluation = () => {
     };
     checkExisting();
   }, [currentCycle, user]);
+
+  // Auto-save: Restaurar dados do localStorage ao carregar (apenas se não houver avaliação existente)
+  useEffect(() => {
+    const storageKey = getStorageKey();
+    if (!storageKey || hasExistingEvaluation || viewMode === 'view') return;
+
+    const savedData = localStorage.getItem(storageKey);
+    if (savedData) {
+      try {
+        setIsRestoringData(true);
+        const parsed = JSON.parse(savedData);
+
+        if (parsed.formData) {
+          setFormData(parsed.formData);
+          // Atualizar seções completas
+          const completedSectionsSet = new Set<string>();
+          Object.entries(parsed.formData).forEach(([key, values]) => {
+            if ((values as string[]).some(v => v.trim() !== '')) {
+              completedSectionsSet.add(key);
+            }
+          });
+          setCompletedSections(completedSectionsSet);
+        }
+
+        if (parsed.competencyScores) {
+          setCompetencyScores(parsed.competencyScores);
+        }
+
+        if (parsed.currentStep) {
+          setCurrentStep(parsed.currentStep);
+        }
+
+        if (parsed.timestamp) {
+          setLastSaved(new Date(parsed.timestamp));
+        }
+
+        toast.success('Dados restaurados automaticamente', {
+          icon: '💾',
+          duration: 3000
+        });
+
+        console.log('📝 Dados restaurados do auto-save:', {
+          formData: !!parsed.formData,
+          scores: Object.keys(parsed.competencyScores || {}).length,
+          step: parsed.currentStep
+        });
+      } catch (error) {
+        console.error('Erro ao restaurar auto-save:', error);
+        localStorage.removeItem(storageKey);
+      } finally {
+        setIsRestoringData(false);
+      }
+    }
+  }, [getStorageKey, hasExistingEvaluation, viewMode]);
+
+  // Auto-save: Salvar dados no localStorage quando houver mudanças
+  useEffect(() => {
+    const storageKey = getStorageKey();
+    if (!storageKey || viewMode === 'view' || hasExistingEvaluation || isRestoringData) return;
+
+    // Verificar se há dados para salvar
+    const hasFormData = Object.values(formData).some(arr => arr.some(v => v.trim() !== ''));
+    const hasScores = Object.keys(competencyScores).length > 0;
+
+    if (hasFormData || hasScores) {
+      const dataToSave = {
+        formData,
+        competencyScores,
+        currentStep,
+        timestamp: new Date().toISOString()
+      };
+
+      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false);
+
+      console.log('💾 Auto-save realizado:', {
+        formDataSections: Object.keys(formData).length,
+        numScores: Object.keys(competencyScores).length,
+        step: currentStep
+      });
+    }
+  }, [formData, competencyScores, currentStep, getStorageKey, viewMode, hasExistingEvaluation, isRestoringData]);
+
+  // Marcar como tendo alterações não salvas
+  useEffect(() => {
+    if (!isRestoringData && viewMode === 'edit') {
+      setHasUnsavedChanges(true);
+    }
+  }, [formData, competencyScores, isRestoringData, viewMode]);
+
+  // Limpar auto-save após salvar com sucesso
+  const clearAutoSave = useCallback(() => {
+    const storageKey = getStorageKey();
+    if (storageKey) {
+      localStorage.removeItem(storageKey);
+      console.log('🗑️ Auto-save limpo após salvar com sucesso');
+    }
+  }, [getStorageKey]);
+
+  // Validação em tempo real para toolkit
+  const validateToolkitSection = useCallback((section: keyof SelfEvaluationData, values: string[]) => {
+    const hasValidItem = values.some(v => v.trim() !== '');
+    if (!hasValidItem) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [section]: 'Adicione pelo menos um item nesta seção'
+      }));
+    } else {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[section];
+        return newErrors;
+      });
+    }
+  }, []);
 
   // Initialize competency categories with dynamic organizational competencies
   useEffect(() => {
@@ -197,15 +329,19 @@ const SelfEvaluation = () => {
   };
 
   const updateField = (section: keyof SelfEvaluationData, index: number, value: string) => {
+    const newSectionData = formData[section].map((item, i) => i === index ? value : item);
+
     setFormData(prev => ({
       ...prev,
-      [section]: prev[section].map((item, i) => i === index ? value : item)
+      [section]: newSectionData
     }));
 
+    // Validação em tempo real
+    validateToolkitSection(section, newSectionData);
+
     // Check if section is completed
-    const sectionData = formData[section].map((item, i) => i === index ? value : item);
-    const hasValidItems = sectionData.some(item => item.trim() !== '');
-    
+    const hasValidItems = newSectionData.some(item => item.trim() !== '');
+
     if (hasValidItems) {
       setCompletedSections(prev => new Set(prev).add(section));
     } else {
@@ -343,6 +479,7 @@ const SelfEvaluation = () => {
       });
 
       console.log('✅ Autoavaliação salva com sucesso!');
+      clearAutoSave(); // Limpar auto-save após salvar com sucesso
       toast.success('Autoavaliação completa salva com sucesso!');
       navigate('/');
     } catch (error: any) {
@@ -470,10 +607,10 @@ const SelfEvaluation = () => {
       title: 'Conhecimentos',
       subtitle: 'Sei falar sobre:',
       icon: Brain,
-      gradient: 'from-primary to-primary-700 dark:from-primary-600 dark:to-primary-700',
-      bgColor: 'bg-primary-50 dark:bg-primary-600/20',
-      borderColor: 'border-primary-200 dark:border-primary-700',
-      iconBg: 'bg-gradient-to-br from-primary to-primary-700 dark:from-primary-600 dark:to-primary-700',
+      gradient: 'from-top-teal to-top-teal-dark dark:from-top-teal-dark dark:to-top-teal',
+      bgColor: 'bg-top-teal-light dark:bg-top-teal/10',
+      borderColor: 'border-top-teal/30 dark:border-top-teal/40',
+      iconBg: 'bg-gradient-to-br from-top-teal to-top-teal-dark dark:from-top-teal-dark dark:to-top-teal',
       items: formData.conhecimentos
     },
     {
@@ -481,10 +618,10 @@ const SelfEvaluation = () => {
       title: 'Ferramentas',
       subtitle: 'Sei usar:',
       icon: Wrench,
-      gradient: 'from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-700',
-      bgColor: 'bg-gray-50 dark:bg-gray-900/20',
-      borderColor: 'border-gray-200 dark:border-gray-700',
-      iconBg: 'bg-gradient-to-br from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-700',
+      gradient: 'from-top-blue to-top-blue-dark dark:from-top-blue-dark dark:to-top-blue',
+      bgColor: 'bg-top-blue-light dark:bg-top-blue/10',
+      borderColor: 'border-top-blue/30 dark:border-top-blue/40',
+      iconBg: 'bg-gradient-to-br from-top-blue to-top-blue-dark dark:from-top-blue-dark dark:to-top-blue',
       items: formData.ferramentas
     },
     {
@@ -492,10 +629,10 @@ const SelfEvaluation = () => {
       title: 'Forças Internas',
       subtitle: 'Me sustentam:',
       icon: Shield,
-      gradient: 'from-stone-500 to-stone-600 dark:from-stone-700 dark:to-stone-800',
-      bgColor: 'bg-stone-50 dark:bg-stone-900/20',
-      borderColor: 'border-stone-200 dark:border-stone-700',
-      iconBg: 'bg-gradient-to-br from-stone-500 to-stone-600 dark:from-stone-700 dark:to-stone-800',
+      gradient: 'from-top-gold to-top-gold-dark dark:from-top-gold-dark dark:to-top-gold',
+      bgColor: 'bg-top-gold-light dark:bg-top-gold/10',
+      borderColor: 'border-top-gold/30 dark:border-top-gold/40',
+      iconBg: 'bg-gradient-to-br from-top-gold to-top-gold-dark dark:from-top-gold-dark dark:to-top-gold',
       items: formData.forcasInternas
     },
     {
@@ -503,10 +640,10 @@ const SelfEvaluation = () => {
       title: 'Qualidades',
       subtitle: 'Tenho para oferecer:',
       icon: Award,
-      gradient: 'from-stone-500 to-stone-600 dark:from-stone-700 dark:to-stone-800',
-      bgColor: 'bg-gradient-to-br from-stone-50 to-stone-50 dark:from-stone-900/20 dark:to-stone-900/20',
-      borderColor: 'border-stone-200 dark:border-stone-700',
-      iconBg: 'bg-gradient-to-br from-stone-500 to-stone-600 dark:from-stone-700 dark:to-stone-800',
+      gradient: 'from-top-gold to-top-gold-dark dark:from-top-gold-dark dark:to-top-gold',
+      bgColor: 'bg-top-gold-light dark:bg-top-gold/10',
+      borderColor: 'border-top-gold/30 dark:border-top-gold/40',
+      iconBg: 'bg-gradient-to-br from-top-gold to-top-gold-dark dark:from-top-gold-dark dark:to-top-gold',
       items: formData.qualidades
     }
   ];
@@ -567,12 +704,17 @@ const SelfEvaluation = () => {
                       <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{section.subtitle}</p>
                     </div>
                   </div>
-                  {isCompleted && (
+                  {isCompleted ? (
                     <div className="flex items-center space-x-1 sm:space-x-2 text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-600/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
                       <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span className="text-xs sm:text-sm font-medium hidden sm:inline">Completo</span>
                     </div>
-                  )}
+                  ) : validationErrors[section.id] && viewMode === 'edit' ? (
+                    <div className="flex items-center space-x-1 sm:space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                      <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="text-xs sm:text-sm font-medium hidden sm:inline">Obrigatório</span>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
@@ -600,7 +742,7 @@ const SelfEvaluation = () => {
                               type="text"
                               value={item}
                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField(section.id, index, e.target.value)}
-                              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-300 font-medium rounded-lg sm:rounded-xl focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
+                              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-300 font-medium rounded-lg sm:rounded-xl focus:ring-2 focus:ring-top-teal dark:focus:ring-top-teal focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
                               placeholder={`Digite ${section.title.toLowerCase()} ${index + 1}...`}
                             />
                             {item.trim() && (
@@ -646,7 +788,7 @@ const SelfEvaluation = () => {
         {viewMode === 'edit' && (
           <motion.div
             variants={itemVariants}
-            className="bg-gradient-to-br from-green-50 to-gray-50 dark:from-green-900/20 dark:to-gray-900/20 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-naue-border-gray dark:border-green-800"
+            className="bg-gradient-to-br from-top-teal-light to-top-blue-light dark:from-top-teal/10 dark:to-top-blue/10 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-top-teal/20 dark:border-top-teal/30"
           >
             <div className="flex items-start space-x-3">
               <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
@@ -705,7 +847,7 @@ const SelfEvaluation = () => {
                 icon={<ArrowRight size={18} />}
                 size="lg"
                 disabled={completedSections.size !== sections.length}
-                className="bg-gradient-to-r from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 w-full sm:w-auto"
+                className="bg-gradient-to-r from-top-teal to-top-blue dark:from-top-teal-dark dark:to-top-blue-dark w-full sm:w-auto"
               >
                 Próxima Etapa
               </Button>
@@ -937,7 +1079,7 @@ const SelfEvaluation = () => {
               icon={<Save size={18} />}
               size="lg"
               disabled={competencyProgress < 100 || isSaving || loading}
-              className="bg-gradient-to-r from-green-800 to-green-900 dark:from-green-800 dark:to-green-900 w-full sm:w-auto"
+              className="bg-gradient-to-r from-top-teal to-top-blue dark:from-top-teal-dark dark:to-top-blue-dark w-full sm:w-auto"
             >
               {isSaving ? 'Salvando...' : 'Salvar Autoavaliação'}
             </Button>
@@ -999,7 +1141,16 @@ const SelfEvaluation = () => {
 
           {/* Progress Indicator - Only show in edit mode */}
           {viewMode === 'edit' && (
-            <div className="flex items-center space-x-3 w-full lg:w-auto justify-end">
+            <div className="flex items-center space-x-4 w-full lg:w-auto justify-end">
+              {/* Auto-save indicator */}
+              {lastSaved && (
+                <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>
+                    Salvo às {lastSaved.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              )}
               <div className="text-right">
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Progresso</p>
                 <p className="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-100">

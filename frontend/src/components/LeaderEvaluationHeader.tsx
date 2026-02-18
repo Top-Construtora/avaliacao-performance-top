@@ -1,8 +1,8 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Briefcase, Calendar, Info, ChevronDown,
-  AlertCircle, Building, Grid3x3
+  AlertCircle, Building, Grid3x3, Search, X, Clock
 } from 'lucide-react';
 import type { EvaluationCycle } from '../types/evaluation.types';
 import type { UserWithDetails } from '../types/supabase';
@@ -19,6 +19,7 @@ interface LeaderEvaluationHeaderProps {
   periodMessage: { type: 'warning' | 'error', message: string } | null;
   pdiData: any; // PDI data passed from parent
   setPdiData: React.Dispatch<React.SetStateAction<any>>; // Setter for PDI data
+  lastSaved?: Date | null; // Timestamp of last auto-save
 }
 
 const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
@@ -31,11 +32,44 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
   progress,
   periodMessage,
   pdiData,
-  setPdiData
+  setPdiData,
+  lastSaved
 }) => {
   const selectedEmployee = subordinates.find(emp => emp.id === selectedEmployeeId);
   const { getNineBoxByEmployeeId } = useEvaluation(); // Get the hook here
   const employeeNineBox = selectedEmployeeId ? getNineBoxByEmployeeId(selectedEmployeeId) : undefined;
+
+  // Search dropdown state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Filter subordinates based on search
+  const filteredSubordinates = useMemo(() => {
+    if (!searchTerm.trim()) return subordinates;
+    const term = searchTerm.toLowerCase();
+    return subordinates.filter(emp =>
+      emp.name.toLowerCase().includes(term) ||
+      emp.position.toLowerCase().includes(term)
+    );
+  }, [subordinates, searchTerm]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelectEmployee = (employeeId: string) => {
+    setSelectedEmployeeId(employeeId);
+    setIsDropdownOpen(false);
+    setSearchTerm('');
+  };
 
 
   const getQuadrantDescription = (quadrant?: string) => {
@@ -115,7 +149,16 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
           </div>
         )}
 
-        <div className="flex items-center space-x-3 flex-shrink-0">
+        <div className="flex items-center space-x-4 flex-shrink-0">
+          {/* Auto-save indicator */}
+          {lastSaved && (
+            <div className="hidden sm:flex items-center space-x-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full">
+              <Clock className="h-3.5 w-3.5" />
+              <span>
+                Salvo às {lastSaved.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+          )}
           <div className="text-right">
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Progresso</p>
             <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{Math.round(progress)}%</p>
@@ -174,37 +217,99 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="sm:col-span-2">
-          <label htmlFor="employee-select" className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+        <div className="sm:col-span-2" ref={dropdownRef}>
+          <label htmlFor="employee-search" className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
             Selecione o Avaliado
           </label>
           <div className="relative">
-            <select
-              id="employee-select"
-              value={selectedEmployeeId}
-              onChange={(e) => setSelectedEmployeeId(e.target.value)}
-              className="w-full px-4 py-3 pl-12 pr-10 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-green-800 dark:focus:border-green-700 text-sm sm:text-base appearance-none text-gray-700 dark:text-gray-200"
-              disabled={loading}
+            {/* Search input / Selected display */}
+            <div
+              className={`w-full px-4 py-3 pl-12 pr-10 bg-white dark:bg-gray-700 border ${isDropdownOpen ? 'border-green-800 dark:border-green-700 ring-2 ring-green-800 dark:ring-green-700' : 'border-gray-300 dark:border-gray-600'} rounded-xl text-sm sm:text-base cursor-pointer transition-all`}
+              onClick={() => !loading && setIsDropdownOpen(true)}
             >
-              <option value="">Escolha um avaliado...</option>
-              {loading ? (
-                <option value="" disabled>Carregando...</option>
-              ) : subordinates.length === 0 ? (
-                <option value="" disabled>Nenhum avaliado subordinado</option>
+              {isDropdownOpen ? (
+                <input
+                  id="employee-search"
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-gray-700 dark:text-gray-200"
+                  placeholder="Buscar por nome ou cargo..."
+                  autoFocus
+                />
               ) : (
-                subordinates.map(employee => (
-                  <option key={employee.id} value={employee.id}>
-                    {employee.name} - {employee.position}
-                  </option>
-                ))
+                <span className={selectedEmployee ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500'}>
+                  {selectedEmployee ? `${selectedEmployee.name} - ${selectedEmployee.position}` : 'Escolha um avaliado...'}
+                </span>
               )}
-            </select>
-            <Info className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+            </div>
+            {isDropdownOpen ? (
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-green-800 dark:text-green-700 pointer-events-none" />
+            ) : (
+              <Info className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+            )}
+            {selectedEmployee && !isDropdownOpen ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedEmployeeId('');
+                }}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            ) : (
+              <ChevronDown className={`absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            )}
+
+            {/* Dropdown list */}
+            <AnimatePresence>
+              {isDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg max-h-60 overflow-y-auto"
+                >
+                  {loading ? (
+                    <div className="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm">Carregando...</div>
+                  ) : filteredSubordinates.length === 0 ? (
+                    <div className="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm">
+                      {searchTerm ? 'Nenhum resultado encontrado' : 'Nenhum avaliado subordinado'}
+                    </div>
+                  ) : (
+                    filteredSubordinates.map(employee => (
+                      <button
+                        key={employee.id}
+                        onClick={() => handleSelectEmployee(employee.id)}
+                        className={`w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center space-x-3 ${
+                          employee.id === selectedEmployeeId ? 'bg-green-50 dark:bg-green-900/20' : ''
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                            {employee.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{employee.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{employee.position}</p>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           {subordinates.length === 0 && !loading && (
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               Entre em contato com o RH para verificar suas permissões.
+            </p>
+          )}
+          {subordinates.length > 5 && !isDropdownOpen && (
+            <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+              {subordinates.length} colaboradores disponíveis • Clique para buscar
             </p>
           )}
         </div>
