@@ -130,8 +130,9 @@ export const usersService = {
 
       // Converter para UserWithDetails
       const usersWithDetails = (users || []).map(user => {
-        // Buscar manager do mapa
-        const manager = user.manager_id ? usersMap.get(user.manager_id) || null : null;
+        // Buscar manager do mapa (usando reports_to)
+        const managerId = (user as any).reports_to || (user as any).manager_id;
+        const manager = managerId ? usersMap.get(managerId) || null : null;
 
         // Buscar times do usuário do mapa
         const userTeams = userTeamsMap.get(user.id) || [];
@@ -139,8 +140,8 @@ export const usersService = {
         // Buscar departamento do usuário
         const userDepartment = user.department_id ? departmentsMap.get(user.department_id) || null : null;
 
-        // Buscar liderados diretos
-        const direct_reports = users.filter(u => u.manager_id === user.id);
+        // Buscar liderados diretos (usando reports_to)
+        const direct_reports = users.filter(u => ((u as any).reports_to || (u as any).manager_id) === user.id);
 
         return {
           ...user,
@@ -180,9 +181,10 @@ export const usersService = {
         .map(({ team_id }) => teamsMap.get(team_id))
         .filter(Boolean) as Team[];
 
-      const manager = data.manager_id ? usersMap.get(data.manager_id) || null : null;
+      const managerId = (data as any).reports_to || (data as any).manager_id;
+      const manager = managerId ? usersMap.get(managerId) || null : null;
       const userDepartment = data.department_id ? departmentsMap.get(data.department_id) || null : null;
-      const direct_reports = users.filter(u => u.manager_id === id);
+      const direct_reports = users.filter(u => ((u as any).reports_to || (u as any).manager_id) === id);
 
       return {
         ...data,

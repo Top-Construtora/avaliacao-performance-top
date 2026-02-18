@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, BarChart3, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3, Mail, Cake, MessageSquare, ArrowUp, CheckCircle, AlertCircle, Lock, Loader2, FileText, Save } from 'lucide-react';
+import { User, BarChart3, Calendar, Briefcase, TrendingUp, Target, Info, Grid3x3, Mail, Cake, MessageSquare, ArrowUp, CheckCircle, AlertCircle, Lock, Loader2, FileText, Save, DollarSign } from 'lucide-react';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 import { usePeopleCommitteePermission } from '../../hooks/usePeopleCommittee';
@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { evaluationService } from '../../services/evaluation.service';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
+import UserSalaryAssignment from '../../components/UserSalaryAssignment';
 
 interface MatrixConfig {
   bgColor: string;
@@ -102,6 +103,7 @@ const NineBoxMatrix = () => {
     dashboard,
     loadDashboard,
     employees,
+    reloadEmployees,
     loading // Adicionar loading para feedback visual
   } = useEvaluation();
 
@@ -120,6 +122,7 @@ const NineBoxMatrix = () => {
   const [potentialDetails, setPotentialDetails] = useState<Record<string, { name: string; score: number }> | null>(null);
   const [isLoadingPotentialDetails, setIsLoadingPotentialDetails] = useState(false);
   const dashboardLoadedRef = useRef(false);
+  const [showSalaryModal, setShowSalaryModal] = useState(false);
 
   // Verificar se o usuário pode definir posição (admin ou diretor)
   const canPromote = profile?.role === 'admin' || profile?.is_admin === true || profile?.is_director === true;
@@ -740,87 +743,136 @@ const NineBoxMatrix = () => {
                 </div>
               </div>
 
-              {/* Grid 2x4 com informações */}
-              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                    <Briefcase className="inline h-4 w-4 mr-1" />
-                    Cargo
-                  </label>
-                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
-                    {selectedEmp.position}
+              {/* Grid em duas colunas: Pessoal | Cargo e Salário */}
+              <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Coluna Esquerda: Informações Pessoais */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Informações Pessoais</h4>
+
+                  <div>
+                    <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                      <Mail className="inline h-4 w-4 mr-1" />
+                      Email
+                    </label>
+                    <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600 truncate">
+                      {selectedEmp.email || '-'}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                        <Calendar className="inline h-4 w-4 mr-1" />
+                        Data de Admissão
+                      </label>
+                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                        {formatJoinDate(selectedEmp.join_date)}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                        <Cake className="inline h-4 w-4 mr-1" />
+                        Idade
+                      </label>
+                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                        {calculateAge(selectedEmp.birth_date)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                        <User className="inline h-4 w-4 mr-1" />
+                        Líder
+                      </label>
+                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600 truncate">
+                        {selectedEmp.manager?.name || '-'}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                        <User className="inline h-4 w-4 mr-1" />
+                        Time
+                      </label>
+                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600 truncate">
+                        {selectedEmp.teams && selectedEmp.teams.length > 0
+                          ? selectedEmp.teams.map(t => t.name).join(', ')
+                          : '-'}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                    <Calendar className="inline h-4 w-4 mr-1" />
-                    Data de Admissão
-                  </label>
-                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
-                    {formatJoinDate(selectedEmp.join_date)}
-                  </div>
-                </div>
+                {/* Coluna Direita: Cargo e Salário */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cargo e Remuneração</h4>
 
-                <div>
-                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                    <Mail className="inline h-4 w-4 mr-1" />
-                    Email
-                  </label>
-                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600 truncate">
-                    {selectedEmp.email || '-'}
-                  </div>
-                </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                        <Briefcase className="inline h-4 w-4 mr-1" />
+                        Cargo
+                      </label>
+                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                        {selectedEmp.position}
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                    <Cake className="inline h-4 w-4 mr-1" />
-                    Idade
-                  </label>
-                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
-                    {calculateAge(selectedEmp.birth_date)}
+                    <div>
+                      <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                        <TrendingUp className="inline h-4 w-4 mr-1" />
+                        Trilha
+                      </label>
+                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                        {selectedEmp.track_position?.track?.name || '-'}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                    <TrendingUp className="inline h-4 w-4 mr-1" />
-                    Trilha
-                  </label>
-                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
-                    {selectedEmp.track_position?.track?.name || '-'}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                        <Grid3x3 className="inline h-4 w-4 mr-1" />
+                        Classe Salarial
+                      </label>
+                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                        {selectedEmp.track_position?.class?.name || selectedEmp.track_position?.class?.code || '-'}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                        <Target className="inline h-4 w-4 mr-1" />
+                        Nível Salarial
+                      </label>
+                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                        {selectedEmp.salary_level?.name || selectedEmp.intern_level || '-'}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                    <Target className="inline h-4 w-4 mr-1" />
-                    Nível Salarial
-                  </label>
-                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
-                    {selectedEmp.salary_level?.name || selectedEmp.intern_level || '-'}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                    <Grid3x3 className="inline h-4 w-4 mr-1" />
-                    Classe Salarial
-                  </label>
-                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
-                    {selectedEmp.track_position?.class?.name || selectedEmp.track_position?.class?.code || '-'}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
-                    <TrendingUp className="inline h-4 w-4 mr-1" />
-                    Salário
-                  </label>
-                  <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
-                    {selectedEmp.current_salary
-                      ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedEmp.current_salary)
-                      : '-'}
+                  <div>
+                    <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                      <DollarSign className="inline h-4 w-4 mr-1" />
+                      Salário
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                        {selectedEmp.current_salary
+                          ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedEmp.current_salary)
+                          : '-'}
+                      </div>
+                      <button
+                        onClick={() => setShowSalaryModal(true)}
+                        className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                        title="Gerenciar cargo e salário"
+                      >
+                        <DollarSign className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1320,6 +1372,22 @@ const NineBoxMatrix = () => {
             </p>
           </div>
         </motion.div>
+      )}
+
+      {/* Modal de Gestão Salarial */}
+      {showSalaryModal && selectedEmp && (
+        <UserSalaryAssignment
+          user={selectedEmp}
+          isOpen={showSalaryModal}
+          onClose={() => setShowSalaryModal(false)}
+          onUpdate={async () => {
+            // Recarregar dados dos colaboradores e do dashboard
+            await reloadEmployees();
+            if (currentCycle?.id) {
+              await loadDashboard(currentCycle.id);
+            }
+          }}
+        />
       )}
     </div>
   );

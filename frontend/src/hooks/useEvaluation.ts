@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { evaluationService } from '../services/evaluation.service';
 import { usersService } from '../services/supabase.service';
+import { dataCacheService } from '../services/dataCache.service';
 import type {
   EvaluationCycle,
   EvaluationExtended,
@@ -111,7 +112,8 @@ interface UseEvaluationReturn {
   checkExistingEvaluation: (cycleId: string, employeeId: string, type: 'self' | 'leader') => Promise<boolean>;
   getNineBoxByEmployeeId: (employeeId: string) => NineBoxData | undefined;
   savePDI: (pdiData: any) => Promise<any>;
-  loadPDI: (employeeId: string) => Promise<PdiData | null>; // Added loadPDI
+  loadPDI: (employeeId: string) => Promise<PdiData | null>;
+  reloadEmployees: () => Promise<void>;
 }
 
 export const useEvaluation = (): UseEvaluationReturn => {
@@ -550,6 +552,18 @@ export const useEvaluation = (): UseEvaluationReturn => {
     }
   }, []);
 
+  // Reload employees data
+  const reloadEmployees = useCallback(async () => {
+    try {
+      // Invalidar cache para forçar busca de dados atualizados
+      dataCacheService.invalidate();
+      const data = await usersService.getAll();
+      setEmployees(data);
+    } catch (error) {
+      console.error('Erro ao recarregar colaboradores:', error);
+    }
+  }, []);
+
   // Load organizational competencies
   const loadOrganizationalCompetencies = useCallback(async () => {
     try {
@@ -622,6 +636,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
     checkExistingEvaluation,
     getNineBoxByEmployeeId,
     savePDI,
-    loadPDI, // Added
+    loadPDI,
+    reloadEmployees,
   };
 };
