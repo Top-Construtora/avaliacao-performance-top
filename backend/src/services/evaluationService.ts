@@ -7,7 +7,7 @@ import type {
   CycleDashboard,
   NineBoxData,
 } from '../types';
-import { filterRestrictedUsers, filterRestrictedEmployeeRelations } from '../utils/userFilterUtils';
+import { filterRestrictedUsers, filterRestrictedEmployeeRelations, filterEvaluationRestrictedUsers, filterEvaluationRestrictedEmployeeRelations } from '../utils/userFilterUtils';
 
 export const evaluationService = {
   // ====================================
@@ -226,13 +226,18 @@ export const evaluationService = {
         }
       });
 
-      // Aplicar filtro de usuários restritos
-      const filteredUsers = filterRestrictedUsers(currentUserEmail, allUsers || []);
+      // Aplicar filtro de usuários restritos (geral)
+      let filteredUsers = filterRestrictedUsers(currentUserEmail, allUsers || []);
+      // Aplicar filtro específico de avaliações (Comitê/Consenso)
+      filteredUsers = filterEvaluationRestrictedUsers(currentUserEmail, filteredUsers);
 
       // Aplicar filtro nas avaliações também
-      const filteredSelfEvals = filterRestrictedEmployeeRelations(currentUserEmail, selfEvals || []);
-      const filteredLeaderEvals = filterRestrictedEmployeeRelations(currentUserEmail, leaderEvals || []);
-      const filteredConsensusEvals = filterRestrictedEmployeeRelations(currentUserEmail, consensusEvals || []);
+      let filteredSelfEvals = filterRestrictedEmployeeRelations(currentUserEmail, selfEvals || []);
+      filteredSelfEvals = filterEvaluationRestrictedEmployeeRelations(currentUserEmail, filteredSelfEvals);
+      let filteredLeaderEvals = filterRestrictedEmployeeRelations(currentUserEmail, leaderEvals || []);
+      filteredLeaderEvals = filterEvaluationRestrictedEmployeeRelations(currentUserEmail, filteredLeaderEvals);
+      let filteredConsensusEvals = filterRestrictedEmployeeRelations(currentUserEmail, consensusEvals || []);
+      filteredConsensusEvals = filterEvaluationRestrictedEmployeeRelations(currentUserEmail, filteredConsensusEvals);
 
       // Combinar dados para o dashboard
       const employeeMap = new Map<string, CycleDashboard>();
@@ -358,8 +363,9 @@ export const evaluationService = {
 
       if (error) throw new ApiError(500, error.message);
 
-      // Aplicar filtro de usuários restritos
-      const filteredData = filterRestrictedEmployeeRelations(currentUserEmail, data || []);
+      // Aplicar filtro de usuários restritos (geral + avaliações)
+      let filteredData = filterRestrictedEmployeeRelations(currentUserEmail, data || []);
+      filteredData = filterEvaluationRestrictedEmployeeRelations(currentUserEmail, filteredData);
 
       return filteredData?.map((item: any) => ({
         employee_id: item.employee_id,
