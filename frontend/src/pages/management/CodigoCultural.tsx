@@ -71,7 +71,7 @@ const CodigoCultural = () => {
     try {
       setLoading(true);
       const data = await competencyService.getOrganizationalCompetencies();
-      setCompetencies(data || []);
+      setCompetencies((data || []).sort((a: OrganizationalCompetency, b: OrganizationalCompetency) => a.position - b.position));
     } catch (error: any) {
       console.error('Erro ao carregar competências:', error);
       toast.error('Erro ao carregar competências organizacionais');
@@ -116,6 +116,11 @@ const CodigoCultural = () => {
   const handleSave = async () => {
     if (!formData.name.trim() || !formData.description.trim()) {
       toast.error('Nome e descrição são obrigatórios');
+      return;
+    }
+
+    if (!editingId && competencies.length >= 4) {
+      toast.error('O máximo de competências organizacionais é 4');
       return;
     }
 
@@ -214,7 +219,7 @@ const CodigoCultural = () => {
             </div>
           </div>
 
-          {!showAddForm && !editingId && (
+          {!showAddForm && !editingId && competencies.length < 4 && (
             <Button
               variant="primary"
               onClick={handleShowAddForm}
