@@ -10,8 +10,6 @@ export const pdiController = {
       const authReq = req as AuthRequest;
       const { employeeId, cycleId, leaderEvaluationId, periodo } = req.body;
 
-      console.log('🎯 Controller - Recebido no backend:', req.body);
-
       if (!employeeId) {
         return res.status(400).json({
           success: false,
@@ -22,13 +20,9 @@ export const pdiController = {
       // Processar os dados do PDI vindos do frontend
       let processedItems;
       if (req.body.items && Array.isArray(req.body.items)) {
-        // Se já vem como array de items (formato direto)
         processedItems = req.body.items;
-        console.log('📋 Controller - Usando items diretos:', processedItems.length);
       } else {
-        // Se vem no formato com arrays separados (curtosPrazos, mediosPrazos, longosPrazos)
         processedItems = PDIUtils.processPDIData(req.body);
-        console.log('📋 Controller - Items processados:', processedItems.length);
       }
 
       if (!processedItems || processedItems.length === 0) {
@@ -38,18 +32,13 @@ export const pdiController = {
         });
       }
 
-      console.log('📝 Controller - Items antes da validação:', processedItems);
-
       // Validar items usando o método do service
       if (!pdiService.validatePDIItems(processedItems)) {
-        console.log('❌ Controller - Validação falhou');
         return res.status(400).json({
           success: false,
           error: 'Estrutura dos itens do PDI inválida'
         });
       }
-
-      console.log('✅ Controller - Validação passou, enviando para service');
 
       const pdi = await pdiService.savePDI(authReq.supabase, {
         employeeId,
@@ -66,7 +55,7 @@ export const pdiController = {
         data: pdi
       });
     } catch (error) {
-      console.error('Controller error:', error);
+      console.error('Erro ao salvar PDI:', error);
       next(error);
     }
   },
@@ -84,7 +73,7 @@ export const pdiController = {
         data: pdi
       });
     } catch (error) {
-      console.error('Controller error:', error);
+      console.error('Erro ao buscar PDI:', error);
       next(error);
     }
   },
@@ -102,7 +91,7 @@ export const pdiController = {
         data: pdis
       });
     } catch (error) {
-      console.error('Controller error:', error);
+      console.error('Erro ao buscar PDIs por ciclo:', error);
       next(error);
     }
   }

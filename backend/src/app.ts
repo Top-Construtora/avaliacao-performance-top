@@ -134,15 +134,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Logging em desenvolvimento
-if (process.env.NODE_ENV === 'development') {
-  app.use((req, res, next) => {
-    if (req.headers.origin) {
-      console.log(`📨 Requisição de: ${req.headers.origin} para ${req.method} ${req.path}`);
-    }
-    next();
-  });
-}
+// Logging em desenvolvimento removido para manter console limpo
 
 // --- ROTAS E HANDLERS ---
 

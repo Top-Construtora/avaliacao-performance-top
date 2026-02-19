@@ -143,13 +143,21 @@ const Reports = () => {
     }
   };
 
+  // Emails excluídos dos cards de resumo
+  const summaryExcludedEmails = new Set(['admintop@sistema.com', 'usuarioteste1@topconstrutora.com']);
+
   // Calcular dados do resumo sempre que o dashboard mudar
   useEffect(() => {
     if (dashboard && dashboard.length > 0) {
-      const totalEmployees = dashboard.length;
+      // Filtrar usuários excluídos do total
+      const filteredDashboard = dashboard.filter((d: CycleDashboard) => {
+        const email = usersMap.get(d.employee_id)?.email || (d as any).employee_email || '';
+        return !summaryExcludedEmails.has(email.toLowerCase());
+      });
+      const totalEmployees = filteredDashboard.length;
 
       // COMPLETO: autoavaliação + líder + consenso + PDI (ninebox_position) todos completos
-      const completedEvaluations = dashboard.filter(
+      const completedEvaluations = filteredDashboard.filter(
         (d: CycleDashboard) => {
           const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
           if (isDirector) {
@@ -163,7 +171,7 @@ const Reports = () => {
       ).length;
 
       // EM ANDAMENTO: pelo menos UMA avaliação completa mas não tudo
-      const inProgress = dashboard.filter(
+      const inProgress = filteredDashboard.filter(
         (d: CycleDashboard) => {
           const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
 
@@ -200,7 +208,7 @@ const Reports = () => {
         completionRate
       });
     }
-  }, [dashboard]);
+  }, [dashboard, usersMap]);
 
   // Função auxiliar para verificar se avaliação está completa
   const isEvaluationCompleted = (d: CycleDashboard): boolean => {
@@ -242,7 +250,9 @@ const Reports = () => {
       teamsByDept.get(t.department_id)!.push(t);
     });
 
-    return departments.map(dept => {
+    return departments
+      .filter(dept => dept.name.toLowerCase() !== 'diretoria')
+      .map(dept => {
       const deptEmployees = dashboardByDept.get(dept.name.toLowerCase()) || [];
       const total = deptEmployees.length;
       const completed = deptEmployees.filter(isEvaluationCompleted).length;
@@ -283,7 +293,7 @@ const Reports = () => {
           completed: teamCompleted,
           completionRate: teamTotal > 0 ? Math.round((teamCompleted / teamTotal) * 100) : 0
         };
-      }).filter(t => t.total > 0);
+      }).filter(t => t.total > 0 && t.name.toLowerCase() !== 'diretoria');
 
       return {
         id: dept.id,
@@ -897,90 +907,7 @@ const Reports = () => {
             </p>
           </div>
           
-          <div className="hidden md:flex items-center space-x-3">
-            <button
-              onClick={printReport}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-600/20 rounded-lg transition-all duration-200"
-              title="Imprimir"
-            >
-              <Printer size={18} />
-            </button>
-            <button
-              onClick={shareReport}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-600/20 rounded-lg transition-all duration-200"
-              title="Compartilhar"
-            >
-              <Share2 size={18} />
-            </button>
-            <Button
-              variant="outline"
-              onClick={exportPDF}
-              icon={<FileDown size={16} />}
-              size="sm"
-            >
-              PDF
-            </Button>
-            <Button
-              variant="primary"
-              onClick={exportExcel}
-              icon={<Download size={16} />}
-              size="sm"
-            >
-              Excel
-            </Button>
-          </div>
-
-          <div className="md:hidden">
-            <button
-              onClick={() => setShowMobileActions(!showMobileActions)}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-600/20 rounded-lg transition-all duration-200"
-            >
-              {showMobileActions ? <X size={20} /> : <MoreVertical size={20} />}
-            </button>
-          </div>
         </div>
-
-        {/* Mobile Actions Menu */}
-        {showMobileActions && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-wrap gap-2"
-          >
-            <Button
-              variant="outline"
-              onClick={printReport}
-              icon={<Printer size={16} />}
-              size="sm"
-            >
-              Imprimir
-            </Button>
-            <Button
-              variant="outline"
-              onClick={shareReport}
-              icon={<Share2 size={16} />}
-              size="sm"
-            >
-              Compartilhar
-            </Button>
-            <Button
-              variant="outline"
-              onClick={exportPDF}
-              icon={<FileDown size={16} />}
-              size="sm"
-            >
-              PDF
-            </Button>
-            <Button
-              variant="primary"
-              onClick={exportExcel}
-              icon={<Download size={16} />}
-              size="sm"
-            >
-              Excel
-            </Button>
-          </motion.div>
-        )}
       </div>
 
       {/* Tabs */}

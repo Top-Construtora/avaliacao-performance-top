@@ -6,10 +6,6 @@ export const pdiService = {
   // Salvar ou atualizar PDI
   async savePDI(supabase: SupabaseClient, pdiData: PDIData) {
     try {
-      console.log('🔄 Backend - Salvando PDI:', pdiData);
-      console.log('📊 Backend - Total de itens recebidos:', pdiData.items?.length || 0);
-      console.log('📋 Backend - Items detalhados:', pdiData.items);
-
       // Validar que há pelo menos um item
       if (!pdiData.items || pdiData.items.length === 0) {
         throw new ApiError(400, 'O PDI deve conter pelo menos um item');
@@ -33,9 +29,6 @@ export const pdiService = {
         .single();
 
       if (existingPDI) {
-        console.log('📝 Atualizando PDI existente:', existingPDI.id);
-        console.log('📌 Items a serem atualizados:', JSON.stringify(pdiData.items, null, 2));
-
         // Atualizar PDI existente
         const updateData = {
           items: pdiData.items,
@@ -46,8 +39,6 @@ export const pdiService = {
           updated_at: new Date().toISOString()
         };
 
-        console.log('📦 Dados completos para update:', JSON.stringify(updateData, null, 2));
-
         const { data, error } = await supabase
           .from('development_plans')
           .update(updateData)
@@ -56,30 +47,24 @@ export const pdiService = {
           .single();
 
         if (error) {
-          console.error('❌ Erro ao atualizar PDI:', error);
+          console.error('Erro ao atualizar PDI:', error);
           throw new ApiError(500, error.message);
         }
-        console.log('✅ PDI atualizado com sucesso');
         return data;
       } else {
-        console.log('➕ Criando novo PDI');
-        console.log('📌 Items a serem salvos:', JSON.stringify(pdiData.items, null, 2));
-
         // Criar novo PDI
         const insertData = {
           employee_id: pdiData.employeeId,
           cycle_id: pdiData.cycleId || null,
           leader_evaluation_id: pdiData.leaderEvaluationId || null,
           timeline: pdiData.periodo || 'Anual',
-          items: pdiData.items, // Campo JSONB com os dados do PDI
+          items: pdiData.items,
           periodo: pdiData.periodo || 'Anual',
           status: 'active',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           created_by: pdiData.createdBy || null
         };
-
-        console.log('📦 Dados completos para insert:', JSON.stringify(insertData, null, 2));
 
         const { data, error } = await supabase
           .from('development_plans')
@@ -88,14 +73,15 @@ export const pdiService = {
           .single();
 
         if (error) {
-          console.error('❌ Erro ao criar PDI:', error);
+          console.error('Erro ao criar PDI:', error);
           throw new ApiError(500, error.message);
         }
-        console.log('✅ PDI criado com sucesso');
         return data;
       }
     } catch (error: any) {
-      console.error('Service error:', error);
+      if (!(error instanceof ApiError)) {
+        console.error('Erro inesperado no PDI service:', error.message);
+      }
       throw error;
     }
   },
@@ -121,7 +107,9 @@ export const pdiService = {
 
       return data;
     } catch (error: any) {
-      console.error('Service error:', error);
+      if (!(error instanceof ApiError)) {
+        console.error('Erro inesperado ao buscar PDI:', error.message);
+      }
       throw error;
     }
   },
@@ -142,7 +130,9 @@ export const pdiService = {
       if (error) throw new ApiError(500, error.message);
       return data || [];
     } catch (error: any) {
-      console.error('Service error:', error);
+      if (!(error instanceof ApiError)) {
+        console.error('Erro inesperado ao buscar PDIs por ciclo:', error.message);
+      }
       throw error;
     }
   },
@@ -150,42 +140,19 @@ export const pdiService = {
   // Validar estrutura do PDI
   validatePDIItems(items: PDIItem[]): boolean {
     if (!items || items.length === 0) {
-      console.log('❌ Validação falhou: Nenhum item fornecido');
       return false;
     }
 
-    console.log('🔍 Validando', items.length, 'itens do PDI...');
-
-    const isValid = items.every((item, index) => {
-      const valid =
+    return items.every((item) => {
+      return !!(
         item.competencia &&
         item.resultadosEsperados &&
         item.comoDesenvolver &&
         item.calendarizacao &&
         item.status &&
         ['1', '2', '3', '4', '5'].includes(item.status) &&
-        ['curto', 'medio', 'longo'].includes(item.prazo);
-
-      if (!valid) {
-        console.log(`❌ Item ${index} inválido:`, {
-          competencia: !!item.competencia,
-          resultadosEsperados: !!item.resultadosEsperados,
-          comoDesenvolver: !!item.comoDesenvolver,
-          calendarizacao: !!item.calendarizacao,
-          status: item.status,
-          statusValido: ['1', '2', '3', '4', '5'].includes(item.status),
-          prazo: item.prazo,
-          prazoValido: ['curto', 'medio', 'longo'].includes(item.prazo)
-        });
-        console.log('Item completo:', item);
-      } else {
-        console.log(`✅ Item ${index} válido (${item.prazo}):`, item.competencia);
-      }
-
-      return valid;
+        ['curto', 'medio', 'longo'].includes(item.prazo)
+      );
     });
-
-    console.log(isValid ? '✅ Validação concluída com sucesso' : '❌ Validação falhou');
-    return isValid;
   }
 };

@@ -383,21 +383,15 @@ export const salaryService = {
         reason: 'Reatribuição de trilha'
       };
 
-      console.log('📝 [assignUserToTrack] Inserindo progression_history:', JSON.stringify(historyPayload, null, 2));
-
       const { data: historyData, error: historyError } = await supabase
         .from('progression_history')
         .insert(historyPayload)
         .select();
 
       if (historyError) {
-        console.error('❌ [assignUserToTrack] Erro ao salvar histórico:', historyError);
+        console.error('Erro ao salvar histórico de progressão:', historyError);
         throw historyError;
       }
-
-      console.log('✅ [assignUserToTrack] Histórico salvo:', historyData);
-    } else {
-      console.log('ℹ️ [assignUserToTrack] Primeiro assignment, sem histórico a criar');
     }
 
     // Buscar o nome do cargo a partir da track_position
@@ -973,12 +967,12 @@ export const salaryService = {
   // ===== FUNÇÕES AUXILIARES =====
   createAuditLog(supabase: SupabaseClient<Database>, log: any) {
     // Implementar log de auditoria
-    console.log('Audit log:', log);
+    // Audit log placeholder
   },
 
   async notifyProgression(supabase: SupabaseClient<Database>, notification: any) {
     // Implementar notificação
-    console.log('Notification:', notification);
+    // Notification placeholder
   },
 
   calculateAverage(values: number[]): number {

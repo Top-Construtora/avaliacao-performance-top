@@ -247,10 +247,6 @@ export const evaluationService = {
         // Diretores não têm autoavaliação nem consenso, apenas avaliação de líder
         const isDirector = user.is_director === true;
 
-        if (isDirector) {
-          console.log(`🔍 Director detected: ${user.name} (${user.id}) - Setting self and consensus to 'n/a'`);
-        }
-
         // Tentar obter o nome do departamento: 1) via teams, 2) via department_id direto
         const departmentName = userDepartmentMap.get(user.id) || user.departments?.name || '';
         const teamName = userTeamMap.get(user.id) || '';
@@ -327,15 +323,6 @@ export const evaluationService = {
         leader_potential_score: emp.leader_potential_score ?? null,
         ninebox_position: emp.ninebox_position ?? null
       }));
-
-      // Log para verificar diretores
-      const directors = finalResult.filter(emp => emp.self_evaluation_status === 'n/a');
-      if (directors.length > 0) {
-        console.log(`✅ Found ${directors.length} director(s) with n/a status:`);
-        directors.forEach(d => {
-          console.log(`  - ${d.employee_name}: self=${d.self_evaluation_status}, consensus=${d.consensus_status}`);
-        });
-      }
 
       return finalResult;
     } catch (error: any) {
@@ -438,26 +425,12 @@ export const evaluationService = {
 
   // Criar autoavaliação
   async createSelfEvaluation(supabase: any, evaluationData: any) {
-    console.log('📝 [evaluationService] Iniciando criação de autoavaliação:', {
-      cycleId: evaluationData.cycleId,
-      employeeId: evaluationData.employeeId,
-      competenciesCount: evaluationData.competencies?.length || 0,
-      hasToolkit: !!evaluationData.toolkit
-    });
-
     try {
       // Calcular scores por categoria (pode retornar null se não houver competências)
       const technicalScore = this.calculateCategoryScore(evaluationData.competencies, 'technical');
       const behavioralScore = this.calculateCategoryScore(evaluationData.competencies, 'behavioral');
       const deliveriesScore = this.calculateCategoryScore(evaluationData.competencies, 'deliveries');
       const finalScore = this.calculateFinalScore(evaluationData.competencies);
-
-      console.log('📊 [evaluationService] Scores calculados:', {
-        technicalScore,
-        behavioralScore,
-        deliveriesScore,
-        finalScore
-      });
 
       // Criar a autoavaliação
       const insertData = {
@@ -477,8 +450,6 @@ export const evaluationService = {
         updated_at: new Date().toISOString()
       };
 
-      console.log('💾 [evaluationService] Inserindo autoavaliação no banco...');
-
       const { data: evaluation, error: evalError } = await supabase
         .from('self_evaluations')
         .insert(insertData)
@@ -486,11 +457,9 @@ export const evaluationService = {
         .single();
 
       if (evalError) {
-        console.error('❌ [evaluationService] Erro ao inserir autoavaliação:', evalError);
+        console.error('Erro ao inserir autoavaliação:', evalError);
         throw new ApiError(500, evalError.message);
       }
-
-      console.log('✅ [evaluationService] Autoavaliação criada com ID:', evaluation.id);
 
       // Salvar as competências avaliadas
       if (evaluationData.competencies && evaluationData.competencies.length > 0) {
@@ -505,28 +474,19 @@ export const evaluationService = {
           created_at: new Date().toISOString()
         }));
 
-        console.log('💾 [evaluationService] Inserindo competências:', competenciesToInsert.length);
-
         const { error: compError } = await supabase
           .from('evaluation_competencies')
           .insert(competenciesToInsert);
 
         if (compError) {
-          console.error('❌ [evaluationService] Erro ao inserir competências:', compError);
+          console.error('Erro ao inserir competências:', compError);
           throw new ApiError(500, compError.message);
         }
-
-        console.log('✅ [evaluationService] Competências salvas com sucesso');
       }
 
-      console.log('🎉 [evaluationService] Autoavaliação criada com sucesso!');
       return evaluation;
     } catch (error: any) {
-      console.error('❌ [evaluationService] Erro crítico ao criar autoavaliação:', {
-        message: error.message,
-        stack: error.stack,
-        details: error.details || error.hint
-      });
+      console.error('Erro ao criar autoavaliação:', error.message);
       throw error;
     }
   },

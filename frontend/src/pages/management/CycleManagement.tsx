@@ -3,25 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar, Plus, Play, Lock, Edit, Clock,
-  CheckCircle, AlertCircle, Users, BarChart3, FileText,
-  Info, X, Save, ChevronRight,
-  CalendarDays, Timer, TrendingUp, Award,
-  Eye, Download,
-  MoreVertical, RefreshCw, Zap, Grid3x3
+  CheckCircle, AlertCircle, Users, BarChart3,
+  Info, X, Save,
+  CalendarDays, Timer,
+  RefreshCw, Zap
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useUserRole } from '../../context/AuthContext';
 import type { EvaluationCycle } from '../../types/evaluation.types';
 import Button from '../../components/Button';
-
-interface CycleStats {
-  totalEmployees: number;
-  selfCompleted: number;
-  leaderCompleted: number;
-  consensusCompleted: number;
-  completionRate: number;
-}
 
 const CycleManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -35,14 +26,12 @@ const CycleManagement: React.FC = () => {
     openCycle,
     closeCycle,
     loadAllCycles,
-    loadDashboard,
-    dashboard
   } = useEvaluation();
   
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedCycle, setSelectedCycle] = useState<EvaluationCycle | null>(null);
-  const [cycleStats, setCycleStats] = useState<CycleStats | null>(null);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [cycleToClose, setCycleToClose] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [isCreating, setIsCreating] = useState(false);
@@ -73,28 +62,6 @@ const CycleManagement: React.FC = () => {
   }, [hasPermission]); // Adicionar hasPermission como dependência
 
   // Calculate cycle statistics
-  const calculateCycleStats = async (cycleId: string) => {
-    await loadDashboard(cycleId);
-  };
-
-  useEffect(() => {
-    if (dashboard.length > 0 && selectedCycle) {
-      const stats: CycleStats = {
-        totalEmployees: dashboard.length,
-        selfCompleted: dashboard.filter(d => d.self_evaluation_status === 'completed').length,
-        leaderCompleted: dashboard.filter(d => d.leader_evaluation_status === 'completed').length,
-        consensusCompleted: dashboard.filter(d => d.consensus_status === 'completed').length,
-        completionRate: 0
-      };
-      
-      const totalTasks = stats.totalEmployees * 3; // Self + Leader + Consensus
-      const completedTasks = stats.selfCompleted + stats.leaderCompleted + stats.consensusCompleted;
-      stats.completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-      
-      setCycleStats(stats);
-    }
-  }, [dashboard, selectedCycle]);
-
   const handleCreateCycle = async () => {
     if (!formData.title || !formData.start_date || !formData.end_date) {
       toast.error('Preencha todos os campos obrigatórios');
@@ -139,25 +106,25 @@ const CycleManagement: React.FC = () => {
     );
   };
 
-  const handleCloseCycle = async (cycleId: string) => {
-    if (!confirm('Tem certeza que deseja encerrar este ciclo? Esta ação não pode ser desfeita.')) {
-      return;
-    }
+  const handleCloseCycle = (cycleId: string) => {
+    setCycleToClose(cycleId);
+    setShowCloseConfirm(true);
+  };
+
+  const confirmCloseCycle = async () => {
+    if (!cycleToClose) return;
+    setShowCloseConfirm(false);
 
     await toast.promise(
-      closeCycle(cycleId),
+      closeCycle(cycleToClose),
       {
         loading: 'Encerrando ciclo...',
         success: 'Ciclo encerrado com sucesso!',
         error: 'Erro ao encerrar ciclo'
       }
     );
-  };
 
-  const viewCycleDetails = async (cycle: EvaluationCycle) => {
-    setSelectedCycle(cycle);
-    setShowDetailsModal(true);
-    await calculateCycleStats(cycle.id);
+    setCycleToClose(null);
   };
 
   const getCycleStatus = (cycle: EvaluationCycle) => {
@@ -311,14 +278,6 @@ const CycleManagement: React.FC = () => {
                   )}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => viewCycleDetails(currentCycle)}
-                className="ml-4"
-              >
-                Ver Detalhes
-              </Button>
             </div>
           </motion.div>
         )}
@@ -501,43 +460,9 @@ const CycleManagement: React.FC = () => {
                       </>
                     )}
 
-                    {cycle.status === 'closed' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => viewCycleDetails(cycle)}
-                        icon={<Eye className="h-4 w-4" />}
-                      >
-                        Ver Resultados
-                      </Button>
-                    )}
-
-                    <button
-                      onClick={() => viewCycleDetails(cycle)}
-                      className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                      title="Ver detalhes"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
                   </div>
                 </div>
 
-                {/* Quick Stats for Open Cycles */}
-                {cycle.status === 'open' && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <button
-                      onClick={() => viewCycleDetails(cycle)}
-                      className="w-full text-left group"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          Clique para ver detalhes do progresso
-                        </span>
-                        <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
-                      </div>
-                    </button>
-                  </div>
-                )}
               </motion.div>
             );
           })
@@ -668,9 +593,9 @@ const CycleManagement: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Details Modal */}
+      {/* Confirm Close Modal */}
       <AnimatePresence>
-        {showDetailsModal && selectedCycle && (
+        {showCloseConfirm && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -681,138 +606,47 @@ const CycleManagement: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-sm w-full"
             >
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                    {selectedCycle.title}
-                  </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {formatDate(selectedCycle.start_date)} até {formatDate(selectedCycle.end_date)}
-                  </p>
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
                 </div>
-                <button
-                  onClick={() => {
-                    setShowDetailsModal(false);
-                    setSelectedCycle(null);
-                    setCycleStats(null);
-                  }}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                </button>
+                <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
+                  Encerrar Ciclo
+                </h2>
               </div>
 
-              {cycleStats ? (
-                <div className="space-y-6">
-                  {/* Progress Overview */}
-                  <div className="bg-gradient-to-br from-primary-50 to-gray-50 dark:from-gray-700 dark:to-gray-800 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
-                      Progresso Geral
-                    </h3>
-                    
-                    <div className="mb-4">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-600 dark:text-gray-400">Taxa de Conclusão</span>
-                        <span className="font-medium text-gray-800 dark:text-gray-200">
-                          {Math.round(cycleStats.completionRate)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3">
-                        <div
-                          className="bg-gradient-to-r from-primary-800 to-gray-600 dark:from-primary-700 dark:to-gray-500 h-3 rounded-full transition-all duration-500"
-                          style={{ width: `${cycleStats.completionRate}%` }}
-                        />
-                      </div>
-                    </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                Tem certeza que deseja encerrar este ciclo? Esta ação não pode ser desfeita.
+              </p>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Total de Colaboradores</p>
-                            <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                              {cycleStats.totalEmployees}
-                            </p>
-                          </div>
-                          <Users className="h-8 w-8 text-gray-400 dark:text-gray-500" />
-                        </div>
-                      </div>
-
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Autoavaliações</p>
-                            <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                              {cycleStats.selfCompleted}/{cycleStats.totalEmployees}
-                            </p>
-                          </div>
-                          <FileText className="h-8 w-8 text-gray-400 dark:text-gray-500" />
-                        </div>
-                      </div>
-
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Avaliações do Líder</p>
-                            <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                              {cycleStats.leaderCompleted}/{cycleStats.totalEmployees}
-                            </p>
-                          </div>
-                          <Award className="h-8 w-8 text-gray-400 dark:text-gray-500" />
-                        </div>
-                      </div>
-
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Consensos</p>
-                            <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                              {cycleStats.consensusCompleted}/{cycleStats.totalEmployees}
-                            </p>
-                          </div>
-                          <TrendingUp className="h-8 w-8 text-gray-400 dark:text-gray-500" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-3">
-                    <Button
-                      variant="primary"
-                      onClick={() => navigate(`/evaluation-dashboard/${selectedCycle.id}`)}
-                      icon={<BarChart3 className="h-4 w-4" />}
-                    >
-                      Ver Dashboard Completo
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate(`/nine-box?cycleId=${selectedCycle.id}`)}
-                      icon={<Grid3x3 className="h-4 w-4" />}
-                    >
-                      Ver Matriz 9-Box
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => toast('Funcionalidade de exportação em desenvolvimento')}
-                      icon={<Download className="h-4 w-4" />}
-                    >
-                      Exportar Relatório
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-800 dark:border-primary-700 mx-auto"></div>
-                  <p className="text-gray-500 dark:text-gray-400 mt-4">Carregando estatísticas...</p>
-                </div>
-              )}
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowCloseConfirm(false);
+                    setCycleToClose(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={confirmCloseCycle}
+                  className="!bg-red-600 hover:!bg-red-700 !border-red-600"
+                  icon={<Lock className="h-4 w-4" />}
+                >
+                  Encerrar
+                </Button>
+              </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
     </div>
   );
 };

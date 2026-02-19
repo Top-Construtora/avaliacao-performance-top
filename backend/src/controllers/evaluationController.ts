@@ -347,13 +347,6 @@ export const evaluationController = {
       const authReq = req as AuthRequest;
       const { employeeId, cycleId, leaderEvaluationId, items, periodo } = req.body;
 
-      console.log('📥 Controller - Recebendo requisição PDI:', {
-        employeeId,
-        cycleId,
-        itemsLength: items?.length,
-        periodo
-      });
-
       if (!employeeId || !items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({
           success: false,
