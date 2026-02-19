@@ -14,12 +14,13 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
-  Target
+  Target,
+  FileSpreadsheet
 } from 'lucide-react';
 import Button from '../../components/Button';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx-js-style';
 import { toast } from 'react-hot-toast';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { evaluationService } from '../../services/evaluation.service';
@@ -42,7 +43,7 @@ const Reports = () => {
     loading: evaluationLoading 
   } = useEvaluation();
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'detailed'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'detailed' | 'extract'>('overview');
   const [showMobileActions, setShowMobileActions] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -351,6 +352,309 @@ const Reports = () => {
     return '-';
   };
 
+  // Emails de contas de sistema/teste que não devem aparecer nos relatórios
+  const excludedEmails = new Set(['admintop@sistema.com', 'usuarioteste1@topconstrutora.com']);
+
+  // === Estilos compartilhados para exportação Excel ===
+  const headerStyle = {
+    fill: { fgColor: { rgb: '1E6076' } },
+    font: { color: { rgb: 'FFFFFF' }, bold: true, sz: 11 },
+    alignment: { horizontal: 'center' as const, vertical: 'center' as const, wrapText: true },
+    border: {
+      top: { style: 'thin' as const, color: { rgb: '164E5F' } },
+      bottom: { style: 'thin' as const, color: { rgb: '164E5F' } },
+      left: { style: 'thin' as const, color: { rgb: '164E5F' } },
+      right: { style: 'thin' as const, color: { rgb: '164E5F' } },
+    },
+  };
+
+  const cellStyle = {
+    alignment: { vertical: 'center' as const, wrapText: true },
+    border: {
+      top: { style: 'thin' as const, color: { rgb: 'E5E7EB' } },
+      bottom: { style: 'thin' as const, color: { rgb: 'E5E7EB' } },
+      left: { style: 'thin' as const, color: { rgb: 'E5E7EB' } },
+      right: { style: 'thin' as const, color: { rgb: 'E5E7EB' } },
+    },
+  };
+
+  const cellStyleCenter = {
+    alignment: { horizontal: 'center' as const, vertical: 'center' as const, wrapText: true },
+    border: {
+      top: { style: 'thin' as const, color: { rgb: 'E5E7EB' } },
+      bottom: { style: 'thin' as const, color: { rgb: 'E5E7EB' } },
+      left: { style: 'thin' as const, color: { rgb: 'E5E7EB' } },
+      right: { style: 'thin' as const, color: { rgb: 'E5E7EB' } },
+    },
+  };
+
+  const applySheetStyles = (
+    ws: XLSX.WorkSheet,
+    numCols: number,
+    numRows: number,
+    colWidths: { wch: number }[],
+    centerCols?: number[]
+  ) => {
+    ws['!cols'] = colWidths;
+    // Header row height
+    if (!ws['!rows']) ws['!rows'] = [];
+    ws['!rows'][0] = { hpt: 30 };
+
+    for (let col = 0; col < numCols; col++) {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: col });
+      if (ws[cellRef]) ws[cellRef].s = headerStyle;
+    }
+    for (let row = 1; row <= numRows; row++) {
+      for (let col = 0; col < numCols; col++) {
+        const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
+        if (ws[cellRef]) {
+          ws[cellRef].s = centerCols?.includes(col) ? cellStyleCenter : cellStyle;
+        }
+      }
+    }
+  };
+
+  const buildResumoSheet = (stats: { label: string; value: string | number }[]) => {
+    const resumoData = [
+      ...stats,
+      { label: '', value: '' },
+      { label: 'Ciclo', value: currentCycle?.title || '-' },
+      { label: 'Data de Exportação', value: new Date().toLocaleString('pt-BR') },
+    ].map(r => ({ 'Indicador': r.label, 'Valor': r.value }));
+
+    const wsResumo = XLSX.utils.json_to_sheet(resumoData);
+    wsResumo['!cols'] = [{ wch: 28 }, { wch: 25 }];
+    for (let col = 0; col < 2; col++) {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: col });
+      if (wsResumo[cellRef]) wsResumo[cellRef].s = headerStyle;
+    }
+    for (let row = 1; row <= resumoData.length; row++) {
+      for (let col = 0; col < 2; col++) {
+        const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
+        if (wsResumo[cellRef]) wsResumo[cellRef].s = cellStyle;
+      }
+    }
+    return wsResumo;
+  };
+
+  // === Funções de exportação da tab Extrair ===
+  const exportEvaluationsExcel = () => {
+    const data = dashboard.filter((item: CycleDashboard) => {
+      const email = usersMap.get(item.employee_id)?.email || item.employee_email || '';
+      return !excludedEmails.has(email.toLowerCase());
+    }).map((item: CycleDashboard) => {
+      const user = usersMap.get(item.employee_id);
+      const deptName = getDeptName(item, user);
+
+      return {
+        'Nome': user?.name || item.employee_name || '-',
+        'Cargo': user?.position || item.employee_position || '-',
+        'Departamento': deptName,
+        'Email': user?.email || item.employee_email || '-',
+        'Status Autoavaliação': getStatusLabel(item.self_evaluation_status),
+        'Nota Autoavaliação': item.self_evaluation_score != null ? Number(item.self_evaluation_score.toFixed(1)) : '-',
+        'Status Líder': getStatusLabel(item.leader_evaluation_status),
+        'Nota Líder': item.leader_evaluation_score != null ? Number(item.leader_evaluation_score.toFixed(1)) : '-',
+        'Status Consenso': getStatusLabel(item.consensus_status),
+        'Nota Consenso': (item.consensus_performance_score ?? item.consensus_score) != null ? Number((item.consensus_performance_score ?? item.consensus_score)!.toFixed(1)) : '-',
+        'Posição Nine Box': item.ninebox_position || 'Pendente',
+      };
+    }).sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const colWidths = [
+      { wch: 30 }, // Nome
+      { wch: 25 }, // Cargo
+      { wch: 20 }, // Departamento
+      { wch: 35 }, // Email
+      { wch: 18 }, // Status Autoavaliação
+      { wch: 16 }, // Nota Autoavaliação
+      { wch: 14 }, // Status Líder
+      { wch: 12 }, // Nota Líder
+      { wch: 16 }, // Status Consenso
+      { wch: 14 }, // Nota Consenso
+      { wch: 16 }, // Posição Nine Box
+    ];
+    applySheetStyles(ws, 11, data.length, colWidths, [4, 5, 6, 7, 8, 9, 10]);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
+
+    const wsResumo = buildResumoSheet([
+      { label: 'Total de Avaliações', value: data.length },
+      { label: 'Completas', value: data.filter(d => d['Status Consenso'] === 'Completo').length },
+      { label: 'Em Andamento', value: data.filter(d => d['Status Consenso'] === 'Em Andamento').length },
+      { label: 'Pendentes', value: data.filter(d => d['Status Consenso'] === 'Pendente' || d['Status Consenso'] === 'Aguardando').length },
+    ]);
+    XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+
+    const dataAtual = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `relatorio_avaliacoes_${dataAtual}.xlsx`);
+    toast.success('Relatório de Avaliações gerado!');
+  };
+
+  const exportEmployeesExcel = () => {
+    const data = users.filter(u => !excludedEmails.has(u.email.toLowerCase())).map((user: UserWithDetails) => {
+      const deptName = user.teams?.[0]?.department_id
+        ? departmentsMap.get(user.teams[0].department_id)?.name || '-'
+        : '-';
+      const teamNames = user.teams?.map(t => t.name).join(', ') || '-';
+
+      return {
+        'Nome': user.name,
+        'Email': user.email,
+        'Cargo': user.position || '-',
+        'Departamento': deptName,
+        'Time(s)': teamNames,
+        'Líder': user.manager?.name || '-',
+        'Data Admissão': user.admission_date
+          ? new Date(user.admission_date).toLocaleDateString('pt-BR')
+          : user.join_date
+            ? new Date(user.join_date).toLocaleDateString('pt-BR')
+            : '-',
+        'Tipo Contrato': user.contract_type || '-',
+        'Ativo': user.active ? 'Sim' : 'Não',
+      };
+    }).sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const colWidths = [
+      { wch: 30 }, // Nome
+      { wch: 35 }, // Email
+      { wch: 25 }, // Cargo
+      { wch: 20 }, // Departamento
+      { wch: 22 }, // Time(s)
+      { wch: 25 }, // Líder
+      { wch: 16 }, // Data Admissão
+      { wch: 14 }, // Tipo Contrato
+      { wch: 8 },  // Ativo
+    ];
+    applySheetStyles(ws, 9, data.length, colWidths, [6, 7, 8]);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Colaboradores');
+
+    const wsResumo = buildResumoSheet([
+      { label: 'Total de Colaboradores', value: data.length },
+      { label: 'Ativos', value: data.filter(d => d['Ativo'] === 'Sim').length },
+      { label: 'Inativos', value: data.filter(d => d['Ativo'] === 'Não').length },
+    ]);
+    XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+
+    const dataAtual = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `relatorio_colaboradores_${dataAtual}.xlsx`);
+    toast.success('Relatório de Colaboradores gerado!');
+  };
+
+  const exportSalaryExcel = () => {
+    const data = users.filter(u => !excludedEmails.has(u.email.toLowerCase())).map((user: UserWithDetails) => {
+      const deptName = user.teams?.[0]?.department_id
+        ? departmentsMap.get(user.teams[0].department_id)?.name || '-'
+        : '-';
+
+      return {
+        'Nome': user.name,
+        'Cargo': user.position || '-',
+        'Departamento': deptName,
+        'Trilha': user.track?.name || '-',
+        'Classe Salarial': user.track_position?.class?.name || '-',
+        'Nível': user.salary_level?.name || '-',
+        'Salário Atual': user.current_salary
+          ? `R$ ${user.current_salary.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+          : '-',
+        'Tipo Contrato': user.contract_type || '-',
+      };
+    }).sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const colWidths = [
+      { wch: 30 }, // Nome
+      { wch: 25 }, // Cargo
+      { wch: 20 }, // Departamento
+      { wch: 18 }, // Trilha
+      { wch: 16 }, // Classe Salarial
+      { wch: 12 }, // Nível
+      { wch: 18 }, // Salário Atual
+      { wch: 14 }, // Tipo Contrato
+    ];
+    applySheetStyles(ws, 8, data.length, colWidths, [3, 4, 5, 6, 7]);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Gestão Salarial');
+
+    const comSalario = users.filter(u => u.current_salary);
+    const wsResumo = buildResumoSheet([
+      { label: 'Total de Colaboradores', value: data.length },
+      { label: 'Com Salário Definido', value: comSalario.length },
+      { label: 'Sem Salário Definido', value: data.length - comSalario.length },
+    ]);
+    XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+
+    const dataAtual = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `relatorio_gestao_salarial_${dataAtual}.xlsx`);
+    toast.success('Relatório de Gestão Salarial gerado!');
+  };
+
+  const getPromotedQuadrantLabel = (quadrant: number | null | undefined): string => {
+    switch (quadrant) {
+      case 1: return 'Baixo';
+      case 2: return 'Médio';
+      case 3: return 'Alto';
+      default: return '-';
+    }
+  };
+
+  const exportNineBoxExcel = () => {
+    const nineBoxData = dashboard.filter((item: CycleDashboard) => {
+      const email = usersMap.get(item.employee_id)?.email || item.employee_email || '';
+      return !excludedEmails.has(email.toLowerCase()) &&
+        item.consensus_performance_score && item.consensus_potential_score;
+    });
+
+    const data = nineBoxData.map((item: CycleDashboard) => {
+      const user = usersMap.get(item.employee_id);
+      const deptName = getDeptName(item, user);
+
+      return {
+        'Nome': user?.name || item.employee_name || '-',
+        'Cargo': user?.position || item.employee_position || '-',
+        'Departamento': deptName,
+        'Nota Performance': item.consensus_performance_score != null ? Number(item.consensus_performance_score.toFixed(1)) : '-',
+        'Nota Potencial': item.consensus_potential_score != null ? Number(item.consensus_potential_score.toFixed(1)) : '-',
+        'Posição Nine Box': item.ninebox_position || '-',
+        'Quadrante Promovido': getPromotedQuadrantLabel(item.promoted_potential_quadrant),
+        'Deliberações do Comitê': item.committee_deliberations || '-',
+      };
+    }).sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const colWidths = [
+      { wch: 30 }, // Nome
+      { wch: 25 }, // Cargo
+      { wch: 20 }, // Departamento
+      { wch: 16 }, // Nota Performance
+      { wch: 14 }, // Nota Potencial
+      { wch: 16 }, // Posição Nine Box
+      { wch: 20 }, // Quadrante Promovido
+      { wch: 35 }, // Deliberações do Comitê
+    ];
+    applySheetStyles(ws, 8, data.length, colWidths, [3, 4, 5, 6]);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Nine Box');
+
+    const wsResumo = buildResumoSheet([
+      { label: 'Total no Nine Box', value: data.length },
+      { label: 'Com Promoção de Quadrante', value: nineBoxData.filter(d => d.promoted_potential_quadrant).length },
+      { label: 'Com Deliberações', value: nineBoxData.filter(d => d.committee_deliberations).length },
+    ]);
+    XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+
+    const dataAtual = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `relatorio_ninebox_${dataAtual}.xlsx`);
+    toast.success('Relatório Nine Box gerado!');
+  };
+
   const exportPDF = () => {
     const doc = new jsPDF();
 
@@ -392,7 +696,10 @@ const Reports = () => {
   };
 
   const exportExcel = () => {
-    const data = filteredData.map((item: CycleDashboard) => {
+    const data = filteredData.filter((item: CycleDashboard) => {
+      const email = usersMap.get(item.employee_id)?.email || item.employee_email || '';
+      return !excludedEmails.has(email.toLowerCase());
+    }).map((item: CycleDashboard) => {
       const user = usersMap.get(item.employee_id);
       const deptName = getDeptName(item, user);
 
@@ -406,13 +713,26 @@ const Reports = () => {
         'PDI': item.ninebox_position ? 'Definido' : 'Pendente',
         'Posição Nine Box': item.ninebox_position || 'Pendente'
       };
-    });
+    }).sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
 
     const ws = XLSX.utils.json_to_sheet(data);
+    const colWidths = [
+      { wch: 30 }, // Nome
+      { wch: 25 }, // Cargo
+      { wch: 20 }, // Departamento
+      { wch: 16 }, // Autoavaliação
+      { wch: 18 }, // Avaliação do Líder
+      { wch: 14 }, // Consenso
+      { wch: 10 }, // PDI
+      { wch: 16 }, // Posição Nine Box
+    ];
+    applySheetStyles(ws, 8, data.length, colWidths, [3, 4, 5, 6, 7]);
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
 
-    XLSX.writeFile(wb, 'relatorio_avaliacoes.xlsx');
+    const dataAtual = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `relatorio_avaliacoes_${dataAtual}.xlsx`);
     toast.success('Relatório Excel gerado com sucesso!');
   };
 
@@ -688,11 +1008,112 @@ const Reports = () => {
             <Users size={16} />
             <span>Detalhado</span>
           </button>
+          <button
+            onClick={() => setActiveTab('extract')}
+            className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
+              activeTab === 'extract'
+                ? 'bg-primary-500 text-white'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <FileDown size={16} />
+            <span>Extrair</span>
+          </button>
         </div>
       </div>
 
       {/* Content */}
-      {activeTab === 'overview' ? (
+      {activeTab === 'extract' ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        >
+          {/* Relatório de Avaliações */}
+          <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700 flex flex-col">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="p-2 bg-top-teal-light dark:bg-top-teal/20 rounded-lg">
+                <FileSpreadsheet className="text-top-teal dark:text-top-teal" size={24} />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Relatório de Avaliações</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1">
+              Exporta nome, cargo, departamento, email, status e notas de cada etapa (autoavaliação, líder, consenso) e posição Nine Box.
+            </p>
+            <Button
+              variant="primary"
+              onClick={exportEvaluationsExcel}
+              icon={<Download size={16} />}
+              size="sm"
+            >
+              Baixar Excel
+            </Button>
+          </div>
+
+          {/* Relatório de Colaboradores */}
+          <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700 flex flex-col">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="p-2 bg-top-blue-light dark:bg-top-blue/20 rounded-lg">
+                <Users className="text-top-blue dark:text-top-blue" size={24} />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Relatório de Colaboradores</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1">
+              Exporta dados cadastrais: nome, email, cargo, departamento, time(s), líder, data de admissão, tipo de contrato e status.
+            </p>
+            <Button
+              variant="primary"
+              onClick={exportEmployeesExcel}
+              icon={<Download size={16} />}
+              size="sm"
+            >
+              Baixar Excel
+            </Button>
+          </div>
+
+          {/* Relatório de Gestão Salarial */}
+          <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700 flex flex-col">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="p-2 bg-accent-50 dark:bg-accent-500/20 rounded-lg">
+                <BarChart3 className="text-accent-500 dark:text-accent-400" size={24} />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Relatório de Gestão Salarial</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1">
+              Exporta dados salariais: nome, cargo, departamento, trilha, classe salarial, nível, salário atual e tipo de contrato.
+            </p>
+            <Button
+              variant="primary"
+              onClick={exportSalaryExcel}
+              icon={<Download size={16} />}
+              size="sm"
+            >
+              Baixar Excel
+            </Button>
+          </div>
+
+          {/* Relatório Nine Box */}
+          <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700 flex flex-col">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="p-2 bg-top-gold-light dark:bg-top-gold/20 rounded-lg">
+                <Target className="text-top-gold-dark dark:text-top-gold" size={24} />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Relatório Nine Box</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1">
+              Exporta dados do Nine Box: nome, cargo, departamento, notas de performance e potencial, posição, quadrante promovido e deliberações do comitê.
+            </p>
+            <Button
+              variant="primary"
+              onClick={exportNineBoxExcel}
+              icon={<Download size={16} />}
+              size="sm"
+            >
+              Baixar Excel
+            </Button>
+          </div>
+        </motion.div>
+      ) : activeTab === 'overview' ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

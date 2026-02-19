@@ -124,13 +124,14 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
     }
 
     setLoading(true);
+    const toastId = toast.loading('Salvando atribuição...');
     try {
       await salaryService.assignUserToTrack(user.id, selectedPosition, selectedLevel);
-      toast.success('Colaborador atribuído à trilha com sucesso!');
-      onUpdate?.();
+      toast.success('Colaborador atribuído à trilha com sucesso!', { id: toastId });
+      await onUpdate?.();
       onClose();
     } catch (error) {
-      toast.error('Erro ao atribuir colaborador');
+      toast.error('Erro ao atribuir colaborador', { id: toastId });
     } finally {
       setLoading(false);
     }
@@ -143,6 +144,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
     if (!confirm(`Confirma a progressão para ${progression.to_position_name}?`)) return;
 
     setLoading(true);
+    const toastId = toast.loading('Realizando progressão...');
     try {
       await salaryService.progressUser(user.id, {
         toTrackPositionId: progression.to_position_id,
@@ -150,11 +152,11 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
         progressionType: type as any,
         reason: `Progressão ${type === 'vertical' ? 'vertical' : type === 'horizontal' ? 'horizontal' : 'por mérito'}`
       });
-      toast.success('Progressão realizada com sucesso!');
+      toast.success('Progressão realizada com sucesso!', { id: toastId });
       loadUserData();
-      onUpdate?.();
+      await onUpdate?.();
     } catch (error) {
-      toast.error('Erro ao realizar progressão');
+      toast.error('Erro ao realizar progressão', { id: toastId });
     } finally {
       setLoading(false);
     }
