@@ -386,6 +386,19 @@ export const calculateNineBoxPosition = (performance: number, potential: number)
   return positions[`${perfLevel}-${potLevel}`] || 'Não classificado';
 };
 
+// Histórico de avaliações por ciclo
+export interface EvaluationHistory {
+  cycle_id: string;
+  cycle_title: string;
+  start_date: string;
+  end_date: string;
+  self_score: number | null;
+  leader_score: number | null;
+  consensus_score: number | null;
+  potential_score: number | null;
+  nine_box_position: string | null;
+}
+
 export const getNineBoxPositionNumber = (performance: number, potential: number): number => {
   const perfLevel = performance < 2 ? 0 : performance < 3 ? 1 : 2;
   const potLevel = potential <= 2 ? 0 : potential <= 3 ? 1 : 2;

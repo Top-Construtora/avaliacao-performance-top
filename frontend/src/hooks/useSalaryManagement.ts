@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { salaryService } from '../services/salary.service';
-import { userService } from '../services/user.service';
 import { useAuth } from '../context/AuthContext';
 
 interface SalaryCalculationResult {
@@ -54,65 +53,23 @@ export const useSalaryManagement = () => {
   const validateProgression = useCallback(async (
     userId: string,
     targetPositionId: string,
-    progressionType: 'horizontal' | 'vertical' | 'merit'
+    progressionType: 'horizontal' | 'vertical'
   ): Promise<ProgressionValidation> => {
     try {
-      // Buscar dados do usuário e regras
-      const [userInfo, possibleProgressions] = await Promise.all([
-        salaryService.getUserSalaryInfo(userId),
-        salaryService.getUserPossibleProgressions(userId)
-      ]);
+      const userInfo = await salaryService.getUserSalaryInfo(userId);
 
-      // Encontrar a progressão específica
-      const progression = possibleProgressions.find(
-        p => p.to_position_id === targetPositionId && p.progression_type === progressionType
-      );
-
-      if (!progression) {
+      if (!userInfo) {
         return {
           isEligible: false,
-          reasons: ['Progressão não disponível'],
+          reasons: ['Informações salariais do usuário não encontradas'],
           missingRequirements: {}
         };
       }
 
-      const reasons: string[] = [];
-      const missingRequirements: any = {};
-
-      // Validar tempo no cargo
-      if (progression.min_time_months) {
-        // Buscar a data de início no cargo do usuário
-        const userData = await userService.getUserById(userId);
-        const monthsInPosition = calculateMonthsInPosition(userData?.position_start_date);
-        if (monthsInPosition < progression.min_time_months) {
-          reasons.push(`Tempo mínimo no cargo: ${progression.min_time_months} meses (atual: ${monthsInPosition})`);
-          missingRequirements.timeInPosition = progression.min_time_months - monthsInPosition;
-        }
-      }
-
-      // Validar performance
-      if (progression.performance_requirement) {
-        // Aqui você pode integrar com o sistema de avaliação
-        const lastPerformance = 8.5; // Exemplo - buscar da última avaliação
-        if (lastPerformance < progression.performance_requirement) {
-          reasons.push(`Nota mínima de performancee: ${progression.performance_requirement} (atual: ${lastPerformance})`);
-          missingRequirements.performanceScore = progression.performance_requirement;
-        }
-      }
-
-      // Validar requisitos adicionais
-      if (progression.additional_requirements) {
-        const additionalReqs = validateAdditionalRequirements(progression.additional_requirements);
-        if (additionalReqs.length > 0) {
-          reasons.push(...additionalReqs);
-          missingRequirements.additionalRequirements = additionalReqs;
-        }
-      }
-
       return {
-        isEligible: reasons.length === 0,
-        reasons,
-        missingRequirements
+        isEligible: true,
+        reasons: [],
+        missingRequirements: {}
       };
     } catch (error) {
       console.error('Erro ao validar progressão:', error);
@@ -129,7 +86,7 @@ export const useSalaryManagement = () => {
     userId: string,
     toTrackPositionId: string,
     toSalaryLevelId: string,
-    progressionType: 'horizontal' | 'vertical' | 'merit',
+    progressionType: 'horizontal' | 'vertical',
     reason?: string
   ) => {
     setLoading(true);

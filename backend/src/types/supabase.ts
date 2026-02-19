@@ -597,44 +597,6 @@ export interface Database {
           updated_at?: string
         }
       }
-      progression_rules: {
-        Row: {
-          id: string
-          from_position_id: string
-          to_position_id: string
-          progression_type: 'horizontal' | 'vertical' | 'merit'
-          min_time_months: number | null
-          performance_requirement: number | null
-          additional_requirements: Json | null
-          active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          from_position_id: string
-          to_position_id: string
-          progression_type: 'horizontal' | 'vertical' | 'merit'
-          min_time_months?: number | null
-          performance_requirement?: number | null
-          additional_requirements?: Json | null
-          active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          from_position_id?: string
-          to_position_id?: string
-          progression_type?: 'horizontal' | 'vertical' | 'merit'
-          min_time_months?: number | null
-          performance_requirement?: number | null
-          additional_requirements?: Json | null
-          active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-      }
       progression_history: {
         Row: {
           id: string
@@ -645,7 +607,7 @@ export interface Database {
           to_salary_level_id: string
           from_salary: number | null
           to_salary: number
-          progression_type: 'horizontal' | 'vertical' | 'merit'
+          progression_type: 'horizontal' | 'vertical'
           progression_date: string
           reason: string | null
           approved_by: string | null
@@ -660,7 +622,7 @@ export interface Database {
           to_salary_level_id: string
           from_salary?: number | null
           to_salary: number
-          progression_type: 'horizontal' | 'vertical' | 'merit'
+          progression_type: 'horizontal' | 'vertical'
           progression_date: string
           reason?: string | null
           approved_by?: string | null
@@ -675,7 +637,7 @@ export interface Database {
           to_salary_level_id?: string
           from_salary?: number | null
           to_salary?: number
-          progression_type?: 'horizontal' | 'vertical' | 'merit'
+          progression_type?: 'horizontal' | 'vertical'
           progression_date?: string
           reason?: string | null
           approved_by?: string | null
@@ -701,24 +663,6 @@ export interface Database {
           track_name: string | null
         }
       }
-      user_possible_progressions: {
-        Row: {
-          user_id: string
-          user_name: string
-          rule_id: string
-          progression_type: 'horizontal' | 'vertical' | 'merit'
-          min_time_months: number | null
-          performance_requirement: number | null
-          from_position_id: string
-          from_position_name: string
-          from_class_code: string
-          to_position_id: string
-          to_position_name: string
-          to_class_code: string
-          to_base_salary: number
-          progression_type_label: string
-        }
-      }
       hr_salary_overview: {
         Row: {
           total_employees: number
@@ -740,17 +684,10 @@ export interface Database {
         }
         Returns: number
       }
-      check_progression_eligibility: {
-        Args: {
-          p_user_id: string
-          p_rule_id: string
-        }
-        Returns: boolean
-      }
     }
     Enums: {
       contract_type: 'CLT' | 'PJ' | 'INTERN'
-      progression_type: 'horizontal' | 'vertical' | 'merit'
+      progression_type: 'horizontal' | 'vertical'
     }
   }
 }

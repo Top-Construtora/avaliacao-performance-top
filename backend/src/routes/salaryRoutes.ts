@@ -47,19 +47,10 @@ router.post('/track-positions', authorizeRoles(['director', 'leader']) as any, s
 router.put('/track-positions/:id', authorizeRoles(['director', 'leader']) as any, salaryController.updateTrackPosition as any);
 router.delete('/track-positions/:id', authorizeRoles(['director']) as any, salaryController.deleteTrackPosition as any);
 
-// ===== REGRAS DE PROGRESSÃO =====
-router.get('/progression-rules', salaryController.getProgressionRules as any);
-router.get('/progression-rules/:id', salaryController.getProgressionRuleById as any);
-router.get('/progression-rules/from/:positionId', salaryController.getRulesByFromPosition as any);
-router.post('/progression-rules', authorizeRoles(['director', 'leader']) as any, salaryController.createProgressionRule as any);
-router.put('/progression-rules/:id', authorizeRoles(['director', 'leader']) as any, salaryController.updateProgressionRule as any);
-router.delete('/progression-rules/:id', authorizeRoles(['director']) as any, salaryController.deleteProgressionRule as any);
-
 // ===== ATRIBUIÇÃO DE TRILHAS E CARGOS =====
 router.put('/users/:userId/assign-track', authorizeRoles(['director', 'leader']) as any, salaryController.assignUserToTrack as any);
 router.put('/users/:userId/update-level', authorizeRoles(['director', 'leader']) as any, salaryController.updateUserSalaryLevel as any);
 router.get('/users/:userId/salary-info', salaryController.getUserSalaryInfo as any);
-router.get('/users/:userId/possible-progressions', salaryController.getUserPossibleProgressions as any);
 router.get('/users/:userId/people-committee-permission', salaryController.checkPeopleCommitteePermission as any);
 
 // ===== PROGRESSÃO DE CARREIRA =====

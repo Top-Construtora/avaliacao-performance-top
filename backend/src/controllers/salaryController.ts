@@ -269,65 +269,6 @@ export const salaryController = {
     }
   },
 
-  // ===== REGRAS DE PROGRESSÃO =====
-  async getProgressionRules(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const rules = await salaryService.getProgressionRules(req.supabase);
-      res.json({ success: true, data: rules });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  async getProgressionRuleById(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      const rule = await salaryService.getProgressionRuleById(req.supabase, id);
-      res.json({ success: true, data: rule });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  async getRulesByFromPosition(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const { positionId } = req.params;
-      const rules = await salaryService.getRulesByFromPosition(req.supabase, positionId);
-      res.json({ success: true, data: rules });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  async createProgressionRule(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const newRule = await salaryService.createProgressionRule(req.supabase, req.body);
-      res.status(201).json({ success: true, data: newRule });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  async updateProgressionRule(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      const updated = await salaryService.updateProgressionRule(req.supabase, id, req.body);
-      res.json({ success: true, data: updated });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  async deleteProgressionRule(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      await salaryService.deleteProgressionRule(req.supabase, id);
-      res.json({ success: true, message: 'Progression rule deleted successfully' });
-    } catch (error) {
-      next(error);
-    }
-  },
-
   // ===== ATRIBUIÇÃO E GESTÃO DE USUÁRIOS =====
   async assignUserToTrack(req: AuthRequest, res: Response, next: NextFunction) {
     try {
@@ -384,22 +325,16 @@ export const salaryController = {
     }
   },
 
-  async getUserPossibleProgressions(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const { userId } = req.params;
-      const progressions = await salaryService.getUserPossibleProgressions(req.supabase, userId);
-      res.json({ success: true, data: progressions });
-    } catch (error) {
-      next(error);
-    }
-  },
-
   // ===== PROGRESSÃO =====
   async progressUser(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { userId } = req.params;
-      const { toTrackPositionId, toSalaryLevelId, progressionType, reason } = req.body;
-      
+      // Aceitar tanto snake_case (frontend) quanto camelCase
+      const toTrackPositionId = req.body.to_track_position_id || req.body.toTrackPositionId;
+      const toSalaryLevelId = req.body.to_salary_level_id || req.body.toSalaryLevelId;
+      const progressionType = req.body.progression_type || req.body.progressionType;
+      const reason = req.body.reason;
+
       const progression = await salaryService.progressUser(req.supabase, {
         userId,
         toTrackPositionId,

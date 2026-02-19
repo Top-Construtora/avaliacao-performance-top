@@ -1148,6 +1148,85 @@ export const evaluationService = {
     }
   },
 
+  // ====================================
+  // HISTÓRICO DE AVALIAÇÕES POR CICLO
+  // ====================================
+
+  async getEmployeeEvaluationHistory(supabase: any, employeeId: string) {
+    try {
+      // Buscar avaliações (self e leader) do colaborador
+      const [selfEvalsResult, leaderEvalsResult, consensusResult, cyclesResult] = await Promise.all([
+        supabase
+          .from('self_evaluations')
+          .select('cycle_id, final_score')
+          .eq('employee_id', employeeId),
+        supabase
+          .from('leader_evaluations')
+          .select('cycle_id, final_score')
+          .eq('employee_id', employeeId),
+        supabase
+          .from('consensus_evaluations')
+          .select('cycle_id, consensus_score, potential_score, nine_box_position')
+          .eq('employee_id', employeeId),
+        supabase
+          .from('evaluation_cycles')
+          .select('id, title, start_date, end_date')
+          .in('status', ['open', 'closed'])
+          .order('start_date', { ascending: false })
+      ]);
+
+      const selfEvals = selfEvalsResult.data || [];
+      const leaderEvals = leaderEvalsResult.data || [];
+      const consensusEvals = consensusResult.data || [];
+      const cycles = cyclesResult.data || [];
+
+      // Mapear avaliações por cycle_id
+      const selfMap = new Map<string, number | null>();
+      selfEvals.forEach((se: any) => {
+        selfMap.set(se.cycle_id, se.final_score);
+      });
+
+      const leaderMap = new Map<string, number | null>();
+      leaderEvals.forEach((le: any) => {
+        leaderMap.set(le.cycle_id, le.final_score);
+      });
+
+      const consensusMap = new Map<string, any>();
+      consensusEvals.forEach((ce: any) => {
+        consensusMap.set(ce.cycle_id, {
+          consensus_score: ce.consensus_score,
+          potential_score: ce.potential_score,
+          nine_box_position: ce.nine_box_position
+        });
+      });
+
+      // Combinar dados por ciclo
+      const history = cycles
+        .filter((cycle: any) => {
+          return selfMap.has(cycle.id) || leaderMap.has(cycle.id) || consensusMap.has(cycle.id);
+        })
+        .map((cycle: any) => {
+          const consensus = consensusMap.get(cycle.id);
+          return {
+            cycle_id: cycle.id,
+            cycle_title: cycle.title,
+            start_date: cycle.start_date,
+            end_date: cycle.end_date,
+            self_score: selfMap.get(cycle.id) ?? null,
+            leader_score: leaderMap.get(cycle.id) ?? null,
+            consensus_score: consensus?.consensus_score ?? null,
+            potential_score: consensus?.potential_score ?? null,
+            nine_box_position: consensus?.nine_box_position ?? null
+          };
+        });
+
+      return history;
+    } catch (error: any) {
+      console.error('Service error:', error);
+      throw error;
+    }
+  },
+
   /**
    * Busca as deliberações do comitê para um colaborador
    */

@@ -3,11 +3,12 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from './Button';
 import {
-  DollarSign, GitBranch, Target, TrendingUp,
-  Save, X, Calendar, Award, ArrowRight, Clock,
-  FileText, AlertCircle, UserRound
+  DollarSign, GitBranch, TrendingUp,
+  Save, X, Clock, Star, BarChart3
 } from 'lucide-react';
 import { salaryService, CareerTrack, TrackPosition, SalaryLevel, UserSalaryInfo } from '../services/salary.service';
+import { evaluationService } from '../services/evaluation.service';
+import { EvaluationHistory } from '../types/evaluation.types';
 import { User } from '../types/supabase';
 
 interface UserSalaryAssignmentProps {
@@ -27,8 +28,8 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
   const [salaryLevels, setSalaryLevels] = useState<SalaryLevel[]>([]);
   const [selectedLevel, setSelectedLevel] = useState<string>('');
   const [calculatedSalary, setCalculatedSalary] = useState<number | null>(null);
-  const [possibleProgressions, setPossibleProgressions] = useState<any[]>([]);
   const [progressionHistory, setProgressionHistory] = useState<any[]>([]);
+  const [evaluationHistory, setEvaluationHistory] = useState<EvaluationHistory[]>([]);
   const [activeTab, setActiveTab] = useState<'assign' | 'progress' | 'history'>('assign');
 
   useEffect(() => {
@@ -60,16 +61,16 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
 
   const loadUserData = async () => {
     try {
-      const [salaryInfo, progressions, history] = await Promise.all([
+      const [salaryInfo, history, evalHistory] = await Promise.all([
         salaryService.getUserSalaryInfo(user.id),
-        salaryService.getUserPossibleProgressions(user.id),
-        salaryService.getUserProgressionHistory(user.id)
+        salaryService.getUserProgressionHistory(user.id),
+        evaluationService.getEmployeeEvaluationHistory(user.id)
       ]);
-      
+
       setCurrentSalaryInfo(salaryInfo);
-      setPossibleProgressions(progressions);
       setProgressionHistory(history);
-      
+      setEvaluationHistory(evalHistory);
+
       // Se o usuário já tem um nível, pré-selecionar
       if (salaryInfo.salary_level) {
         const level = salaryLevels.find(l => l.name === salaryInfo.salary_level);
@@ -132,31 +133,6 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
       onClose();
     } catch (error) {
       toast.error('Erro ao atribuir colaborador', { id: toastId });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleProgression = async (progressionId: string, type: string) => {
-    const progression = possibleProgressions.find(p => p.rule_id === progressionId);
-    if (!progression) return;
-
-    if (!confirm(`Confirma a progressão para ${progression.to_position_name}?`)) return;
-
-    setLoading(true);
-    const toastId = toast.loading('Realizando progressão...');
-    try {
-      await salaryService.progressUser(user.id, {
-        toTrackPositionId: progression.to_position_id,
-        toSalaryLevelId: selectedLevel || currentSalaryInfo?.salary_level || '',
-        progressionType: type as any,
-        reason: `Progressão ${type === 'vertical' ? 'vertical' : type === 'horizontal' ? 'horizontal' : 'por mérito'}`
-      });
-      toast.success('Progressão realizada com sucesso!', { id: toastId });
-      loadUserData();
-      await onUpdate?.();
-    } catch (error) {
-      toast.error('Erro ao realizar progressão', { id: toastId });
     } finally {
       setLoading(false);
     }
@@ -379,58 +355,51 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
 
         {activeTab === 'progress' && (
           <div className="space-y-4">
-            {possibleProgressions.length > 0 ? (
-              possibleProgressions.map(prog => (
+            {progressionHistory.length > 0 ? (
+              progressionHistory.map((hist) => (
                 <div
-                  key={prog.rule_id}
+                  key={hist.id}
                   className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-200 dark:border-gray-600"
                 >
                   <div className="flex items-start justify-between">
                     <div>
                       <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                        {prog.to_position_name}
+                        {hist.from_position?.position?.name || 'Sem cargo anterior'} → {hist.to_position?.position?.name || 'Cargo'}
                       </h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        De: {prog.from_position_name} → Para: Classe {prog.to_class_code}
+                        Nível {hist.from_level?.name || '—'} → Nível {hist.to_level?.name || '—'}
                       </p>
-                      <div className="flex items-center gap-4 mt-2 text-sm">
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {prog.min_time_months || 0} meses
+                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        <span>
+                          {new Date(hist.progression_date).toLocaleDateString('pt-BR')}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Target className="h-4 w-4" />
-                          Nota mínima: {prog.performance_requirement || 'N/A'}
+                        <span>
+                          {hist.from_salary ? formatCurrency(hist.from_salary) : 'N/A'} → {hist.to_salary ? formatCurrency(hist.to_salary) : 'N/A'}
                         </span>
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          prog.progression_type === 'vertical'
-                            ? 'bg-blue-100 text-blue-700'
-                            : prog.progression_type === 'horizontal'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-purple-100 text-purple-700'
-                        }`}>
-                          {prog.progression_type_label}
-                        </span>
+                        {hist.approver && (
+                          <span>por {hist.approver.name}</span>
+                        )}
                       </div>
+                      {hist.reason && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 italic">
+                          {hist.reason}
+                        </p>
+                      )}
                     </div>
-                    <Button
-                      size="sm"
-                      onClick={() => handleProgression(prog.rule_id, prog.progression_type)}
-                      disabled={loading}
-                    >
-                      <ArrowRight className="h-4 w-4 mr-1" />
-                      Promover
-                    </Button>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      hist.progression_type === 'vertical'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-green-100 text-green-700'
+                    }`}>
+                      {hist.progression_type === 'vertical' ? 'Vertical' : 'Horizontal'}
+                    </span>
                   </div>
                 </div>
               ))
             ) : (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Nenhuma progressão disponível no momento.</p>
-                <p className="text-sm mt-2">
-                  O colaborador precisa estar atribuído a uma trilha primeiro.
-                </p>
+                <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhum histórico de progressão encontrado.</p>
               </div>
             )}
           </div>
@@ -438,66 +407,69 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
 
         {activeTab === 'history' && (
           <div className="space-y-4">
-            {progressionHistory.length > 0 ? (
-              progressionHistory.map((hist, index) => (
+            {evaluationHistory.length > 0 ? (
+              evaluationHistory.map((evalHist, index) => (
                 <motion.div
-                  key={hist.id}
+                  key={evalHist.cycle_id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-200 dark:border-gray-600"
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-center justify-between mb-3">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <Award className="h-5 w-5 text-primary-500" />
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                          {hist.to_position?.position?.name || 'Cargo'}
-                        </h4>
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {hist.from_position?.position?.name || 'Sem cargo anterior'} → 
-                        Classe {hist.to_position?.class?.code}
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                        {evalHist.cycle_title}
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {formatDate(evalHist.start_date)} - {formatDate(evalHist.end_date)}
                       </p>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {formatDate(hist.progression_date)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <DollarSign className="h-4 w-4" />
-                          {formatCurrency(hist.to_salary)}
-                        </span>
-                        {hist.approver && (
-                          <span className="flex items-center gap-1">
-                            <UserRound className="h-4 w-4" />
-                            {hist.approver.name}
-                          </span>
-                        )}
-                      </div>
-                      {hist.reason && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 italic">
-                          "{hist.reason}"
-                        </p>
-                      )}
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      hist.progression_type === 'vertical'
-                        ? 'bg-blue-100 text-blue-700'
-                        : hist.progression_type === 'horizontal'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-purple-100 text-purple-700'
-                    }`}>
-                      {hist.progression_type === 'vertical' ? 'Vertical' :
-                       hist.progression_type === 'horizontal' ? 'Horizontal' : 'Mérito'}
-                    </span>
+                    {evalHist.nine_box_position && (
+                      <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 flex items-center gap-1">
+                        <Star className="h-3 w-3" />
+                        {evalHist.nine_box_position}
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div className="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Autoavaliação</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                        {evalHist.self_score != null ? evalHist.self_score.toFixed(2) : '-'}
+                      </p>
+                    </div>
+                    <div className="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Líder</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                        {evalHist.leader_score != null ? evalHist.leader_score.toFixed(2) : '-'}
+                      </p>
+                    </div>
+                    <div className="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Consenso</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                        {evalHist.consensus_score != null ? evalHist.consensus_score.toFixed(2) : '-'}
+                      </p>
+                    </div>
+                    <div className="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Potencial</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                        {evalHist.potential_score != null ? evalHist.potential_score.toFixed(2) : '-'}
+                      </p>
+                    </div>
+                    <div className="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Nine Box</p>
+                      <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                        {evalHist.nine_box_position || '-'}
+                      </p>
+                    </div>
                   </div>
                 </motion.div>
               ))
             ) : (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Nenhum histórico de progressão encontrado.</p>
+                <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhum histórico de avaliação encontrado.</p>
               </div>
             )}
           </div>

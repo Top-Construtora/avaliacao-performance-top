@@ -8,7 +8,8 @@ import type {
   NineBoxData,
   SelfEvaluation,
   LeaderEvaluation,
-  EvaluationSummary
+  EvaluationSummary,
+  EvaluationHistory
 } from '../types/evaluation.types';
 
 export const evaluationService = {
@@ -407,6 +408,23 @@ export const evaluationService = {
   // ====================================
   // DELIBERAÇÕES DO COMITÊ
   // ====================================
+
+  // ====================================
+  // HISTÓRICO DE AVALIAÇÕES POR CICLO
+  // ====================================
+
+  async getEmployeeEvaluationHistory(employeeId: string): Promise<EvaluationHistory[]> {
+    try {
+      const response = await api.get(`/evaluations/employee/${employeeId}/evaluation-history`);
+      if (response && response.success) {
+        return response.data || [];
+      }
+      return response?.data || response || [];
+    } catch (error) {
+      console.error('Erro ao buscar histórico de avaliações:', error);
+      return [];
+    }
+  },
 
   /**
    * Salva as deliberações do comitê para um colaborador

@@ -496,6 +496,27 @@ export const evaluationController = {
     }
   },
 
+  // Buscar histórico de avaliações por ciclo
+  async getEmployeeEvaluationHistory(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { employeeId } = req.params;
+
+      const history = await evaluationService.getEmployeeEvaluationHistory(
+        authReq.supabase,
+        employeeId
+      );
+
+      res.json({
+        success: true,
+        data: history
+      });
+    } catch (error) {
+      console.error('Controller error:', error);
+      next(error);
+    }
+  },
+
   // Salvar deliberações do comitê
   async saveCommitteeDeliberations(req: Request, res: Response, next: NextFunction) {
     try {

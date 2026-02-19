@@ -346,102 +346,6 @@ export const salaryService = {
     if (error) throw error;
   },
 
-  // ===== REGRAS DE PROGRESSÃO =====
-  async getProgressionRules(supabase: SupabaseClient<Database>) {
-    const { data, error } = await supabase
-      .from('progression_rules')
-      .select(`
-        *,
-        from_position:track_positions!from_position_id(
-          id,
-          position:job_positions(name),
-          class:salary_classes(code)
-        ),
-        to_position:track_positions!to_position_id(
-          id,
-          position:job_positions(name),
-          class:salary_classes(code)
-        )
-      `);
-
-    if (error) throw error;
-    return data;
-  },
-
-  async getProgressionRuleById(supabase: SupabaseClient<Database>, id: string) {
-    const { data, error } = await supabase
-      .from('progression_rules')
-      .select(`
-        *,
-        from_position:track_positions!from_position_id(
-          id,
-          position:job_positions(name),
-          class:salary_classes(code)
-        ),
-        to_position:track_positions!to_position_id(
-          id,
-          position:job_positions(name),
-          class:salary_classes(code)
-        )
-      `)
-      .eq('id', id)
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async getRulesByFromPosition(supabase: SupabaseClient<Database>, positionId: string) {
-    const { data, error } = await supabase
-      .from('progression_rules')
-      .select(`
-        *,
-        to_position:track_positions!to_position_id(
-          id,
-          position:job_positions(name),
-          class:salary_classes(code),
-          base_salary
-        )
-      `)
-      .eq('from_position_id', positionId)
-      .eq('active', true);
-
-    if (error) throw error;
-    return data;
-  },
-
-  async createProgressionRule(supabase: SupabaseClient<Database>, ruleData: any) {
-    const { data, error } = await supabase
-      .from('progression_rules')
-      .insert(ruleData)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async updateProgressionRule(supabase: SupabaseClient<Database>, id: string, updates: any) {
-    const { data, error } = await supabase
-      .from('progression_rules')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async deleteProgressionRule(supabase: SupabaseClient<Database>, id: string) {
-    const { error } = await supabase
-      .from('progression_rules')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-  },
-
   // ===== GESTÃO DE USUÁRIOS =====
   async assignUserToTrack(
     supabase: SupabaseClient<Database>,
@@ -449,8 +353,52 @@ export const salaryService = {
     trackPositionId: string,
     salaryLevelId: string
   ) {
+    // Buscar dados atuais do usuário para registrar no histórico
+    const { data: currentUser, error: userError } = await supabase
+      .from('users')
+      .select('current_track_position_id, current_salary_level_id, current_salary')
+      .eq('id', userId)
+      .single();
+
+    if (userError) throw userError;
+
     // Calcular o novo salário
     const salaryCalc = await this.calculateSalary(supabase, trackPositionId, salaryLevelId);
+
+    // Se o usuário já tem posição (é reatribuição), criar registro no histórico
+    if (currentUser.current_track_position_id) {
+      const progressionType =
+        currentUser.current_track_position_id !== trackPositionId ? 'vertical' : 'horizontal';
+
+      const historyPayload = {
+        user_id: userId,
+        from_track_position_id: currentUser.current_track_position_id,
+        to_track_position_id: trackPositionId,
+        from_salary_level_id: currentUser.current_salary_level_id,
+        to_salary_level_id: salaryLevelId,
+        from_salary: currentUser.current_salary,
+        to_salary: salaryCalc.calculatedSalary,
+        progression_type: progressionType,
+        progression_date: new Date().toISOString().split('T')[0],
+        reason: 'Reatribuição de trilha'
+      };
+
+      console.log('📝 [assignUserToTrack] Inserindo progression_history:', JSON.stringify(historyPayload, null, 2));
+
+      const { data: historyData, error: historyError } = await supabase
+        .from('progression_history')
+        .insert(historyPayload)
+        .select();
+
+      if (historyError) {
+        console.error('❌ [assignUserToTrack] Erro ao salvar histórico:', historyError);
+        throw historyError;
+      }
+
+      console.log('✅ [assignUserToTrack] Histórico salvo:', historyData);
+    } else {
+      console.log('ℹ️ [assignUserToTrack] Primeiro assignment, sem histórico a criar');
+    }
 
     // Buscar o nome do cargo a partir da track_position
     const { data: trackPosition } = await supabase
@@ -672,16 +620,6 @@ export const salaryService = {
     return { canView: false };
   },
 
-  async getUserPossibleProgressions(supabase: SupabaseClient<Database>, userId: string) {
-    const { data, error } = await supabase
-      .from('user_possible_progressions')
-      .select('*')
-      .eq('user_id', userId);
-
-    if (error) throw error;
-    return data;
-  },
-
   // ===== PROGRESSÃO =====
   async progressUser(
     supabase: SupabaseClient<Database>,
@@ -689,7 +627,7 @@ export const salaryService = {
       userId: string;
       toTrackPositionId: string;
       toSalaryLevelId: string;
-      progressionType: 'horizontal' | 'vertical' | 'merit';
+      progressionType: 'horizontal' | 'vertical';
       reason?: string;
       approvedBy?: string;
     }
@@ -707,6 +645,13 @@ export const salaryService = {
 
     if (userError) throw userError;
 
+    // Calcular o novo salário usando o mesmo método do assignUserToTrack
+    const salaryCalc = await this.calculateSalary(
+      supabase,
+      progressionData.toTrackPositionId,
+      progressionData.toSalaryLevelId
+    );
+
     // Criar registro no histórico
     const { data: history, error: historyError } = await supabase
       .from('progression_history')
@@ -717,8 +662,9 @@ export const salaryService = {
         from_salary_level_id: currentUser.current_salary_level_id,
         to_salary_level_id: progressionData.toSalaryLevelId,
         from_salary: currentUser.current_salary,
+        to_salary: salaryCalc.calculatedSalary,
         progression_type: progressionData.progressionType,
-        progression_date: new Date().toISOString(),
+        progression_date: new Date().toISOString().split('T')[0],
         reason: progressionData.reason,
         approved_by: progressionData.approvedBy
       })
@@ -736,12 +682,13 @@ export const salaryService = {
 
     const positionName = (trackPosition?.position as any)?.name;
 
-    // Atualizar usuário
+    // Atualizar usuário com novo cargo e salário calculado
     const { data: updatedUser, error: updateError } = await supabase
       .from('users')
       .update({
         current_track_position_id: progressionData.toTrackPositionId,
         current_salary_level_id: progressionData.toSalaryLevelId,
+        current_salary: salaryCalc.calculatedSalary,
         position_start_date: new Date().toISOString(),
         ...(positionName && { position: positionName })
       })
@@ -752,59 +699,6 @@ export const salaryService = {
     if (updateError) throw updateError;
 
     return { history, user: updatedUser };
-  },
-
-  // ===== PROGRESSÃO COM VALIDAÇÕES =====
-  async progressUserWithValidation(
-    supabase: SupabaseClient<Database>,
-    progressionData: {
-      userId: string;
-      toTrackPositionId: string;
-      toSalaryLevelId: string;
-      progressionType: 'horizontal' | 'vertical' | 'merit';
-      reason?: string;
-      approvedBy?: string;
-    }
-  ) {
-    const businessRules = createSalaryBusinessRules(supabase);
-    
-    // Buscar posição atual
-    const { data: currentUser } = await supabase
-      .from('users')
-      .select('current_track_position_id')
-      .eq('id', progressionData.userId)
-      .single();
-      
-    if (!currentUser?.current_track_position_id) {
-      throw new Error('Usuário não possui cargo atual');
-    }
-    
-    // Validar progressão
-    const validation = await businessRules.validateProgression(
-      progressionData.userId,
-      currentUser.current_track_position_id,
-      progressionData.toTrackPositionId,
-      progressionData.progressionType
-    );
-    
-    if (!validation.isValid) {
-      throw new Error(`Progressão não permitida: ${validation.errors.join(', ')}`);
-    }
-    
-    // Executar progressão
-    const result = await this.progressUser(supabase, progressionData);
-    
-    // Notificar interessados
-    await this.notifyProgression(supabase, {
-      userId: progressionData.userId,
-      type: progressionData.progressionType,
-      approvedBy: progressionData.approvedBy
-    });
-    
-    return {
-      ...result,
-      warnings: validation.warnings
-    };
   },
 
   async getUserProgressionHistory(supabase: SupabaseClient<Database>, userId: string) {

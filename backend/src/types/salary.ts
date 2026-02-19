@@ -62,21 +62,6 @@ export interface SalaryClass {
     class?: SalaryClass;
   }
   
-  export interface ProgressionRule {
-    id: string;
-    from_position_id: string;
-    to_position_id: string;
-    progression_type: 'horizontal' | 'vertical' | 'merit';
-    min_time_months?: number;
-    performance_requirement?: number;
-    additional_requirements?: Record<string, any>;
-    active: boolean;
-    created_at: string;
-    updated_at: string;
-    from_position?: TrackPosition;
-    to_position?: TrackPosition;
-  }
-  
   export interface ProgressionHistory {
     id: string;
     user_id: string;
@@ -86,7 +71,7 @@ export interface SalaryClass {
     to_salary_level_id: string;
     from_salary?: number;
     to_salary: number;
-    progression_type: 'horizontal' | 'vertical' | 'merit';
+    progression_type: 'horizontal' | 'vertical';
     progression_date: string;
     reason?: string;
     approved_by?: string;

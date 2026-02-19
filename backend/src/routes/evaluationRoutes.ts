@@ -26,6 +26,9 @@ router.get('/cycles/:cycleId/nine-box', evaluationController.getNineBoxData);
 // ROTAS DE AVALIAÇÕES
 // ====================================
 
+// Histórico de avaliações por ciclo
+router.get('/employee/:employeeId/evaluation-history', evaluationController.getEmployeeEvaluationHistory);
+
 // Rotas unificadas (usando a view)
 router.get('/employee/:employeeId', evaluationController.getEmployeeEvaluations);
 router.get('/check', evaluationController.checkExistingEvaluation);

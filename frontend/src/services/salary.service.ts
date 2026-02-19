@@ -63,21 +63,6 @@ export interface TrackPosition {
   class?: SalaryClass;
 }
 
-export interface ProgressionRule {
-  id: string;
-  from_position_id: string;
-  to_position_id: string;
-  progression_type: 'horizontal' | 'vertical' | 'merit';
-  min_time_months?: number;
-  performance_requirement?: number;
-  additional_requirements?: Record<string, any>;
-  active: boolean;
-  created_at: string;
-  updated_at: string;
-  from_position?: TrackPosition;
-  to_position?: TrackPosition;
-}
-
 export interface ProgressionHistory {
   id: string;
   user_id: string;
@@ -87,7 +72,7 @@ export interface ProgressionHistory {
   to_salary_level_id: string;
   from_salary?: number;
   to_salary: number;
-  progression_type: 'horizontal' | 'vertical' | 'merit';
+  progression_type: 'horizontal' | 'vertical';
   progression_date: string;
   reason?: string;
   approved_by?: string;
@@ -305,31 +290,6 @@ class SalaryService {
     return this.handleRequest<void>(api.delete(`/salary/track-positions/${id}`));
   }
 
-  // ===== REGRAS DE PROGRESSÃO =====
-  async getProgressionRules(): Promise<ProgressionRule[]> {
-    return this.handleRequest<ProgressionRule[]>(api.get('/salary/progression-rules'));
-  }
-
-  async getProgressionRuleById(id: string): Promise<ProgressionRule> {
-    return this.handleRequest<ProgressionRule>(api.get(`/salary/progression-rules/${id}`));
-  }
-
-  async getRulesByFromPosition(positionId: string): Promise<ProgressionRule[]> {
-    return this.handleRequest<ProgressionRule[]>(api.get(`/salary/progression-rules/from/${positionId}`));
-  }
-
-  async createProgressionRule(data: Partial<ProgressionRule>): Promise<ProgressionRule> {
-    return this.handleRequest<ProgressionRule>(api.post('/salary/progression-rules', data));
-  }
-
-  async updateProgressionRule(id: string, data: Partial<ProgressionRule>): Promise<ProgressionRule> {
-    return this.handleRequest<ProgressionRule>(api.put(`/salary/progression-rules/${id}`, data));
-  }
-
-  async deleteProgressionRule(id: string): Promise<void> {
-    return this.handleRequest<void>(api.delete(`/salary/progression-rules/${id}`));
-  }
-
   // ===== ATRIBUIÇÃO E PROGRESSÃO =====
   async assignUserToTrack(
     userId: string,
@@ -356,14 +316,10 @@ class SalaryService {
     return this.handleRequest<UserSalaryInfo>(api.get(`/salary/users/${userId}/salary-info`));
   }
 
-  async getUserPossibleProgressions(userId: string): Promise<any[]> {
-    return this.handleRequest<any[]>(api.get(`/salary/users/${userId}/possible-progressions`));
-  }
-
   async progressUser(userId: string, data: {
     toTrackPositionId: string;
     toSalaryLevelId: string;
-    progressionType: 'horizontal' | 'vertical' | 'merit';
+    progressionType: 'horizontal' | 'vertical';
     reason?: string;
   }): Promise<ProgressionHistory> {
     return this.handleRequest<ProgressionHistory>(
