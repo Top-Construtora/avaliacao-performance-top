@@ -6,12 +6,11 @@ import Button from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
-import { 
+import {
   Settings as SettingsIcon,
   User,
   Mail,
   Phone,
-  MapPin,
   Building,
   Eye,
   EyeOff,
@@ -20,10 +19,12 @@ import {
   Briefcase,
   Moon,
   Sun,
-  Save,
   Loader2,
   Calendar,
-  Shield
+  Shield,
+  Users,
+  FileText,
+  BadgeCheck
 } from 'lucide-react';
 
 type SettingSection = 'profile' | 'preferences' | 'security';
@@ -32,7 +33,7 @@ const Settings = () => {
   const { user, profile, updatePassword, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
-  
+
   const [activeSection, setActiveSection] = useState<SettingSection>('profile');
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -71,25 +72,54 @@ const Settings = () => {
 
   // Navegação lateral
   const settingSections = [
-    { 
-      id: 'profile' as SettingSection, 
-      label: 'Perfil', 
-      icon: User, 
+    {
+      id: 'profile' as SettingSection,
+      label: 'Perfil',
+      icon: User,
       description: 'Suas informações pessoais'
     },
-    { 
-      id: 'preferences' as SettingSection, 
-      label: 'Aparência', 
-      icon: Palette, 
+    {
+      id: 'preferences' as SettingSection,
+      label: 'Aparência',
+      icon: Palette,
       description: 'Personalize o visual'
     },
-    { 
-      id: 'security' as SettingSection, 
-      label: 'Segurança', 
-      icon: Shield, 
+    {
+      id: 'security' as SettingSection,
+      label: 'Segurança',
+      icon: Shield,
       description: 'Alterar sua senha'
     }
   ];
+
+  // Helpers
+  const getRoleName = () => {
+    if (profile?.is_admin) return 'Administrador';
+    if (profile?.is_director) return 'Diretor';
+    if (profile?.is_leader) return 'Líder';
+    return 'Colaborador';
+  };
+
+  const getRoleBadgeClasses = () => {
+    if (profile?.is_admin) return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
+    if (profile?.is_director) return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
+    if (profile?.is_leader) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+    return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300';
+  };
+
+  const getContractLabel = (type?: string | null) => {
+    switch (type) {
+      case 'CLT': return 'CLT';
+      case 'PJ': return 'PJ';
+      case 'INTERN': return 'Estagiário';
+      default: return null;
+    }
+  };
+
+  const formatDate = (dateStr?: string | null) => {
+    if (!dateStr) return null;
+    return new Date(dateStr).toLocaleDateString('pt-BR');
+  };
 
   // Handlers
   const handlePasswordChange = async () => {
@@ -148,80 +178,130 @@ const Settings = () => {
   };
 
   // Renderização das seções
-  const renderProfileSection = () => (
-    <motion.div
-      variants={itemVariants}
-      className="space-y-6"
-    >
-      <div>
-        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Informações do Perfil</h2>
-        
-        {/* Avatar e Nome */}
-        <div className="flex items-center space-x-4 mb-8">
-          <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-2xl font-bold text-green-800 dark:text-green-700">
-            {profile?.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'US'}
+  const renderProfileSection = () => {
+    const admissionDate = formatDate(profile?.admission_date) || formatDate(profile?.join_date);
+    const contractLabel = getContractLabel(profile?.contract_type);
+    const departmentName = profile?.department?.name;
+    const teamNames = profile?.teams?.map(t => t.name).filter(Boolean);
+
+    return (
+      <motion.div
+        variants={itemVariants}
+        className="space-y-6"
+      >
+        {/* Avatar + Info Principal */}
+        <div className="flex items-start gap-5">
+          <div className="w-20 h-20 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-2xl font-bold text-primary-700 dark:text-primary-400 flex-shrink-0">
+            {profile?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'US'}
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{profile?.name || 'Usuário'}</h3>
-            <p className="text-gray-600 dark:text-gray-400">{profile?.position || 'Cargo não informado'}</p>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 truncate">
+              {profile?.name || 'Usuário'}
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">
+              {profile?.position || 'Cargo não informado'}
+            </p>
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeClasses()}`}>
+                <BadgeCheck className="h-3 w-3" />
+                {getRoleName()}
+              </span>
+              {contractLabel && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400">
+                  <FileText className="h-3 w-3" />
+                  {contractLabel}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
+        <div className="border-t border-gray-100 dark:border-gray-700" />
+
         {/* Informações */}
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">Email</label>
-              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-                <Mail className="h-4 w-4" />
-                <span>{user?.email || 'email@exemplo.com'}</span>
+        <div>
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+            Informações
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Email - sempre presente */}
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+                <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Email</p>
+                <p className="text-sm text-gray-700 dark:text-gray-200 truncate">{user?.email}</p>
               </div>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">Telefone</label>
-              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-                <Phone className="h-4 w-4" />
-                <span>{profile?.phone || 'Não informado'}</span>
+
+            {/* Cargo - sempre presente */}
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+                <Briefcase className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Cargo</p>
+                <p className="text-sm text-gray-700 dark:text-gray-200">{profile?.position || 'Não informado'}</p>
               </div>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">Departamento</label>
-              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-                <Building className="h-4 w-4" />
-                <span>{profile?.department || 'Não informado'}</span>
+
+            {/* Departamento */}
+            {departmentName && (
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+                  <Building className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Departamento</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-200">{departmentName}</p>
+                </div>
               </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">Localização</label>
-              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-                <MapPin className="h-4 w-4" />
-                <span>{profile?.location || 'São Paulo, SP'}</span>
+            )}
+
+            {/* Times */}
+            {teamNames && teamNames.length > 0 && (
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+                  <Users className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Time{teamNames.length > 1 ? 's' : ''}</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-200">{teamNames.join(', ')}</p>
+                </div>
               </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">Cargo</label>
-              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-                <Briefcase className="h-4 w-4" />
-                <span>{profile?.position || 'Não informado'}</span>
+            )}
+
+            {/* Telefone - só se preenchido */}
+            {profile?.phone && (
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+                  <Phone className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Telefone</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-200">{profile.phone}</p>
+                </div>
               </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">Data de Admissão</label>
-              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-                <Calendar className="h-4 w-4" />
-                <span>{profile?.join_date ? new Date(profile.join_date).toLocaleDateString('pt-BR') : 'Não informado'}</span>
+            )}
+
+            {/* Data de Admissão - só se existir */}
+            {admissionDate && (
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+                  <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Data de Admissão</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-200">{admissionDate}</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
-      </div>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   const renderPreferencesSection = () => (
     <motion.div
@@ -230,12 +310,12 @@ const Settings = () => {
     >
       <div>
         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Aparência</h2>
-        
+
         <div>
-          <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
             Tema do Sistema
           </label>
-          
+
           <div className="grid grid-cols-2 gap-3">
             {[
               { value: 'light' as const, icon: Sun, label: 'Claro' },
@@ -246,19 +326,19 @@ const Settings = () => {
                 onClick={() => handleThemeChange(themeOption.value)}
                 className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${
                   theme === themeOption.value
-                    ? 'border-green-800 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
+                    ? 'border-primary-500 dark:border-primary-400 bg-primary-50 dark:bg-primary-900/20'
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800'
                 }`}
               >
                 <themeOption.icon className={`h-6 w-6 mb-2 ${
-                  theme === themeOption.value 
-                    ? 'text-green-800 dark:text-green-700' 
+                  theme === themeOption.value
+                    ? 'text-primary-600 dark:text-primary-400'
                     : 'text-gray-600 dark:text-gray-400'
                 }`} />
                 <span className={`text-sm font-medium ${
-                  theme === themeOption.value 
-                    ? 'text-green-800 dark:text-green-700' 
-                    : 'text-naue-black dark:text-gray-300 font-medium'
+                  theme === themeOption.value
+                    ? 'text-primary-700 dark:text-primary-400'
+                    : 'text-gray-700 dark:text-gray-300'
                 }`}>
                   {themeOption.label}
                 </span>
@@ -277,15 +357,15 @@ const Settings = () => {
     >
       <div>
         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Segurança</h2>
-        
+
         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6">
-          <h3 className="text-sm font-semibold text-naue-black dark:text-gray-300 font-medium uppercase tracking-wider mb-4">
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
             Alterar Senha
           </h3>
-          
+
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Senha Atual
               </label>
               <div className="relative">
@@ -293,7 +373,7 @@ const Settings = () => {
                   type={showPassword ? "text" : "password"}
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-lg border border-naue-border-gray dark:border-gray-600 focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-green-800 dark:focus:border-green-700 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400"
                   placeholder="Digite sua senha atual"
                 />
                 <button
@@ -305,9 +385,9 @@ const Settings = () => {
                 </button>
               </div>
             </div>
-            
+
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Nova Senha
               </label>
               <div className="relative">
@@ -315,7 +395,7 @@ const Settings = () => {
                   type={showNewPassword ? "text" : "password"}
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-lg border border-naue-border-gray dark:border-gray-600 focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-green-800 dark:focus:border-green-700 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400"
                   placeholder="Digite sua nova senha"
                 />
                 <button
@@ -330,9 +410,9 @@ const Settings = () => {
                 Mínimo de 6 caracteres
               </p>
             </div>
-            
+
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Confirmar Nova Senha
               </label>
               <div className="relative">
@@ -340,7 +420,7 @@ const Settings = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-lg border border-naue-border-gray dark:border-gray-600 focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-green-800 dark:focus:border-green-700 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400"
                   placeholder="Confirme sua nova senha"
                 />
                 <button
@@ -353,19 +433,19 @@ const Settings = () => {
               </div>
               {passwordForm.newPassword && passwordForm.confirmPassword && (
                 <p className={`text-xs mt-1 ${
-                  passwordForm.newPassword === passwordForm.confirmPassword 
-                    ? 'text-green-600 dark:text-green-400' 
+                  passwordForm.newPassword === passwordForm.confirmPassword
+                    ? 'text-green-600 dark:text-green-400'
                     : 'text-red-600 dark:text-red-400'
                 }`}>
-                  {passwordForm.newPassword === passwordForm.confirmPassword 
-                    ? '✓ As senhas coincidem' 
+                  {passwordForm.newPassword === passwordForm.confirmPassword
+                    ? '✓ As senhas coincidem'
                     : '✗ As senhas não coincidem'}
                 </p>
               )}
             </div>
           </div>
-          
-          <div className="mt-6 flex items-center justify-between">
+
+          <div className="mt-6">
             <Button
               variant="primary"
               onClick={handlePasswordChange}
@@ -382,7 +462,7 @@ const Settings = () => {
   );
 
   return (
-    <motion.div 
+    <motion.div
       className="space-y-6"
       initial="hidden"
       animate="visible"
@@ -397,7 +477,7 @@ const Settings = () => {
         <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-start md:space-y-0 mb-6">
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center flex-wrap">
-              <SettingsIcon className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-green-800 dark:text-green-700 mr-2 sm:mr-3 flex-shrink-0" />
+              <SettingsIcon className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-600 dark:text-primary-400 mr-2 sm:mr-3 flex-shrink-0" />
               <span className="break-words">Configurações</span>
             </h1>
             <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">Gerencie suas informações e preferências</p>
@@ -420,13 +500,13 @@ const Settings = () => {
                   onClick={() => setActiveSection(section.id)}
                   className={`w-full flex items-center px-3 py-2.5 rounded-lg transition-all ${
                     activeSection === section.id
-                      ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-700'
+                      ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400'
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
                   <section.icon className={`h-5 w-5 mr-3 ${
-                    activeSection === section.id 
-                      ? 'text-green-800 dark:text-green-700' 
+                    activeSection === section.id
+                      ? 'text-primary-600 dark:text-primary-400'
                       : 'text-gray-400 dark:text-gray-500'
                   }`} />
                   <div className="text-left">
