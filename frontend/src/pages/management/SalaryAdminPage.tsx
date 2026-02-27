@@ -226,7 +226,7 @@ const SalaryAdminPage = () => {
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center font-lemon-milk tracking-wide">
                   <Settings className="h-7 w-7 text-primary dark:text-primary-600 mr-3" />
                   Administração de Carreiras
                 </h1>

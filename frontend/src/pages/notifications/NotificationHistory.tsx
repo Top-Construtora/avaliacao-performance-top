@@ -565,7 +565,7 @@ const NotificationHistory: React.FC = () => {
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </button>
             <div>
-              <h1 className="text-xl sm:text-3xl font-bold text-gray-800 flex items-center">
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-800 flex items-center font-lemon-milk tracking-wide">
                 <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 mr-3">
                   <Bell className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                 </div>

@@ -19,10 +19,10 @@ const NotFound = () => {
         {/* Conteúdo principal */}
         <div className="text-center space-y-6">
           <div>
-            <h1 className="text-8xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
+            <h1 className="text-8xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent font-lemon-milk">
               404
             </h1>
-            <h2 className="text-3xl font-semibold text-gray-800 mt-4">
+            <h2 className="text-3xl font-semibold text-gray-800 mt-4 font-lemon-milk tracking-wide">
               Ops! Página não encontrada
             </h2>
           </div>

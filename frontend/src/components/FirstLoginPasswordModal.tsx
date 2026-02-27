@@ -92,7 +92,7 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
               <div className="inline-flex p-3 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4">
                 <Shield className="w-8 h-8 text-primary-600 dark:text-primary-400" />
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 font-lemon-milk tracking-wide">
                 Bem-vindo(a), {profile?.name?.split(' ')[0]}!
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">

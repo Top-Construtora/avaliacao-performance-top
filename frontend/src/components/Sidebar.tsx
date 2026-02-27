@@ -304,7 +304,7 @@ export default function Sidebar({
                                 className={({ isActive }) => `
                                   flex items-center px-4 py-2.5 text-[14px] font-medium transition-all duration-200
                                   ${isActive
-                                    ? 'bg-white/15 text-white'
+                                    ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
                                     : 'text-white/80 hover:bg-white/10 hover:text-white'
                                   }
                                 `}
@@ -362,7 +362,7 @@ export default function Sidebar({
                                   className={({ isActive }) => `
                                     flex items-center px-4 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200
                                     ${isActive
-                                      ? 'bg-white/15 text-white border-l-2 border-white'
+                                      ? 'bg-[#12b0a0]/15 text-[#12b0a0] border-l-2 border-[#12b0a0]'
                                       : 'text-white/80 hover:bg-white/10 hover:text-white'
                                     }
                                   `}
@@ -386,7 +386,7 @@ export default function Sidebar({
                   className={({ isActive }) => `
                     flex items-center justify-center p-3 rounded-lg transition-all duration-200
                     ${isActive
-                      ? 'bg-white/15 text-white'
+                      ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
                       : 'text-white/90 hover:bg-white/10 hover:text-white'
                     }
                   `}
@@ -406,7 +406,7 @@ export default function Sidebar({
                   className={({ isActive }) => `
                     flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
                     ${isActive
-                      ? 'bg-white/15 text-white'
+                      ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
                       : 'text-white/90 hover:bg-white/10 hover:text-white'
                     }
                   `}
@@ -432,7 +432,7 @@ export default function Sidebar({
                 className={({ isActive }) => `
                   flex items-center justify-center p-3 rounded-lg transition-all duration-200 relative group
                   ${isActive
-                    ? 'bg-white/15 text-white'
+                    ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
                     : 'text-white/90 hover:bg-white/10 hover:text-white'
                   }
                 `}
@@ -450,7 +450,7 @@ export default function Sidebar({
                 className={({ isActive }) => `
                   flex items-center justify-center p-3 rounded-lg transition-all duration-200 relative group
                   ${isActive
-                    ? 'bg-white/15 text-white'
+                    ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
                     : 'text-white/90 hover:bg-white/10 hover:text-white'
                   }
                 `}
@@ -465,7 +465,7 @@ export default function Sidebar({
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center p-3 rounded-lg text-white/90 hover:bg-white/10 hover:text-white transition-all duration-200 relative group"
+                className="w-full flex items-center justify-center p-3 rounded-lg text-[#F87171] hover:bg-[#F87171]/10 hover:text-[#F87171] transition-all duration-200 relative group"
                 title="Sair"
               >
                 <LogOut className="h-5 w-5 flex-shrink-0" />
@@ -482,7 +482,7 @@ export default function Sidebar({
                 className={({ isActive }) => `
                   flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
                   ${isActive
-                    ? 'bg-white/15 text-white'
+                    ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
                     : 'text-white/90 hover:bg-white/10 hover:text-white'
                   }
                 `}
@@ -497,7 +497,7 @@ export default function Sidebar({
                 className={({ isActive }) => `
                   flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
                   ${isActive
-                    ? 'bg-white/15 text-white'
+                    ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
                     : 'text-white/90 hover:bg-white/10 hover:text-white'
                   }
                 `}
@@ -509,7 +509,7 @@ export default function Sidebar({
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center px-4 py-3 text-[15px] font-medium rounded-lg text-white/90 hover:bg-white/10 hover:text-white transition-all duration-200"
+                className="w-full flex items-center px-4 py-3 text-[15px] font-medium rounded-lg text-[#F87171] hover:bg-[#F87171]/10 hover:text-[#F87171] transition-all duration-200"
               >
                 <LogOut className="h-5 w-5 mr-3 flex-shrink-0" />
                 <span>Sair</span>
@@ -529,7 +529,7 @@ export default function Sidebar({
         animate={{ width: isCollapsed ? 72 : 256 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="hidden md:flex flex-col fixed h-full z-30"
-        style={{ backgroundColor: '#1e2938' }}
+        style={{ background: 'linear-gradient(180deg, #1e6076 0%, #1F2937 30%)' }}
       >
         {sidebarContent(false)}
       </motion.aside>
@@ -554,7 +554,7 @@ export default function Sidebar({
               exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.3 }}
               className="md:hidden flex flex-col fixed h-full w-64 z-50"
-              style={{ backgroundColor: '#1e2938' }}
+              style={{ background: 'linear-gradient(180deg, #1e6076 0%, #1F2937 30%)' }}
             >
               {sidebarContent(true)}
             </motion.aside>

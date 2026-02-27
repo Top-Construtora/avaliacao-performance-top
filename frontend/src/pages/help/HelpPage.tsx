@@ -695,7 +695,7 @@ const HelpPage = () => {
               <BookOpen className="h-8 w-8 text-primary dark:text-primary-400" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-3xl font-bold text-white mb-2 font-lemon-milk tracking-wide">
                 Central de Ajuda
               </h1>
               <p className="text-primary-100 dark:text-primary-200">

@@ -21,15 +21,15 @@ const Button = ({
   className = '',
   icon,
 }: ButtonProps) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:-translate-y-0.5 hover:shadow-md';
+  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:-translate-y-0.5 hover:shadow-md font-lemon-milk tracking-wide';
   
   const variantClasses = {
-    primary: 'bg-primary hover:bg-primary-700 text-white focus:ring-primary-500',
+    primary: 'bg-gradient-to-r from-[#1e6076] to-[#12b0a0] hover:from-[#1a5a6b] hover:to-[#0f9d8a] text-white focus:ring-[#12b0a0]/50',
     secondary: 'bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-500',
     success: 'bg-emerald-500 hover:bg-emerald-600 text-white focus:ring-emerald-500',
     danger: 'bg-red-500 hover:bg-red-600 text-white focus:ring-red-500',
     warning: 'bg-amber-500 hover:bg-amber-600 text-white focus:ring-amber-500',
-    outline: 'border-2 border-primary-600 bg-white text-primary-600 hover:bg-primary-50 focus:ring-primary-500',
+    outline: 'border-2 border-[#1e6076] bg-white text-[#1e6076] hover:bg-[#12b0a0]/5 hover:border-[#12b0a0] hover:text-[#12b0a0] focus:ring-[#12b0a0]/50',
   };
   
   const sizeClasses = {

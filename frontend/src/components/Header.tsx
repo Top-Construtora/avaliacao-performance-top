@@ -242,7 +242,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
   };
 
   return (
-    <header className="border-b border-white/10 sticky top-0 z-20" style={{backgroundColor: '#1e2938'}}>
+    <header className="border-b border-white/10 sticky top-0 z-20" style={{background: 'linear-gradient(90deg, #1e6076 0%, #12b0a0 100%)'}}>
       <div className="flex items-center justify-between h-[77px] px-3 sm:px-4 md:px-6">
         {/* Lado esquerdo - Menu mobile */}
         <div className="flex items-center flex-shrink-0">
@@ -258,7 +258,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
 
         {/* Centro - Título */}
         <div className="flex-1 flex flex-col items-center justify-center text-center">
-          <h1 className="text-base sm:text-lg md:text-xl font-semibold text-white truncate">
+          <h1 className="text-base sm:text-lg md:text-xl font-semibold text-white truncate font-lemon-milk tracking-wider">
             <span className="hidden sm:inline">Sistema de Avaliação de Performance</span>
             <span className="sm:hidden">Avaliação de Performance</span>
           </h1>
@@ -501,7 +501,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                   </span>
                 </div>
               </div>
-              <div className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0 shadow-md" style={{backgroundColor: '#1e2938'}}>
+              <div className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0 shadow-md" style={{backgroundColor: '#1e6076'}}>
                 {profile?.name ? profile.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
               </div>
               <ChevronDown className={`h-3 w-3 sm:h-4 sm:w-4 text-white/70 transition-transform hidden sm:block ${showUserMenu ? 'rotate-180' : ''}`} />

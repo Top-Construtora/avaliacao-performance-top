@@ -1100,7 +1100,7 @@ const SelfEvaluation = () => {
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 sm:mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-3 sm:space-x-4 w-full lg:w-auto">
             <div className="flex-1 lg:flex-none">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center font-lemon-milk tracking-wide">
                 {currentStep === 'toolkit' ? (
                   <>
                     <Pen className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-stone-700 dark:text-stone-700 mr-2 sm:mr-3" />

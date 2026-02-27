@@ -472,7 +472,7 @@ const TrackPositionsPage = () => {
                 <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </button>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3 font-lemon-milk tracking-wide">
                   <GitBranch className="h-7 w-7 text-green-800 dark:text-green-600" />
                   {track.name}
                 </h1>

@@ -88,7 +88,7 @@ export default function Login() {
               className="h-16 w-auto object-contain"
             />
             <div>
-              <h1 className="text-5xl font-bold leading-tight mb-4">
+              <h1 className="text-5xl font-bold leading-tight mb-4 font-lemon-milk tracking-wider">
                 Sistema de<br />
                 <span className="text-[#12b0a0]">Avaliação de</span><br />
                 Performance
@@ -107,7 +107,7 @@ export default function Login() {
                 <Target className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">Avaliação 360°</h3>
+                <h3 className="font-semibold text-lg font-lemon-milk">Avaliação 360°</h3>
                 <p className="text-white/70 text-sm">Autoavaliação, líder e consenso integrados</p>
               </div>
             </div>
@@ -117,7 +117,7 @@ export default function Login() {
                 <Users className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">Comitê de Gente</h3>
+                <h3 className="font-semibold text-lg font-lemon-milk">Comitê de Gente</h3>
                 <p className="text-white/70 text-sm">Matriz Nine Box para gestão de talentos</p>
               </div>
             </div>
@@ -127,7 +127,7 @@ export default function Login() {
                 <Award className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">PDI Integrado</h3>
+                <h3 className="font-semibold text-lg font-lemon-milk">PDI Integrado</h3>
                 <p className="text-white/70 text-sm">Plano de desenvolvimento individual</p>
               </div>
             </div>
@@ -154,7 +154,7 @@ export default function Login() {
                   <img src={logoTop2} alt="Logo" className="h-10 w-auto object-contain" />
                 </motion.div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
+                  <h1 className="text-2xl font-bold text-gray-900 font-lemon-milk tracking-wide">
                     Bem-vindo(a)!
                   </h1>
                   <p className="text-gray-600 mt-2">
@@ -282,7 +282,7 @@ export default function Login() {
                           className={`w-full py-3 px-6 rounded-lg font-medium text-white text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
                             isLoading || isLoadingMicrosoft
                               ? 'bg-gray-400 cursor-not-allowed'
-                              : 'bg-[#1e2938] hover:bg-[#2a3a4d] active:scale-[0.98]'
+                              : 'bg-gradient-to-r from-[#1e6076] to-[#12b0a0] hover:from-[#1a5a6b] hover:to-[#0f9d8a] active:scale-[0.98]'
                           }`}
                         >
                           {isLoading ? (

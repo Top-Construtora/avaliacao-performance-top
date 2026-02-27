@@ -102,7 +102,7 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
               <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <div className="text-left min-w-0 flex-1">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex flex-col sm:flex-row sm:items-center">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex flex-col sm:flex-row sm:items-center font-lemon-milk tracking-wide">
                 <span className="truncate">{section.title}</span>
                 <span className={`mt-1 sm:mt-0 sm:ml-3 text-xs font-medium px-2 py-1 rounded-full ${section.bgColor} ${section.darkBgColor} text-gray-700 dark:text-gray-200 flex-shrink-0`}>
                   Peso {section.weight}%

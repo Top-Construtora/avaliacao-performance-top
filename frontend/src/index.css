@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fonte Lemon Milk - Display/Heading */
+@font-face {
+  font-family: 'Lemon Milk';
+  src: url('./assets/fonts/LemonMilk-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* NAUE Consultoria - Variáveis de Identidade Visual */
 :root {
   /* Cores Primárias */

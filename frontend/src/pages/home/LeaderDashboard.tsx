@@ -128,11 +128,11 @@ const LeaderDashboard = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="rounded-2xl p-8 text-white shadow-md hover:shadow-lg transition-shadow duration-300"
-        style={{ background: 'linear-gradient(to bottom right, #1e2938, #161f2a)' }}
+        style={{ background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)' }}
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 font-lemon-milk tracking-wide">
               Olá, {firstName}!
             </h1>
             <p className="text-white/90 text-base sm:text-lg">
@@ -414,7 +414,7 @@ const LeaderDashboard = () => {
                 }}
                 transition={{ duration: 1, delay: 0.5 }}
                 className="h-2 rounded-full"
-                style={{ background: 'linear-gradient(to right, #1e2938, #2d3e50)' }}
+                style={{ background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)' }}
               />
             </div>
           </div>
@@ -526,18 +526,18 @@ const LeaderDashboard = () => {
               {/* Background Gradient Decoration */}
               <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-5 dark:group-hover:opacity-10 transition-opacity duration-300"
-                style={{ background: 'linear-gradient(to bottom right, #1e2938, #161f2a)' }}
+                style={{ background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)' }}
               />
 
               <div className="relative z-10">
                 <div
                   className="inline-flex p-2 sm:p-3 rounded-xl shadow-md dark:shadow-lg mb-3 sm:mb-4"
-                  style={{ background: 'linear-gradient(to bottom right, #1e2938, #161f2a)' }}
+                  style={{ background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)' }}
                 >
                   <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
 
-                <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 font-lemon-milk tracking-wide">
                   {card.title}
                 </h3>
 
@@ -545,9 +545,9 @@ const LeaderDashboard = () => {
                   {card.description}
                 </p>
 
-                <div className="inline-flex items-center text-sm font-semibold group-hover:gap-2 sm:group-hover:gap-3 transition-all duration-300" style={{ color: '#1e2938' }}>
-                  <span className="dark:text-gray-300">{card.action}</span>
-                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1 dark:text-gray-300" />
+                <div className="inline-flex items-center text-sm font-semibold group-hover:gap-2 sm:group-hover:gap-3 transition-all duration-300" style={{ color: '#12b0a0' }}>
+                  <span className="dark:text-[#12b0a0]">{card.action}</span>
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1 dark:text-[#12b0a0]" />
                 </div>
               </div>
 
@@ -556,7 +556,7 @@ const LeaderDashboard = () => {
                 className="absolute inset-0 rounded-lg border border-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 style={{
                   padding: '2px',
-                  background: 'linear-gradient(to bottom right, #1e2938, #161f2a)',
+                  background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)',
                   WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                   WebkitMaskComposite: 'exclude',
                   maskComposite: 'exclude'

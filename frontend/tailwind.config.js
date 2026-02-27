@@ -32,6 +32,7 @@ export default {
       fontFamily: {
         'sans': ['Space Grotesk', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
         'space': ['Space Grotesk', 'sans-serif'],
+        'lemon-milk': ['"Lemon Milk"', 'sans-serif'],
       },
       colors: {
         // NAUE Consultoria - Cores Primárias (Azul Escuro)

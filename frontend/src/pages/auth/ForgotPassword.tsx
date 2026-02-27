@@ -34,7 +34,7 @@ export default function ForgotPassword() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#1e2938] to-[#0f151c] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#1e6076] via-[#12b0a0] to-[#0e8c80] flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -68,7 +68,7 @@ export default function ForgotPassword() {
               <button
                 onClick={() => navigate('/login')}
                 className="w-full py-3 px-6 rounded-lg font-medium text-white transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-md hover:opacity-90 active:scale-[0.98]"
-                style={{backgroundColor: '#1e2938'}}
+                style={{background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)'}}
               >
                 <ArrowLeft className="h-5 w-5" />
                 Voltar para Login
@@ -81,7 +81,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1e2938] to-[#0f151c] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#1e6076] via-[#12b0a0] to-[#0e8c80] flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -96,11 +96,11 @@ export default function ForgotPassword() {
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
               className="inline-flex items-center justify-center w-16 h-16 rounded-xl shadow-lg"
-              style={{backgroundColor: '#1e2938'}}
+              style={{background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)'}}
             >
               <img src={logo} alt="Logo" />
             </motion.div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900 font-lemon-milk tracking-wide">
               Esqueceu sua senha?
             </h1>
             <p className="text-gray-600">
@@ -153,7 +153,7 @@ export default function ForgotPassword() {
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'hover:opacity-90 active:scale-[0.98]'
               }`}
-              style={!loading ? {backgroundColor: '#1e2938'} : {}}
+              style={!loading ? {background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)'} : {}}
             >
               {loading ? (
                 <>
@@ -186,7 +186,7 @@ export default function ForgotPassword() {
               <button
                 onClick={() => navigate('/login')}
                 className="font-medium hover:underline transition-colors"
-                style={{color: '#1e2938'}}
+                style={{color: '#12b0a0'}}
               >
                 Fazer login
               </button>

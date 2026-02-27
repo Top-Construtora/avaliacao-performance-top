@@ -137,7 +137,7 @@ const PDIViewer: React.FC<PDIViewerProps> = ({ pdiData }) => {
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <div className="flex items-center mb-4">
           <FileText className="w-8 h-8 text-primary-600 mr-3" />
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 font-lemon-milk tracking-wide">
             Plano de Desenvolvimento Individual (PDI)
           </h1>
         </div>
