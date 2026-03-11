@@ -184,30 +184,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('🔍 Verificando autenticação inicial...');
     isCheckingAuthRef.current = true;
 
-    try {
-      // Primeiro verifica se há sessão no Supabase
-      const { data: { session } } = await supabase.auth.getSession();
+    // Timeout de 10 segundos para não deixar o usuário preso no loading
+    const timeoutPromise = new Promise<'timeout'>((resolve) =>
+      setTimeout(() => resolve('timeout'), 10000)
+    );
 
-      if (!session) {
+    const authCheckPromise = (async () => {
+      // Primeiro verifica se há sessão cached no localStorage
+      const { data: { session: cachedSession } } = await supabase.auth.getSession();
+
+      if (!cachedSession) {
         console.log('❌ Nenhuma sessão encontrada');
-        setLoading(false);
-        hasInitializedRef.current = true;
         return;
       }
 
-      console.log('✅ Sessão encontrada, buscando perfil...');
+      console.log('✅ Sessão cached encontrada, validando com servidor...');
 
-      // Se houver sessão, busca o perfil do usuário usando a API
+      // Validar token com o servidor do Supabase (getUser faz refresh automático se expirado)
+      let validSession = cachedSession;
+      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+
+      if (userError || !validatedUser) {
+        console.warn('⚠️ Token expirado ou inválido, tentando refresh explícito...');
+
+        // Tentar refresh explícito como fallback
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+
+        if (refreshError || !refreshedSession) {
+          console.error('❌ Refresh falhou, sessão expirada:', refreshError?.message);
+          await supabase.auth.signOut();
+          return;
+        }
+
+        console.log('✅ Sessão renovada via refresh');
+        validSession = refreshedSession;
+      } else {
+        // getUser validou com sucesso, pegar sessão atualizada
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession) {
+          validSession = currentSession;
+        }
+      }
+
+      console.log('✅ Token válido, buscando perfil...');
+
+      // Salvar token validado antes de buscar perfil
+      localStorage.setItem('access_token', validSession.access_token);
+
       try {
-        const profileData = await userService.getUserById(session.user.id);
+        const profileData = await userService.getUserById(validSession.user.id);
 
         if (profileData) {
-          // Verificar se usuário está ativo
           if (!profileData.active) {
             console.warn('⚠️ Usuário inativo detectado no checkAuth');
             await supabase.auth.signOut();
-            setLoading(false);
-            hasInitializedRef.current = true;
             return;
           }
 
@@ -215,18 +245,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(profileData);
           setProfile(profileData);
           setIsAuthenticated(true);
-
-          // Salva o token no localStorage para uso com a API
-          localStorage.setItem('access_token', session.access_token);
         } else {
           console.error('❌ Perfil não encontrado no checkAuth');
-          // Se o perfil não existir, fazer logout
           await supabase.auth.signOut();
         }
       } catch (error) {
         console.error('❌ Erro ao buscar perfil no checkAuth:', error);
-        // Se houver erro ao buscar o perfil, fazer logout
         await supabase.auth.signOut();
+      }
+    })();
+
+    try {
+      const result = await Promise.race([authCheckPromise, timeoutPromise]);
+
+      if (result === 'timeout') {
+        console.error('⏱️ checkAuth timeout após 10s, redirecionando para login');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        try { await supabase.auth.signOut(); } catch {}
       }
     } catch (error) {
       console.error('❌ Falha no checkAuth:', error);
