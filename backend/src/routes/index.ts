@@ -7,6 +7,9 @@ import evaluationRoutes from './evaluationRoutes';
 import salaryRoutes from './salaryRoutes';
 import pdiRoutes from './pdiRoutes';
 import competencyRoutes from './competencyRoutes';
+import interviewRoutes from './interviewRoutes';
+import satisfactionRoutes from './satisfactionRoutes';
+import recruitmentRoutes from './recruitmentRoutes';
 
 const router = Router();
 
@@ -31,6 +34,9 @@ router.use('/competencies', competencyRoutes);
 router.use('/evaluations', evaluationRoutes);
 router.use('/salary', salaryRoutes);
 router.use('/pdi', pdiRoutes);
+router.use('/interviews', interviewRoutes);
+router.use('/satisfaction', satisfactionRoutes);
+router.use('/recruitment', recruitmentRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

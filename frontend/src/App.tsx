@@ -39,6 +39,14 @@ const TrackPositionsPage = lazy(() => import('./pages/carrer/TrackPositionsPage'
 const CareerTrackDetail = lazy(() => import('./pages/carrer/CareerTrackDetail'));
 const PdiManagement = lazy(() => import('./pages/pdi/PdiManagement'));
 const MyPdi = lazy(() => import('./pages/pdi/MyPdi'));
+const PdiCalendar = lazy(() => import('./pages/pdi/PdiCalendar'));
+const SatisfactionSurveys = lazy(() => import('./pages/satisfaction/SatisfactionSurveys'));
+const SatisfactionRespond = lazy(() => import('./pages/satisfaction/SatisfactionRespond'));
+const SatisfactionResults = lazy(() => import('./pages/satisfaction/SatisfactionResults'));
+const RecruitmentList = lazy(() => import('./pages/recruitment/RecruitmentList'));
+const RecruitmentForm = lazy(() => import('./pages/recruitment/RecruitmentForm'));
+const InterviewList = lazy(() => import('./pages/interviews/InterviewList'));
+const InterviewForm = lazy(() => import('./pages/interviews/InterviewForm'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function PageLoader() {
@@ -321,6 +329,15 @@ function App() {
                     />
                     {/* PDI Management (New Route) */}
                     <Route path="pdi" element={<ProtectedRoute allowedRoles={['director', 'leader']}><PdiManagement /></ProtectedRoute>} />
+                    {/* PDI Calendar */}
+                    <Route
+                      path="pdi-calendar"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <PdiCalendar />
+                        </ProtectedRoute>
+                      }
+                    />
 
                     {/* Código Cultural (Organizational Competencies) */}
                     <Route
@@ -328,6 +345,78 @@ function App() {
                       element={
                         <ProtectedRoute allowedRoles={['director']}>
                           <CodigoCultural />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Recrutamento e Seleção */}
+                    <Route
+                      path="recruitment"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <RecruitmentList />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="recruitment/new"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <RecruitmentForm />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="recruitment/:id"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <RecruitmentForm />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Satisfação */}
+                    <Route path="satisfaction" element={<SatisfactionSurveys />} />
+                    <Route path="satisfaction/:id/respond" element={<SatisfactionRespond />} />
+                    <Route
+                      path="satisfaction/:id/results"
+                      element={
+                        <ProtectedRoute allowedRoles={['director']}>
+                          <SatisfactionResults />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Entrevistas */}
+                    <Route
+                      path="interviews"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <InterviewList />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="interviews/new"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <InterviewForm />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="interviews/:id"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <InterviewForm />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="interviews/:id/edit"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <InterviewForm />
                         </ProtectedRoute>
                       }
                     />

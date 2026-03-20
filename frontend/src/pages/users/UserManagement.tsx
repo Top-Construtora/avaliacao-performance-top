@@ -8,7 +8,8 @@ import {
   Shield, Mail, Calendar, UserCheck, MoreVertical, Crown,
   Copy, Download, Phone, CalendarDays, Upload, FileText, GitBranch,
   Network, UserX, Plus, Grid3x3, List, FileSpreadsheet,
-  FileDown, DollarSign, Loader2, Database, UsersIcon, UserPlus, Eye
+  FileDown, DollarSign, Loader2, Database, UsersIcon, UserPlus, Eye,
+  Clock, AlertTriangle, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import XLSX from 'xlsx-js-style';
@@ -480,6 +481,40 @@ const UserManagement = () => {
     };
   }, [users]);
 
+  // Colaboradores próximos de completar 90 dias (janela de 75 a 105 dias)
+  const usersNearing90Days = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return users
+      .filter(u => {
+        if (u.is_admin || u.active === false) return false;
+        if (u.name?.toLowerCase().includes('teste') || u.email?.toLowerCase().includes('teste')) return false;
+
+        const admissionDate = u.admission_date || u.join_date;
+        if (!admissionDate) return false;
+
+        const admission = new Date(admissionDate);
+        admission.setHours(0, 0, 0, 0);
+        const diffDays = Math.floor((today.getTime() - admission.getTime()) / (1000 * 60 * 60 * 24));
+
+        return diffDays >= 75 && diffDays <= 105;
+      })
+      .map(u => {
+        const admissionDate = u.admission_date || u.join_date;
+        const admission = new Date(admissionDate!);
+        admission.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffDays = Math.floor((today.getTime() - admission.getTime()) / (1000 * 60 * 60 * 24));
+        const daysTo90 = 90 - diffDays;
+        return { ...u, daysTo90, diffDays };
+      })
+      .sort((a, b) => a.daysTo90 - b.daysTo90);
+  }, [users]);
+
+  const [show90DaysSection, setShow90DaysSection] = useState(true);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -882,8 +917,8 @@ const UserManagement = () => {
             </UIGuard>
           </div>
 
-          <motion.div 
-            className="grid grid-cols-2 sm:grid-cols-4 gap-4"
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-5 gap-4"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -895,7 +930,7 @@ const UserManagement = () => {
               </div>
               <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-500 dark:text-gray-600 opacity-50" />
             </motion.div>
-            
+
             <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-stone-800 via-stone-800 to-stone-900 dark:from-stone-800 dark:via-stone-800 dark:to-stone-900 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalDirectors}</p>
@@ -903,7 +938,7 @@ const UserManagement = () => {
               </div>
               <Shield className="absolute -bottom-2 -right-2 h-16 w-16 text-stone-700 dark:text-stone-600 opacity-50" />
             </motion.div>
-            
+
             <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 dark:from-primary-900 dark:via-primary-800 dark:to-primary-700 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalLeaders}</p>
@@ -911,7 +946,7 @@ const UserManagement = () => {
               </div>
               <Crown className="absolute -bottom-2 -right-2 h-16 w-16 text-stone-800 dark:text-stone-700 opacity-50" />
             </motion.div>
-            
+
             <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 rounded-xl p-4 text-center shadow-lg">
               <div className="relative z-10">
                 <p className="text-2xl font-bold text-white">{stats.totalCollaborators}</p>
@@ -919,8 +954,114 @@ const UserManagement = () => {
               </div>
               <UserCheck className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-500 dark:text-gray-400 opacity-50" />
             </motion.div>
+
+            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 dark:from-amber-600 dark:via-amber-700 dark:to-amber-800 rounded-xl p-4 text-center shadow-lg">
+              <div className="relative z-10">
+                <p className="text-2xl font-bold text-white">{usersNearing90Days.length}</p>
+                <p className="text-sm text-amber-100 font-medium">90 dias</p>
+              </div>
+              <Clock className="absolute -bottom-2 -right-2 h-16 w-16 text-amber-400 dark:text-amber-500 opacity-50" />
+            </motion.div>
           </motion.div>
         </motion.div>
+
+        {/* Banner de colaboradores completando 90 dias */}
+        {usersNearing90Days.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-amber-200 dark:border-amber-700/50 overflow-hidden"
+          >
+            <button
+              onClick={() => setShow90DaysSection(!show90DaysSection)}
+              className="w-full flex items-center justify-between px-6 py-4 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/30">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    Colaboradores completando 90 dias
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {usersNearing90Days.length} colaborador{usersNearing90Days.length > 1 ? 'es' : ''} no periodo de experiencia
+                  </p>
+                </div>
+              </div>
+              {show90DaysSection ? (
+                <ChevronUp className="h-5 w-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-gray-400" />
+              )}
+            </button>
+
+            <AnimatePresence>
+              {show90DaysSection && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-6 pb-4 space-y-2">
+                    {usersNearing90Days.map(user => (
+                      <div
+                        key={user.id}
+                        className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 hover:border-amber-200 dark:hover:border-amber-700 transition-colors"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className={`h-9 w-9 rounded-lg flex items-center justify-center text-white font-bold text-xs bg-gradient-to-br ${
+                            user.is_director
+                              ? 'from-stone-800 to-stone-900'
+                              : user.is_leader
+                                ? 'from-primary-900 to-primary-800'
+                                : 'from-gray-600 to-gray-700'
+                          }`}>
+                            {user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{user.name}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{user.position}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Admissão: {new Date(user.admission_date || user.join_date!).toLocaleDateString('pt-BR')}
+                            </p>
+                            <p className={`text-xs font-semibold ${
+                              user.daysTo90 <= 0
+                                ? 'text-red-600 dark:text-red-400'
+                                : user.daysTo90 <= 7
+                                  ? 'text-amber-600 dark:text-amber-400'
+                                  : 'text-gray-600 dark:text-gray-400'
+                            }`}>
+                              {user.daysTo90 > 0
+                                ? `${user.daysTo90} dia${user.daysTo90 > 1 ? 's' : ''} para completar 90 dias`
+                                : user.daysTo90 === 0
+                                  ? 'Completa 90 dias hoje!'
+                                  : `Completou 90 dias há ${Math.abs(user.daysTo90)} dia${Math.abs(user.daysTo90) > 1 ? 's' : ''}`
+                              }
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => navigate(`/users/edit/${user.id}`)}
+                            className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                            title="Ver perfil"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
 
         <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">

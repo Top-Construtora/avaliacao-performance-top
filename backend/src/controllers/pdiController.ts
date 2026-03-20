@@ -78,6 +78,36 @@ export const pdiController = {
     }
   },
 
+  // Buscar todos os PDIs ativos (para calendário)
+  async getAllPDIs(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+
+      const { data, error } = await authReq.supabase
+        .from('development_plans')
+        .select(`
+          id,
+          employee_id,
+          status,
+          items,
+          periodo,
+          timeline,
+          created_at,
+          updated_at,
+          employee:users!development_plans_employee_id_fkey(id, name, email, position, department_id)
+        `)
+        .eq('status', 'active')
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+
+      res.json({ success: true, data: data || [] });
+    } catch (error) {
+      console.error('Erro ao buscar todos os PDIs:', error);
+      next(error);
+    }
+  },
+
   // Buscar PDIs por ciclo
   async getPDIsByCycle(req: Request, res: Response, next: NextFunction) {
     try {

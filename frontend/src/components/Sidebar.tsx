@@ -23,6 +23,10 @@ import {
   User,
   HelpCircle,
   Award,
+  ClipboardList,
+  Calendar,
+  SmilePlus,
+  Briefcase,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import { usePeopleCommitteePermission } from '../hooks/usePeopleCommittee';
@@ -36,14 +40,22 @@ interface SidebarProps {
   setIsMobileMenuOpen: (value: boolean) => void;
 }
 
+type RoleType = 'admin' | 'director' | 'leader' | 'collaborator';
+
 interface NavItem {
   label: string;
   icon: any;
   path?: string;
-  allowedRoles?: Array<'admin' | 'director' | 'leader' | 'collaborator'>;
-  hideForRoles?: Array<'admin' | 'director' | 'leader' | 'collaborator'>;
+  allowedRoles?: Array<RoleType>;
+  hideForRoles?: Array<RoleType>;
   hasDropdown?: boolean;
   subItems?: NavItem[];
+}
+
+interface NavSection {
+  title: string;
+  allowedRoles?: Array<RoleType>;
+  items: NavItem[];
 }
 
 export default function Sidebar({
@@ -58,129 +70,196 @@ export default function Sidebar({
   const { canViewPeopleCommittee } = usePeopleCommitteePermission();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
-  // Definir itens de navegação com permissões
-  const navItems: NavItem[] = [
+  // Definir seções de navegação com permissões
+  const navSections: NavSection[] = [
     {
-      label: 'Página Inicial',
-      icon: Home,
-      path: '/',
-    },
-    {
-      label: 'Cadastrar',
-      icon: Plus,
-      hasDropdown: true,
-      allowedRoles: ['admin', 'director'],
-      subItems: [
+      title: '',
+      items: [
         {
-          label: 'Cadastrar Usuário',
-          icon: UserPlus,
-          path: '/register/user',
-        },
-        {
-          label: 'Cadastrar Time',
-          icon: Users,
-          path: '/register/team',
-        },
-        {
-          label: 'Cadastrar Departamento',
-          icon: Building,
-          path: '/register/department',
+          label: 'Página Inicial',
+          icon: Home,
+          path: '/',
         },
       ],
     },
     {
-      label: 'Gerenciar',
-      icon: Layers,
-      hasDropdown: true,
+      title: 'Colaboradores',
       allowedRoles: ['admin', 'director'],
-      subItems: [
+      items: [
         {
-          label: 'Gerenciar Usuários',
-          icon: User,
-          path: '/users',
+          label: 'Cadastrar',
+          icon: Plus,
+          hasDropdown: true,
+          allowedRoles: ['admin', 'director'],
+          subItems: [
+            {
+              label: 'Cadastrar Usuário',
+              icon: UserPlus,
+              path: '/register/user',
+            },
+            {
+              label: 'Cadastrar Time',
+              icon: Users,
+              path: '/register/team',
+            },
+            {
+              label: 'Cadastrar Departamento',
+              icon: Building,
+              path: '/register/department',
+            },
+          ],
         },
         {
-          label: 'Gerenciar Times',
-          icon: Users,
-          path: '/teams',
+          label: 'Gerenciar',
+          icon: Layers,
+          hasDropdown: true,
+          allowedRoles: ['admin', 'director'],
+          subItems: [
+            {
+              label: 'Gerenciar Usuários',
+              icon: User,
+              path: '/users',
+            },
+            {
+              label: 'Gerenciar Times',
+              icon: Users,
+              path: '/teams',
+            },
+            {
+              label: 'Gerenciar Departamentos',
+              icon: Building,
+              path: '/departments',
+            },
+          ],
         },
         {
-          label: 'Gerenciar Departamentos',
-          icon: Building,
-          path: '/departments',
+          label: 'Cargos e Salários',
+          icon: DollarSign,
+          path: '/salary',
+          allowedRoles: ['admin', 'director'],
         },
       ],
     },
     {
-      label: 'Cargos e Salários',
-      icon: DollarSign,
-      path: '/salary',
-      allowedRoles: ['admin', 'director']
+      title: 'Avaliação',
+      items: [
+        {
+          label: 'Gerenciar Ciclos',
+          icon: RotateCcw,
+          path: '/cycle',
+          allowedRoles: ['admin', 'director'],
+        },
+        {
+          label: 'Código Cultural',
+          icon: Award,
+          path: '/codigo-cultural',
+          allowedRoles: ['admin', 'director'],
+        },
+        {
+          label: 'Autoavaliação',
+          icon: FileText,
+          path: '/self-evaluation',
+          hideForRoles: ['admin', 'director'],
+        },
+        {
+          label: 'Avaliação do Líder',
+          icon: Users,
+          path: '/leader-evaluation',
+          allowedRoles: ['admin', 'leader', 'director'],
+        },
+        {
+          label: 'Consenso',
+          icon: Handshake,
+          path: '/consensus',
+          allowedRoles: ['admin', 'director'],
+        },
+        {
+          label: 'Comitê de Gente',
+          icon: Grid3X3,
+          path: '/nine-box',
+          allowedRoles: ['admin', 'director', 'leader'],
+        },
+        {
+          label: 'Guia NineBox',
+          icon: BookOpen,
+          path: '/nine-box-guide',
+          allowedRoles: ['admin', 'director', 'leader'],
+        },
+      ],
     },
     {
-      label: 'Meu PDI',
-      icon: BookOpen,
-      path: '/my-pdi',
-      allowedRoles: ['director', 'leader', 'collaborator']
-    },
-    {
-      label: 'Gerenciar PDI',
-      icon: BookOpen,
-      path: 'pdi',
-      allowedRoles: ['admin', 'director', 'leader']
-    },
-    {
-      label: 'Gerenciar Ciclos',
-      icon: RotateCcw,
-      path: '/cycle',
-      allowedRoles: ['admin', 'director'],
-    },
-    {
-      label: 'Código Cultural',
-      icon: Award,
-      path: '/codigo-cultural',
-      allowedRoles: ['admin', 'director'],
-    },
-    {
-      label: 'Autoavaliação',
-      icon: FileText,
-      path: '/self-evaluation',
-      hideForRoles: ['admin', 'director'],
-    },
-    {
-      label: 'Avaliação do Líder',
-      icon: Users,
-      path: '/leader-evaluation',
-      allowedRoles: ['admin', 'leader', 'director'],
-    },
-    {
-      label: 'Consenso',
-      icon: Handshake,
-      path: '/consensus',
-      allowedRoles: ['admin', 'director'],
-    },
-    {
-      label: 'Comitê de Gente',
-      icon: Grid3X3,
-      path: '/nine-box',
-      allowedRoles: ['admin', 'director', 'leader'], // Leader pode ver se tiver permissão no cargo
-    },
-    {
-      label: 'Relatórios',
-      icon: PieChart,
-      path: '/reports',
-      allowedRoles: ['admin', 'director'],
-    },
-    {
-      label: 'Guia NineBox',
-      icon: BookOpen,
-      path: '/nine-box-guide',
+      title: 'Entrevistas',
       allowedRoles: ['admin', 'director', 'leader'],
+      items: [
+        {
+          label: 'Entrevistas',
+          icon: ClipboardList,
+          path: '/interviews',
+          allowedRoles: ['admin', 'director', 'leader'],
+        },
+      ],
+    },
+    {
+      title: 'Desenvolvimento',
+      items: [
+        {
+          label: 'Meu PDI',
+          icon: BookOpen,
+          path: '/my-pdi',
+          allowedRoles: ['director', 'leader', 'collaborator'],
+        },
+        {
+          label: 'Gerenciar PDI',
+          icon: BookOpen,
+          path: '/pdi',
+          allowedRoles: ['admin', 'director', 'leader'],
+        },
+        {
+          label: 'Calendário PDI',
+          icon: Calendar,
+          path: '/pdi-calendar',
+          allowedRoles: ['admin', 'director', 'leader'],
+        },
+      ],
+    },
+    {
+      title: 'Recrutamento',
+      allowedRoles: ['admin', 'director', 'leader'],
+      items: [
+        {
+          label: 'Vagas',
+          icon: Briefcase,
+          path: '/recruitment',
+          allowedRoles: ['admin', 'director', 'leader'],
+        },
+      ],
+    },
+    {
+      title: 'Satisfação',
+      items: [
+        {
+          label: 'Pesquisas',
+          icon: SmilePlus,
+          path: '/satisfaction',
+        },
+      ],
+    },
+    {
+      title: 'Relatórios',
+      allowedRoles: ['admin', 'director'],
+      items: [
+        {
+          label: 'Relatórios',
+          icon: PieChart,
+          path: '/reports',
+          allowedRoles: ['admin', 'director'],
+        },
+      ],
     },
   ];
 
-  // Filtrar itens baseado no papel do usuário
-  const filteredNavItems = navItems.filter(item => {
+  // Filtrar item baseado no papel do usuário
+  const filterItem = (item: NavItem): boolean => {
     // Bloquear acesso a Cargos e Salários para o email específico
     if (profile?.email === 'recrutatop@topconstrutora.com' && item.path === '/salary') {
       return false;
@@ -194,7 +273,7 @@ export default function Sidebar({
       return true;
     }
 
-    if (item.hideForRoles && item.hideForRoles.includes(role as 'admin' | 'director' | 'leader' | 'collaborator')) {
+    if (item.hideForRoles && item.hideForRoles.includes(role as RoleType)) {
       return false;
     }
 
@@ -203,12 +282,28 @@ export default function Sidebar({
       return canViewPeopleCommittee;
     }
 
-    if (item.allowedRoles && !item.allowedRoles.includes(role as 'admin' | 'director' | 'leader' | 'collaborator')) {
+    if (item.allowedRoles && !item.allowedRoles.includes(role as RoleType)) {
       return false;
     }
 
     return true;
-  });
+  };
+
+  // Filtrar seções e itens baseado no papel do usuário
+  const filteredSections = navSections
+    .map(section => ({
+      ...section,
+      items: section.items.filter(filterItem),
+    }))
+    .filter(section => {
+      // Remover seções vazias
+      if (section.items.length === 0) return false;
+      // Verificar permissão da seção
+      if (section.allowedRoles && !isAdmin && !section.allowedRoles.includes(role as RoleType)) {
+        return false;
+      }
+      return true;
+    });
 
   const handleLogout = async () => {
     try {
@@ -263,159 +358,177 @@ export default function Sidebar({
       {/* Menu de navegação */}
       <nav className={`flex-1 py-4 overflow-y-auto overflow-x-hidden ${isCollapsed && !isMobile ? 'px-2' : 'px-3'}`}>
         <div className="space-y-1">
-          {filteredNavItems.map((item) => (
-            <div key={item.label} className="relative group">
-              {item.hasDropdown ? (
-                <>
-                  {isCollapsed && !isMobile ? (
-                    // Modo colapsado com dropdown
-                    <div className="relative">
-                      <button
-                        onClick={() => handleDropdownToggle(item.label)}
-                        className={`
-                          w-full flex items-center justify-center p-3 rounded-lg transition-all duration-200
-                          ${openDropdown === item.label
-                            ? 'bg-white/10 text-white'
-                            : 'text-white/90 hover:bg-white/10 hover:text-white'
-                          }
-                        `}
-                        title={item.label}
-                      >
-                        <item.icon className="h-5 w-5 flex-shrink-0" />
-                      </button>
+          {filteredSections.map((section, sectionIndex) => (
+            <div key={section.title || 'home'}>
+              {/* Título da seção */}
+              {section.title && (
+                isCollapsed && !isMobile ? (
+                  <div className="my-3 mx-1 border-t border-white/10" />
+                ) : (
+                  <div className={`px-4 pt-5 pb-2 ${sectionIndex === 0 ? 'pt-0' : ''}`}>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                      {section.title}
+                    </span>
+                  </div>
+                )
+              )}
+
+              {/* Itens da seção */}
+              {section.items.map((item) => (
+                <div key={item.label} className="relative group">
+                  {item.hasDropdown ? (
+                    <>
+                      {isCollapsed && !isMobile ? (
+                        // Modo colapsado com dropdown
+                        <div className="relative">
+                          <button
+                            onClick={() => handleDropdownToggle(item.label)}
+                            className={`
+                              w-full flex items-center justify-center p-3 rounded-lg transition-all duration-200
+                              ${openDropdown === item.label
+                                ? 'bg-white/10 text-white'
+                                : 'text-white/90 hover:bg-white/10 hover:text-white'
+                              }
+                            `}
+                            title={item.label}
+                          >
+                            <item.icon className="h-5 w-5 flex-shrink-0" />
+                          </button>
+                          {/* Tooltip */}
+                          <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+                            {item.label}
+                          </div>
+                          {/* Dropdown para modo colapsado */}
+                          <AnimatePresence>
+                            {openDropdown === item.label && item.subItems && (
+                              <motion.div
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                transition={{ duration: 0.2 }}
+                                className="absolute left-full top-0 ml-2 bg-[#1e2938] rounded-lg shadow-lg py-2 min-w-[200px] z-50"
+                              >
+                                {item.subItems.map((subItem) => (
+                                  <NavLink
+                                    key={subItem.path}
+                                    to={subItem.path!}
+                                    className={({ isActive }) => `
+                                      flex items-center px-4 py-2.5 text-[14px] font-medium transition-all duration-200
+                                      ${isActive
+                                        ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
+                                        : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                      }
+                                    `}
+                                    onClick={() => {
+                                      setIsMobileMenuOpen(false);
+                                      setOpenDropdown(null);
+                                    }}
+                                  >
+                                    <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
+                                    <span>{subItem.label}</span>
+                                  </NavLink>
+                                ))}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      ) : (
+                        // Modo expandido com dropdown
+                        <>
+                          <button
+                            onClick={() => handleDropdownToggle(item.label)}
+                            className={`
+                              w-full flex items-center justify-between px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
+                              ${openDropdown === item.label
+                                ? 'bg-white/10 text-white'
+                                : 'text-white/90 hover:bg-white/10 hover:text-white'
+                              }
+                            `}
+                          >
+                            <div className="flex items-center">
+                              <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                              <span>{item.label}</span>
+                            </div>
+                            <ChevronDown
+                              className={`h-4 w-4 transition-transform duration-200 ${
+                                openDropdown === item.label ? 'rotate-180' : ''
+                              }`}
+                            />
+                          </button>
+
+                          <AnimatePresence>
+                            {openDropdown === item.label && item.subItems && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="overflow-hidden"
+                              >
+                                <div className="pl-4 mt-1 space-y-1">
+                                  {item.subItems.map((subItem) => (
+                                    <NavLink
+                                      key={subItem.path}
+                                      to={subItem.path!}
+                                      className={({ isActive }) => `
+                                        flex items-center px-4 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200
+                                        ${isActive
+                                          ? 'bg-[#12b0a0]/15 text-[#12b0a0] border-l-2 border-[#12b0a0]'
+                                          : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                        }
+                                      `}
+                                      onClick={() => setIsMobileMenuOpen(false)}
+                                    >
+                                      <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
+                                      <span>{subItem.label}</span>
+                                    </NavLink>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </>
+                      )}
+                    </>
+                  ) : isCollapsed && !isMobile ? (
+                    // Item simples em modo colapsado
+                    <NavLink
+                      to={item.path!}
+                      className={({ isActive }) => `
+                        flex items-center justify-center p-3 rounded-lg transition-all duration-200
+                        ${isActive
+                          ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
+                          : 'text-white/90 hover:bg-white/10 hover:text-white'
+                        }
+                      `}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      title={item.label}
+                    >
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
                       {/* Tooltip */}
                       <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
                         {item.label}
                       </div>
-                      {/* Dropdown para modo colapsado */}
-                      <AnimatePresence>
-                        {openDropdown === item.label && item.subItems && (
-                          <motion.div
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -10 }}
-                            transition={{ duration: 0.2 }}
-                            className="absolute left-full top-0 ml-2 bg-[#1e2938] rounded-lg shadow-lg py-2 min-w-[200px] z-50"
-                          >
-                            {item.subItems.map((subItem) => (
-                              <NavLink
-                                key={subItem.path}
-                                to={subItem.path!}
-                                className={({ isActive }) => `
-                                  flex items-center px-4 py-2.5 text-[14px] font-medium transition-all duration-200
-                                  ${isActive
-                                    ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
-                                    : 'text-white/80 hover:bg-white/10 hover:text-white'
-                                  }
-                                `}
-                                onClick={() => {
-                                  setIsMobileMenuOpen(false);
-                                  setOpenDropdown(null);
-                                }}
-                              >
-                                <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
-                                <span>{subItem.label}</span>
-                              </NavLink>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                    </NavLink>
                   ) : (
-                    // Modo expandido com dropdown
-                    <>
-                      <button
-                        onClick={() => handleDropdownToggle(item.label)}
-                        className={`
-                          w-full flex items-center justify-between px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
-                          ${openDropdown === item.label
-                            ? 'bg-white/10 text-white'
-                            : 'text-white/90 hover:bg-white/10 hover:text-white'
-                          }
-                        `}
-                      >
-                        <div className="flex items-center">
-                          <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
-                          <span>{item.label}</span>
-                        </div>
-                        <ChevronDown
-                          className={`h-4 w-4 transition-transform duration-200 ${
-                            openDropdown === item.label ? 'rotate-180' : ''
-                          }`}
-                        />
-                      </button>
-
-                      <AnimatePresence>
-                        {openDropdown === item.label && item.subItems && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="pl-4 mt-1 space-y-1">
-                              {item.subItems.map((subItem) => (
-                                <NavLink
-                                  key={subItem.path}
-                                  to={subItem.path!}
-                                  className={({ isActive }) => `
-                                    flex items-center px-4 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200
-                                    ${isActive
-                                      ? 'bg-[#12b0a0]/15 text-[#12b0a0] border-l-2 border-[#12b0a0]'
-                                      : 'text-white/80 hover:bg-white/10 hover:text-white'
-                                    }
-                                  `}
-                                  onClick={() => setIsMobileMenuOpen(false)}
-                                >
-                                  <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
-                                  <span>{subItem.label}</span>
-                                </NavLink>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </>
+                    // Item simples em modo expandido
+                    <NavLink
+                      to={item.path!}
+                      className={({ isActive }) => `
+                        flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
+                        ${isActive
+                          ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
+                          : 'text-white/90 hover:bg-white/10 hover:text-white'
+                        }
+                      `}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                      <span>{item.label}</span>
+                    </NavLink>
                   )}
-                </>
-              ) : isCollapsed && !isMobile ? (
-                // Item simples em modo colapsado
-                <NavLink
-                  to={item.path!}
-                  className={({ isActive }) => `
-                    flex items-center justify-center p-3 rounded-lg transition-all duration-200
-                    ${isActive
-                      ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
-                      : 'text-white/90 hover:bg-white/10 hover:text-white'
-                    }
-                  `}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  title={item.label}
-                >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {/* Tooltip */}
-                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
-                    {item.label}
-                  </div>
-                </NavLink>
-              ) : (
-                // Item simples em modo expandido
-                <NavLink
-                  to={item.path!}
-                  className={({ isActive }) => `
-                    flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
-                    ${isActive
-                      ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
-                      : 'text-white/90 hover:bg-white/10 hover:text-white'
-                    }
-                  `}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
-                  <span>{item.label}</span>
-                </NavLink>
-              )}
+                </div>
+              ))}
             </div>
           ))}
         </div>
