@@ -1099,7 +1099,7 @@ const EditUser = () => {
                   }`}>
                     <input
                       type="checkbox"
-                      className="w-5 h-5 rounded border-gray-300 dark:border-yt-border text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400"
+                      className="w-5 h-5 rounded border-gray-300 dark:border-yt-border text-primary-600 dark:text-primary-300 focus:ring-primary-500 dark:focus:ring-primary-400"
                       checked={formData.teamIds.includes(team.id)}
                       onChange={(e) => {
                         if (e.target.checked) {

@@ -986,7 +986,7 @@ const Consensus = () => {
           <div className="flex items-center space-x-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                <Handshake className="h-6 w-6 sm:h-8 sm:w-8 text-primary-00 dark:text-primary-700 mr-3" />
+                <Handshake className="h-6 w-6 sm:h-8 sm:w-8 text-primary-00 dark:text-primary-300 mr-3" />
                 Reunião de Consenso
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">Definição colaborativa das notas finais</p>
@@ -1197,13 +1197,13 @@ const Consensus = () => {
               {employeeToolkit.knowledge.length > 0 && (
                 <div className="p-4 bg-primary-50 dark:bg-primary-600/20 rounded-xl border border-primary-200 dark:border-primary-700">
                   <div className="flex items-center space-x-2 mb-3">
-                    <Brain className="h-5 w-5 text-primary-00 dark:text-primary-700" />
+                    <Brain className="h-5 w-5 text-primary-00 dark:text-primary-300" />
                     <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Conhecimentos</h4>
                   </div>
                   <ul className="space-y-2">
                     {employeeToolkit.knowledge.map((item, index) => (
                       <li key={index} className="flex items-start space-x-2">
-                        <CheckCircle className="h-4 w-4 text-primary-600 dark:text-primary-500 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="h-4 w-4 text-primary-600 dark:text-primary-300 mt-0.5 flex-shrink-0" />
                         <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
                       </li>
                     ))}
@@ -1359,7 +1359,7 @@ const Consensus = () => {
                                 <div className="bg-gradient-to-r from-primary-50 to-gray-50 dark:from-green-900/20 dark:to-gray-900/20 rounded-lg p-4 border border-primary-200 dark:border-primary-700">
                                   <div className="flex items-center justify-between mb-4">
                                     <h5 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium flex items-center">
-                                      <Handshake className="h-4 w-4 mr-2 text-primary-00 dark:text-primary-700" />
+                                      <Handshake className="h-4 w-4 mr-2 text-primary-00 dark:text-primary-300" />
                                       Nota de Consenso
                                     </h5>
                                     {consensusScore > 0 && (
@@ -1511,13 +1511,13 @@ const Consensus = () => {
                 className="bg-gradient-to-br from-primary-50 via-gray-50 to-stone-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-primary-100 dark:border-yt-border p-4 sm:p-8"
               >
                 <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
-                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary-00 dark:text-primary-700" />
+                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary-00 dark:text-primary-300" />
                   Resumo do Consenso
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div className="bg-white dark:bg-yt-elevated p-4 sm:p-6 rounded-xl border border-primary-200 dark:border-primary-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Técnicas</h4>
-                    <p className="text-2xl sm:text-3xl font-bold text-primary-00 dark:text-primary-700">{formatScore(calculateCategoryAverage('Técnica'))}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-primary-00 dark:text-primary-300">{formatScore(calculateCategoryAverage('Técnica'))}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 50%</p>
                   </div>
 
@@ -1615,7 +1615,7 @@ const Consensus = () => {
         >
           <div className="max-w-md mx-auto">
             <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-100 to-gray-100 dark:from-green-900/20 dark:to-gray-900/20 mb-6">
-              <Users className="h-8 w-8 sm:h-10 sm:w-10 text-primary-00 dark:text-primary-700" />
+              <Users className="h-8 w-8 sm:h-10 sm:w-10 text-primary-00 dark:text-primary-300" />
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Nenhum colaborador selecionado

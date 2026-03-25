@@ -708,7 +708,7 @@ const UserManagement = () => {
                         type="checkbox"
                         checked={user.can_view_subordinate_ninebox || false}
                         onChange={() => handleToggleNineboxPermission(user)}
-                        className="w-3.5 h-3.5 rounded border-gray-300 dark:border-yt-border text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400 cursor-pointer"
+                        className="w-3.5 h-3.5 rounded border-gray-300 dark:border-yt-border text-primary-600 dark:text-primary-300 focus:ring-primary-500 dark:focus:ring-primary-400 cursor-pointer"
                       />
                       <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 flex items-center gap-1">
                         <Eye className="h-3 w-3" />
@@ -807,7 +807,7 @@ const UserManagement = () => {
                   type="checkbox"
                   checked={user.can_view_subordinate_ninebox || false}
                   onChange={() => handleToggleNineboxPermission(user)}
-                  className="w-3.5 h-3.5 rounded border-gray-300 dark:border-yt-border text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400 cursor-pointer"
+                  className="w-3.5 h-3.5 rounded border-gray-300 dark:border-yt-border text-primary-600 dark:text-primary-300 focus:ring-primary-500 dark:focus:ring-primary-400 cursor-pointer"
                 />
                 <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 flex items-center gap-1">
                   <Eye className="h-3 w-3" />
@@ -896,7 +896,7 @@ const UserManagement = () => {
             <div className="flex items-center space-x-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                  <Database className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-900 dark:text-primary-900 mr-2 sm:mr-3 flex-shrink-0" />
+                  <Database className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-900 dark:text-primary-200 mr-2 sm:mr-3 flex-shrink-0" />
                   Gerenciamento de Usuários
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">

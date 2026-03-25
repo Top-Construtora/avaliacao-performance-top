@@ -571,7 +571,7 @@ const SelfEvaluation = () => {
     
     return (
       <div className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-naue-border-gray dark:border-yt-border p-8 text-center">
-        <AlertCircle className="h-12 w-12 text-primary dark:text-primary-600 mx-auto mb-4" />
+        <AlertCircle className="h-12 w-12 text-primary dark:text-primary-300 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
           {!currentCycle ? 'Nenhum ciclo de avaliação ativo' : 'Período de avaliação indisponível'}
         </h3>
@@ -792,21 +792,21 @@ const SelfEvaluation = () => {
           >
             <div className="flex items-start space-x-3">
               <div className="p-2 bg-white dark:bg-yt-surface rounded-lg shadow-sm">
-                <Info className="h-4 w-4 sm:h-5 sm:w-5 text-primary dark:text-primary-600" />
+                <Info className="h-4 w-4 sm:h-5 sm:w-5 text-primary dark:text-primary-300" />
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-2 text-sm sm:text-base">Dicas para uma boa autoavaliação</h3>
                 <ul className="space-y-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   <li className="flex items-start">
-                    <span className="text-primary dark:text-primary-600 mr-2">•</span>
+                    <span className="text-primary dark:text-primary-300 mr-2">•</span>
                     <span>Seja específico e honesto sobre suas competências</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-primary dark:text-primary-600 mr-2">•</span>
+                    <span className="text-primary dark:text-primary-300 mr-2">•</span>
                     <span>Inclua tanto habilidades técnicas quanto comportamentais</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-primary dark:text-primary-600 mr-2">•</span>
+                    <span className="text-primary dark:text-primary-300 mr-2">•</span>
                     <span>Pense em situações reais onde aplicou essas habilidades</span>
                   </li>
                 </ul>

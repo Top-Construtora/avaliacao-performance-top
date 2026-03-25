@@ -227,7 +227,7 @@ const SalaryAdminPage = () => {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center font-lemon-milk tracking-wide">
-                  <Settings className="h-7 w-7 text-primary dark:text-primary-600 mr-3" />
+                  <Settings className="h-7 w-7 text-primary dark:text-primary-300 mr-3" />
                   Administração de Carreiras
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -251,7 +251,7 @@ const SalaryAdminPage = () => {
             className="bg-white dark:bg-yt-surface rounded-xl shadow-sm p-6 space-y-4"
           >
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-              <GitBranch className="text-primary dark:text-primary-600" />
+              <GitBranch className="text-primary dark:text-primary-300" />
               Trilhas de Carreira Criadas
             </h2>
             
@@ -352,7 +352,7 @@ const SalaryAdminPage = () => {
               </div>
             ) : (
               <div className="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg dark:border-yt-border">
-                <GitBranch className="h-12 w-12 text-primary-600 dark:text-primary-500 mx-auto mb-4" />
+                <GitBranch className="h-12 w-12 text-primary-600 dark:text-primary-300 mx-auto mb-4" />
                 <p className="text-gray-500 dark:text-gray-400 font-medium">
                   Nenhuma trilha de carreira foi criada ainda.
                 </p>

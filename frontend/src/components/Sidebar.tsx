@@ -320,7 +320,7 @@ export default function Sidebar({
   };
 
   const sidebarContent = (isMobile: boolean = false) => (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className={`flex flex-col h-full ${isCollapsed && !isMobile ? '' : 'overflow-hidden'}`}>
       {/* Logo */}
       <div className={`h-[77px] flex items-center border-b border-white/10 ${isCollapsed && !isMobile ? 'justify-center px-2' : 'justify-between pl-2 pr-4'}`}>
         <div className={`flex items-center ${isCollapsed && !isMobile ? 'justify-center' : ''}`}>
@@ -356,7 +356,7 @@ export default function Sidebar({
       )}
 
       {/* Menu de navegação */}
-      <nav className={`flex-1 py-4 overflow-y-auto overflow-x-hidden ${isCollapsed && !isMobile ? 'px-2' : 'px-3'}`}>
+      <nav className={`flex-1 py-4 ${isCollapsed && !isMobile ? 'px-2 overflow-visible' : 'px-3 overflow-y-auto overflow-x-hidden'}`}>
         <div className="space-y-1">
           {filteredSections.map((section, sectionIndex) => (
             <div key={section.title || 'home'}>

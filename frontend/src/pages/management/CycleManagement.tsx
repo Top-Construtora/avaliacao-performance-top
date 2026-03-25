@@ -227,7 +227,7 @@ const CycleManagement: React.FC = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center font-lemon-milk tracking-wide">
-              <Calendar className="h-7 w-7 text-primary dark:text-primary-600 mr-3" />
+              <Calendar className="h-7 w-7 text-primary dark:text-primary-300 mr-3" />
               Gerenciamento de Ciclos de Avaliação
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -290,7 +290,7 @@ const CycleManagement: React.FC = () => {
                 <p className="text-primary-700 dark:text-primary-400 text-sm font-medium">Total de Ciclos</p>
                 <p className="text-2xl font-bold text-primary-900 dark:text-primary-100 mt-1">{cycles.length}</p>
               </div>
-              <Calendar className="h-8 w-8 text-primary-800 dark:text-primary-600 opacity-50" />
+              <Calendar className="h-8 w-8 text-primary-800 dark:text-primary-300 opacity-50" />
             </div>
           </div>
 

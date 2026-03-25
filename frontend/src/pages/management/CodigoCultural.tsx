@@ -201,7 +201,7 @@ const CodigoCultural = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex-1">
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
-              <Award className="h-7 w-7 lg:h-8 lg:w-8 text-primary-00 dark:text-primary-700" />
+              <Award className="h-7 w-7 lg:h-8 lg:w-8 text-primary-00 dark:text-primary-300" />
               Código Cultural
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -245,14 +245,14 @@ const CodigoCultural = () => {
             <div className="flex items-center gap-2 mb-6">
               {editingId ? (
                 <>
-                  <Edit2 className="h-5 w-5 text-primary-00 dark:text-primary-700" />
+                  <Edit2 className="h-5 w-5 text-primary-00 dark:text-primary-300" />
                   <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
                     Editar Competência
                   </h2>
                 </>
               ) : (
                 <>
-                  <Plus className="h-5 w-5 text-primary-00 dark:text-primary-700" />
+                  <Plus className="h-5 w-5 text-primary-00 dark:text-primary-300" />
                   <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
                     Nova Competência
                   </h2>
@@ -353,7 +353,7 @@ const CodigoCultural = () => {
       <div className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border overflow-hidden">
         <div className="p-6">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
-            <Award className="h-5 w-5 text-primary-00 dark:text-primary-700" />
+            <Award className="h-5 w-5 text-primary-00 dark:text-primary-300" />
             Competências Cadastradas
           </h2>
 
@@ -408,7 +408,7 @@ const CodigoCultural = () => {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             onClick={() => handleEdit(competency)}
-                            className="p-2 text-primary-900 dark:text-primary-700 hover:bg-primary-100 dark:hover:bg-primary-600/20 rounded-lg transition-colors"
+                            className="p-2 text-primary-900 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-600/20 rounded-lg transition-colors"
                             title="Editar competência"
                           >
                             <Edit2 size={18} />
