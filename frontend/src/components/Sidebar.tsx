@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -69,6 +70,24 @@ export default function Sidebar({
   const { isDirector, isLeader, isAdmin, role } = useUserRole();
   const { canViewPeopleCommittee } = usePeopleCommitteePermission();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [collapsedDropdown, setCollapsedDropdown] = useState<{ label: string; top: number; subItems: NavItem[] } | null>(null);
+
+  useEffect(() => {
+    if (!collapsedDropdown) return;
+    const close = () => setCollapsedDropdown(null);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [collapsedDropdown]);
+
+  const handleCollapsedDropdown = (e: React.MouseEvent<HTMLButtonElement>, item: NavItem) => {
+    e.stopPropagation();
+    if (collapsedDropdown?.label === item.label) {
+      setCollapsedDropdown(null);
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setCollapsedDropdown({ label: item.label, top: rect.top, subItems: item.subItems || [] });
+    }
+  };
 
   // Definir seções de navegação com permissões
   const navSections: NavSection[] = [
@@ -320,7 +339,7 @@ export default function Sidebar({
   };
 
   const sidebarContent = (isMobile: boolean = false) => (
-    <div className={`flex flex-col h-full ${isCollapsed && !isMobile ? '' : 'overflow-hidden'}`}>
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Logo */}
       <div className={`h-[77px] flex items-center border-b border-white/10 ${isCollapsed && !isMobile ? 'justify-center px-2' : 'justify-between pl-2 pr-4'}`}>
         <div className={`flex items-center ${isCollapsed && !isMobile ? 'justify-center' : ''}`}>
@@ -356,7 +375,7 @@ export default function Sidebar({
       )}
 
       {/* Menu de navegação */}
-      <nav className={`flex-1 py-4 ${isCollapsed && !isMobile ? 'px-2 overflow-visible' : 'px-3 overflow-y-auto overflow-x-hidden'}`}>
+      <nav className={`flex-1 py-4 overflow-y-auto overflow-x-hidden ${isCollapsed && !isMobile ? 'px-2' : 'px-3'}`}>
         <div className="space-y-1">
           {filteredSections.map((section, sectionIndex) => (
             <div key={section.title || 'home'}>
@@ -379,59 +398,20 @@ export default function Sidebar({
                   {item.hasDropdown ? (
                     <>
                       {isCollapsed && !isMobile ? (
-                        // Modo colapsado com dropdown
-                        <div className="relative">
-                          <button
-                            onClick={() => handleDropdownToggle(item.label)}
-                            className={`
-                              w-full flex items-center justify-center p-3 rounded-lg transition-all duration-200
-                              ${openDropdown === item.label
-                                ? 'bg-white/10 text-white'
-                                : 'text-white/90 hover:bg-white/10 hover:text-white'
-                              }
-                            `}
-                            title={item.label}
-                          >
-                            <item.icon className="h-5 w-5 flex-shrink-0" />
-                          </button>
-                          {/* Tooltip */}
-                          <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
-                            {item.label}
-                          </div>
-                          {/* Dropdown para modo colapsado */}
-                          <AnimatePresence>
-                            {openDropdown === item.label && item.subItems && (
-                              <motion.div
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -10 }}
-                                transition={{ duration: 0.2 }}
-                                className="absolute left-full top-0 ml-2 bg-[#1e2938] rounded-lg shadow-lg py-2 min-w-[200px] z-50"
-                              >
-                                {item.subItems.map((subItem) => (
-                                  <NavLink
-                                    key={subItem.path}
-                                    to={subItem.path!}
-                                    className={({ isActive }) => `
-                                      flex items-center px-4 py-2.5 text-[14px] font-medium transition-all duration-200
-                                      ${isActive
-                                        ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
-                                        : 'text-white/80 hover:bg-white/10 hover:text-white'
-                                      }
-                                    `}
-                                    onClick={() => {
-                                      setIsMobileMenuOpen(false);
-                                      setOpenDropdown(null);
-                                    }}
-                                  >
-                                    <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
-                                    <span>{subItem.label}</span>
-                                  </NavLink>
-                                ))}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
+                        // Modo colapsado com dropdown — portal renderiza o menu fora do overflow
+                        <button
+                          onClick={(e) => handleCollapsedDropdown(e, item)}
+                          className={`
+                            w-full flex items-center justify-center p-3 rounded-lg transition-all duration-200
+                            ${collapsedDropdown?.label === item.label
+                              ? 'bg-white/10 text-white'
+                              : 'text-white/90 hover:bg-white/10 hover:text-white'
+                            }
+                          `}
+                          title={item.label}
+                        >
+                          <item.icon className="h-5 w-5 flex-shrink-0" />
+                        </button>
                       ) : (
                         // Modo expandido com dropdown
                         <>
@@ -505,10 +485,6 @@ export default function Sidebar({
                       title={item.label}
                     >
                       <item.icon className="h-5 w-5 flex-shrink-0" />
-                      {/* Tooltip */}
-                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
-                        {item.label}
-                      </div>
                     </NavLink>
                   ) : (
                     // Item simples em modo expandido
@@ -543,48 +519,33 @@ export default function Sidebar({
               <NavLink
                 to="/settings"
                 className={({ isActive }) => `
-                  flex items-center justify-center p-3 rounded-lg transition-all duration-200 relative group
-                  ${isActive
-                    ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
-                    : 'text-white/90 hover:bg-white/10 hover:text-white'
-                  }
+                  flex items-center justify-center p-3 rounded-lg transition-all duration-200
+                  ${isActive ? 'bg-[#12b0a0]/15 text-[#12b0a0]' : 'text-white/90 hover:bg-white/10 hover:text-white'}
                 `}
                 onClick={() => setIsMobileMenuOpen(false)}
                 title="Configurações"
               >
                 <Settings className="h-5 w-5 flex-shrink-0" />
-                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
-                  Configurações
-                </div>
               </NavLink>
 
               <NavLink
                 to="/help"
                 className={({ isActive }) => `
-                  flex items-center justify-center p-3 rounded-lg transition-all duration-200 relative group
-                  ${isActive
-                    ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
-                    : 'text-white/90 hover:bg-white/10 hover:text-white'
-                  }
+                  flex items-center justify-center p-3 rounded-lg transition-all duration-200
+                  ${isActive ? 'bg-[#12b0a0]/15 text-[#12b0a0]' : 'text-white/90 hover:bg-white/10 hover:text-white'}
                 `}
                 onClick={() => setIsMobileMenuOpen(false)}
                 title="Ajuda"
               >
                 <HelpCircle className="h-5 w-5 flex-shrink-0" />
-                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
-                  Ajuda
-                </div>
               </NavLink>
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center p-3 rounded-lg text-[#F87171] hover:bg-[#F87171]/10 hover:text-[#F87171] transition-all duration-200 relative group"
+                className="w-full flex items-center justify-center p-3 rounded-lg text-[#F87171] hover:bg-[#F87171]/10 hover:text-[#F87171] transition-all duration-200"
                 title="Sair"
               >
                 <LogOut className="h-5 w-5 flex-shrink-0" />
-                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
-                  Sair
-                </div>
               </button>
             </>
           ) : (
@@ -636,6 +597,38 @@ export default function Sidebar({
 
   return (
     <>
+      {/* Portal: dropdown do modo colapsado — renderizado fora do overflow */}
+      {collapsedDropdown && isCollapsed && createPortal(
+        <AnimatePresence>
+          <motion.div
+            key={collapsedDropdown.label}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2 }}
+            style={{ position: 'fixed', left: 80, top: collapsedDropdown.top, zIndex: 9999 }}
+            className="bg-[#1e2938] rounded-lg shadow-lg py-2 min-w-[200px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {collapsedDropdown.subItems.map((subItem) => (
+              <NavLink
+                key={subItem.path}
+                to={subItem.path!}
+                className={({ isActive }) => `
+                  flex items-center px-4 py-2.5 text-[14px] font-medium transition-all duration-200
+                  ${isActive ? 'bg-[#12b0a0]/15 text-[#12b0a0]' : 'text-white/80 hover:bg-white/10 hover:text-white'}
+                `}
+                onClick={() => { setCollapsedDropdown(null); setIsMobileMenuOpen(false); }}
+              >
+                <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
+                <span>{subItem.label}</span>
+              </NavLink>
+            ))}
+          </motion.div>
+        </AnimatePresence>,
+        document.body
+      )}
+
       {/* Sidebar Desktop */}
       <motion.aside
         initial={false}
