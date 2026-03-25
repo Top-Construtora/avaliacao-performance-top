@@ -163,7 +163,7 @@ const EditTeam = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-8"
+        className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-4 sm:p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div>
@@ -185,7 +185,7 @@ const EditTeam = () => {
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+        <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
           <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
             <Users className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-400" />
             Informações do Time
@@ -197,10 +197,10 @@ const EditTeam = () => {
               </label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
+                className={`w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
                   formErrors.teamName
                     ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger'
-                    : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                    : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                 }`}
                 value={formData.teamName}
                 onChange={(e) => setFormData({ ...formData, teamName: e.target.value })}
@@ -222,10 +222,10 @@ const EditTeam = () => {
                 <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
                     formErrors.department
                       ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger'
-                      : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                      : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                   }`}
                   value={formData.teamDepartmentId}
                   onChange={(e) => setFormData({ ...formData, teamDepartmentId: e.target.value })}
@@ -252,7 +252,7 @@ const EditTeam = () => {
                 <Crown className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <select
-                  className="w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400"
+                  className="w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400"
                   value={formData.teamResponsibleId}
                   onChange={(e) => setFormData({ ...formData, teamResponsibleId: e.target.value })}
                 >
@@ -273,7 +273,7 @@ const EditTeam = () => {
                 Descrição do Time
               </label>
               <textarea
-                className="w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400"
+                className="w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400"
                 rows={4}
                 value={formData.teamDescription}
                 onChange={(e) => setFormData({ ...formData, teamDescription: e.target.value })}
@@ -283,7 +283,7 @@ const EditTeam = () => {
           </div>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+        <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
           <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
             <UserCheck className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-400" />
             Membros do Time *
@@ -293,11 +293,11 @@ const EditTeam = () => {
               <label key={user.id} className={`flex items-center p-4 rounded-xl cursor-pointer transition-all group ${
                 formData.teamMemberIds.includes(user.id)
                   ? 'bg-secondary-50 dark:bg-secondary-900/20 border-2 border-secondary-500 dark:border-secondary-400'
-                  : 'bg-gray-50 dark:bg-gray-700/30 border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                  : 'bg-gray-50 dark:bg-yt-elevated/30 border-2 border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500'
               }`}>
                 <input
                   type="checkbox"
-                  className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-500 focus:ring-gray-500 dark:focus:ring-gray-400"
+                  className="w-5 h-5 rounded border-gray-300 dark:border-yt-border text-gray-600 dark:text-gray-500 focus:ring-gray-500 dark:focus:ring-gray-400"
                   checked={formData.teamMemberIds.includes(user.id)}
                   onChange={(e) => {
                     if (e.target.checked) {
@@ -328,7 +328,7 @@ const EditTeam = () => {
 
       {/* Action Buttons */}
       <motion.div
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6"
+        className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-4 sm:p-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}

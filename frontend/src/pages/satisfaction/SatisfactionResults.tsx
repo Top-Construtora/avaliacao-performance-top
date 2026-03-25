@@ -50,7 +50,7 @@ const SatisfactionResults = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6"
+        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
       >
         <div className="flex items-center space-x-4 mb-6">
           <button onClick={() => navigate('/satisfaction')} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors">
@@ -69,7 +69,7 @@ const SatisfactionResults = () => {
 
         {/* Stats resumo */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 text-center">
+          <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4 text-center">
             <Users className="h-6 w-6 text-primary-600 dark:text-primary-400 mx-auto mb-1" />
             <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{results.total_responses}</p>
             <p className="text-xs text-gray-500 dark:text-gray-400">Respostas</p>
@@ -83,7 +83,7 @@ const SatisfactionResults = () => {
             <p className="text-xs text-gray-500 dark:text-gray-400">Média Geral</p>
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 text-center">
+          <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4 text-center">
             <MessageSquare className="h-6 w-6 text-gray-500 dark:text-gray-400 mx-auto mb-1" />
             <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{results.results.length}</p>
             <p className="text-xs text-gray-500 dark:text-gray-400">Perguntas</p>
@@ -99,7 +99,7 @@ const SatisfactionResults = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6"
+            className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
           >
             <div className="flex items-start gap-3 mb-4">
               <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 flex items-center justify-center text-sm font-bold">
@@ -129,7 +129,7 @@ const SatisfactionResults = () => {
                       return (
                         <div key={i} className="flex items-center gap-3">
                           <span className="w-4 text-xs text-gray-500 dark:text-gray-400 text-right font-medium">{i + 1}</span>
-                          <div className="flex-1 h-6 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div className="flex-1 h-6 bg-gray-100 dark:bg-yt-elevated rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all duration-500 ${
                                 i + 1 >= 4 ? 'bg-green-500' : i + 1 >= 3 ? 'bg-amber-500' : 'bg-red-500'
@@ -170,7 +170,7 @@ const SatisfactionResults = () => {
               <div className="ml-10 space-y-2">
                 <p className="text-sm text-gray-500 dark:text-gray-400">{result.total_answers} respostas</p>
                 {result.text_answers.slice(0, 10).map((text, i) => (
-                  <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
+                  <div key={i} className="p-3 bg-gray-50 dark:bg-yt-elevated/50 rounded-lg border border-gray-100 dark:border-yt-border">
                     <p className="text-sm text-gray-700 dark:text-gray-300 italic">"{text}"</p>
                   </div>
                 ))}

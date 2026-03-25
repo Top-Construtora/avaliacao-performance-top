@@ -788,9 +788,9 @@ const Reports = () => {
         icon: AlertTriangle
       },
       'N/A': {
-        bgColor: 'bg-gray-100 dark:bg-gray-700',
+        bgColor: 'bg-gray-100 dark:bg-yt-elevated',
         textColor: 'text-gray-500 dark:text-gray-400',
-        borderColor: 'border-gray-300 dark:border-gray-600',
+        borderColor: 'border-gray-300 dark:border-yt-border',
         icon: Target
       },
       'Definido': {
@@ -866,9 +866,9 @@ const Reports = () => {
     };
 
     const config = positionConfig[position] || {
-      bg: 'bg-gray-50 dark:bg-gray-900/20',
+      bg: 'bg-gray-50 dark:bg-yt-bg/20',
       text: 'text-gray-700 dark:text-gray-300',
-      border: 'border-gray-200 dark:border-gray-700'
+      border: 'border-gray-200 dark:border-yt-border'
     };
 
     return (
@@ -895,7 +895,7 @@ const Reports = () => {
   return (
     <div className="space-y-4 sm:space-y-6 animate-fadeIn">
       {/* Header */}
-      <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700">
+      <div className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center flex-wrap">
@@ -911,7 +911,7 @@ const Reports = () => {
       </div>
 
       {/* Tabs */}
-      <div className="bg-naue-white dark:bg-gray-800 p-1 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700">
+      <div className="bg-naue-white dark:bg-yt-surface p-1 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border">
         <div className="flex space-x-1">
           <button
             onClick={() => setActiveTab('overview')}
@@ -957,7 +957,7 @@ const Reports = () => {
           className="grid grid-cols-1 sm:grid-cols-2 gap-4"
         >
           {/* Relatório de Avaliações */}
-          <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700 flex flex-col">
+          <div className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border flex flex-col">
             <div className="flex items-center space-x-3 mb-3">
               <div className="p-2 bg-top-teal-light dark:bg-top-teal/20 rounded-lg">
                 <FileSpreadsheet className="text-top-teal dark:text-top-teal" size={24} />
@@ -978,7 +978,7 @@ const Reports = () => {
           </div>
 
           {/* Relatório de Colaboradores */}
-          <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700 flex flex-col">
+          <div className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border flex flex-col">
             <div className="flex items-center space-x-3 mb-3">
               <div className="p-2 bg-top-blue-light dark:bg-top-blue/20 rounded-lg">
                 <Users className="text-top-blue dark:text-top-blue" size={24} />
@@ -999,7 +999,7 @@ const Reports = () => {
           </div>
 
           {/* Relatório de Gestão Salarial */}
-          <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700 flex flex-col">
+          <div className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border flex flex-col">
             <div className="flex items-center space-x-3 mb-3">
               <div className="p-2 bg-accent-50 dark:bg-accent-500/20 rounded-lg">
                 <BarChart3 className="text-accent-500 dark:text-accent-400" size={24} />
@@ -1020,7 +1020,7 @@ const Reports = () => {
           </div>
 
           {/* Relatório Nine Box */}
-          <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700 flex flex-col">
+          <div className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border flex flex-col">
             <div className="flex items-center space-x-3 mb-3">
               <div className="p-2 bg-top-gold-light dark:bg-top-gold/20 rounded-lg">
                 <Target className="text-top-gold-dark dark:text-top-gold" size={24} />
@@ -1064,7 +1064,7 @@ const Reports = () => {
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700"
+              className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border"
             >
               <div className="flex items-center justify-between mb-2">
                 <CheckCircle className="w-8 h-8 text-primary-500 dark:text-primary-400" />
@@ -1080,7 +1080,7 @@ const Reports = () => {
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700"
+              className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border"
             >
               <div className="flex items-center justify-between mb-2">
                 <Clock className="w-8 h-8 text-blue-600 dark:text-blue-500" />
@@ -1111,7 +1111,7 @@ const Reports = () => {
           </div>
 
           {/* Progress by Department */}
-          <div className="bg-naue-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700">
+          <div className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
               <BarChart3 className="mr-2 text-primary-500 dark:text-primary-400" size={20} />
               Progresso por Departamento
@@ -1132,7 +1132,7 @@ const Reports = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
+                    className="border border-gray-200 dark:border-yt-border rounded-xl overflow-hidden"
                   >
                     {/* Header do departamento (clicável) */}
                     <div
@@ -1169,7 +1169,7 @@ const Reports = () => {
 
                       {/* Barra de progresso */}
                       <div className="flex-1 relative">
-                        <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-5 overflow-hidden">
+                        <div className="w-full bg-gray-100 dark:bg-yt-elevated rounded-full h-5 overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${completionRate}%` }}
@@ -1214,7 +1214,7 @@ const Reports = () => {
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
+                        className="border-t border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-surface/50"
                       >
                         <div className="p-4 pl-14 space-y-3">
                           {dept.teams
@@ -1280,7 +1280,7 @@ const Reports = () => {
           className="space-y-4"
         >
           {/* Filters */}
-          <div className="bg-naue-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700">
+          <div className="bg-naue-white dark:bg-yt-surface p-4 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -1289,7 +1289,7 @@ const Reports = () => {
                   placeholder="Buscar colaborador..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
               
@@ -1298,7 +1298,7 @@ const Reports = () => {
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 appearance-none"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 appearance-none"
                 >
                   <option value="">Todos os departamentos</option>
                   {departments.map(dept => (
@@ -1312,7 +1312,7 @@ const Reports = () => {
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 appearance-none"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 appearance-none"
                 >
                   <option value="">Todos os status</option>
                   <option value="completed">Completo</option>
@@ -1324,10 +1324,10 @@ const Reports = () => {
           </div>
 
           {/* Desktop Table */}
-          <div className="hidden md:block bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700 overflow-hidden">
+          <div className="hidden md:block bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-naue-light-gray dark:bg-gray-700">
+                <thead className="bg-naue-light-gray dark:bg-yt-elevated">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Colaborador
@@ -1352,7 +1352,7 @@ const Reports = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-naue-border-gray dark:divide-gray-700">
+                <tbody className="bg-white dark:bg-yt-surface divide-y divide-naue-border-gray dark:divide-gray-700">
                   {filteredData.map((item: CycleDashboard) => {
                     // OTIMIZADO: Usar Map para lookup O(1)
                     const user = usersMap.get(item.employee_id);
@@ -1411,7 +1411,7 @@ const Reports = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-naue-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700"
+                  className="bg-naue-white dark:bg-yt-surface p-4 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border"
                 >
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0 w-10 h-10 bg-primary-100 dark:bg-primary-600/30 rounded-full flex items-center justify-center">

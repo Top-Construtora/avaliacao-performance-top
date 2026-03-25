@@ -55,7 +55,7 @@ interface CalendarEvent {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
-  '1': { label: 'Não Iniciado', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600', icon: Clock },
+  '1': { label: 'Não Iniciado', color: 'bg-gray-100 dark:bg-yt-elevated text-gray-700 dark:text-gray-300 border-gray-200 dark:border-yt-border', icon: Clock },
   '2': { label: 'Em Andamento', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700', icon: AlertCircle },
   '3': { label: 'Em Progresso', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700', icon: AlertCircle },
   '4': { label: 'Concluído', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700', icon: CheckCircle },
@@ -221,7 +221,7 @@ const PdiCalendar = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-8"
+        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div>
@@ -284,7 +284,7 @@ const PdiCalendar = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="lg:col-span-2 bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6"
+          className="lg:col-span-2 bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
         >
           {/* Navegação do mês */}
           <div className="flex items-center justify-between mb-6">
@@ -320,7 +320,7 @@ const PdiCalendar = () => {
                 className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                   statusFilter === opt.value
                     ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    : 'bg-gray-100 dark:bg-yt-elevated text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 {opt.label}
@@ -356,8 +356,8 @@ const PdiCalendar = () => {
                       : isToday
                         ? 'border-primary-300 dark:border-primary-600 bg-primary-50/50 dark:bg-primary-900/10'
                         : isCurrentMonth
-                          ? 'border-gray-100 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                          : 'border-transparent bg-gray-50/50 dark:bg-gray-800/50'
+                          ? 'border-gray-100 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                          : 'border-transparent bg-gray-50/50 dark:bg-yt-surface/50'
                   }`}
                 >
                   <span className={`text-xs font-medium ${
@@ -406,7 +406,7 @@ const PdiCalendar = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
         >
           <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4">
             {selectedDate
@@ -446,7 +446,7 @@ const PdiCalendar = () => {
                 return (
                   <div
                     key={index}
-                    className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700"
+                    className="p-3 rounded-xl bg-gray-50 dark:bg-yt-elevated/50 border border-gray-100 dark:border-yt-border"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">

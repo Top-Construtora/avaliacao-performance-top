@@ -134,7 +134,7 @@ const CycleManagement: React.FC = () => {
 
     if (cycle.status === 'closed') {
       return { 
-        color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400', 
+        color: 'bg-gray-100 text-gray-600 dark:bg-yt-surface dark:text-gray-400', 
         icon: Lock, 
         text: 'Encerrado',
         dotColor: 'bg-gray-400'
@@ -222,7 +222,7 @@ const CycleManagement: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
+        className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-6"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
           <div>
@@ -335,14 +335,14 @@ const CycleManagement: React.FC = () => {
       {/* Cycles List */}
       <div className="space-y-4">
         {cyclesLoading ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
+          <div className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-8">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-800 dark:border-primary-700 mx-auto"></div>
               <p className="text-gray-500 dark:text-gray-400 mt-4">Carregando ciclos...</p>
             </div>
           </div>
         ) : filteredCycles.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
+          <div className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-8">
             <div className="text-center">
               <Calendar className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
               <p className="text-gray-500 dark:text-gray-400">
@@ -364,7 +364,7 @@ const CycleManagement: React.FC = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 whileHover={{ scale: 1.01 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md transition-all duration-200"
+                className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-6 hover:shadow-md transition-all duration-200"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -482,7 +482,7 @@ const CycleManagement: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-md w-full"
+              className="bg-white dark:bg-yt-surface rounded-xl shadow-xl p-6 max-w-md w-full"
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
@@ -509,7 +509,7 @@ const CycleManagement: React.FC = () => {
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-yt-elevated dark:text-gray-200"
                     placeholder="Ex: Ciclo 2024 - Primeiro Semestre"
                   />
                 </div>
@@ -521,7 +521,7 @@ const CycleManagement: React.FC = () => {
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-yt-elevated dark:text-gray-200"
                     rows={3}
                     placeholder="Descrição opcional do ciclo"
                   />
@@ -536,7 +536,7 @@ const CycleManagement: React.FC = () => {
                       type="date"
                       value={formData.start_date}
                       onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-yt-elevated dark:text-gray-200"
                     />
                   </div>
 
@@ -548,7 +548,7 @@ const CycleManagement: React.FC = () => {
                       type="date"
                       value={formData.end_date}
                       onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-gray-700 dark:text-gray-200"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-yt-elevated dark:text-gray-200"
                     />
                   </div>
                 </div>
@@ -606,7 +606,7 @@ const CycleManagement: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-sm w-full"
+              className="bg-white dark:bg-yt-surface rounded-xl shadow-xl p-6 max-w-sm w-full"
             >
               <div className="flex items-center space-x-3 mb-4">
                 <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">

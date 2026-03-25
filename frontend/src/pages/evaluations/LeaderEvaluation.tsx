@@ -746,7 +746,7 @@ const LeaderEvaluation = () => {
   if (!currentCycle || !isCycleInValidPeriod()) {
     const periodMessage = getCyclePeriodMessage();
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 text-center">
+      <div className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-8 text-center">
         <AlertCircle className="h-12 w-12 text-green-800 dark:text-green-700 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
           {!currentCycle ? 'Nenhum ciclo de avaliação ativo' : 'Período de avaliação indisponível'}
@@ -919,7 +919,7 @@ const LeaderEvaluation = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-8 sm:p-16 text-center"
+          className="bg-white dark:bg-yt-surface rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-8 sm:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
             <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-gray-100 to-green-100 dark:from-gray-900/20 dark:to-green-900/20 mb-4 sm:mb-6">

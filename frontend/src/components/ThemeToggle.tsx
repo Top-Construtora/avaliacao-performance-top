@@ -8,7 +8,7 @@ export const ThemeToggle: React.FC = () => {
     <button
       onClick={toggleTheme}
       className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg 
-                 bg-gray-100 dark:bg-gray-800 
+                 bg-gray-100 dark:bg-yt-surface 
                  hover:bg-gray-200 dark:hover:bg-gray-700 
                  transition-colors duration-200
                  focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 

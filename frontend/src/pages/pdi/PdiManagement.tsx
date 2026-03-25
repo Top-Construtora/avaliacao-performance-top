@@ -193,7 +193,7 @@ const PdiManagement: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
+        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-4">
@@ -216,7 +216,7 @@ const PdiManagement: React.FC = () => {
             </label>
             <div className="relative">
               <select
-                className="w-full pl-10 pr-10 py-3 rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-stone-700 dark:focus:border-stone-600 focus:ring-stone-700 dark:focus:ring-stone-600 appearance-none cursor-pointer"
+                className="w-full pl-10 pr-10 rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 appearance-none cursor-pointer"
                 value={selectedEmployeeId}
                 onChange={(e) => setSelectedEmployeeId(e.target.value)}
                 disabled={loadingPDI}
@@ -245,7 +245,7 @@ const PdiManagement: React.FC = () => {
                   <BookOpen className="inline h-4 w-4 mr-1" />
                   PDI Período
                 </label>
-                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-yt-elevated rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
                   {pdiData.periodo || 'Não definido'}
                 </div>
               </div>
@@ -254,7 +254,7 @@ const PdiManagement: React.FC = () => {
                   <Info className="inline h-4 w-4 mr-1" />
                   Última Atualização
                 </label>
-                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-yt-elevated rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
                   {pdiData.dataAtualizacao ? new Date(pdiData.dataAtualizacao).toLocaleDateString('pt-BR') : 'N/A'}
                 </div>
               </div>
@@ -313,7 +313,7 @@ const PdiManagement: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-16 text-center"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-16 text-center"
         >
           <div className="max-w-md mx-auto">
             <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-stone-100 to-gray-100 dark:from-stone-900/20 dark:to-gray-900/20 mb-6">

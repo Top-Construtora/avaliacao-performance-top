@@ -109,7 +109,7 @@ const FuncionalidadesContent = ({ role }: { role: 'admin' | 'director' | 'leader
         </div>
         <div className="grid md:grid-cols-2 gap-3">
           {funcionalidades.map((func, index) => (
-            <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-4">
+            <div key={index} className="bg-white dark:bg-yt-surface rounded-lg p-4">
               <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-primary dark:text-primary-400" />
                 {func.title}
@@ -167,7 +167,7 @@ const HelpPage = () => {
                     Crie os departamentos da organização. Cada departamento pode ter um responsável e representa
                     uma área funcional da empresa (ex: Tecnologia, Comercial, Financeiro).
                   </p>
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-sm">
+                  <div className="bg-white dark:bg-yt-surface rounded-lg p-3 text-sm">
                     <strong className="text-primary dark:text-primary-400">📍 Onde cadastrar:</strong>
                     <span className="text-gray-600 dark:text-gray-400 ml-2">Barra lateral → Gerenciar → Departamentos</span>
                   </div>
@@ -199,7 +199,7 @@ const HelpPage = () => {
                     Crie os times dentro dos departamentos. Cada time pertence a um departamento e tem um líder responsável
                     (que será atribuído posteriormente).
                   </p>
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-sm">
+                  <div className="bg-white dark:bg-yt-surface rounded-lg p-3 text-sm">
                     <strong className="text-primary dark:text-primary-400">📍 Onde cadastrar:</strong>
                     <span className="text-gray-600 dark:text-gray-400 ml-2">Barra lateral → Gerenciar → Times</span>
                   </div>
@@ -231,7 +231,7 @@ const HelpPage = () => {
                     Configure as trilhas de carreira para cada departamento. Defina os cargos, classes salariais e
                     níveis de progressão (A, B, C, D, E). Cada trilha representa um caminho de evolução profissional.
                   </p>
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-sm">
+                  <div className="bg-white dark:bg-yt-surface rounded-lg p-3 text-sm">
                     <strong className="text-primary dark:text-primary-400">📍 Onde cadastrar:</strong>
                     <span className="text-gray-600 dark:text-gray-400 ml-2">Barra lateral → Cargos e Salários → Trilhas</span>
                   </div>
@@ -263,7 +263,7 @@ const HelpPage = () => {
                     Cadastre os diretores da empresa. Diretores não precisam de líder direto e têm acesso a funcionalidades
                     estratégicas como Nine Box, Comitê de Gente e Consenso.
                   </p>
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-sm mb-3">
+                  <div className="bg-white dark:bg-yt-surface rounded-lg p-3 text-sm mb-3">
                     <strong className="text-primary dark:text-primary-400">📍 Onde cadastrar:</strong>
                     <span className="text-gray-600 dark:text-gray-400 ml-2">Barra lateral → Cadastrar → Cadastrar Usuário</span>
                   </div>
@@ -298,7 +298,7 @@ const HelpPage = () => {
                     Cadastre os líderes de time. Líderes reportam para diretores, gerenciam equipes e realizam
                     avaliações de seus colaboradores diretos.
                   </p>
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-sm mb-3">
+                  <div className="bg-white dark:bg-yt-surface rounded-lg p-3 text-sm mb-3">
                     <strong className="text-primary dark:text-primary-400">📍 Onde cadastrar:</strong>
                     <span className="text-gray-600 dark:text-gray-400 ml-2">Barra lateral → Cadastrar → Cadastrar Usuário</span>
                   </div>
@@ -333,7 +333,7 @@ const HelpPage = () => {
                     Cadastre os colaboradores. Cada colaborador deve ser vinculado a um líder direto, time(s),
                     departamento, trilha de carreira e cargo.
                   </p>
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-sm mb-3">
+                  <div className="bg-white dark:bg-yt-surface rounded-lg p-3 text-sm mb-3">
                     <strong className="text-primary dark:text-primary-400">📍 Onde cadastrar:</strong>
                     <span className="text-gray-600 dark:text-gray-400 ml-2">Barra lateral → Cadastrar → Cadastrar Usuário</span>
                   </div>
@@ -368,7 +368,7 @@ const HelpPage = () => {
                     Crie um ciclo de avaliação de desempenho. Defina o período, selecione os critérios de avaliação
                     e escolha quais colaboradores e líderes participarão.
                   </p>
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-sm mb-3">
+                  <div className="bg-white dark:bg-yt-surface rounded-lg p-3 text-sm mb-3">
                     <strong className="text-primary dark:text-primary-400">📍 Onde cadastrar:</strong>
                     <span className="text-gray-600 dark:text-gray-400 ml-2">Barra lateral → Gerenciar Ciclos  → Novo Ciclo</span>
                   </div>
@@ -617,7 +617,7 @@ const HelpPage = () => {
       icon: HelpCircle,
       content: (
         <div className="space-y-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-yt-surface rounded-xl p-6 border border-gray-200 dark:border-yt-border">
             <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2">
               ❓ Posso editar minha avaliação depois de enviada?
             </h4>
@@ -627,7 +627,7 @@ const HelpPage = () => {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-yt-surface rounded-xl p-6 border border-gray-200 dark:border-yt-border">
             <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2">
               ❓ Quando posso ver meu resultado final?
             </h4>
@@ -637,7 +637,7 @@ const HelpPage = () => {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-yt-surface rounded-xl p-6 border border-gray-200 dark:border-yt-border">
             <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2">
               ❓ O que é o Nine Box?
             </h4>
@@ -647,7 +647,7 @@ const HelpPage = () => {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-yt-surface rounded-xl p-6 border border-gray-200 dark:border-yt-border">
             <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2">
               ❓ Como funciona o PDI?
             </h4>
@@ -657,7 +657,7 @@ const HelpPage = () => {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-yt-surface rounded-xl p-6 border border-gray-200 dark:border-yt-border">
             <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2">
               ❓ Posso ver a avaliação que meu líder fez de mim?
             </h4>
@@ -667,7 +667,7 @@ const HelpPage = () => {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-yt-surface rounded-xl p-6 border border-gray-200 dark:border-yt-border">
             <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2">
               ❓ Quanto tempo tenho para fazer minha autoavaliação?
             </h4>
@@ -682,7 +682,7 @@ const HelpPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-yt-bg p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
@@ -691,7 +691,7 @@ const HelpPage = () => {
           className="bg-gradient-to-r from-primary to-primary-700 dark:from-primary-800 dark:to-primary-900 rounded-2xl shadow-lg p-8 mb-8"
         >
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-white dark:bg-yt-surface rounded-full flex items-center justify-center">
               <BookOpen className="h-8 w-8 text-primary dark:text-primary-400" />
             </div>
             <div>
@@ -719,7 +719,7 @@ const HelpPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden"
+                className="bg-white dark:bg-yt-surface rounded-xl shadow-sm overflow-hidden"
               >
                 <button
                   onClick={() => toggleSection(section.id)}
@@ -749,7 +749,7 @@ const HelpPage = () => {
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="border-t border-gray-200 dark:border-gray-700"
+                      className="border-t border-gray-200 dark:border-yt-border"
                     >
                       <div className="p-6">
                         {section.content}

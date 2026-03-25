@@ -91,7 +91,7 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ delay: sectionIndex * 0.1 }}
-        className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
+        className="bg-white dark:bg-yt-surface rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border overflow-hidden"
       >
         <button
           onClick={() => toggleSection(section.id)}
@@ -115,7 +115,7 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
           </div>
 
           <div className="flex items-center space-x-3 sm:space-x-4 flex-shrink-0">
-            <div className="w-16 sm:w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div className="w-16 sm:w-32 bg-gray-200 dark:bg-yt-elevated rounded-full h-2">
               <div
                 className={`h-2 rounded-full bg-gradient-to-r ${section.gradient} ${section.darkGradient} transition-all duration-300`}
                 style={{ width: `${sectionProgress}%` }}
@@ -160,44 +160,30 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
                     )}
                   </div>
 
-                  {readOnly && item.score ? (
-                    // Visualização estática - apenas mostra a nota
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-xl p-6">
-                      <div className="text-center">
-                        <div className={`text-5xl font-bold mb-2 ${ratingLabels[item.score as keyof typeof ratingLabels].color.replace('bg-', 'text-')}`}>
-                          {item.score}
-                        </div>
-                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          {ratingLabels[item.score as keyof typeof ratingLabels].label}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    // Modo de edição - botões clicáveis
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                      {[1, 2, 3, 4].map((rating) => {
-                        const ratingInfo = ratingLabels[rating as keyof typeof ratingLabels];
-                        return (
-                          <button
-                            key={rating}
-                            onClick={() => handleScoreChange(section.id, item.id, rating)}
-                            className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
-                              item.score === rating
-                                ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
-                                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
-                            }`}
-                          >
-                            <div className="text-center">
-                              <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
-                              <div className="text-xs">
-                                {ratingInfo.label}
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                    {[1, 2, 3, 4].map((rating) => {
+                      const ratingInfo = ratingLabels[rating as keyof typeof ratingLabels];
+                      return (
+                        <button
+                          key={rating}
+                          onClick={() => !readOnly && handleScoreChange(section.id, item.id, rating)}
+                          disabled={readOnly}
+                          className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
+                            item.score === rating
+                              ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
+                              : readOnly
+                                ? 'border-gray-200 dark:border-yt-border bg-white dark:bg-yt-surface text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                                : 'border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-yt-surface text-gray-700 dark:text-gray-200'
+                          }`}
+                        >
+                          <div className="text-center">
+                            <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
+                            <div className="text-xs">{ratingInfo.label}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </motion.div>
               ))}
             </motion.div>
@@ -210,18 +196,18 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-primary-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
+          className="bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-primary-100 dark:border-yt-border p-4 sm:p-6 lg:p-8"
         >
           <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
             <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary-600 dark:text-primary-400" />
             Resumo das Notas - Competências
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-primary-200 dark:border-primary-700">
+            <div className="bg-white dark:bg-yt-surface p-4 sm:p-6 rounded-xl border border-primary-200 dark:border-primary-700">
               <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Técnicas</h4>
               <p className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">{scores.technical}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 50%</p>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
+              <div className="w-full bg-gray-200 dark:bg-yt-elevated rounded-full h-2 mt-3">
                 <div
                   className="bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${(scores.technical / 4) * 100}%` }}
@@ -229,11 +215,11 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-secondary-200 dark:border-secondary-700">
+            <div className="bg-white dark:bg-yt-surface p-4 sm:p-6 rounded-xl border border-secondary-200 dark:border-secondary-700">
               <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Comportamentais</h4>
               <p className="text-2xl sm:text-3xl font-bold text-secondary-600 dark:text-secondary-400">{scores.behavioral}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 30%</p>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
+              <div className="w-full bg-gray-200 dark:bg-yt-elevated rounded-full h-2 mt-3">
                 <div
                   className="bg-gradient-to-r from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${(scores.behavioral / 4) * 100}%` }}
@@ -241,11 +227,11 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-accent-200 dark:border-accent-700">
+            <div className="bg-white dark:bg-yt-surface p-4 sm:p-6 rounded-xl border border-accent-200 dark:border-accent-700">
               <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Organizacionais</h4>
               <p className="text-2xl sm:text-3xl font-bold text-accent-600 dark:text-accent-400">{scores.organizational}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 20%</p>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
+              <div className="w-full bg-gray-200 dark:bg-yt-elevated rounded-full h-2 mt-3">
                 <div
                   className="bg-gradient-to-r from-accent-500 to-accent-600 dark:from-accent-600 dark:to-accent-700 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${(scores.organizational / 4) * 100}%` }}

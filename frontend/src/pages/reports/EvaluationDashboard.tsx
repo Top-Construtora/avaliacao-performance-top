@@ -125,9 +125,9 @@ const EvaluationDashboard: React.FC = () => {
         icon: AlertTriangle
       },
       'N/A': {
-        bgColor: 'bg-gray-100 dark:bg-gray-700',
+        bgColor: 'bg-gray-100 dark:bg-yt-elevated',
         textColor: 'text-gray-500 dark:text-gray-400',
-        borderColor: 'border-gray-300 dark:border-gray-600',
+        borderColor: 'border-gray-300 dark:border-yt-border',
         icon: Target
       },
       'Aguardando': {
@@ -176,9 +176,9 @@ const EvaluationDashboard: React.FC = () => {
     };
 
     const config = positionConfig[position] || {
-      bg: 'bg-gray-50 dark:bg-gray-900/20',
+      bg: 'bg-gray-50 dark:bg-yt-bg/20',
       text: 'text-gray-700 dark:text-gray-300',
-      border: 'border-gray-200 dark:border-gray-700'
+      border: 'border-gray-200 dark:border-yt-border'
     };
 
     return (
@@ -195,7 +195,7 @@ const EvaluationDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+      <div className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
@@ -309,7 +309,7 @@ const EvaluationDashboard: React.FC = () => {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+      <div className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex-1 max-w-md">
             <div className="relative">
@@ -319,7 +319,7 @@ const EvaluationDashboard: React.FC = () => {
                 placeholder="Buscar por nome ou cargo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:bg-gray-700 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:bg-yt-elevated dark:border-yt-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -329,7 +329,7 @@ const EvaluationDashboard: React.FC = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 dark:bg-yt-elevated dark:border-yt-border dark:text-gray-400 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="all">Todos</option>
               <option value="pending">Pendentes</option>
@@ -341,10 +341,10 @@ const EvaluationDashboard: React.FC = () => {
       </div>
 
       {/* Employees Table */}
-      <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-gray-700 overflow-hidden">
+      <div className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-naue-light-gray dark:bg-gray-700">
+            <thead className="bg-naue-light-gray dark:bg-yt-elevated">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Colaborador
@@ -369,7 +369,7 @@ const EvaluationDashboard: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-naue-border-gray dark:divide-gray-700">
+            <tbody className="bg-white dark:bg-yt-surface divide-y divide-naue-border-gray dark:divide-gray-700">
               {filteredEmployees.map((item: CycleDashboard) => {
                 const user = users.find(u => u.id === item.employee_id);
                 const deptName = item.department_name ||

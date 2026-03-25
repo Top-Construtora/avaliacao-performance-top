@@ -238,7 +238,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
   };
 
   const statusOptions = [
-    { value: '1', label: 'Não iniciado', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium border-gray-300 dark:border-gray-600' },
+    { value: '1', label: 'Não iniciado', color: 'bg-gray-100 dark:bg-yt-elevated text-gray-700 dark:text-gray-300 font-medium border-gray-300 dark:border-yt-border' },
     { value: '2', label: 'Iniciado', color: 'bg-green-100 dark:bg-green-900/30 text-green-900 dark:text-green-300 border-green-300 dark:border-green-700' },
     { value: '3', label: 'Em andamento', color: 'bg-stone-100 dark:bg-stone-900/30 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700' },
     { value: '4', label: 'Quase concluído', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' },
@@ -308,7 +308,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
+        className="bg-white dark:bg-yt-surface rounded-xl sm:rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-gray-100 dark:border-yt-border overflow-hidden"
       >
         <button
           onClick={() => togglePdiSection(prazo)}
@@ -372,7 +372,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: itemIndex * 0.1 }}
-                        className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-200 dark:border-gray-600"
+                        className="bg-gray-50 dark:bg-yt-elevated/50 rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-200 dark:border-yt-border"
                       >
                         {/* Header do Item */}
                         <div className="flex items-start justify-between mb-4 sm:mb-6">
@@ -408,7 +408,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               Competência a desenvolver
                             </label>
                             <textarea
-                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
+                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
                               placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
                               rows={3}
                               value={item.competencia}
@@ -426,7 +426,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             </label>
                             <input
                               type="month"
-                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-gray-500 dark:focus:border-gray-400 focus:ring-gray-500 dark:focus:ring-gray-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
+                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
                               value={item.calendarizacao}
                               onChange={(e) => !readOnly && updateActionItem(category, item.id, 'calendarizacao', e.target.value)}
                               disabled={readOnly}
@@ -441,7 +441,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               Como desenvolver as competências
                             </label>
                             <textarea
-                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-stone-600 dark:focus:border-stone-500 focus:ring-stone-600 dark:focus:ring-stone-500 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
+                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
                               rows={3}
                               placeholder="Descreva as ações e métodos para desenvolver esta competência..."
                               value={item.comoDesenvolver}
@@ -458,7 +458,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               Resultados Esperados
                             </label>
                             <textarea
-                              className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-800 dark:focus:border-green-700 focus:ring-green-800 dark:focus:ring-green-700 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
+                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
                               rows={3}
                               placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
                               value={item.resultadosEsperados}
@@ -468,7 +468,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             />
                           </div>
 
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-600">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-gray-200 dark:border-yt-border">
                             {/* Status */}
                             <div>
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
@@ -476,7 +476,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                 Status
                               </label>
                               <select
-                                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-green-500 dark:focus:border-green-400 focus:ring-green-500 dark:focus:ring-green-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
+                                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
                                 value={item.status}
                                 onChange={(e) => !readOnly && updateActionItem(category, item.id, 'status', e.target.value as any)}
                                 disabled={readOnly}
@@ -496,7 +496,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                 Observação
                               </label>
                               <textarea
-                                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-gray-500 dark:focus:border-gray-400 focus:ring-gray-500 dark:focus:ring-gray-400 text-gray-700 dark:text-gray-300 transition-all duration-200 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
+                                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
                                 rows={2}
                                 placeholder="Observações adicionais..."
                                 value={item.observacao}
@@ -535,7 +535,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 lg:p-8 overflow-hidden mt-6"
+                      className="bg-white dark:bg-yt-surface rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-4 sm:p-6 lg:p-8 overflow-hidden mt-6"
                     >
                       <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
@@ -563,7 +563,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             onChange={handleNewPdiItemChange}
                             placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
                             rows={3}
-                            className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-green-800 focus:border-green-800 text-gray-900 dark:text-gray-100"
+                            className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 resize-none"
                           />
                         </div>
 
@@ -579,7 +579,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               name="calendarizacao"
                               value={newPdiItem.calendarizacao}
                               onChange={handleNewPdiItemChange}
-                              className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-green-800 focus:border-green-800 text-gray-900 dark:text-gray-100"
+                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
                             />
                           </div>
                         </div>
@@ -596,7 +596,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             onChange={handleNewPdiItemChange}
                             placeholder="Descreva as ações e métodos para desenvolver esta competência..."
                             rows={3}
-                            className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-green-800 focus:border-green-800 text-gray-900 dark:text-gray-100"
+                            className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 resize-none"
                           />
                         </div>
 
@@ -612,7 +612,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             onChange={handleNewPdiItemChange}
                             placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
                             rows={3}
-                            className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-green-800 focus:border-green-800 text-gray-900 dark:text-gray-100"
+                            className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 resize-none"
                           />
                         </div>
 
@@ -627,7 +627,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               name="status"
                               value={newPdiItem.status}
                               onChange={handleNewPdiItemChange}
-                              className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-green-800 focus:border-green-800 text-gray-900 dark:text-gray-100"
+                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
                             >
                               {statusOptions.map(option => (
                                 <option key={option.value} value={option.value}>
@@ -649,7 +649,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               onChange={handleNewPdiItemChange}
                               placeholder="Observações adicionais..."
                               rows={1}
-                              className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-green-800 focus:border-green-800 text-gray-900 dark:text-gray-100"
+                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 resize-none"
                             />
                           </div>
                         </div>
@@ -745,7 +745,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 + index * 0.1 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
+                  className="bg-white dark:bg-yt-surface rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border overflow-hidden"
                 >
                   <div className={`p-4 sm:p-6 ${colors.bgColor} ${colors.darkBgColor} border-b ${colors.borderColor} ${colors.darkBorderColor}`}>
                     <div className="flex flex-col sm:flex-row sm:items-start space-y-3 sm:space-y-0 sm:space-x-4">
@@ -795,7 +795,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               className={`py-3 sm:py-4 px-2 sm:px-4 rounded-xl border-2 transition-all duration-200 ${
                                 item.score === rating
                                   ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
-                                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                                  : 'border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-yt-surface text-gray-700 dark:text-gray-200'
                               }`}
                             >
                               <div className="text-center">
@@ -820,7 +820,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-gradient-to-br from-top-teal-light to-top-blue-light dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-top-teal/20 dark:border-gray-700 p-4 sm:p-6 lg:p-8"
+            className="bg-gradient-to-br from-top-teal-light to-top-blue-light dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-top-teal/20 dark:border-yt-border p-4 sm:p-6 lg:p-8"
           >
             <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
               <Star className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-top-teal dark:text-top-teal" />
@@ -828,10 +828,10 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-top-blue/30 dark:border-top-blue/40">
+              <div className="bg-white dark:bg-yt-surface p-4 sm:p-6 rounded-lg sm:rounded-xl border border-top-blue/30 dark:border-top-blue/40">
                 <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Média Geral</h4>
                 <p className="text-2xl sm:text-3xl font-bold text-top-blue dark:text-top-blue">{calculatePotentialScores().final}</p>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
+                <div className="w-full bg-gray-200 dark:bg-yt-elevated rounded-full h-2 mt-3">
                   <div
                     className="bg-gradient-to-r from-top-blue to-top-blue-dark dark:from-top-blue-dark dark:to-top-blue h-2 rounded-full transition-all duration-300"
                     style={{ width: `${(calculatePotentialScores().final / 4) * 100}%` }}
@@ -839,7 +839,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-top-teal/30 dark:border-top-teal/40">
+              <div className="bg-white dark:bg-yt-surface p-4 sm:p-6 rounded-lg sm:rounded-xl border border-top-teal/30 dark:border-top-teal/40">
                 <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Critérios Avaliados</h4>
                 <p className="text-2xl sm:text-3xl font-bold text-top-teal dark:text-top-teal">{potentialItems.filter(c => c.score).length}/{potentialItems.length}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">

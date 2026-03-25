@@ -85,7 +85,7 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8"
+            className="bg-white dark:bg-yt-surface rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8"
           >
             {/* Header */}
             <div className="text-center mb-6">
@@ -113,7 +113,7 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
                     type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-yt-border rounded-xl bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                     placeholder="Digite sua nova senha"
                     required
                   />
@@ -138,7 +138,7 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-yt-border rounded-xl bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                     placeholder="Confirme sua nova senha"
                     required
                   />
@@ -154,7 +154,7 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
 
               {/* Requisitos de senha */}
               {newPassword.length > 0 && (
-                <div className="space-y-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                <div className="space-y-2 p-3 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl">
                   <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
                     Requisitos da senha:
                   </p>

@@ -22,7 +22,7 @@ const ageRangeOptions = [
 
 const UserProfileFields: React.FC<UserProfileFieldsProps> = ({ formData, onChange, errors = {} }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
       <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
         <Users className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
         Informações Pessoais
@@ -30,7 +30,7 @@ const UserProfileFields: React.FC<UserProfileFieldsProps> = ({ formData, onChang
       
       <div className="space-y-4">
         {/* Has Children Toggle */}
-        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl">
           <div className="flex items-center">
             <Baby className="h-5 w-5 text-gray-600 dark:text-gray-400 mr-3" />
             <div>

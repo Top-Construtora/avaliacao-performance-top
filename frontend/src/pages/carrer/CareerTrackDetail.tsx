@@ -165,7 +165,7 @@ const CareerTrackDetail = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
+        className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm border border-gray-100 dark:border-yt-border p-6"
       >
         <div className="flex items-center gap-4 mb-6">
           <Button
@@ -191,7 +191,7 @@ const CareerTrackDetail = () => {
               <span className={`px-2 py-1 rounded-full text-xs ${
                 track.active
                   ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                  : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                  : 'bg-gray-100 text-gray-700 dark:bg-yt-elevated dark:text-gray-300'
               }`}>
                 {track.active ? 'Ativa' : 'Inativa'}
               </span>
@@ -209,7 +209,7 @@ const CareerTrackDetail = () => {
         </div>
 
         {track.description && (
-          <p className="text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+          <p className="text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-yt-elevated/50 p-4 rounded-lg">
             {track.description}
           </p>
         )}
@@ -219,7 +219,7 @@ const CareerTrackDetail = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
+        className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm border border-gray-100 dark:border-yt-border p-6"
       >
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-6 flex items-center gap-2">
           <Briefcase className="h-5 w-5 text-primary-500" />
@@ -247,7 +247,7 @@ const CareerTrackDetail = () => {
                 </div>
 
                 {/* Card do cargo */}
-                <div className="flex-1 bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5 border border-gray-200 dark:border-gray-600">
+                <div className="flex-1 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-5 border border-gray-200 dark:border-yt-border">
                   {editingPosition === position.id ? (
                     /* Modo edição */
                     <div className="space-y-4">
@@ -260,7 +260,7 @@ const CareerTrackDetail = () => {
                           newPositions[idx].base_salary = parseFloat(e.target.value);
                           setPositions(newPositions);
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-surface"
                         placeholder="Salário base"
                       />
                       <div className="flex gap-2">
@@ -340,7 +340,7 @@ const CareerTrackDetail = () => {
                       </div>
 
                       {/* Cálculo com interníveis */}
-                      <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                      <div className="mt-4 p-3 bg-gray-100 dark:bg-yt-surface rounded-lg">
                         <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                           Salário com interníveis:
                         </p>
@@ -380,7 +380,7 @@ const CareerTrackDetail = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-yt-surface rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           >
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Adicionar Cargo à Trilha
@@ -394,7 +394,7 @@ const CareerTrackDetail = () => {
                 <select
                   value={formData.position_id}
                   onChange={(e) => setFormData({ ...formData, position_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated"
                 >
                   <option value="">Selecione um cargo</option>
                   {availablePositions.map(pos => (
@@ -410,7 +410,7 @@ const CareerTrackDetail = () => {
                 <select
                   value={formData.class_id}
                   onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated"
                 >
                   <option value="">Selecione uma classe</option>
                   {availableClasses.map(cls => (
@@ -429,7 +429,7 @@ const CareerTrackDetail = () => {
                   type="number"
                   value={formData.base_salary}
                   onChange={(e) => setFormData({ ...formData, base_salary: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated"
                   placeholder="0.00"
                   step="0.01"
                 />
@@ -443,20 +443,20 @@ const CareerTrackDetail = () => {
                   type="number"
                   value={formData.order_index}
                   onChange={(e) => setFormData({ ...formData, order_index: parseInt(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated"
                   min="1"
                 />
               </div>
 
               {/* Configuração de Interníveis */}
               {formData.base_salary && parseFloat(formData.base_salary) > 0 && (
-                <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+                <div className="border-t border-gray-200 dark:border-yt-border pt-4">
                   <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-3">
                     Interníveis - Configure as Porcentagens
                   </label>
                   <div className="space-y-3">
                     {(['A', 'B', 'C', 'D', 'E'] as const).map((level) => (
-                      <div key={level} className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                      <div key={level} className="bg-gray-50 dark:bg-yt-elevated/50 p-3 rounded-lg">
                         <div className="flex items-center gap-4">
                           <div className="flex-shrink-0 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
                             {level}
@@ -473,7 +473,7 @@ const CareerTrackDetail = () => {
                                   ...levelPercentages,
                                   [level]: parseFloat(e.target.value) || 0
                                 })}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-800"
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-yt-border rounded dark:bg-yt-surface"
                                 placeholder="0"
                                 step="0.1"
                                 min="0"
@@ -483,7 +483,7 @@ const CareerTrackDetail = () => {
                               <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
                                 Salário Calculado
                               </label>
-                              <div className="px-2 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded font-medium text-green-600 dark:text-green-400">
+                              <div className="px-2 py-1.5 text-sm bg-gray-100 dark:bg-yt-surface border border-gray-300 dark:border-yt-border rounded font-medium text-green-600 dark:text-green-400">
                                 {formatCurrency(calculateSalaryByLevel(parseFloat(formData.base_salary), level))}
                               </div>
                             </div>

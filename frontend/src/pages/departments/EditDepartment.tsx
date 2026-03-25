@@ -142,7 +142,7 @@ const EditDepartment = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-8"
+        className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-4 sm:p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div>
@@ -164,7 +164,7 @@ const EditDepartment = () => {
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700">
+        <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
           <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
             <Building className="h-5 w-5 mr-2 text-stone-800 dark:text-stone-700" />
             Informações do Departamento
@@ -176,10 +176,10 @@ const EditDepartment = () => {
               </label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
+                className={`w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
                   formErrors.departmentName
                     ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger'
-                    : 'border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                    : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
                 }`}
                 value={formData.departmentName}
                 onChange={(e) => setFormData({ ...formData, departmentName: e.target.value })}
@@ -201,7 +201,7 @@ const EditDepartment = () => {
                 <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <select
-                  className="w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400"
+                  className="w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400"
                   value={formData.departmentResponsibleId}
                   onChange={(e) => setFormData({ ...formData, departmentResponsibleId: e.target.value })}
                 >
@@ -222,7 +222,7 @@ const EditDepartment = () => {
                 Descrição do Departamento
               </label>
               <textarea
-                className="w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-gray-700 text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 border-naue-border-gray dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400"
+                className="w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400"
                 rows={4}
                 value={formData.departmentDescription}
                 onChange={(e) => setFormData({ ...formData, departmentDescription: e.target.value })}
@@ -236,7 +236,7 @@ const EditDepartment = () => {
 
       {/* Action Buttons */}
       <motion.div
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6"
+        className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-4 sm:p-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}

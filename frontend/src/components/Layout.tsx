@@ -59,7 +59,7 @@ export default function Layout() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-yt-bg">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -78,7 +78,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-yt-bg flex">
       {/* Overlay para mobile */}
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -127,7 +127,7 @@ export default function Layout() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-white dark:bg-gray-800 border-t border-gray-300 dark:border-gray-700 py-4 px-4 sm:px-6">
+        <footer className="bg-white dark:bg-yt-surface border-t border-gray-300 dark:border-yt-border py-4 px-4 sm:px-6">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400 space-y-2 sm:space-y-0">
             <p>&copy; {new Date().getFullYear()} GIO - Sistema de Gente e Gestão</p>
             <p>Versão 1.2.0</p>

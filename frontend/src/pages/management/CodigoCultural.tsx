@@ -197,7 +197,7 @@ const CodigoCultural = () => {
       className="space-y-6"
     >
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+      <div className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex-1">
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
@@ -240,7 +240,7 @@ const CodigoCultural = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
+            className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-6"
           >
             <div className="flex items-center gap-2 mb-6">
               {editingId ? (
@@ -269,7 +269,7 @@ const CodigoCultural = () => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-primary-00 dark:focus:border-primary-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-yt-border focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-primary-00 dark:focus:border-primary-700 bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 transition-all"
                   placeholder="Ex: Meritocracia e Missão Compartilhada"
                 />
               </div>
@@ -282,7 +282,7 @@ const CodigoCultural = () => {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={4}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-primary-00 dark:focus:border-primary-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-yt-border focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-primary-00 dark:focus:border-primary-700 bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 transition-all resize-none"
                   placeholder="Descreva o que esta competência significa..."
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -300,7 +300,7 @@ const CodigoCultural = () => {
                     min="1"
                     value={formData.position}
                     onChange={(e) => setFormData({ ...formData, position: parseInt(e.target.value) || 1 })}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-primary-00 dark:focus:border-primary-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-yt-border focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-primary-00 dark:focus:border-primary-700 bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Define a ordem nas avaliações
@@ -311,12 +311,12 @@ const CodigoCultural = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Status
                   </label>
-                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-gray-300 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-700 transition-colors bg-white dark:bg-gray-700">
+                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-gray-300 dark:border-yt-border hover:border-primary-300 dark:hover:border-primary-700 transition-colors bg-white dark:bg-yt-elevated">
                     <input
                       type="checkbox"
                       checked={formData.is_active}
                       onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                      className="w-5 h-5 text-primary-00 border-gray-300 rounded focus:ring-primary-800 dark:border-gray-600 dark:focus:ring-primary-700"
+                      className="w-5 h-5 text-primary-00 border-gray-300 rounded focus:ring-primary-800 dark:border-yt-border dark:focus:ring-primary-700"
                     />
                     <div className="flex-1">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -350,7 +350,7 @@ const CodigoCultural = () => {
       </AnimatePresence>
 
       {/* Competencies List */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border overflow-hidden">
         <div className="p-6">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
             <Award className="h-5 w-5 text-primary-00 dark:text-primary-700" />
@@ -359,7 +359,7 @@ const CodigoCultural = () => {
 
           {competencies.length === 0 ? (
             <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-yt-elevated mb-4">
                 <AlertCircle className="h-8 w-8 text-gray-400 dark:text-gray-600" />
               </div>
               <p className="text-gray-500 dark:text-gray-400 mb-1">
@@ -381,8 +381,8 @@ const CodigoCultural = () => {
                     editingId === competency.id
                       ? 'border-primary-00 dark:border-primary-700 bg-primary-50 dark:bg-primary-600/20'
                       : competency.is_active
-                      ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:border-primary-300 dark:hover:border-primary-600'
-                      : 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700/50 opacity-70'
+                      ? 'border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-surface/50 hover:border-primary-300 dark:hover:border-primary-600'
+                      : 'border-gray-200 dark:border-yt-border bg-gray-100 dark:bg-yt-elevated/50 opacity-70'
                   }`}
                 >
                   <div className="flex items-start gap-4">

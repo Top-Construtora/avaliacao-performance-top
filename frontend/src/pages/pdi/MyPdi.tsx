@@ -33,7 +33,7 @@ interface PdiData {
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  '1': { label: 'Não Iniciado', color: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' },
+  '1': { label: 'Não Iniciado', color: 'bg-gray-100 text-gray-700 dark:bg-yt-elevated dark:text-gray-300' },
   '2': { label: 'Em Andamento', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
   '3': { label: 'Em Progresso', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' },
   '4': { label: 'Concluído', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' },
@@ -130,7 +130,7 @@ const MyPdi: React.FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="bg-naue-white dark:bg-gray-700 rounded-xl p-6 shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-600"
+            className="bg-naue-white dark:bg-yt-elevated rounded-xl p-6 shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -138,7 +138,7 @@ const MyPdi: React.FC = () => {
                   {item.competencia}
                 </h4>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${STATUS_LABELS[item.status]?.color || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${STATUS_LABELS[item.status]?.color || 'bg-gray-100 text-gray-700 dark:bg-yt-elevated dark:text-gray-300'}`}>
                     {STATUS_LABELS[item.status]?.label || 'Desconhecido'}
                   </span>
                   {item.calendarizacao && (
@@ -157,7 +157,7 @@ const MyPdi: React.FC = () => {
                   <Target className="h-4 w-4 mr-1" />
                   Como Desenvolver
                 </label>
-                <p className="text-gray-600 dark:text-gray-400 text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                <p className="text-gray-600 dark:text-gray-400 text-sm bg-gray-50 dark:bg-yt-surface p-3 rounded-lg">
                   {item.comoDesenvolver}
                 </p>
               </div>
@@ -167,7 +167,7 @@ const MyPdi: React.FC = () => {
                   <TrendingUp className="h-4 w-4 mr-1" />
                   Resultados Esperados
                 </label>
-                <p className="text-gray-600 dark:text-gray-400 text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                <p className="text-gray-600 dark:text-gray-400 text-sm bg-gray-50 dark:bg-yt-surface p-3 rounded-lg">
                   {item.resultadosEsperados}
                 </p>
               </div>
@@ -178,7 +178,7 @@ const MyPdi: React.FC = () => {
                     <FileText className="h-4 w-4 mr-1" />
                     Observações
                   </label>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm bg-gray-50 dark:bg-yt-surface p-3 rounded-lg">
                     {item.observacao}
                   </p>
                 </div>
@@ -204,9 +204,9 @@ const MyPdi: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden"
+        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border overflow-hidden"
       >
-        <div className="p-6 border-b border-naue-border-gray dark:border-gray-700">
+        <div className="p-6 border-b border-naue-border-gray dark:border-yt-border">
           <div className="flex items-center space-x-3">
             <div className={`flex items-center justify-center h-10 w-10 rounded-lg ${iconBgClass} text-white`}>
               {icon}
@@ -235,7 +235,7 @@ const MyPdi: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-8"
         >
           <div className="flex items-center space-x-4">
             <div>
@@ -251,7 +251,7 @@ const MyPdi: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-16 text-center"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-16 text-center"
         >
           <div className="max-w-md mx-auto">
             <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-stone-100 to-gray-100 dark:from-stone-900/20 dark:to-gray-900/20 mb-6">
@@ -275,7 +275,7 @@ const MyPdi: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
+        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-4">
@@ -296,7 +296,7 @@ const MyPdi: React.FC = () => {
               <Info className="inline h-4 w-4 mr-1" />
               Colaborador
             </label>
-            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
+            <div className="px-4 py-3 bg-gray-50 dark:bg-yt-elevated rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
               {pdiData.colaborador || 'N/A'}
             </div>
           </div>
@@ -306,7 +306,7 @@ const MyPdi: React.FC = () => {
               <Target className="inline h-4 w-4 mr-1" />
               Cargo
             </label>
-            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
+            <div className="px-4 py-3 bg-gray-50 dark:bg-yt-elevated rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
               {pdiData.cargo || 'N/A'}
             </div>
           </div>
@@ -316,7 +316,7 @@ const MyPdi: React.FC = () => {
               <Calendar className="inline h-4 w-4 mr-1" />
               Período
             </label>
-            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
+            <div className="px-4 py-3 bg-gray-50 dark:bg-yt-elevated rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
               {pdiData.periodo || 'N/A'}
             </div>
           </div>
@@ -326,7 +326,7 @@ const MyPdi: React.FC = () => {
               <Info className="inline h-4 w-4 mr-1" />
               Última Atualização
             </label>
-            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
+            <div className="px-4 py-3 bg-gray-50 dark:bg-yt-elevated rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
               {pdiData.dataAtualizacao ? new Date(pdiData.dataAtualizacao).toLocaleDateString('pt-BR') : 'N/A'}
             </div>
           </div>

@@ -214,8 +214,8 @@ const Consensus = () => {
     },
     'Comportamental': {
       color: 'text-gray-600 dark:text-gray-400',
-      bgColor: 'bg-gray-50 dark:bg-gray-900/20',
-      borderColor: 'border-gray-200 dark:border-gray-700',
+      bgColor: 'bg-gray-50 dark:bg-yt-bg/20',
+      borderColor: 'border-gray-200 dark:border-yt-border',
       gradient: 'from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-700'
     },
     'Organizacional': {
@@ -915,7 +915,7 @@ const Consensus = () => {
       } ${
         isSelected
           ? 'bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700 text-white shadow-lg ring-2 ring-gray-400 dark:ring-gray-500 ring-offset-2 dark:ring-offset-gray-800'
-          : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium hover:bg-gray-50 dark:hover:bg-gray-600 border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 shadow-sm'
+          : 'bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 font-medium hover:bg-gray-50 dark:hover:bg-gray-600 border-2 border-gray-300 dark:border-yt-border hover:border-gray-400 dark:hover:border-gray-500 shadow-sm'
       }`}
       title={disabled ? `Nota ${score} (somente leitura)` : `Selecionar nota ${score}`}
       aria-label={`Nota ${score} ${isSelected ? '(selecionada)' : ''} ${disabled ? '(somente leitura)' : ''}`}
@@ -980,7 +980,7 @@ const Consensus = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
+        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-4">
@@ -1034,7 +1034,7 @@ const Consensus = () => {
             </label>
             <div className="relative">
               <select
-                className="w-full pl-10 pr-10 py-3 rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-00 dark:focus:border-primary-700 focus:ring-primary-00 dark:focus:ring-primary-700 appearance-none cursor-pointer"
+                className="w-full pl-10 pr-10 rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 appearance-none cursor-pointer"
                 value={selectedLeaderId}
                 onChange={(e) => setSelectedLeaderId(e.target.value)}
                 disabled={loading}
@@ -1062,7 +1062,7 @@ const Consensus = () => {
             </label>
             <div className="relative">
               <select
-                className="w-full pl-10 pr-10 py-3 rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-00 dark:focus:border-primary-700 focus:ring-primary-00 dark:focus:ring-primary-700 appearance-none cursor-pointer"
+                className="w-full pl-10 pr-10 rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 appearance-none cursor-pointer"
                 value={selectedEmployeeId}
                 onChange={(e) => setSelectedEmployeeId(e.target.value)}
                 disabled={!selectedLeaderId || loading}
@@ -1092,7 +1092,7 @@ const Consensus = () => {
                   <Briefcase className="inline h-4 w-4 mr-1" />
                   Cargo
                 </label>
-                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-yt-elevated rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
                   {selectedEmployee.position}
                 </div>
               </div>
@@ -1102,7 +1102,7 @@ const Consensus = () => {
                   <Calendar className="inline h-4 w-4 mr-1" />
                   Data de Admissão
                 </label>
-                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-yt-elevated rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
                   {selectedEmployee.join_date
                     ? (() => {
                         // Parse da data sem problemas de timezone
@@ -1119,7 +1119,7 @@ const Consensus = () => {
                   <Calendar className="inline h-4 w-4 mr-1" />
                   Data da Reunião
                 </label>
-                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-yt-elevated rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
                   {new Date().toLocaleDateString('pt-BR')}
                 </div>
               </div>
@@ -1175,9 +1175,9 @@ const Consensus = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border overflow-hidden"
         >
-          <div className="px-4 sm:px-8 py-4 sm:py-6 bg-gradient-to-r from-primary-50 via-gray-50 to-stone-50 dark:from-green-900/20 dark:via-gray-900/20 dark:to-stone-900/20 border-b border-gray-200 dark:border-gray-700">
+          <div className="px-4 sm:px-8 py-4 sm:py-6 bg-gradient-to-r from-primary-50 via-gray-50 to-stone-50 dark:from-green-900/20 dark:via-gray-900/20 dark:to-stone-900/20 border-b border-gray-200 dark:border-yt-border">
             <div className="flex items-center space-x-3">
               <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-primary-00 to-primary-600 dark:from-primary-00 dark:to-primary-600 shadow-md dark:shadow-lg">
                 <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
@@ -1213,7 +1213,7 @@ const Consensus = () => {
 
               {/* Ferramentas */}
               {employeeToolkit.tools.length > 0 && (
-                <div className="p-4 bg-gray-50 dark:bg-gray-900/20 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div className="p-4 bg-gray-50 dark:bg-yt-bg/20 rounded-xl border border-gray-200 dark:border-yt-border">
                   <div className="flex items-center space-x-2 mb-3">
                     <Wrench className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                     <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Ferramentas</h4>
@@ -1284,7 +1284,7 @@ const Consensus = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: categoryIndex * 0.1 }}
-                  className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden"
+                  className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border overflow-hidden"
                 >
                   <div className={`px-4 sm:px-8 py-4 sm:py-6 ${config.bgColor} border-b ${config.borderColor}`}>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
@@ -1303,7 +1303,7 @@ const Consensus = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-3">
-                        <div className="w-24 sm:w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div className="w-24 sm:w-32 bg-gray-200 dark:bg-yt-elevated rounded-full h-2">
                           <div 
                             className={`h-2 rounded-full bg-gradient-to-r ${config.gradient} transition-all duration-300`}
                             style={{ width: `${categoryProgress}%` }}
@@ -1324,7 +1324,7 @@ const Consensus = () => {
                         const consensusScore = consensusScores[criterion.id] || 0;
 
                         return (
-                          <div key={criterion.id} className="p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl space-y-6 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200">
+                          <div key={criterion.id} className="p-6 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl space-y-6 border border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200">
                             <div className="flex flex-col space-y-4">
                               <div className="flex-1">
                                 <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-base">{criterion.name}</h4>
@@ -1333,7 +1333,7 @@ const Consensus = () => {
                               
                               <div className="flex flex-col space-y-6">
                                 {/* Avaliações Auto e Líder */}
-                                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                                <div className="bg-white dark:bg-yt-surface rounded-lg p-4 border border-gray-200 dark:border-yt-border">
                                   <div className="flex items-center justify-between mb-4">
                                     <h5 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium flex items-center">
                                       <Sparkles className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
@@ -1391,7 +1391,7 @@ const Consensus = () => {
                                 Observações {viewMode === 'view' && <span className="ml-1 text-xs">(somente leitura)</span>}
                               </label>
                               <textarea
-                                className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-00 dark:focus:ring-primary-700 focus:border-transparent resize-none transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-70 disabled:cursor-not-allowed"
+                                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-xs sm:text-sm resize-none disabled:opacity-70 disabled:cursor-not-allowed"
                                 rows={2}
                                 placeholder={viewMode === 'edit' ? "Adicione observações sobre esta competência..." : "Sem observações"}
                                 value={consensusObservations[criterion.id] || ''}
@@ -1416,7 +1416,7 @@ const Consensus = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-6"
+                  className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-6"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -1460,7 +1460,7 @@ const Consensus = () => {
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
+                          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-8"
                         >
                           <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
@@ -1508,26 +1508,26 @@ const Consensus = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-gradient-to-br from-primary-50 via-gray-50 to-stone-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-primary-100 dark:border-gray-700 p-4 sm:p-8"
+                className="bg-gradient-to-br from-primary-50 via-gray-50 to-stone-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-primary-100 dark:border-yt-border p-4 sm:p-8"
               >
                 <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
                   <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary-00 dark:text-primary-700" />
                   Resumo do Consenso
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-primary-200 dark:border-primary-700">
+                  <div className="bg-white dark:bg-yt-elevated p-4 sm:p-6 rounded-xl border border-primary-200 dark:border-primary-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Técnicas</h4>
                     <p className="text-2xl sm:text-3xl font-bold text-primary-00 dark:text-primary-700">{formatScore(calculateCategoryAverage('Técnica'))}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 50%</p>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div className="bg-white dark:bg-yt-elevated p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-yt-border">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Comportamentais</h4>
                     <p className="text-2xl sm:text-3xl font-bold text-gray-600 dark:text-gray-400">{formatScore(calculateCategoryAverage('Comportamental'))}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 30%</p>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-stone-200 dark:border-stone-700">
+                  <div className="bg-white dark:bg-yt-elevated p-4 sm:p-6 rounded-xl border border-stone-200 dark:border-stone-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Organizacionais</h4>
                     <p className="text-2xl sm:text-3xl font-bold text-stone-700 dark:text-stone-600">{formatScore(calculateCategoryAverage('Organizacional'))}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Peso 20%</p>
@@ -1540,7 +1540,7 @@ const Consensus = () => {
                   </div>
 
                   {/* Adicionar indicador do PDI */}
-                  <div className="bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-stone-200 dark:border-stone-700">
+                  <div className="bg-white dark:bg-yt-elevated p-4 sm:p-6 rounded-xl border border-stone-200 dark:border-stone-700">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Status PDI</h4>
                     <div className="flex items-center space-x-2">
                       {pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length > 0 ? (
@@ -1611,7 +1611,7 @@ const Consensus = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-8 sm:p-16 text-center"
+          className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-8 sm:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
             <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary-100 to-gray-100 dark:from-green-900/20 dark:to-gray-900/20 mb-6">

@@ -188,7 +188,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
 
   const getRoleBadgeColor = () => {
     if (isAdmin) return 'bg-gradient-to-r from-amber-100 to-amber-200 dark:from-amber-900/30 dark:to-amber-800/30 text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-600 shadow-sm';
-    if (isDirector) return 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600';
+    if (isDirector) return 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-yt-border';
     if (isLeader) return 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 text-primary-700 dark:text-primary-300 border-primary-200 dark:border-primary-700';
     return 'bg-gradient-to-r from-secondary-50 to-secondary-100 dark:from-secondary-900/20 dark:to-secondary-800/20 text-secondary-700 dark:text-secondary-300 border-secondary-200 dark:border-secondary-700';
   };
@@ -318,13 +318,13 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[72px] sm:top-auto sm:mt-2 w-auto sm:w-80 md:w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-300 dark:border-gray-700 overflow-hidden z-50"
+                    className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[72px] sm:top-auto sm:mt-2 w-auto sm:w-80 md:w-96 bg-white dark:bg-yt-surface rounded-2xl shadow-md border border-gray-300 dark:border-yt-border overflow-hidden z-50"
                     style={{ 
                       maxHeight: 'calc(100vh - 88px)',
                     }}
                   >
                   {/* Header do dropdown */}
-                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-gray-700 dark:to-gray-700 border-b border-gray-100 dark:border-gray-600 flex items-center justify-between sticky top-0 z-10">
+                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-gray-700 dark:to-gray-700 border-b border-gray-100 dark:border-yt-border flex items-center justify-between sticky top-0 z-10">
                     <div className="flex items-center space-x-2">
                       <Bell className="h-4 w-4 text-primary-600 dark:text-primary-400" />
                       <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">Notificações</h3>
@@ -363,7 +363,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                     </div>
                     {notifications.length === 0 ? (
                       <div className="px-4 py-12 text-center">
-                        <div className="inline-flex p-4 rounded-full bg-gray-50 dark:bg-gray-700 mb-3">
+                        <div className="inline-flex p-4 rounded-full bg-gray-50 dark:bg-yt-elevated mb-3">
                           <Bell className="h-8 w-8 text-gray-300 dark:text-gray-600" />
                         </div>
                         <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Nenhuma notificação</p>
@@ -384,7 +384,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                               <div className={`absolute left-0 top-0 bottom-0 w-1 ${config.dotColor}`} />
                             )}
                             
-                            <div className="px-3 sm:px-4 py-3 sm:py-4 cursor-pointer border-b border-gray-50 dark:border-gray-700 last:border-0">
+                            <div className="px-3 sm:px-4 py-3 sm:py-4 cursor-pointer border-b border-gray-50 dark:border-yt-border last:border-0">
                               <div className="flex items-start space-x-2 sm:space-x-3">
                                 <div className={`p-2 rounded-lg ${config.iconBg} flex-shrink-0 shadow-sm`}>
                                   <notification.icon className={`h-4 w-4 ${config.iconColor}`} />
@@ -459,7 +459,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
 
                   {/* Footer do dropdown */}
                   {notifications.length > 0 && (
-                    <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-100 dark:border-gray-600 sticky bottom-0">
+                    <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 dark:bg-yt-elevated border-t border-gray-100 dark:border-yt-border sticky bottom-0">
                       <button 
                         onClick={() => {
                           setShowNotifications(false);
@@ -515,10 +515,10 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-300 dark:border-gray-700 overflow-hidden"
+                  className="absolute right-0 mt-2 w-56 bg-white dark:bg-yt-surface rounded-2xl shadow-md border border-gray-300 dark:border-yt-border overflow-hidden"
                 >
                   {/* Mobile/Tablet: Mostrar informações do usuário */}
-                  <div className="lg:hidden px-4 py-3 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-gray-700 dark:to-gray-700 border-b border-gray-100 dark:border-gray-600">
+                  <div className="lg:hidden px-4 py-3 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-gray-700 dark:to-gray-700 border-b border-gray-100 dark:border-yt-border">
                     <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                       {profile?.name || user?.email}
                     </p>
@@ -554,7 +554,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                     </button>
                   </div>
                   
-                  <div className="border-t border-gray-100 dark:border-gray-600 py-1">
+                  <div className="border-t border-gray-100 dark:border-yt-border py-1">
                     <button
                       onClick={handleLogout}
                       className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-3 transition-all duration-200"

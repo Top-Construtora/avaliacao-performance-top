@@ -26,6 +26,9 @@ export default {
     'bg-top-gold/10', 'bg-top-gold/20', 'border-top-gold/30', 'border-top-gold/40',
     'dark:from-top-gold', 'dark:to-top-gold', 'dark:from-top-gold-dark', 'dark:to-top-gold-dark',
     'dark:bg-top-gold/10', 'dark:border-top-gold/40', 'dark:text-top-gold',
+    // YouTube-style dark mode
+    { pattern: /bg-yt-(bg|surface|elevated)/, variants: ['dark'] },
+    { pattern: /border-yt-border/, variants: ['dark'] },
   ],
   theme: {
     extend: {
@@ -96,6 +99,13 @@ export default {
           900: '#064c3a',
         },
         'dark-navy': '#1e2938',
+        // YouTube-style dark mode backgrounds
+        'yt': {
+          bg: '#0f0f0f',
+          surface: '#212121',
+          elevated: '#272727',
+          border: '#3f3f3f',
+        },
         'naue-green': '#1e2938',
         // Cores Top
         'top': {

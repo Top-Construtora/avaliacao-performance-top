@@ -156,7 +156,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-yt-surface rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -176,7 +176,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
 
         {/* Info atual */}
         {currentSalaryInfo && (
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 mb-6">
+          <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Cargo Atual</p>
@@ -207,7 +207,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
         )}
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
+        <div className="flex border-b border-gray-200 dark:border-yt-border mb-6">
           {[
             { id: 'assign', label: 'Atribuir Trilha', icon: GitBranch },
             { id: 'progress', label: 'Progressões', icon: TrendingUp },
@@ -238,7 +238,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
               <select
                 value={selectedTrack}
                 onChange={(e) => setSelectedTrack(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated"
               >
                 <option value="">Selecione uma trilha</option>
                 {tracks.map(track => (
@@ -257,7 +257,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
                 <select
                   value={selectedPosition}
                   onChange={(e) => setSelectedPosition(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated"
                 >
                   <option value="">Selecione um cargo</option>
                   {trackPositions.map(pos => (
@@ -287,7 +287,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
                       className={`p-3 rounded-lg border-2 transition-all ${
                         selectedLevel === level.id
                           ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                          : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                          : 'border-gray-300 dark:border-yt-border hover:border-gray-400'
                       }`}
                     >
                       <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
@@ -359,7 +359,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
               progressionHistory.map((hist) => (
                 <div
                   key={hist.id}
-                  className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-200 dark:border-gray-600"
+                  className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4 border border-gray-200 dark:border-yt-border"
                 >
                   <div className="flex items-start justify-between">
                     <div>
@@ -414,7 +414,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-200 dark:border-gray-600"
+                  className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4 border border-gray-200 dark:border-yt-border"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div>
@@ -433,31 +433,31 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
                     )}
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    <div className="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                    <div className="text-center p-2 bg-white dark:bg-yt-surface rounded-lg">
                       <p className="text-xs text-gray-500 dark:text-gray-400">Autoavaliação</p>
                       <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                         {evalHist.self_score != null ? evalHist.self_score.toFixed(2) : '-'}
                       </p>
                     </div>
-                    <div className="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                    <div className="text-center p-2 bg-white dark:bg-yt-surface rounded-lg">
                       <p className="text-xs text-gray-500 dark:text-gray-400">Líder</p>
                       <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                         {evalHist.leader_score != null ? evalHist.leader_score.toFixed(2) : '-'}
                       </p>
                     </div>
-                    <div className="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                    <div className="text-center p-2 bg-white dark:bg-yt-surface rounded-lg">
                       <p className="text-xs text-gray-500 dark:text-gray-400">Consenso</p>
                       <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                         {evalHist.consensus_score != null ? evalHist.consensus_score.toFixed(2) : '-'}
                       </p>
                     </div>
-                    <div className="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                    <div className="text-center p-2 bg-white dark:bg-yt-surface rounded-lg">
                       <p className="text-xs text-gray-500 dark:text-gray-400">Potencial</p>
                       <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                         {evalHist.potential_score != null ? evalHist.potential_score.toFixed(2) : '-'}
                       </p>
                     </div>
-                    <div className="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                    <div className="text-center p-2 bg-white dark:bg-yt-surface rounded-lg">
                       <p className="text-xs text-gray-500 dark:text-gray-400">Nine Box</p>
                       <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
                         {evalHist.nine_box_position || '-'}

@@ -76,7 +76,7 @@ const SatisfactionRespond = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-8 text-center"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-8 text-center"
         >
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Você já respondeu esta pesquisa</h1>
@@ -104,7 +104,7 @@ const SatisfactionRespond = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6"
+        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
       >
         <div className="flex items-center space-x-4 mb-4">
           <button onClick={() => navigate('/satisfaction')} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors">
@@ -131,7 +131,7 @@ const SatisfactionRespond = () => {
         {survey.questions?.map((question, index) => (
           <div
             key={question.id}
-            className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6"
+            className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
           >
             <div className="flex items-start gap-3 mb-4">
               <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 flex items-center justify-center text-sm font-bold">
@@ -154,7 +154,7 @@ const SatisfactionRespond = () => {
                     className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 transition-all text-lg font-bold ${
                       answers[question.id]?.rating_value === rating
                         ? 'border-primary-500 bg-primary-500 text-white shadow-md scale-110'
-                        : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-primary-300'
+                        : 'border-gray-200 dark:border-yt-border text-gray-500 dark:text-gray-400 hover:border-primary-300'
                     }`}
                   >
                     {rating}
@@ -174,7 +174,7 @@ const SatisfactionRespond = () => {
                   onChange={(e) => setAnswers(prev => ({ ...prev, [question.id]: { text_value: e.target.value } }))}
                   placeholder="Sua resposta..."
                   rows={3}
-                  className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:border-primary-500 focus:ring-primary-500"
+                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm resize-none"
                 />
               </div>
             )}
@@ -186,7 +186,7 @@ const SatisfactionRespond = () => {
                   className={`px-8 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                     answers[question.id]?.boolean_value === true
                       ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                      : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-green-300'
+                      : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 hover:border-green-300'
                   }`}
                 >
                   Sim
@@ -196,7 +196,7 @@ const SatisfactionRespond = () => {
                   className={`px-8 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                     answers[question.id]?.boolean_value === false
                       ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                      : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-red-300'
+                      : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 hover:border-red-300'
                   }`}
                 >
                   Não

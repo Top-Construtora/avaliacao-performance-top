@@ -644,11 +644,11 @@ const NineBoxMatrix = () => {
   // Bloquear acesso se líder não tiver permissão no cargo
   if (!canViewPeopleCommittee) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-yt-bg">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 max-w-md w-full mx-4 text-center"
+          className="bg-white dark:bg-yt-surface rounded-2xl shadow-xl p-8 max-w-md w-full mx-4 text-center"
         >
           <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <Lock className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
@@ -676,7 +676,7 @@ const NineBoxMatrix = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
+        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-8"
       >
         <div className="mb-4 sm:mb-6">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
@@ -689,7 +689,7 @@ const NineBoxMatrix = () => {
         </div>
 
         {/* Seleção de Colaborador */}
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-4 sm:p-6">
+        <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-lg sm:rounded-xl p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 sm:mb-4 flex items-center">
             <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600 dark:text-gray-400" />
             Selecionar Colaborador
@@ -701,7 +701,7 @@ const NineBoxMatrix = () => {
             </label>
             <div className="relative">
               <select
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-sm focus:border-teal-800 dark:focus:border-teal-700 focus:ring-teal-800 dark:focus:ring-teal-700 text-naue-black dark:text-gray-300 font-medium text-sm sm:text-base disabled:opacity-50 disabled:cursor-wait"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base font-medium disabled:opacity-50 disabled:cursor-wait"
                 value={selectedEmployee}
                 onChange={(e) => setSelectedEmployee(e.target.value)}
                 disabled={isLoadingDashboard || loading}
@@ -754,7 +754,7 @@ const NineBoxMatrix = () => {
                       <Mail className="inline h-4 w-4 mr-1" />
                       Email
                     </label>
-                    <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600 truncate">
+                    <div className="px-3 py-2 bg-white dark:bg-yt-elevated rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-yt-border truncate">
                       {selectedEmp.email || '-'}
                     </div>
                   </div>
@@ -765,7 +765,7 @@ const NineBoxMatrix = () => {
                         <Calendar className="inline h-4 w-4 mr-1" />
                         Data de Admissão
                       </label>
-                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                      <div className="px-3 py-2 bg-white dark:bg-yt-elevated rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-yt-border">
                         {formatJoinDate(selectedEmp.join_date)}
                       </div>
                     </div>
@@ -775,7 +775,7 @@ const NineBoxMatrix = () => {
                         <Cake className="inline h-4 w-4 mr-1" />
                         Idade
                       </label>
-                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                      <div className="px-3 py-2 bg-white dark:bg-yt-elevated rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-yt-border">
                         {calculateAge(selectedEmp.birth_date)}
                       </div>
                     </div>
@@ -787,7 +787,7 @@ const NineBoxMatrix = () => {
                         <User className="inline h-4 w-4 mr-1" />
                         Líder
                       </label>
-                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600 truncate">
+                      <div className="px-3 py-2 bg-white dark:bg-yt-elevated rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-yt-border truncate">
                         {selectedEmp.manager?.name || '-'}
                       </div>
                     </div>
@@ -797,7 +797,7 @@ const NineBoxMatrix = () => {
                         <User className="inline h-4 w-4 mr-1" />
                         Time
                       </label>
-                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600 truncate">
+                      <div className="px-3 py-2 bg-white dark:bg-yt-elevated rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-yt-border truncate">
                         {selectedEmp.teams && selectedEmp.teams.length > 0
                           ? selectedEmp.teams.map(t => t.name).join(', ')
                           : '-'}
@@ -816,7 +816,7 @@ const NineBoxMatrix = () => {
                         <Briefcase className="inline h-4 w-4 mr-1" />
                         Cargo
                       </label>
-                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                      <div className="px-3 py-2 bg-white dark:bg-yt-elevated rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-yt-border">
                         {selectedEmp.position}
                       </div>
                     </div>
@@ -826,7 +826,7 @@ const NineBoxMatrix = () => {
                         <TrendingUp className="inline h-4 w-4 mr-1" />
                         Trilha
                       </label>
-                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                      <div className="px-3 py-2 bg-white dark:bg-yt-elevated rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-yt-border">
                         {selectedEmp.track_position?.track?.name || '-'}
                       </div>
                     </div>
@@ -838,7 +838,7 @@ const NineBoxMatrix = () => {
                         <Grid3x3 className="inline h-4 w-4 mr-1" />
                         Classe Salarial
                       </label>
-                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                      <div className="px-3 py-2 bg-white dark:bg-yt-elevated rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-yt-border">
                         {selectedEmp.track_position?.class?.name || selectedEmp.track_position?.class?.code || '-'}
                       </div>
                     </div>
@@ -848,7 +848,7 @@ const NineBoxMatrix = () => {
                         <Target className="inline h-4 w-4 mr-1" />
                         Nível Salarial
                       </label>
-                      <div className="px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                      <div className="px-3 py-2 bg-white dark:bg-yt-elevated rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-yt-border">
                         {selectedEmp.salary_level?.name || selectedEmp.intern_level || '-'}
                       </div>
                     </div>
@@ -860,7 +860,7 @@ const NineBoxMatrix = () => {
                       Salário
                     </label>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-gray-600">
+                      <div className="flex-1 px-3 py-2 bg-white dark:bg-yt-elevated rounded-lg text-naue-black dark:text-gray-300 font-medium text-sm border border-gray-200 dark:border-yt-border">
                         {selectedEmp.current_salary
                           ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedEmp.current_salary)
                           : '-'}
@@ -904,7 +904,7 @@ const NineBoxMatrix = () => {
           {/* Coluna Esquerda - Cards de Informação */}
           <div className="space-y-4">
             {/* Card de Avaliação */}
-            <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-6">
+            <div className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-6">
               <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center">
                 <Target className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600 dark:text-gray-400" />
                 Avaliação de {selectedEmp.name}
@@ -929,7 +929,7 @@ const NineBoxMatrix = () => {
                 </div>
 
                 {/* Card de Potencial */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/30 dark:to-gray-900/20 rounded-lg sm:rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/30 dark:to-gray-900/20 rounded-lg sm:rounded-xl p-4 border border-gray-200 dark:border-yt-border">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium">Potencial</p>
                     <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -937,7 +937,7 @@ const NineBoxMatrix = () => {
                   <p className="text-2xl sm:text-3xl font-bold text-gray-600 dark:text-gray-400">
                     {selectedEvaluation.potential_score}
                   </p>
-                  <div className="mt-2 bg-gray-200 dark:bg-gray-900/50 rounded-full h-2">
+                  <div className="mt-2 bg-gray-200 dark:bg-yt-bg/50 rounded-full h-2">
                     <div
                       className="bg-gray-600 dark:bg-gray-400 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${(selectedEvaluation.potential_score / 4) * 100}%` }}
@@ -1022,7 +1022,7 @@ const NineBoxMatrix = () => {
                               <select
                                 value={selectedQuadrantToMove ?? ''}
                                 onChange={(e) => setSelectedQuadrantToMove(e.target.value ? Number(e.target.value) : null)}
-                                className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-purple-300 dark:border-purple-600 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm"
                               >
                                 <option value="">-- Selecione uma opção --</option>
                                 {getAvailableQuadrantOptions(selectedEvaluation).map((option) => (
@@ -1074,7 +1074,7 @@ const NineBoxMatrix = () => {
 
           {/* Coluna Central e Direita - Matriz */}
           <div className="lg:col-span-2">
-            <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8">
+            <div className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-8">
               <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
                 <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600 dark:text-gray-400" />
                 Posicionamento na Matriz
@@ -1179,7 +1179,7 @@ const NineBoxMatrix = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-6 sm:p-8"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-6 sm:p-8"
         >
           <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center mb-6">
             <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600 dark:text-gray-400" />
@@ -1188,7 +1188,7 @@ const NineBoxMatrix = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Nota do Líder */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+            <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
                 Nota do Líder
               </p>
@@ -1215,7 +1215,7 @@ const NineBoxMatrix = () => {
             </div>
 
             {/* Nota do Consenso */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+            <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
                 Nota Final (Consenso)
               </p>
@@ -1245,7 +1245,7 @@ const NineBoxMatrix = () => {
           </div>
 
           {/* Notas por Competência */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <div className="border-t border-gray-200 dark:border-yt-border pt-6">
             <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
               Notas por Competência de Potencial
             </h4>
@@ -1253,7 +1253,7 @@ const NineBoxMatrix = () => {
               {Object.entries(potentialDetails).map(([id, detail]) => (
                 <div
                   key={id}
-                  className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-200 dark:border-gray-600"
+                  className="bg-gray-50 dark:bg-yt-elevated/50 rounded-lg p-3 border border-gray-200 dark:border-yt-border"
                 >
                   <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 truncate" title={detail.name}>
                     {detail.name}
@@ -1291,7 +1291,7 @@ const NineBoxMatrix = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-6 sm:p-8"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-6 sm:p-8"
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
@@ -1324,7 +1324,7 @@ const NineBoxMatrix = () => {
             value={deliberations}
             onChange={(e) => setDeliberations(e.target.value)}
             placeholder="Digite as deliberações, decisões e observações do comitê sobre este colaborador..."
-            className="w-full h-40 px-4 py-3 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+            className="w-full h-40 rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm resize-none"
           />
         </motion.div>
       )}
@@ -1334,7 +1334,7 @@ const NineBoxMatrix = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-16 text-center"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-16 text-center"
         >
           <div className="max-w-md mx-auto">
             <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-teal-50 to-gray-50 dark:from-teal-900/30 dark:to-gray-900/30 mb-4 sm:mb-6">
@@ -1355,7 +1355,7 @@ const NineBoxMatrix = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-16 text-center"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-16 text-center"
         >
           <div className="max-w-md mx-auto">
             <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 mb-4 sm:mb-6">

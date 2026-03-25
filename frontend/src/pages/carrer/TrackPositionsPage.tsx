@@ -443,7 +443,7 @@ const TrackPositionsPage = () => {
 
   if (!track) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-yt-bg p-4 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600 dark:text-gray-400">Trilha não encontrada</p>
           <Button onClick={() => navigate('/salary/admin')} className="mt-4">
@@ -456,13 +456,13 @@ const TrackPositionsPage = () => {
 
   return (
     <RoleGuard allowedRoles={['director']}>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-yt-bg p-4">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6"
+            className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm p-6"
           >
             <div className="flex items-center gap-4 mb-4">
               <button
@@ -497,7 +497,7 @@ const TrackPositionsPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+            className="bg-white dark:bg-yt-surface rounded-xl shadow-sm p-6"
           >
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
               <Briefcase className="h-5 w-5 text-green-800 dark:text-green-600" />
@@ -516,7 +516,7 @@ const TrackPositionsPage = () => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 group"
+                      className="bg-gray-50 dark:bg-yt-elevated/50 rounded-lg p-4 group"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -595,7 +595,7 @@ const TrackPositionsPage = () => {
                 })}
               </div>
             ) : (
-              <div className="text-center py-10 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+              <div className="text-center py-10 border-2 border-dashed border-gray-300 dark:border-yt-border rounded-lg">
                 <Briefcase className="h-12 w-12 text-green-600 dark:text-green-500 mx-auto mb-4" />
                 <p className="text-gray-500 dark:text-gray-400 font-medium">
                   Nenhum cargo adicionado a esta trilha ainda.
@@ -648,7 +648,7 @@ const TrackPositionsPage = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto"
+                className="bg-white dark:bg-yt-surface rounded-xl shadow-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between mb-6">
@@ -678,7 +678,7 @@ const TrackPositionsPage = () => {
                           <select
                             value={formData.position_id}
                             onChange={(e) => setFormData({ ...formData, position_id: e.target.value })}
-                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100"
                             disabled={!!selectedPosition}
                           >
                             <option value="">Selecione um cargo existente</option>
@@ -711,7 +711,7 @@ const TrackPositionsPage = () => {
                         <select
                           value={formData.class_id}
                           onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100"
                         >
                           <option value="">Selecione uma classe</option>
                           {classes.map(cls => (
@@ -734,7 +734,7 @@ const TrackPositionsPage = () => {
                             type="text"
                             value={salaryInput}
                             onChange={handleSalaryChange}
-                            className="w-full pl-12 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                            className="w-full pl-12 pr-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100"
                             placeholder="0,00"
                           />
                         </div>
@@ -745,7 +745,7 @@ const TrackPositionsPage = () => {
 
                       {/* Preview dos níveis */}
                       {formData.base_salary > 0 && (
-                        <div className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                        <div className="border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-surface rounded-lg p-4">
                           <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
                             Níveis Salariais
                           </h4>
@@ -758,7 +758,7 @@ const TrackPositionsPage = () => {
                               return (
                                 <div
                                   key={level.id}
-                                  className="flex items-center gap-3 bg-white dark:bg-gray-700 rounded p-3"
+                                  className="flex items-center gap-3 bg-white dark:bg-yt-elevated rounded p-3"
                                 >
                                   {/* Badge do Nível */}
                                   <div className="flex-shrink-0 w-8 h-8 bg-green-600 dark:bg-green-700 rounded flex items-center justify-center">
@@ -779,7 +779,7 @@ const TrackPositionsPage = () => {
                                             [level.id]: newValue
                                           });
                                         }}
-                                        className="w-full pl-2 pr-7 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-800 dark:text-gray-100"
+                                        className="w-full pl-2 pr-7 py-1.5 text-sm border border-gray-300 dark:border-yt-border rounded dark:bg-yt-surface dark:text-gray-100"
                                         placeholder="0"
                                         step="0.5"
                                         min="0"
@@ -839,7 +839,7 @@ const TrackPositionsPage = () => {
                           type="text"
                           value={newPositionData.name}
                           onChange={(e) => setNewPositionData({ ...newPositionData, name: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100"
                           placeholder="Ex: Analista de Sistemas"
                           autoFocus
                         />
@@ -852,7 +852,7 @@ const TrackPositionsPage = () => {
                         <textarea
                           value={newPositionData.description}
                           onChange={(e) => setNewPositionData({ ...newPositionData, description: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100"
                           rows={2}
                           placeholder="Descrição do cargo"
                         />
@@ -889,7 +889,7 @@ const TrackPositionsPage = () => {
                         </span>
                       </div>
 
-                      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                      <div className="border-t border-gray-200 dark:border-yt-border pt-4">
                         <h3 className="text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-3">
                           Configuração na Trilha
                         </h3>
@@ -902,7 +902,7 @@ const TrackPositionsPage = () => {
                             <select
                               value={formData.class_id}
                               onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100"
                             >
                               <option value="">Selecione uma classe</option>
                               {classes.map(cls => (
@@ -925,7 +925,7 @@ const TrackPositionsPage = () => {
                                 type="text"
                                 value={salaryInput}
                                 onChange={handleSalaryChange}
-                                className="w-full pl-12 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                                className="w-full pl-12 pr-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100"
                                 placeholder="0,00"
                               />
                             </div>
@@ -933,7 +933,7 @@ const TrackPositionsPage = () => {
 
                           {/* Preview dos níveis */}
                           {formData.base_salary > 0 && (
-                            <div className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                            <div className="border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-surface rounded-lg p-4">
                               <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
                                 Níveis Salariais
                               </h4>
@@ -946,7 +946,7 @@ const TrackPositionsPage = () => {
                                   return (
                                     <div
                                       key={level.id}
-                                      className="flex items-center gap-3 bg-white dark:bg-gray-700 rounded p-3"
+                                      className="flex items-center gap-3 bg-white dark:bg-yt-elevated rounded p-3"
                                     >
                                       {/* Badge do Nível */}
                                       <div className="flex-shrink-0 w-8 h-8 bg-green-600 dark:bg-green-700 rounded flex items-center justify-center">
@@ -967,7 +967,7 @@ const TrackPositionsPage = () => {
                                                 [level.id]: newValue
                                               });
                                             }}
-                                            className="w-full pl-2 pr-7 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-800 dark:text-gray-100"
+                                            className="w-full pl-2 pr-7 py-1.5 text-sm border border-gray-300 dark:border-yt-border rounded dark:bg-yt-surface dark:text-gray-100"
                                             placeholder="0"
                                             step="0.5"
                                             min="0"
@@ -1032,7 +1032,7 @@ const TrackPositionsPage = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-md w-full"
+                className="bg-white dark:bg-yt-surface rounded-xl shadow-xl p-6 max-w-md w-full"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between mb-6">
@@ -1048,7 +1048,7 @@ const TrackPositionsPage = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                  <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-lg p-4">
                     <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
                       {positions.find(p => p.id === selectedTrackPosition.position_id)?.name}
                     </h3>
@@ -1065,7 +1065,7 @@ const TrackPositionsPage = () => {
                           flex items-center justify-between p-3 rounded-lg border
                           ${index === 0 
                             ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20' 
-                            : 'border-gray-200 dark:border-gray-700'
+                            : 'border-gray-200 dark:border-yt-border'
                           }
                         `}
                       >
@@ -1074,7 +1074,7 @@ const TrackPositionsPage = () => {
                             w-10 h-10 rounded-full flex items-center justify-center font-bold
                             ${index === 0 
                               ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-300' 
-                              : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                              : 'bg-gray-200 text-gray-700 dark:bg-yt-elevated dark:text-gray-300'
                             }
                           `}>
                             {levelSalary.level_name}
@@ -1105,7 +1105,7 @@ const TrackPositionsPage = () => {
                     ))}
                   </div>
 
-                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="pt-4 border-t border-gray-200 dark:border-yt-border">
                     <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
                       <span>Diferença entre A e E:</span>
                       <span className="font-medium">
@@ -1144,7 +1144,7 @@ const TrackPositionsPage = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-md w-full"
+                className="bg-white dark:bg-yt-surface rounded-xl shadow-xl p-6 max-w-md w-full"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between mb-6">
@@ -1168,7 +1168,7 @@ const TrackPositionsPage = () => {
                   <p className="text-gray-700 dark:text-gray-300 mb-4">
                     Tem certeza que deseja remover este cargo da trilha?
                   </p>
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                  <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-lg p-4">
                     <p className="font-semibold text-gray-900 dark:text-gray-100">
                       {positions.find(p => p.id === positionToDelete.position_id)?.name || 'Cargo'}
                     </p>

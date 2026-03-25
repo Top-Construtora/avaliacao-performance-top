@@ -104,7 +104,7 @@ const Settings = () => {
     if (profile?.is_admin) return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
     if (profile?.is_director) return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
     if (profile?.is_leader) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
-    return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300';
+    return 'bg-gray-100 text-gray-600 dark:bg-yt-elevated dark:text-gray-300';
   };
 
   const getContractLabel = (type?: string | null) => {
@@ -216,7 +216,7 @@ const Settings = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-100 dark:border-gray-700" />
+        <div className="border-t border-gray-100 dark:border-yt-border" />
 
         {/* Informações */}
         <div>
@@ -226,7 +226,7 @@ const Settings = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Email - sempre presente */}
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-yt-elevated/50 flex items-center justify-center flex-shrink-0">
                 <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500" />
               </div>
               <div className="min-w-0">
@@ -237,7 +237,7 @@ const Settings = () => {
 
             {/* Cargo - sempre presente */}
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-yt-elevated/50 flex items-center justify-center flex-shrink-0">
                 <Briefcase className="h-4 w-4 text-gray-400 dark:text-gray-500" />
               </div>
               <div className="min-w-0">
@@ -249,7 +249,7 @@ const Settings = () => {
             {/* Departamento */}
             {departmentName && (
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-yt-elevated/50 flex items-center justify-center flex-shrink-0">
                   <Building className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                 </div>
                 <div className="min-w-0">
@@ -262,7 +262,7 @@ const Settings = () => {
             {/* Times */}
             {teamNames && teamNames.length > 0 && (
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-yt-elevated/50 flex items-center justify-center flex-shrink-0">
                   <Users className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                 </div>
                 <div className="min-w-0">
@@ -275,7 +275,7 @@ const Settings = () => {
             {/* Telefone - só se preenchido */}
             {profile?.phone && (
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-yt-elevated/50 flex items-center justify-center flex-shrink-0">
                   <Phone className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                 </div>
                 <div className="min-w-0">
@@ -288,7 +288,7 @@ const Settings = () => {
             {/* Data de Admissão - só se existir */}
             {admissionDate && (
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-yt-elevated/50 flex items-center justify-center flex-shrink-0">
                   <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                 </div>
                 <div className="min-w-0">
@@ -327,7 +327,7 @@ const Settings = () => {
                 className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${
                   theme === themeOption.value
                     ? 'border-primary-500 dark:border-primary-400 bg-primary-50 dark:bg-primary-900/20'
-                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800'
+                    : 'border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-yt-surface'
                 }`}
               >
                 <themeOption.icon className={`h-6 w-6 mb-2 ${
@@ -358,7 +358,7 @@ const Settings = () => {
       <div>
         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Segurança</h2>
 
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6">
+        <div className="bg-gray-50 dark:bg-yt-surface/50 rounded-lg p-6">
           <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
             Alterar Senha
           </h3>
@@ -373,7 +373,7 @@ const Settings = () => {
                   type={showPassword ? "text" : "password"}
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-yt-border focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-yt-elevated text-gray-800 dark:text-gray-100 placeholder-gray-400"
                   placeholder="Digite sua senha atual"
                 />
                 <button
@@ -395,7 +395,7 @@ const Settings = () => {
                   type={showNewPassword ? "text" : "password"}
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-yt-border focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-yt-elevated text-gray-800 dark:text-gray-100 placeholder-gray-400"
                   placeholder="Digite sua nova senha"
                 />
                 <button
@@ -420,7 +420,7 @@ const Settings = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-yt-border focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-yt-elevated text-gray-800 dark:text-gray-100 placeholder-gray-400"
                   placeholder="Confirme sua nova senha"
                 />
                 <button
@@ -472,7 +472,7 @@ const Settings = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4 md:p-8"
+        className="bg-white dark:bg-yt-surface rounded-xl md:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-4 md:p-8"
       >
         <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-start md:space-y-0 mb-6">
           <div className="flex-1">
@@ -492,7 +492,7 @@ const Settings = () => {
           variants={itemVariants}
           className="lg:col-span-1"
         >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-4">
+          <div className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-4">
             <nav className="space-y-1">
               {settingSections.map((section) => (
                 <button
@@ -524,7 +524,7 @@ const Settings = () => {
           variants={itemVariants}
           className="lg:col-span-3"
         >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-700 p-6 sm:p-8">
+          <div className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-6 sm:p-8">
             <AnimatePresence mode="wait">
               {activeSection === 'profile' && renderProfileSection()}
               {activeSection === 'preferences' && renderPreferencesSection()}

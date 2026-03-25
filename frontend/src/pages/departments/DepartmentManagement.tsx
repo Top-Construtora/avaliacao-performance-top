@@ -265,7 +265,7 @@ const DepartmentManagement = () => {
         layout
         variants={itemVariants}
         whileHover={{ y: -4, transition: { duration: 0.2 } }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group"
+        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border overflow-hidden dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group"
       >
         <div className="h-2 bg-gradient-to-r from-stone-700 to-stone-800 dark:from-stone-800 dark:to-stone-900" />
         
@@ -345,7 +345,7 @@ const DepartmentManagement = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-8"
         >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-4">
@@ -408,10 +408,10 @@ const DepartmentManagement = () => {
           </motion.div>
         </motion.div>
 
-        <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-6">
+        <div className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-3">
-              <div className="flex items-center bg-gray-100/80 dark:bg-gray-700/50 backdrop-blur-sm rounded-xl p-1.5">
+              <div className="flex items-center bg-gray-100/80 dark:bg-yt-elevated/50 backdrop-blur-sm rounded-xl p-1.5">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all ${
@@ -451,7 +451,7 @@ const DepartmentManagement = () => {
                 <button className="p-2.5 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-600 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                   <MoreVertical className="h-4 w-4" />
                 </button>
-                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-2xl border border-gray-100 dark:border-gray-700 py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-yt-surface rounded-xl shadow-xl dark:shadow-2xl border border-gray-100 dark:border-yt-border py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                   <button
                     onClick={() => handleQuickAction('import')}
                     className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
@@ -468,7 +468,7 @@ const DepartmentManagement = () => {
                       <span>Exportar lista</span>
                     </button>
                   </UIGuard>
-                  <div className="border-t border-gray-100 dark:border-gray-700 my-2" />
+                  <div className="border-t border-gray-100 dark:border-yt-border my-2" />
                   <UIGuard show="showBulkActionsButton">
                     <button
                       onClick={() => handleQuickAction('bulk')}
@@ -491,7 +491,7 @@ const DepartmentManagement = () => {
                 placeholder="Buscar departamentos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border-gray-200 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 bg-gray-50/50 dark:bg-gray-700/50 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100"
+                className="w-full pl-12 pr-4 rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
               />
             </div>
 
@@ -503,7 +503,7 @@ const DepartmentManagement = () => {
                   exit={{ opacity: 0, height: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-700/30 dark:to-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-700/30 dark:to-gray-700/50 rounded-xl border border-gray-200 dark:border-yt-border">
                     <div>
                       <label className="block text-sm font-semibold text-naue-black dark:text-gray-300 font-medium mb-2">
                         Ordenar por
@@ -511,7 +511,7 @@ const DepartmentManagement = () => {
                       <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value as any)}
-                        className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
                       >
                         <option value="name">Nome</option>
                         <option value="teams">Quantidade de times</option>
@@ -580,7 +580,7 @@ const DepartmentManagement = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-naue-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-md hover:shadow-lg border border-naue-border-gray dark:border-gray-700"
+                className="bg-naue-white dark:bg-yt-surface rounded-2xl p-6 max-w-sm w-full mx-4 shadow-md hover:shadow-lg border border-naue-border-gray dark:border-yt-border"
                 onClick={(e) => e.stopPropagation()}
               >
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
@@ -602,7 +602,7 @@ const DepartmentManagement = () => {
 
                   <button
                     onClick={() => handleExport('notion')}
-                    className="w-full p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/20 dark:to-gray-600/20 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600/30 dark:hover:to-gray-500/30 rounded-xl border border-gray-200 dark:border-gray-700 text-naue-black dark:text-gray-300 font-medium font-medium text-left flex items-center space-x-3 transition-all"
+                    className="w-full p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/20 dark:to-gray-600/20 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600/30 dark:hover:to-gray-500/30 rounded-xl border border-gray-200 dark:border-yt-border text-naue-black dark:text-gray-300 font-medium font-medium text-left flex items-center space-x-3 transition-all"
                   >
                     <FileText className="h-5 w-5" />
                     <div className="flex-1">
@@ -625,7 +625,7 @@ const DepartmentManagement = () => {
 
                 <button
                   onClick={() => setShowExportMenu(false)}
-                  className="w-full mt-4 p-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="w-full mt-4 p-3 rounded-xl border border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancelar
                 </button>

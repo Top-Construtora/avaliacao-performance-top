@@ -42,7 +42,7 @@ const RatingInput = ({
   onCommentChange: (val: string) => void;
   commentPlaceholder?: string;
 }) => (
-  <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
+  <div className="space-y-3 p-4 bg-gray-50 dark:bg-yt-elevated/30 rounded-xl border border-gray-100 dark:border-yt-border">
     <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200">{label}</label>
     <div className="flex items-center gap-2">
       {[1, 2, 3, 4, 5].map(rating => (
@@ -53,7 +53,7 @@ const RatingInput = ({
           className={`flex items-center justify-center w-10 h-10 rounded-lg border-2 transition-all text-sm font-bold ${
             value === rating
               ? 'border-primary-500 bg-primary-500 text-white shadow-md'
-              : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-primary-300 dark:hover:border-primary-600'
+              : 'border-gray-200 dark:border-yt-border text-gray-500 dark:text-gray-400 hover:border-primary-300 dark:hover:border-primary-600'
           }`}
           title={ratingLabels[rating]}
         >
@@ -69,7 +69,7 @@ const RatingInput = ({
       onChange={(e) => onCommentChange(e.target.value)}
       placeholder={commentPlaceholder || 'Comentários...'}
       rows={2}
-      className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500"
+      className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm resize-none"
     />
   </div>
 );
@@ -238,7 +238,7 @@ const InterviewForm = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6"
+        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -275,7 +275,7 @@ const InterviewForm = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
         >
           <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-6">Dados da Entrevista</h2>
 
@@ -291,7 +291,7 @@ const InterviewForm = () => {
                   className={`flex-1 p-4 rounded-xl border-2 transition-all text-center ${
                     type === 'ninety_days'
                       ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                      : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-primary-300'
+                      : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 hover:border-primary-300'
                   }`}
                 >
                   <UserCheck className="h-6 w-6 mx-auto mb-2" />
@@ -303,7 +303,7 @@ const InterviewForm = () => {
                   className={`flex-1 p-4 rounded-xl border-2 transition-all text-center ${
                     type === 'exit'
                       ? 'border-stone-500 bg-stone-50 dark:bg-stone-900/20 text-stone-700 dark:text-stone-300'
-                      : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-stone-300'
+                      : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 hover:border-stone-300'
                   }`}
                 >
                   <UserMinus className="h-6 w-6 mx-auto mb-2" />
@@ -320,7 +320,7 @@ const InterviewForm = () => {
                 type="date"
                 value={scheduledDate}
                 onChange={(e) => setScheduledDate(e.target.value)}
-                className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
               />
             </div>
 
@@ -331,7 +331,7 @@ const InterviewForm = () => {
               <select
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
-                className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
               >
                 <option value="">Selecione o colaborador</option>
                 {activeUsers.map(user => (
@@ -347,7 +347,7 @@ const InterviewForm = () => {
               <select
                 value={interviewerId}
                 onChange={(e) => setInterviewerId(e.target.value)}
-                className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
               >
                 <option value="">Selecione o entrevistador</option>
                 {leadersAndDirectors.map(user => (
@@ -376,7 +376,7 @@ const InterviewForm = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
         >
           <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center">
             <MessageSquare className="h-5 w-5 mr-2 text-primary-700 dark:text-primary-400" />
@@ -430,7 +430,7 @@ const InterviewForm = () => {
             />
 
             {/* Expectativas */}
-            <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div className="p-4 bg-gray-50 dark:bg-yt-elevated/30 rounded-xl border border-gray-100 dark:border-yt-border">
               <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
                 As expectativas em relação à empresa foram atendidas?
               </label>
@@ -441,7 +441,7 @@ const InterviewForm = () => {
                   className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                     ninetyDaysAnswers.expectations_met === true
                       ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                      : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-green-300'
+                      : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 hover:border-green-300'
                   }`}
                 >
                   Sim
@@ -452,7 +452,7 @@ const InterviewForm = () => {
                   className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                     ninetyDaysAnswers.expectations_met === false
                       ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                      : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-red-300'
+                      : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 hover:border-red-300'
                   }`}
                 >
                   Não
@@ -463,30 +463,30 @@ const InterviewForm = () => {
                 onChange={(e) => setNinetyDaysAnswers(prev => ({ ...prev, expectations_comments: e.target.value }))}
                 placeholder="Comente sobre suas expectativas..."
                 rows={2}
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:border-primary-500 focus:ring-primary-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm resize-none"
               />
             </div>
 
             {/* Campos de texto */}
-            <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div className="p-4 bg-gray-50 dark:bg-yt-elevated/30 rounded-xl border border-gray-100 dark:border-yt-border">
               <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Principais desafios</label>
               <textarea
                 value={ninetyDaysAnswers.challenges}
                 onChange={(e) => setNinetyDaysAnswers(prev => ({ ...prev, challenges: e.target.value }))}
                 placeholder="Quais foram os principais desafios até agora?"
                 rows={3}
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:border-primary-500 focus:ring-primary-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm resize-none"
               />
             </div>
 
-            <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div className="p-4 bg-gray-50 dark:bg-yt-elevated/30 rounded-xl border border-gray-100 dark:border-yt-border">
               <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Sugestões de melhoria</label>
               <textarea
                 value={ninetyDaysAnswers.suggestions}
                 onChange={(e) => setNinetyDaysAnswers(prev => ({ ...prev, suggestions: e.target.value }))}
                 placeholder="O que poderia ser melhorado?"
                 rows={3}
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:border-primary-500 focus:ring-primary-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm resize-none"
               />
             </div>
 
@@ -500,7 +500,7 @@ const InterviewForm = () => {
             />
 
             {/* Recomendaria */}
-            <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div className="p-4 bg-gray-50 dark:bg-yt-elevated/30 rounded-xl border border-gray-100 dark:border-yt-border">
               <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
                 Recomendaria a empresa para amigos/conhecidos?
               </label>
@@ -511,7 +511,7 @@ const InterviewForm = () => {
                   className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                     ninetyDaysAnswers.recommend_company === true
                       ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                      : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-green-300'
+                      : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 hover:border-green-300'
                   }`}
                 >
                   Sim
@@ -522,7 +522,7 @@ const InterviewForm = () => {
                   className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                     ninetyDaysAnswers.recommend_company === false
                       ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                      : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-red-300'
+                      : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 hover:border-red-300'
                   }`}
                 >
                   Não
@@ -532,7 +532,7 @@ const InterviewForm = () => {
           </div>
 
           {/* Ações */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between mt-8 pt-6 border-t border-gray-200 dark:border-yt-border">
             <Button variant="outline" onClick={() => navigate('/interviews')}>
               Voltar
             </Button>
@@ -553,7 +553,7 @@ const InterviewForm = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6"
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
         >
           <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center">
             <MessageSquare className="h-5 w-5 mr-2 text-stone-700 dark:text-stone-400" />
@@ -562,14 +562,14 @@ const InterviewForm = () => {
 
           <div className="space-y-4">
             {/* Motivo da saída */}
-            <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div className="p-4 bg-gray-50 dark:bg-yt-elevated/30 rounded-xl border border-gray-100 dark:border-yt-border">
               <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
                 Principal motivo da saída
               </label>
               <select
                 value={exitAnswers.departure_reason}
                 onChange={(e) => setExitAnswers(prev => ({ ...prev, departure_reason: e.target.value }))}
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:border-primary-500 focus:ring-primary-500 mb-3"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm mb-3"
               >
                 <option value="">Selecione o motivo</option>
                 <option value="new_opportunity">Nova oportunidade profissional</option>
@@ -588,7 +588,7 @@ const InterviewForm = () => {
                 onChange={(e) => setExitAnswers(prev => ({ ...prev, departure_reason_details: e.target.value }))}
                 placeholder="Detalhe o motivo..."
                 rows={3}
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:border-primary-500 focus:ring-primary-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm resize-none"
               />
             </div>
 
@@ -638,29 +638,29 @@ const InterviewForm = () => {
             />
 
             {/* Campos de texto */}
-            <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div className="p-4 bg-gray-50 dark:bg-yt-elevated/30 rounded-xl border border-gray-100 dark:border-yt-border">
               <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">O que mais gostou na empresa?</label>
               <textarea
                 value={exitAnswers.what_liked_most}
                 onChange={(e) => setExitAnswers(prev => ({ ...prev, what_liked_most: e.target.value }))}
                 rows={3}
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:border-primary-500 focus:ring-primary-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm resize-none"
               />
             </div>
 
-            <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div className="p-4 bg-gray-50 dark:bg-yt-elevated/30 rounded-xl border border-gray-100 dark:border-yt-border">
               <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">O que poderia ser melhorado?</label>
               <textarea
                 value={exitAnswers.what_could_improve}
                 onChange={(e) => setExitAnswers(prev => ({ ...prev, what_could_improve: e.target.value }))}
                 rows={3}
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:border-primary-500 focus:ring-primary-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm resize-none"
               />
             </div>
 
             {/* Voltaria / Recomendaria */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
+              <div className="p-4 bg-gray-50 dark:bg-yt-elevated/30 rounded-xl border border-gray-100 dark:border-yt-border">
                 <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">Voltaria a trabalhar na empresa?</label>
                 <div className="flex gap-3">
                   <button
@@ -669,7 +669,7 @@ const InterviewForm = () => {
                     className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                       exitAnswers.would_return === true
                         ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
+                        : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400'
                     }`}
                   >
                     Sim
@@ -680,7 +680,7 @@ const InterviewForm = () => {
                     className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                       exitAnswers.would_return === false
                         ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
+                        : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400'
                     }`}
                   >
                     Não
@@ -688,7 +688,7 @@ const InterviewForm = () => {
                 </div>
               </div>
 
-              <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
+              <div className="p-4 bg-gray-50 dark:bg-yt-elevated/30 rounded-xl border border-gray-100 dark:border-yt-border">
                 <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">Recomendaria a empresa?</label>
                 <div className="flex gap-3">
                   <button
@@ -697,7 +697,7 @@ const InterviewForm = () => {
                     className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                       exitAnswers.would_recommend === true
                         ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
+                        : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400'
                     }`}
                   >
                     Sim
@@ -708,7 +708,7 @@ const InterviewForm = () => {
                     className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                       exitAnswers.would_recommend === false
                         ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
+                        : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400'
                     }`}
                   >
                     Não
@@ -717,30 +717,30 @@ const InterviewForm = () => {
               </div>
             </div>
 
-            <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div className="p-4 bg-gray-50 dark:bg-yt-elevated/30 rounded-xl border border-gray-100 dark:border-yt-border">
               <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Destino (próximo emprego/planos)</label>
               <input
                 type="text"
                 value={exitAnswers.destination}
                 onChange={(e) => setExitAnswers(prev => ({ ...prev, destination: e.target.value }))}
                 placeholder="Opcional"
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:border-primary-500 focus:ring-primary-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm"
               />
             </div>
 
-            <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div className="p-4 bg-gray-50 dark:bg-yt-elevated/30 rounded-xl border border-gray-100 dark:border-yt-border">
               <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Comentários adicionais</label>
               <textarea
                 value={exitAnswers.additional_comments}
                 onChange={(e) => setExitAnswers(prev => ({ ...prev, additional_comments: e.target.value }))}
                 rows={3}
-                className="w-full rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:border-primary-500 focus:ring-primary-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm resize-none"
               />
             </div>
           </div>
 
           {/* Ações */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between mt-8 pt-6 border-t border-gray-200 dark:border-yt-border">
             <Button variant="outline" onClick={() => navigate('/interviews')}>
               Voltar
             </Button>

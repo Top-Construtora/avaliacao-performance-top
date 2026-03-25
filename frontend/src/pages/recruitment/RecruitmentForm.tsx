@@ -19,13 +19,13 @@ const TextareaField = ({ label, value, onChange, placeholder, rows = 3 }: {
     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{label}</label>
     <textarea
       value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows}
-      className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:border-primary-500 focus:ring-primary-500"
+      className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 resize-none"
     />
   </div>
 );
 
 const candidateStatusConfig: Record<string, { label: string; color: string }> = {
-  received: { label: 'Recebido', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300' },
+  received: { label: 'Recebido', color: 'bg-gray-100 dark:bg-yt-elevated text-gray-700 dark:text-gray-300' },
   screening: { label: 'Triagem', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
   interview_scheduled: { label: 'Entrevista Agendada', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' },
   interviewed: { label: 'Entrevistado', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' },
@@ -189,7 +189,7 @@ const RecruitmentForm = () => {
     <div className="space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6">
+        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button onClick={() => navigate('/recruitment')} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors">
@@ -216,7 +216,7 @@ const RecruitmentForm = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Dados da Vaga */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6">
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6">
           <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center">
             <FileText className="h-5 w-5 mr-2 text-primary-700 dark:text-primary-400" />
             Descrição da Vaga
@@ -225,14 +225,14 @@ const RecruitmentForm = () => {
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Título da Vaga *</label>
               <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Engenheiro Civil Sênior"
-                className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500" />
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Departamento</label>
                 <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}
-                  className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3">
                   <option value="">Selecione</option>
                   {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
@@ -240,7 +240,7 @@ const RecruitmentForm = () => {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nº de Posições</label>
                 <input type="number" min={1} value={positionsCount} onChange={(e) => setPositionsCount(Number(e.target.value))}
-                  className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3" />
               </div>
             </div>
 
@@ -248,7 +248,7 @@ const RecruitmentForm = () => {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tipo de Contrato</label>
                 <select value={contractType} onChange={(e) => setContractType(e.target.value)}
-                  className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3">
                   <option value="CLT">CLT</option>
                   <option value="PJ">PJ</option>
                   <option value="INTERN">Estágio</option>
@@ -257,7 +257,7 @@ const RecruitmentForm = () => {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Prioridade</label>
                 <select value={priority} onChange={(e) => setPriority(e.target.value)}
-                  className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3">
                   <option value="low">Baixa</option>
                   <option value="normal">Normal</option>
                   <option value="high">Alta</option>
@@ -269,19 +269,19 @@ const RecruitmentForm = () => {
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Local</label>
               <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Ex: Escritório SP, Remoto, Híbrido"
-                className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Salário Mín (R$)</label>
                 <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="0"
-                  className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Salário Máx (R$)</label>
                 <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="0"
-                  className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3" />
               </div>
             </div>
 
@@ -293,7 +293,7 @@ const RecruitmentForm = () => {
 
         {/* Brief do Gestor */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6">
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6">
           <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center">
             <MessageSquare className="h-5 w-5 mr-2 text-amber-600 dark:text-amber-400" />
             Brief do Gestor
@@ -305,7 +305,7 @@ const RecruitmentForm = () => {
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Previsão de início</label>
               <input type="date" value={briefExpectedStart} onChange={(e) => setBriefExpectedStart(e.target.value)}
-                className="w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3" />
             </div>
 
             <TextareaField label="Contexto da equipe" value={briefTeamContext} onChange={setBriefTeamContext}
@@ -325,7 +325,7 @@ const RecruitmentForm = () => {
       {/* Candidatos (só no modo edição) */}
       {isEditing && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm border border-naue-border-gray dark:border-gray-700 p-6">
+          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center">
               <UsersIcon className="h-5 w-5 mr-2 text-primary-700 dark:text-primary-400" />
@@ -338,16 +338,16 @@ const RecruitmentForm = () => {
 
           {/* Form de adicionar candidato */}
           {showAddCandidate && (
-            <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 mb-4">
+            <div className="p-4 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl border border-gray-200 dark:border-yt-border mb-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                 <input type="text" value={newCandidateName} onChange={(e) => setNewCandidateName(e.target.value)} placeholder="Nome *"
-                  className="rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm" />
+                  className="rounded-lg border-gray-200 dark:border-yt-border bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 text-sm" />
                 <input type="email" value={newCandidateEmail} onChange={(e) => setNewCandidateEmail(e.target.value)} placeholder="Email"
-                  className="rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm" />
+                  className="rounded-lg border-gray-200 dark:border-yt-border bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 text-sm" />
                 <input type="text" value={newCandidatePhone} onChange={(e) => setNewCandidatePhone(e.target.value)} placeholder="Telefone"
-                  className="rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm" />
+                  className="rounded-lg border-gray-200 dark:border-yt-border bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 text-sm" />
                 <select value={newCandidateSource} onChange={(e) => setNewCandidateSource(e.target.value)}
-                  className="rounded-lg border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm">
+                  className="rounded-lg border-gray-200 dark:border-yt-border bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 text-sm">
                   <option value="">Fonte</option>
                   <option value="linkedin">LinkedIn</option>
                   <option value="indicacao">Indicação</option>
@@ -367,7 +367,7 @@ const RecruitmentForm = () => {
             {opening?.candidates?.map(candidate => {
               const statusInfo = candidateStatusConfig[candidate.status] || candidateStatusConfig.received;
               return (
-                <div key={candidate.id} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                <div key={candidate.id} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl border border-gray-100 dark:border-yt-border">
                   <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                     {candidate.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                   </div>

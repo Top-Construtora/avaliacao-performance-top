@@ -216,13 +216,13 @@ const SalaryAdminPage = () => {
 
   return (
     <RoleGuard allowedRoles={['director']}>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-yt-bg p-4">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* --- Cabeçalho --- */}
           <motion.div 
             initial={{ opacity: 0, y: -20 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6"
+            className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm p-6"
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
@@ -248,7 +248,7 @@ const SalaryAdminPage = () => {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             transition={{ delay: 0.1 }} 
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 space-y-4"
+            className="bg-white dark:bg-yt-surface rounded-xl shadow-sm p-6 space-y-4"
           >
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
               <GitBranch className="text-primary dark:text-primary-600" />
@@ -264,7 +264,7 @@ const SalaryAdminPage = () => {
                       key={track.id}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow group"
+                      className="bg-gray-50 dark:bg-yt-elevated/50 p-5 rounded-lg border border-gray-200 dark:border-yt-border hover:shadow-md transition-shadow group"
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
@@ -327,7 +327,7 @@ const SalaryAdminPage = () => {
                             )}
                           </Button>
                           {showExportMenu === track.id && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-10">
+                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-yt-elevated rounded-lg shadow-lg border border-gray-200 dark:border-yt-border z-10">
                               <button
                                 onClick={() => handleExportPDF(track.id, track.name)}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-t-lg"
@@ -351,7 +351,7 @@ const SalaryAdminPage = () => {
                 })}
               </div>
             ) : (
-              <div className="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg dark:border-gray-600">
+              <div className="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg dark:border-yt-border">
                 <GitBranch className="h-12 w-12 text-primary-600 dark:text-primary-500 mx-auto mb-4" />
                 <p className="text-gray-500 dark:text-gray-400 font-medium">
                   Nenhuma trilha de carreira foi criada ainda.
@@ -413,7 +413,7 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
         initial={{ scale: 0.9, opacity: 0 }} 
         animate={{ scale: 1, opacity: 1 }} 
         exit={{ scale: 0.9, opacity: 0 }} 
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-lg w-full"
+        className="bg-white dark:bg-yt-surface rounded-xl shadow-xl p-6 max-w-lg w-full"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
@@ -436,7 +436,7 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
             <select
               value={formData.department_id}
               onChange={(e) => setFormData(prev => ({ ...prev, department_id: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               <option value="">Selecione um departamento</option>
               {departments.length > 0 ? (
@@ -466,7 +466,7 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
               type="text"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-transparent"
               placeholder="Ex: Trilha de Engenharia, Trilha Comercial"
             />
           </div>
@@ -478,7 +478,7 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
             <textarea
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-transparent"
               rows={3}
               placeholder="Descreva brevemente esta trilha de carreira"
             />

@@ -167,7 +167,7 @@ const DirectorDashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+        className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-yt-border"
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
@@ -200,7 +200,7 @@ const DirectorDashboard = () => {
             {teamStatus.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{member.name}</p>
@@ -214,14 +214,14 @@ const DirectorDashboard = () => {
 
         {/* Progress bar */}
         {totalSubordinates > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-yt-border">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-600 dark:text-gray-400">Avaliações concluídas</span>
               <span className="text-sm font-bold text-emerald-600">
                 {completedLeaderEvaluations}/{totalSubordinates}
               </span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-gray-200 dark:bg-yt-elevated rounded-full h-2">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${(completedLeaderEvaluations / totalSubordinates) * 100}%` }}
@@ -247,7 +247,7 @@ const DirectorDashboard = () => {
               key={card.id}
               variants={itemVariants}
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              className="relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden border border-gray-300 dark:border-gray-700"
+              className="relative bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden border border-gray-300 dark:border-yt-border"
               onClick={card.onClick}
             >
               {/* Background Gradient Decoration */}

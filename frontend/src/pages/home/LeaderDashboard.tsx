@@ -153,7 +153,7 @@ const LeaderDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-yt-border"
         >
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
             <Calendar className="mr-2 text-primary-500" size={20} />
@@ -387,7 +387,7 @@ const LeaderDashboard = () => {
           </div>
 
           {/* Progress Summary */}
-          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-yt-border">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600 dark:text-gray-400">Progresso geral</span>
               <span className="text-lg font-bold text-primary-500">
@@ -401,7 +401,7 @@ const LeaderDashboard = () => {
                 )}%
               </span>
             </div>
-            <div className="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div className="mt-2 w-full bg-gray-200 dark:bg-yt-elevated rounded-full h-2">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{
@@ -426,7 +426,7 @@ const LeaderDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-yt-border"
         >
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
             <BarChart2 className="mr-2 text-primary-500" size={20} />
@@ -435,7 +435,7 @@ const LeaderDashboard = () => {
 
           <div className="grid grid-cols-2 gap-4">
             {/* Nota Autoavaliação */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+            <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4">
               <div className="flex items-center mb-2">
                 <User className="h-4 w-4 text-primary-500 mr-2" />
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Autoavaliação</span>
@@ -451,7 +451,7 @@ const LeaderDashboard = () => {
             </div>
 
             {/* Nota Líder */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+            <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4">
               <div className="flex items-center mb-2">
                 <Crown className="h-4 w-4 text-primary-500 mr-2" />
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Líder</span>
@@ -467,7 +467,7 @@ const LeaderDashboard = () => {
             </div>
 
             {/* Nota Consenso */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+            <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4">
               <div className="flex items-center mb-2">
                 <Users className="h-4 w-4 text-primary-500 mr-2" />
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Consenso</span>
@@ -484,7 +484,7 @@ const LeaderDashboard = () => {
 
             {/* PDI */}
             <div
-              className={`bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 ${myStatus.ppiDefined ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors' : ''}`}
+              className={`bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4 ${myStatus.ppiDefined ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors' : ''}`}
               onClick={() => myStatus.ppiDefined && navigate('/my-pdi')}
             >
               <div className="flex items-center mb-2">
@@ -520,7 +520,7 @@ const LeaderDashboard = () => {
               key={card.id}
               variants={itemVariants}
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              className="relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden border border-gray-300 dark:border-gray-700"
+              className="relative bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden border border-gray-300 dark:border-yt-border"
               onClick={card.onClick}
             >
               {/* Background Gradient Decoration */}

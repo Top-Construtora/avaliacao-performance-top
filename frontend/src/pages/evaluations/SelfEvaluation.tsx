@@ -290,8 +290,8 @@ const SelfEvaluation = () => {
         title: 'Competências Comportamentais',
         icon: Users,
         gradient: 'from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700',
-        bgColor: 'bg-gray-50 dark:bg-gray-800/20',
-        borderColor: 'border-gray-200 dark:border-gray-700',
+        bgColor: 'bg-gray-50 dark:bg-yt-surface/20',
+        borderColor: 'border-gray-200 dark:border-yt-border',
         items: EVALUATION_COMPETENCIES.behavioral.map(comp => ({
           id: comp.name.toLowerCase().replace(/\s+/g, '-'),
           name: comp.name,
@@ -570,7 +570,7 @@ const SelfEvaluation = () => {
     const periodMessage = getCyclePeriodMessage();
     
     return (
-      <div className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-naue-border-gray dark:border-gray-700 p-8 text-center">
+      <div className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-naue-border-gray dark:border-yt-border p-8 text-center">
         <AlertCircle className="h-12 w-12 text-primary dark:text-primary-600 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
           {!currentCycle ? 'Nenhum ciclo de avaliação ativo' : 'Período de avaliação indisponível'}
@@ -579,7 +579,7 @@ const SelfEvaluation = () => {
           {periodMessage?.message || 'Aguarde a abertura de um novo ciclo de avaliação.'}
         </p>
         {currentCycle && (
-          <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+          <div className="mt-4 p-4 bg-gray-100 dark:bg-yt-elevated rounded-lg">
             <p className="text-sm text-naue-black dark:text-gray-300 font-medium">
               <strong>Ciclo:</strong> {currentCycle.title}
             </p>
@@ -690,10 +690,10 @@ const SelfEvaluation = () => {
             <motion.div
               key={section.id}
               variants={itemVariants}
-              className={`bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border ${isCompleted ? section.borderColor : 'border-naue-border-gray dark:border-gray-700'} overflow-hidden transition-all duration-300`}
+              className={`bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border ${isCompleted ? section.borderColor : 'border-naue-border-gray dark:border-yt-border'} overflow-hidden transition-all duration-300`}
             >
               {/* Section Header */}
-              <div className={`px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${isCompleted ? section.bgColor : 'bg-gray-50 dark:bg-gray-700/50'} border-b border-gray-100 dark:border-gray-700`}>
+              <div className={`px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${isCompleted ? section.bgColor : 'bg-gray-50 dark:bg-yt-elevated/50'} border-b border-gray-100 dark:border-yt-border`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3 sm:space-x-4">
                     <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${section.iconBg} shadow-md`}>
@@ -742,7 +742,7 @@ const SelfEvaluation = () => {
                               type="text"
                               value={item}
                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField(section.id, index, e.target.value)}
-                              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-naue-black dark:text-gray-300 font-medium rounded-lg sm:rounded-xl focus:ring-2 focus:ring-top-teal dark:focus:ring-top-teal focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
+                              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-200 dark:border-yt-border bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-300 font-medium rounded-lg sm:rounded-xl focus:ring-2 focus:ring-top-teal dark:focus:ring-top-teal focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
                               placeholder={`Digite ${section.title.toLowerCase()} ${index + 1}...`}
                             />
                             {item.trim() && (
@@ -773,7 +773,7 @@ const SelfEvaluation = () => {
                 {viewMode === 'edit' && (
                   <button
                     onClick={() => addField(section.id)}
-                    className={`mt-3 sm:mt-4 flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-lg border border-dashed ${isCompleted ? section.borderColor : 'border-gray-300 dark:border-gray-600'} text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 group`}
+                    className={`mt-3 sm:mt-4 flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-lg border border-dashed ${isCompleted ? section.borderColor : 'border-gray-300 dark:border-yt-border'} text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 group`}
                   >
                     <Plus className="h-3 w-3 sm:h-4 sm:w-4 group-hover:rotate-90 transition-transform duration-200" />
                     <span className="text-xs sm:text-sm font-medium">Adicionar mais</span>
@@ -791,7 +791,7 @@ const SelfEvaluation = () => {
             className="bg-gradient-to-br from-top-teal-light to-top-blue-light dark:from-top-teal/10 dark:to-top-blue/10 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-top-teal/20 dark:border-top-teal/30"
           >
             <div className="flex items-start space-x-3">
-              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <div className="p-2 bg-white dark:bg-yt-surface rounded-lg shadow-sm">
                 <Info className="h-4 w-4 sm:h-5 sm:w-5 text-primary dark:text-primary-600" />
               </div>
               <div className="flex-1">
@@ -903,7 +903,7 @@ const SelfEvaluation = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: categoryIndex * 0.1 }}
-            className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 overflow-hidden"
+            className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border overflow-hidden"
           >
             <button
               onClick={() => toggleSection(category.id)}
@@ -923,7 +923,7 @@ const SelfEvaluation = () => {
                 </div>
                 
                 <div className="flex items-center space-x-2 sm:space-x-4">
-                  <div className="w-16 sm:w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div className="w-16 sm:w-32 bg-gray-200 dark:bg-yt-elevated rounded-full h-2">
                     <div 
                       className={`h-2 rounded-full bg-gradient-to-r ${category.gradient} transition-all duration-300`}
                       style={{ width: `${categoryProgress}%` }}
@@ -965,7 +965,7 @@ const SelfEvaluation = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: itemIndex * 0.03 }}
-                        className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600"
+                        className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl border border-gray-100 dark:border-yt-border"
                       >
                         <div className="flex-1 mr-4">
                           <h4 className="text-sm sm:text-base font-medium text-gray-800 dark:text-gray-100">{item.name}</h4>
@@ -1021,7 +1021,7 @@ const SelfEvaluation = () => {
                                 className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
                                   score === rating
                                     ? `${ratingLabel.color} text-white border-transparent shadow-lg transform scale-105`
-                                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                                    : 'border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-yt-surface text-gray-700 dark:text-gray-200'
                                 }`}
                               >
                                 <div className="text-center">
@@ -1095,7 +1095,7 @@ const SelfEvaluation = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-gray-700 p-8"
+        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-8"
       >
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 sm:mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-3 sm:space-x-4 w-full lg:w-auto">
@@ -1144,7 +1144,7 @@ const SelfEvaluation = () => {
             <div className="flex items-center space-x-4 w-full lg:w-auto justify-end">
               {/* Auto-save indicator */}
               {lastSaved && (
-                <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full">
+                <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-yt-elevated px-3 py-1.5 rounded-full">
                   <Clock className="h-3.5 w-3.5" />
                   <span>
                     Salvo às {lastSaved.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
@@ -1199,7 +1199,7 @@ const SelfEvaluation = () => {
               className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-all duration-200 ${
                 currentStep === 'toolkit'
                   ? 'bg-primary-100 dark:bg-primary-600/30 text-primary-700 dark:text-green-300'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                  : 'bg-gray-100 dark:bg-yt-elevated text-gray-500 dark:text-gray-400'
               } ${viewMode === 'view' ? 'cursor-pointer hover:opacity-80' : ''}`}
             >
               <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'toolkit' ? 'bg-primary dark:bg-green-700 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>
@@ -1208,7 +1208,7 @@ const SelfEvaluation = () => {
               <span className="font-medium text-xs sm:text-sm hidden sm:inline">Toolkit Profissional</span>
             </button>
 
-            <div className="w-8 sm:w-16 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="w-8 sm:w-16 h-1 bg-gray-200 dark:bg-yt-elevated rounded-full overflow-hidden">
               <div className={`h-full transition-all duration-500 ${viewMode === 'view' || currentStep === 'competencies' ? 'w-full bg-primary dark:bg-green-700' : 'w-0'}`} />
             </div>
 
@@ -1217,8 +1217,8 @@ const SelfEvaluation = () => {
               disabled={viewMode === 'edit'}
               className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-all duration-200 ${
                 currentStep === 'competencies'
-                  ? 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                  ? 'bg-gray-100 dark:bg-yt-bg/30 text-gray-700 dark:text-gray-300'
+                  : 'bg-gray-100 dark:bg-yt-elevated text-gray-500 dark:text-gray-400'
               } ${viewMode === 'view' ? 'cursor-pointer hover:opacity-80' : ''}`}
             >
               <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'competencies' ? 'bg-gray-600 dark:bg-gray-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>
@@ -1239,7 +1239,7 @@ const SelfEvaluation = () => {
               return (
                 <div 
                   key={section.id} 
-                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border ${isCompleted ? section.borderColor : 'border-gray-200 dark:border-gray-600'} ${isCompleted ? section.bgColor : 'bg-gray-50 dark:bg-gray-700/50'} transition-all duration-300`}
+                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border ${isCompleted ? section.borderColor : 'border-gray-200 dark:border-yt-border'} ${isCompleted ? section.bgColor : 'bg-gray-50 dark:bg-yt-elevated/50'} transition-all duration-300`}
                 >
                   <div className="flex items-center justify-between">
                     <section.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${isCompleted ? 'text-naue-black dark:text-gray-300 font-medium' : 'text-gray-400 dark:text-gray-500'}`} />

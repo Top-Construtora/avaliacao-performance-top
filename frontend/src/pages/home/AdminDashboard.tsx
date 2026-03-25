@@ -124,7 +124,7 @@ const AdminDashboard = () => {
               key={card.id}
               variants={itemVariants}
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              className="relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden border border-gray-300 dark:border-gray-700"
+              className="relative bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden border border-gray-300 dark:border-yt-border"
               onClick={card.onClick}
             >
               {/* Background Gradient Decoration */}
