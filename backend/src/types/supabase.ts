@@ -644,6 +644,62 @@ export interface Database {
           created_at?: string
         }
       }
+      notifications: {
+        Row: {
+          id: string
+          recipient_id: string
+          actor_id: string | null
+          type: string
+          title: string
+          message: string
+          priority: string
+          action_url: string | null
+          entity_type: string | null
+          entity_id: string | null
+          group_key: string | null
+          metadata: Json
+          read: boolean
+          archived: boolean
+          created_at: string
+          read_at: string | null
+        }
+        Insert: {
+          id?: string
+          recipient_id: string
+          actor_id?: string | null
+          type: string
+          title: string
+          message: string
+          priority?: string
+          action_url?: string | null
+          entity_type?: string | null
+          entity_id?: string | null
+          group_key?: string | null
+          metadata?: Json
+          read?: boolean
+          archived?: boolean
+          created_at?: string
+          read_at?: string | null
+        }
+        Update: {
+          id?: string
+          recipient_id?: string
+          actor_id?: string | null
+          type?: string
+          title?: string
+          message?: string
+          priority?: string
+          action_url?: string | null
+          entity_type?: string | null
+          entity_id?: string | null
+          group_key?: string | null
+          metadata?: Json
+          read?: boolean
+          archived?: boolean
+          created_at?: string
+          read_at?: string | null
+        }
+      }
     }
     Views: {
       user_calculated_salaries: {
@@ -710,3 +766,5 @@ export type DBEvaluationCycle = Tables<'evaluation_cycles'>
 export type DBCareerTrack = Tables<'career_tracks'>
 export type DBJobPosition = Tables<'job_positions'>
 export type DBSalaryLevel = Tables<'salary_levels'>
+export type DBNotification = Tables<'notifications'>
+export type DBNotificationInsert = TablesInsert<'notifications'>

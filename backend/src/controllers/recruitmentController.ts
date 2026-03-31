@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { supabaseAdmin } from '../config/supabase';
+import { notificationService } from '../services/notificationService';
 
 export const recruitmentController = {
   // === VAGAS ===
@@ -135,6 +136,18 @@ export const recruitmentController = {
 
       if (error) throw error;
 
+      // Notificar diretores e admins sobre nova vaga
+      notificationService.send(supabaseAdmin, {
+        type: 'job_opening_created',
+        title: 'Nova vaga criada',
+        message: `Vaga "${title}" foi criada.`,
+        targets: [{ type: 'role', role: 'director' }],
+        actor_id: req.user?.id,
+        action_url: '/recruitment',
+        entity_type: 'job_opening',
+        entity_id: data?.id,
+      }).catch(err => console.error('Notification error:', err));
+
       res.status(201).json({ success: true, data });
     } catch (error) {
       next(error);
@@ -225,6 +238,30 @@ export const recruitmentController = {
 
       if (error) throw error;
 
+      // Notificar responsável pela vaga sobre novo candidato (com aggregate anti-spam)
+      if (job_opening_id) {
+        const { data: opening } = await supabaseAdmin
+          .from('job_openings')
+          .select('requested_by, title')
+          .eq('id', job_opening_id)
+          .single();
+
+        if (opening?.requested_by) {
+          notificationService.send(supabaseAdmin, {
+            type: 'candidate_registered',
+            title: 'Novo candidato cadastrado',
+            message: `${name} se candidatou para a vaga "${opening.title}".`,
+            targets: [{ type: 'user', user_id: opening.requested_by }],
+            actor_id: req.user?.id,
+            action_url: `/recruitment/${job_opening_id}`,
+            entity_type: 'job_candidate',
+            entity_id: data?.id,
+            group_key: `candidate_${job_opening_id}`,
+            anti_spam: 'aggregate',
+          }).catch(err => console.error('Notification error:', err));
+        }
+      }
+
       res.status(201).json({ success: true, data });
     } catch (error) {
       next(error);
@@ -244,6 +281,32 @@ export const recruitmentController = {
         .single();
 
       if (error) throw error;
+
+      // Notificar quando candidato é contratado
+      if (updates.status === 'hired' && data?.job_opening_id) {
+        const { data: opening } = await supabaseAdmin
+          .from('job_openings')
+          .select('requested_by, title')
+          .eq('id', data.job_opening_id)
+          .single();
+
+        if (opening?.requested_by) {
+          notificationService.send(supabaseAdmin, {
+            type: 'candidate_hired',
+            title: 'Candidato contratado!',
+            message: `${data.name} foi contratado para a vaga "${opening.title}".`,
+            targets: [
+              { type: 'user', user_id: opening.requested_by },
+              { type: 'role', role: 'director' },
+            ],
+            actor_id: req.user?.id,
+            priority: 'high',
+            action_url: `/recruitment/${data.job_opening_id}`,
+            entity_type: 'job_candidate',
+            entity_id: id,
+          }).catch(err => console.error('Notification error:', err));
+        }
+      }
 
       res.json({ success: true, data });
     } catch (error) {

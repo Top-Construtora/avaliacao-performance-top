@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { pdiService } from '../services/pdiService';
 import { AuthRequest } from '../middleware/auth';
 import { PDIUtils } from '../utils/pdiUtils';
+import { notificationService } from '../services/notificationService';
 
 export const pdiController = {
   // Salvar PDI
@@ -49,6 +50,23 @@ export const pdiController = {
         status: 'active',
         createdBy: authReq.user?.id
       });
+
+      // Notificar o colaborador sobre PDI (se não for ele mesmo salvando)
+      if (employeeId && employeeId !== authReq.user?.id) {
+        notificationService.send(authReq.supabase, {
+          type: 'pdi_created',
+          title: 'PDI atualizado',
+          message: `${authReq.user!.name} atualizou seu Plano de Desenvolvimento Individual.`,
+          targets: [{ type: 'user', user_id: employeeId }],
+          actor_id: authReq.user!.id,
+          action_url: '/my-pdi',
+          entity_type: 'development_plan',
+          entity_id: pdi.id,
+          group_key: `pdi_${employeeId}`,
+          anti_spam: 'cooldown',
+          cooldown_minutes: 30,
+        }).catch(err => console.error('Notification error:', err));
+      }
 
       res.json({
         success: true,

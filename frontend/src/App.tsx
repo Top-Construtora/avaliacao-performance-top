@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { EvaluationProvider } from './context/EvaluationContext';
 import { UserProvider } from './context/UserContext';
 import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -102,6 +103,7 @@ function App() {
       <Router>
         <ThemeProvider>
           <AuthProvider>
+            <NotificationProvider>
             <UserProvider>
               <EvaluationProvider>
                 <Toaster {...toasterConfig} />
@@ -427,6 +429,7 @@ function App() {
                 </Suspense>
               </EvaluationProvider>
             </UserProvider>
+            </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
       </Router>
@@ -437,6 +440,7 @@ function App() {
       <Router>
         <ThemeProvider>
           <AuthProvider>
+            <NotificationProvider>
             <UserProvider>
               <EvaluationProvider>
                 <Toaster {...toasterConfig} />
@@ -486,6 +490,7 @@ function App() {
                 </Suspense>
               </EvaluationProvider>
             </UserProvider>
+            </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
       </Router>

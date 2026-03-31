@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { supabaseAdmin } from '../config/supabase';
+import { notificationService } from '../services/notificationService';
 
 export const satisfactionController = {
   // Listar pesquisas
@@ -165,6 +166,34 @@ export const satisfactionController = {
 
           await supabaseAdmin.from('satisfaction_questions').insert(questionsData);
         }
+      }
+
+      // Notificar quando pesquisa é ativada
+      if (status === 'active') {
+        notificationService.send(supabaseAdmin, {
+          type: 'survey_available',
+          title: 'Nova pesquisa disponível',
+          message: `A pesquisa "${data?.title}" está disponível para resposta.`,
+          targets: [{ type: 'all' }],
+          actor_id: req.user?.id,
+          action_url: `/satisfaction/${id}/respond`,
+          entity_type: 'satisfaction_survey',
+          entity_id: id,
+        }).catch(err => console.error('Notification error:', err));
+      }
+
+      // Notificar quando pesquisa é encerrada
+      if (status === 'closed') {
+        notificationService.send(supabaseAdmin, {
+          type: 'survey_closed',
+          title: 'Pesquisa encerrada',
+          message: `A pesquisa "${data?.title}" foi encerrada.`,
+          targets: [{ type: 'role', role: 'director' }],
+          actor_id: req.user?.id,
+          action_url: `/satisfaction/${id}/results`,
+          entity_type: 'satisfaction_survey',
+          entity_id: id,
+        }).catch(err => console.error('Notification error:', err));
       }
 
       res.json({ success: true, data });

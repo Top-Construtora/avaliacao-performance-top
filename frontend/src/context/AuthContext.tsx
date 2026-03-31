@@ -10,6 +10,7 @@ interface AuthContextType {
   profile: User | null;
   isAuthenticated: boolean;
   loading: boolean;
+  sessionExpired: boolean;
   signIn: (email: string, password: string) => Promise<boolean>;
   signInWithMicrosoft: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -76,6 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const isFetchingProfileRef = useRef(false);
   const hasInitializedRef = useRef(false);
   const profileRef = useRef<User | null>(null);
@@ -184,9 +186,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('🔍 Verificando autenticação inicial...');
     isCheckingAuthRef.current = true;
 
-    // Timeout de 10 segundos para não deixar o usuário preso no loading
+    // Timeout de 5 segundos para não deixar o usuário preso no loading
     const timeoutPromise = new Promise<'timeout'>((resolve) =>
-      setTimeout(() => resolve('timeout'), 10000)
+      setTimeout(() => resolve('timeout'), 5000)
     );
 
     const authCheckPromise = (async () => {
@@ -212,6 +214,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (refreshError || !refreshedSession) {
           console.error('❌ Refresh falhou, sessão expirada:', refreshError?.message);
+          setSessionExpired(true);
           await supabase.auth.signOut();
           return;
         }
@@ -259,7 +262,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await Promise.race([authCheckPromise, timeoutPromise]);
 
       if (result === 'timeout') {
-        console.error('⏱️ checkAuth timeout após 10s, redirecionando para login');
+        console.error('⏱️ checkAuth timeout após 5s, redirecionando para login');
+        setSessionExpired(true);
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         try { await supabase.auth.signOut(); } catch {}
@@ -282,6 +286,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isFetchingProfileRef.current = true;
 
     try {
+      setSessionExpired(false);
       console.log('🔐 Iniciando login manual...');
 
       // Faz login via Supabase
@@ -358,6 +363,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithMicrosoft = async (): Promise<void> => {
     try {
+      setSessionExpired(false);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'azure',
         options: {
@@ -471,6 +477,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     profile,
     isAuthenticated,
     loading,
+    sessionExpired,
     signIn,
     signInWithMicrosoft,
     signOut,

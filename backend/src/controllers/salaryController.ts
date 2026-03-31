@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { salaryService } from '../services/salaryService';
 import { exportService } from '../services/exportService';
 import { AuthRequest } from '../middleware/auth';
+import { notificationService } from '../services/notificationService';
 
 export const salaryController = {
   // ===== CLASSES SALARIAIS =====
@@ -343,7 +344,20 @@ export const salaryController = {
         reason,
         approvedBy: req.user?.id
       });
-      
+
+      // Notificar o colaborador sobre progressão de carreira
+      notificationService.send(req.supabase, {
+        type: 'career_progression_approved',
+        title: 'Progressão de carreira aprovada',
+        message: `Sua progressão de carreira (${progressionType === 'vertical' ? 'vertical' : 'horizontal'}) foi aprovada.`,
+        targets: [{ type: 'user', user_id: userId }],
+        actor_id: req.user?.id,
+        priority: 'high',
+        action_url: '/career-track',
+        entity_type: 'progression_history',
+        entity_id: progression?.history?.id,
+      }).catch(err => console.error('Notification error:', err));
+
       res.json({ success: true, data: progression });
     } catch (error) {
       next(error);

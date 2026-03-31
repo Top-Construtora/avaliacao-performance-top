@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Bell, 
+import {
+  Bell,
   ArrowLeft,
   Search,
   Filter,
   Calendar,
-  TrendingUp, 
+  TrendingUp,
   Briefcase,
   UserCheck,
   CheckCircle,
@@ -15,7 +15,6 @@ import {
   Clock,
   Grid3X3,
   MessageSquare,
-  Building,
   ChevronDown,
   X,
   Check,
@@ -32,46 +31,19 @@ import {
   Users,
   FileText,
   MoreVertical,
-  Badge,
   ChevronRight,
   Sparkles,
   Zap,
-  Undo2
+  Undo2,
+  ClipboardList,
+  UserPlus,
+  LogOut as LogOutIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
-
-interface Notification {
-  id: number;
-  type: NotificationType;
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  department: string;
-  actionUrl: string;
-  priority?: 'low' | 'medium' | 'high';
-  metadata?: {
-    score?: number;
-    personName?: string;
-    deadline?: string;
-  };
-}
-
-type NotificationType = 
-  | 'promotion'
-  | 'position_change'
-  | 'self_assessment_complete'
-  | 'leader_assessment_complete'
-  | 'consensus_complete'
-  | 'pdi_created'
-  | 'self_assessment_pending'
-  | 'consensus_pending'
-  | 'nine_box_updated'
-  | 'feedback_received'
-  | 'deadline_warning'
-  | 'team_update';
+import { useNotifications } from '../../context/NotificationContext';
+import type { Notification, NotificationType } from '../../types/notification.types';
 
 interface NotificationConfigItem {
   icon: any;
@@ -86,18 +58,24 @@ interface NotificationConfigItem {
 
 const NotificationHistory: React.FC = () => {
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    fetchNotifications,
+    markAsRead: contextMarkAsRead,
+    markAllAsRead: contextMarkAllAsRead,
+    archiveNotifications: contextArchive,
+    deleteNotifications: contextDelete,
+  } = useNotifications();
   const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<NotificationType | 'all'>('all');
   const [selectedPeriod, setSelectedPeriod] = useState<'all' | 'today' | 'week' | 'month'>('all');
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedNotifications, setSelectedNotifications] = useState<Set<number>>(new Set());
+  const [selectedNotifications, setSelectedNotifications] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'all' | 'unread' | 'archived'>('all');
-  const [showActionMenu, setShowActionMenu] = useState<number | null>(null);
-  const [deletedNotifications, setDeletedNotifications] = useState<Notification[]>([]);
-  const [showUndoToast, setShowUndoToast] = useState(false);
-  const [undoTimeout, setUndoTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [showActionMenu, setShowActionMenu] = useState<string | null>(null);
 
   // Animação variants
   const containerVariants = {
@@ -123,269 +101,168 @@ const NotificationHistory: React.FC = () => {
   };
 
   // Configuração de tipos de notificação
-  const notificationConfig: Record<NotificationType, NotificationConfigItem> = {
-    promotion: {
-      icon: TrendingUp,
-      bgColor: 'bg-status-success/10 border border-status-success/20',
-      iconColor: 'text-status-success',
-      borderColor: 'border-status-success/20',
-      hoverBg: 'hover:bg-status-success/20',
-      dotColor: 'bg-status-success',
-      label: 'Promoção',
-      gradient: 'from-status-success to-status-success'
+  const notificationConfig: Record<string, NotificationConfigItem> = {
+    evaluation_cycle_opened: {
+      icon: Bell, bgColor: 'bg-gradient-to-br from-primary-50 to-primary-100', iconColor: 'text-primary-600',
+      borderColor: 'border-primary-200', hoverBg: 'hover:bg-primary-50', dotColor: 'bg-primary-500',
+      label: 'Ciclo Aberto', gradient: 'from-primary-400 to-primary-600'
     },
-    position_change: {
-      icon: Briefcase,
-      bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100',
-      iconColor: 'text-secondary-600',
-      borderColor: 'border-secondary-200',
-      hoverBg: 'hover:bg-secondary-50',
-      dotColor: 'bg-secondary-500',
-      label: 'Mudança de Cargo',
-      gradient: 'from-secondary-400 to-secondary-600'
+    evaluation_cycle_closed: {
+      icon: CheckCircle, bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100', iconColor: 'text-secondary-600',
+      borderColor: 'border-secondary-200', hoverBg: 'hover:bg-secondary-50', dotColor: 'bg-secondary-500',
+      label: 'Ciclo Encerrado', gradient: 'from-secondary-400 to-secondary-600'
     },
-    self_assessment_complete: {
-      icon: UserCheck,
-      bgColor: 'bg-gradient-to-br from-accent-50 to-accent-100',
-      iconColor: 'text-accent-600',
-      borderColor: 'border-accent-200',
-      hoverBg: 'hover:bg-accent-50',
-      dotColor: 'bg-accent-500',
-      label: 'Autoavaliação Completa',
-      gradient: 'from-accent-400 to-accent-600'
+    self_evaluation_pending: {
+      icon: Clock, bgColor: 'bg-status-warning/10 border border-status-warning/20', iconColor: 'text-status-warning',
+      borderColor: 'border-status-warning/20', hoverBg: 'hover:bg-status-warning/20', dotColor: 'bg-status-warning',
+      label: 'Autoavaliação Pendente', gradient: 'from-status-warning to-status-warning'
     },
-    leader_assessment_complete: {
-      icon: CheckCircle,
-      bgColor: 'bg-gradient-to-br from-primary-50 to-primary-100',
-      iconColor: 'text-primary-600',
-      borderColor: 'border-primary-200',
-      hoverBg: 'hover:bg-primary-50',
-      dotColor: 'bg-primary-500',
-      label: 'Avaliação do Líder Completa',
-      gradient: 'from-primary-400 to-primary-600'
+    self_evaluation_completed: {
+      icon: UserCheck, bgColor: 'bg-gradient-to-br from-accent-50 to-accent-100', iconColor: 'text-accent-600',
+      borderColor: 'border-accent-200', hoverBg: 'hover:bg-accent-50', dotColor: 'bg-accent-500',
+      label: 'Autoavaliação Concluída', gradient: 'from-accent-400 to-accent-600'
     },
-    consensus_complete: {
-      icon: Target,
-      bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100',
-      iconColor: 'text-secondary-600',
-      borderColor: 'border-secondary-200',
-      hoverBg: 'hover:bg-secondary-50',
-      dotColor: 'bg-secondary-500',
-      label: 'Consenso Finalizado',
-      gradient: 'from-secondary-400 to-secondary-600'
+    leader_evaluation_completed: {
+      icon: CheckCircle, bgColor: 'bg-gradient-to-br from-primary-50 to-primary-100', iconColor: 'text-primary-600',
+      borderColor: 'border-primary-200', hoverBg: 'hover:bg-primary-50', dotColor: 'bg-primary-500',
+      label: 'Avaliação do Líder', gradient: 'from-primary-400 to-primary-600'
+    },
+    consensus_completed: {
+      icon: Target, bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100', iconColor: 'text-secondary-600',
+      borderColor: 'border-secondary-200', hoverBg: 'hover:bg-secondary-50', dotColor: 'bg-secondary-500',
+      label: 'Consenso Finalizado', gradient: 'from-secondary-400 to-secondary-600'
     },
     pdi_created: {
-      icon: FileCheck,
-      bgColor: 'bg-gradient-to-br from-accent-50 to-accent-100',
-      iconColor: 'text-accent-600',
-      borderColor: 'border-accent-200',
-      hoverBg: 'hover:bg-accent-50',
-      dotColor: 'bg-accent-500',
-      label: 'PDI Criado',
-      gradient: 'from-accent-400 to-accent-600'
+      icon: FileCheck, bgColor: 'bg-gradient-to-br from-accent-50 to-accent-100', iconColor: 'text-accent-600',
+      borderColor: 'border-accent-200', hoverBg: 'hover:bg-accent-50', dotColor: 'bg-accent-500',
+      label: 'PDI Criado', gradient: 'from-accent-400 to-accent-600'
     },
-    self_assessment_pending: {
-      icon: Clock,
-      bgColor: 'bg-gradient-to-br from-primary-50 to-primary-100',
-      iconColor: 'text-primary-600',
-      borderColor: 'border-primary-200',
-      hoverBg: 'hover:bg-primary-50',
-      dotColor: 'bg-primary-500',
-      label: 'Autoavaliação Pendente',
-      gradient: 'from-primary-400 to-primary-600'
+    pdi_updated: {
+      icon: FileText, bgColor: 'bg-gradient-to-br from-accent-50 to-accent-100', iconColor: 'text-accent-600',
+      borderColor: 'border-accent-200', hoverBg: 'hover:bg-accent-50', dotColor: 'bg-accent-500',
+      label: 'PDI Atualizado', gradient: 'from-accent-400 to-accent-600'
     },
-    consensus_pending: {
-      icon: Calendar,
-      bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100',
-      iconColor: 'text-secondary-600',
-      borderColor: 'border-secondary-200',
-      hoverBg: 'hover:bg-secondary-50',
-      dotColor: 'bg-secondary-500',
-      label: 'Consenso Pendente',
-      gradient: 'from-secondary-400 to-secondary-600'
+    pdi_deadline_approaching: {
+      icon: AlertCircle, bgColor: 'bg-status-warning/10 border border-status-warning/20', iconColor: 'text-status-warning',
+      borderColor: 'border-status-warning/20', hoverBg: 'hover:bg-status-warning/20', dotColor: 'bg-status-warning',
+      label: 'Prazo PDI', gradient: 'from-status-warning to-status-warning'
     },
-    nine_box_updated: {
-      icon: Grid3X3,
-      bgColor: 'bg-gradient-to-br from-primary-50 to-primary-100',
-      iconColor: 'text-primary-600',
-      borderColor: 'border-primary-200',
-      hoverBg: 'hover:bg-primary-50',
-      dotColor: 'bg-primary-500',
-      label: 'Matriz 9-Box Atualizada',
-      gradient: 'from-primary-400 to-primary-600'
+    career_progression_approved: {
+      icon: TrendingUp, bgColor: 'bg-status-success/10 border border-status-success/20', iconColor: 'text-status-success',
+      borderColor: 'border-status-success/20', hoverBg: 'hover:bg-status-success/20', dotColor: 'bg-status-success',
+      label: 'Progressão Aprovada', gradient: 'from-status-success to-status-success'
     },
-    feedback_received: {
-      icon: MessageSquare,
-      bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100',
-      iconColor: 'text-secondary-600',
-      borderColor: 'border-secondary-200',
-      hoverBg: 'hover:bg-secondary-50',
-      dotColor: 'bg-secondary-500',
-      label: 'Feedback Recebido',
-      gradient: 'from-secondary-400 to-secondary-600'
+    career_track_assigned: {
+      icon: Briefcase, bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100', iconColor: 'text-secondary-600',
+      borderColor: 'border-secondary-200', hoverBg: 'hover:bg-secondary-50', dotColor: 'bg-secondary-500',
+      label: 'Trilha Atribuída', gradient: 'from-secondary-400 to-secondary-600'
     },
-    deadline_warning: {
-      icon: AlertCircle,
-      bgColor: 'bg-status-warning/10 border border-status-warning/20',
-      iconColor: 'text-status-warning',
-      borderColor: 'border-status-warning/20',
-      hoverBg: 'hover:bg-status-warning/20',
-      dotColor: 'bg-status-warning',
-      label: 'Aviso de Prazo',
-      gradient: 'from-status-warning to-status-warning'
+    job_opening_created: {
+      icon: Briefcase, bgColor: 'bg-gradient-to-br from-primary-50 to-primary-100', iconColor: 'text-primary-600',
+      borderColor: 'border-primary-200', hoverBg: 'hover:bg-primary-50', dotColor: 'bg-primary-500',
+      label: 'Nova Vaga', gradient: 'from-primary-400 to-primary-600'
     },
-    team_update: {
-      icon: Users,
-      bgColor: 'bg-gradient-to-br from-accent-50 to-accent-100',
-      iconColor: 'text-accent-600',
-      borderColor: 'border-accent-200',
-      hoverBg: 'hover:bg-accent-50',
-      dotColor: 'bg-accent-500',
-      label: 'Atualização da Equipe',
-      gradient: 'from-accent-400 to-accent-600'
-    }
+    candidate_registered: {
+      icon: UserPlus, bgColor: 'bg-gradient-to-br from-accent-50 to-accent-100', iconColor: 'text-accent-600',
+      borderColor: 'border-accent-200', hoverBg: 'hover:bg-accent-50', dotColor: 'bg-accent-500',
+      label: 'Novo Candidato', gradient: 'from-accent-400 to-accent-600'
+    },
+    interview_scheduled: {
+      icon: Calendar, bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100', iconColor: 'text-secondary-600',
+      borderColor: 'border-secondary-200', hoverBg: 'hover:bg-secondary-50', dotColor: 'bg-secondary-500',
+      label: 'Entrevista Agendada', gradient: 'from-secondary-400 to-secondary-600'
+    },
+    candidate_hired: {
+      icon: Award, bgColor: 'bg-status-success/10 border border-status-success/20', iconColor: 'text-status-success',
+      borderColor: 'border-status-success/20', hoverBg: 'hover:bg-status-success/20', dotColor: 'bg-status-success',
+      label: 'Candidato Contratado', gradient: 'from-status-success to-status-success'
+    },
+    interview_90day_scheduled: {
+      icon: ClipboardList, bgColor: 'bg-gradient-to-br from-primary-50 to-primary-100', iconColor: 'text-primary-600',
+      borderColor: 'border-primary-200', hoverBg: 'hover:bg-primary-50', dotColor: 'bg-primary-500',
+      label: 'Entrevista 90 dias', gradient: 'from-primary-400 to-primary-600'
+    },
+    interview_exit_scheduled: {
+      icon: LogOutIcon, bgColor: 'bg-status-warning/10 border border-status-warning/20', iconColor: 'text-status-warning',
+      borderColor: 'border-status-warning/20', hoverBg: 'hover:bg-status-warning/20', dotColor: 'bg-status-warning',
+      label: 'Entrevista de Desligamento', gradient: 'from-status-warning to-status-warning'
+    },
+    interview_completed: {
+      icon: CheckCircle, bgColor: 'bg-gradient-to-br from-accent-50 to-accent-100', iconColor: 'text-accent-600',
+      borderColor: 'border-accent-200', hoverBg: 'hover:bg-accent-50', dotColor: 'bg-accent-500',
+      label: 'Entrevista Concluída', gradient: 'from-accent-400 to-accent-600'
+    },
+    survey_available: {
+      icon: MessageSquare, bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100', iconColor: 'text-secondary-600',
+      borderColor: 'border-secondary-200', hoverBg: 'hover:bg-secondary-50', dotColor: 'bg-secondary-500',
+      label: 'Nova Pesquisa', gradient: 'from-secondary-400 to-secondary-600'
+    },
+    survey_deadline_approaching: {
+      icon: AlertCircle, bgColor: 'bg-status-warning/10 border border-status-warning/20', iconColor: 'text-status-warning',
+      borderColor: 'border-status-warning/20', hoverBg: 'hover:bg-status-warning/20', dotColor: 'bg-status-warning',
+      label: 'Prazo da Pesquisa', gradient: 'from-status-warning to-status-warning'
+    },
+    survey_closed: {
+      icon: CheckCircle, bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100', iconColor: 'text-secondary-600',
+      borderColor: 'border-secondary-200', hoverBg: 'hover:bg-secondary-50', dotColor: 'bg-secondary-500',
+      label: 'Pesquisa Encerrada', gradient: 'from-secondary-400 to-secondary-600'
+    },
+    team_member_added: {
+      icon: Users, bgColor: 'bg-gradient-to-br from-accent-50 to-accent-100', iconColor: 'text-accent-600',
+      borderColor: 'border-accent-200', hoverBg: 'hover:bg-accent-50', dotColor: 'bg-accent-500',
+      label: 'Novo Membro', gradient: 'from-accent-400 to-accent-600'
+    },
+    team_member_moved: {
+      icon: Users, bgColor: 'bg-gradient-to-br from-secondary-50 to-secondary-100', iconColor: 'text-secondary-600',
+      borderColor: 'border-secondary-200', hoverBg: 'hover:bg-secondary-50', dotColor: 'bg-secondary-500',
+      label: 'Mudança de Equipe', gradient: 'from-secondary-400 to-secondary-600'
+    },
   };
 
-  // Dados de notificações com mais variedade
-  const allNotifications: Notification[] = [
-    {
-      id: 1,
-      type: 'deadline_warning',
-      title: 'Prazo Aproximando',
-      message: 'Você tem 3 dias para completar a avaliação de Maria Silva',
-      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-      read: false,
-      department: 'Tecnologia',
-      actionUrl: '/leader-evaluation',
-      priority: 'high',
-      metadata: {
-        deadline: '3 dias',
-        personName: 'Maria Silva'
-      }
-    },
-    {
-      id: 2,
-      type: 'promotion',
-      title: 'Nova Promoção',
-      message: 'João Silva foi promovido para Analista Sênior após excelente performance no último ciclo',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      read: false,
-      department: 'Tecnologia',
-      actionUrl: '/nine-box',
-      priority: 'medium'
-    },
-    {
-      id: 3,
-      type: 'leader_assessment_complete',
-      title: 'Avaliação Concluída',
-      message: 'Ana Costa teve sua avaliação do líder finalizada com nota 3.5/4.0',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-      read: false,
-      department: 'Vendas',
-      actionUrl: '/leader-evaluation',
-      metadata: {
-        score: 3.5,
-        personName: 'Ana Costa'
-      }
-    },
-    {
-      id: 4,
-      type: 'team_update',
-      title: 'Nova Adição à Equipe',
-      message: 'Pedro Oliveira foi adicionado ao time de Desenvolvimento Frontend',
-      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      read: false,
-      department: 'Tecnologia',
-      actionUrl: '/users',
-      priority: 'low'
-    },
-    {
-      id: 5,
-      type: 'consensus_complete',
-      title: 'Consenso Finalizado',
-      message: 'Carlos Mendes teve seu consenso finalizado - Aprovado para promoção no próximo ciclo',
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      read: true,
-      department: 'Financeiro',
-      actionUrl: '/consensus'
-    },
-    {
-      id: 6,
-      type: 'pdi_created',
-      title: 'PDI Criado',
-      message: 'Fernanda Lima teve seu PDI criado com foco em desenvolvimento de liderança',
-      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      read: true,
-      department: 'RH',
-      actionUrl: '/pdi'
-    },
-    {
-      id: 7,
-      type: 'nine_box_updated',
-      title: 'Reposicionamento 9-Box',
-      message: 'Lucas Pereira foi reposicionado na matriz: Alto Potencial / Alto Performance',
-      timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      read: true,
-      department: 'Marketing',
-      actionUrl: '/nine-box'
-    },
-    {
-      id: 8,
-      type: 'feedback_received',
-      title: 'Novo Feedback',
-      message: 'Você recebeu um feedback positivo de Ricardo Santos sobre liderança no projeto Alpha',
-      timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      read: true,
-      department: 'Projetos',
-      actionUrl: '/consensus'
-    }
-  ];
+  // Fallback config para tipos desconhecidos
+  const getConfig = (type: string): NotificationConfigItem => {
+    return notificationConfig[type] || {
+      icon: Bell, bgColor: 'bg-gradient-to-br from-gray-50 to-gray-100', iconColor: 'text-gray-600',
+      borderColor: 'border-gray-200', hoverBg: 'hover:bg-gray-50', dotColor: 'bg-gray-500',
+      label: type, gradient: 'from-gray-400 to-gray-600'
+    };
+  };
 
+  // Buscar notificações ao mudar viewMode
   useEffect(() => {
-    setNotifications(allNotifications);
-    setFilteredNotifications(allNotifications);
-  }, []);
+    fetchNotifications({ filter: viewMode });
+  }, [viewMode, fetchNotifications]);
 
-  // Filtrar notificações
+  // Filtrar notificações localmente (busca, tipo, período)
   useEffect(() => {
     let filtered = [...notifications];
 
-    // Filtro por modo de visualização
     if (viewMode === 'unread') {
       filtered = filtered.filter(n => !n.read);
     } else if (viewMode === 'archived') {
-      filtered = []; // Por enquanto, sem notificações arquivadas
+      filtered = filtered.filter(n => n.archived);
     }
 
-    // Filtro por busca
     if (searchTerm) {
-      filtered = filtered.filter(notif => 
+      filtered = filtered.filter(notif =>
         notif.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        notif.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        notif.department.toLowerCase().includes(searchTerm.toLowerCase())
+        notif.message.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Filtro por tipo
     if (selectedType !== 'all') {
       filtered = filtered.filter(notif => notif.type === selectedType);
     }
 
-    // Filtro por período
     if (selectedPeriod !== 'all') {
       const now = new Date();
       filtered = filtered.filter(notif => {
-        const diffInDays = Math.floor((now.getTime() - notif.timestamp.getTime()) / (1000 * 60 * 60 * 24));
-        
+        const diffInDays = Math.floor((now.getTime() - new Date(notif.created_at).getTime()) / (1000 * 60 * 60 * 24));
         switch (selectedPeriod) {
-          case 'today':
-            return diffInDays === 0;
-          case 'week':
-            return diffInDays <= 7;
-          case 'month':
-            return diffInDays <= 30;
-          default:
-            return true;
+          case 'today': return diffInDays === 0;
+          case 'week': return diffInDays <= 7;
+          case 'month': return diffInDays <= 30;
+          default: return true;
         }
       });
     }
@@ -394,109 +271,61 @@ const NotificationHistory: React.FC = () => {
   }, [searchTerm, selectedType, selectedPeriod, notifications, viewMode]);
 
   // Formatar data
-  const formatDate = (date: Date): string => {
+  const formatDate = (isoDate: string): string => {
     const now = new Date();
+    const date = new Date(isoDate);
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) {
       const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-      return `${diffInMinutes} min atrás`;
+      return diffInMinutes < 1 ? 'Agora' : `${diffInMinutes} min atrás`;
     } else if (diffInHours < 24) {
       return `${diffInHours}h atrás`;
     } else if (diffInHours < 48) {
       return 'Ontem';
     } else if (diffInHours < 168) {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays} dias atrás`;
+      return `${Math.floor(diffInHours / 24)} dias atrás`;
     } else {
-      return date.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: 'short',
-        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-      });
+      return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
     }
   };
 
-  // Ações em massa
-  const markSelectedAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        selectedNotifications.has(notif.id) ? { ...notif, read: true } : notif
-      )
-    );
+  // Ações usando o contexto
+  const markSelectedAsRead = async () => {
+    const ids = Array.from(selectedNotifications);
+    await contextMarkAsRead(ids);
     setSelectedNotifications(new Set());
-    toast.success(`${selectedNotifications.size} notificações marcadas como lidas`);
+    toast.success(`${ids.length} notificações marcadas como lidas`);
   };
 
-  const deleteSelected = () => {
-    const toDelete = notifications.filter(n => selectedNotifications.has(n.id));
-    setDeletedNotifications(toDelete);
-    setNotifications(prev => 
-      prev.filter(notif => !selectedNotifications.has(notif.id))
-    );
+  const deleteSelected = async () => {
+    const ids = Array.from(selectedNotifications);
+    await contextDelete(ids);
     setSelectedNotifications(new Set());
-    showUndoNotification(toDelete.length);
+    toast.success(`${ids.length} notificações excluídas`);
   };
 
-  const deleteNotification = (notification: Notification) => {
-    setDeletedNotifications([notification]);
-    setNotifications(prev => prev.filter(n => n.id !== notification.id));
+  const deleteNotification = async (notification: Notification) => {
+    await contextDelete([notification.id]);
     setShowActionMenu(null);
-    showUndoNotification(1);
+    toast.success('Notificação excluída');
   };
 
-  const showUndoNotification = (count: number) => {
-    // Limpar timeout anterior se existir
-    if (undoTimeout) {
-      clearTimeout(undoTimeout);
-    }
-
-    setShowUndoToast(true);
-
-    // Definir novo timeout
-    const timeout = setTimeout(() => {
-      setShowUndoToast(false);
-      setDeletedNotifications([]);
-    }, 5000);
-
-    setUndoTimeout(timeout);
-  };
-
-  const undoDelete = () => {
-    if (deletedNotifications.length > 0) {
-      setNotifications(prev => [...prev, ...deletedNotifications].sort((a, b) => 
-        b.timestamp.getTime() - a.timestamp.getTime()
-      ));
-      setDeletedNotifications([]);
-      setShowUndoToast(false);
-      if (undoTimeout) {
-        clearTimeout(undoTimeout);
-      }
-      toast.success('Ação desfeita com sucesso');
-    }
-  };
-
-  const archiveSelected = () => {
-    const count = selectedNotifications.size;
-    // Implementar lógica de arquivamento
+  const archiveSelected = async () => {
+    const ids = Array.from(selectedNotifications);
+    await contextArchive(ids);
     setSelectedNotifications(new Set());
-    toast.success(`${count} notificações arquivadas`);
+    toast.success(`${ids.length} notificações arquivadas`);
   };
 
-  // Toggle seleção
-  const toggleSelection = (id: number) => {
+  const toggleSelection = (id: string) => {
     setSelectedNotifications(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
+      if (newSet.has(id)) { newSet.delete(id); } else { newSet.add(id); }
       return newSet;
     });
   };
 
-  // Selecionar todas
   const selectAll = () => {
     if (selectedNotifications.size === filteredNotifications.length) {
       setSelectedNotifications(new Set());
@@ -505,33 +334,14 @@ const NotificationHistory: React.FC = () => {
     }
   };
 
-  // Marcar como lida
-  const markAsRead = (id: number) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
+  const markAsRead = async (id: string) => {
+    await contextMarkAsRead([id]);
   };
 
-  // Marcar todas como lidas
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, read: true }))
-    );
+  const markAllAsRead = async () => {
+    await contextMarkAllAsRead();
     toast.success('Todas as notificações foram marcadas como lidas');
   };
-
-  // Cleanup do timeout ao desmontar o componente
-  useEffect(() => {
-    return () => {
-      if (undoTimeout) {
-        clearTimeout(undoTimeout);
-      }
-    };
-  }, [undoTimeout]);
-
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   // Estatísticas
   const stats = {
@@ -539,7 +349,7 @@ const NotificationHistory: React.FC = () => {
     unread: unreadCount,
     today: notifications.filter(n => {
       const today = new Date();
-      return n.timestamp.toDateString() === today.toDateString();
+      return new Date(n.created_at).toDateString() === today.toDateString();
     }).length,
     highPriority: notifications.filter(n => n.priority === 'high' && !n.read).length
   };
@@ -656,7 +466,7 @@ const NotificationHistory: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={markAllAsRead}
+                onClick={() => markAllAsRead()}
                 icon={<CheckCircle size={16} />}
               >
                 Marcar todas como lidas
@@ -842,9 +652,9 @@ const NotificationHistory: React.FC = () => {
         ) : (
           <AnimatePresence>
             {filteredNotifications.map((notification, index) => {
-              const config = notificationConfig[notification.type];
+              const config = getConfig(notification.type);
               const IconComponent = config.icon;
-              
+
               return (
                 <motion.div
                   key={notification.id}
@@ -858,8 +668,8 @@ const NotificationHistory: React.FC = () => {
                     notification.read ? 'border-gray-100' : 'border-primary-200'
                   } p-4 sm:p-6 transition-all cursor-pointer relative overflow-hidden group`}
                   onClick={() => {
-                    markAsRead(notification.id);
-                    navigate(notification.actionUrl);
+                    if (!notification.read) markAsRead(notification.id);
+                    if (notification.action_url) navigate(notification.action_url);
                   }}
                 >
                   <div className="flex items-start gap-4">
@@ -896,7 +706,7 @@ const NotificationHistory: React.FC = () => {
                         </h3>
                         <div className="flex items-center gap-2 ml-4">
                           <span className="text-xs text-gray-500 whitespace-nowrap">
-                            {formatDate(notification.timestamp)}
+                            {formatDate(notification.created_at)}
                           </span>
                           <button
                             onClick={(e) => {
@@ -916,26 +726,26 @@ const NotificationHistory: React.FC = () => {
                         {notification.message}
                       </p>
 
-                      <div className="flex items-center gap-3 text-xs">
+                      <div className="flex items-center gap-3 text-xs flex-wrap">
                         <span className={`px-3 py-1 rounded-md ${config.bgColor} ${config.iconColor} font-medium`}>
                           {config.label}
                         </span>
-                        <span className="text-gray-500 flex items-center">
-                          <Building className="h-3 w-3 mr-1" />
-                          {notification.department}
-                        </span>
+                        {notification.priority === 'high' && (
+                          <span className="flex items-center px-3 py-1 rounded-md bg-status-warning/10 text-status-warning border border-status-warning/20 font-medium">
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            Urgente
+                          </span>
+                        )}
                         {notification.metadata?.score && (
                           <span className="text-gray-500 flex items-center">
                             <Award className="h-3 w-3 mr-1" />
                             Nota: {notification.metadata.score}/4.0
                           </span>
                         )}
-                        {notification.metadata?.deadline && (
-                          <span className="flex items-center">
-                            <span className="flex items-center px-3 py-1 rounded-md bg-status-info/10 text-status-info border border-status-info/20 font-medium">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {notification.metadata.deadline}
-                            </span>
+                        {notification.metadata?.aggregate_count && notification.metadata.aggregate_count > 1 && (
+                          <span className="text-gray-500 flex items-center">
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            {notification.metadata.aggregate_count}x
                           </span>
                         )}
                       </div>
@@ -966,8 +776,8 @@ const NotificationHistory: React.FC = () => {
                           Marcar como lida
                         </button>
                         <button
-                          onClick={() => {
-                            // Implementar arquivamento
+                          onClick={async () => {
+                            await contextArchive([notification.id]);
                             setShowActionMenu(null);
                             toast.success('Notificação arquivada');
                           }}
@@ -977,9 +787,7 @@ const NotificationHistory: React.FC = () => {
                           Arquivar
                         </button>
                         <button
-                          onClick={() => {
-                            deleteNotification(notification);
-                          }}
+                          onClick={() => deleteNotification(notification)}
                           className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -995,54 +803,12 @@ const NotificationHistory: React.FC = () => {
         )}
       </motion.div>
 
-      {/* Load More */}
-      {filteredNotifications.length > 0 && (
-        <motion.div
-          variants={itemVariants}
-          className="flex justify-center mt-6"
-        >
-          <Button
-            variant="outline"
-            onClick={() => toast('Carregando mais notificações...')}
-            icon={<RefreshCw size={16} />}
-          >
-            Carregar mais notificações
-          </Button>
-        </motion.div>
+      {/* Loading indicator */}
+      {loading && (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        </div>
       )}
-
-      {/* Undo Toast */}
-      <AnimatePresence>
-        {showUndoToast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className="fixed bottom-6 right-6 bg-gray-900 text-white rounded-xl shadow-2xl p-4 flex items-center gap-4 z-50"
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <Trash2 className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="font-medium">
-                  {deletedNotifications.length} notificação{deletedNotifications.length > 1 ? 'ões' : ''} excluída{deletedNotifications.length > 1 ? 's' : ''}
-                </p>
-                <p className="text-sm text-gray-300">A ação será permanente em 5 segundos</p>
-              </div>
-            </div>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={undoDelete}
-              icon={<Undo2 size={16} />}
-              className="bg-white text-gray-900 hover:bg-gray-100"
-            >
-              Desfazer
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 };

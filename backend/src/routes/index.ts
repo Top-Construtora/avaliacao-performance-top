@@ -10,6 +10,7 @@ import competencyRoutes from './competencyRoutes';
 import interviewRoutes from './interviewRoutes';
 import satisfactionRoutes from './satisfactionRoutes';
 import recruitmentRoutes from './recruitmentRoutes';
+import notificationRoutes from './notificationRoutes';
 
 const router = Router();
 
@@ -37,6 +38,7 @@ router.use('/pdi', pdiRoutes);
 router.use('/interviews', interviewRoutes);
 router.use('/satisfaction', satisfactionRoutes);
 router.use('/recruitment', recruitmentRoutes);
+router.use('/notifications', notificationRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

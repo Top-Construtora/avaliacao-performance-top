@@ -30,7 +30,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   realtime: {
     params: {
-      eventsPerSecond: 0 // Desabilita Realtime completamente
+      eventsPerSecond: 10 // Habilitado para notificações real-time
     }
   }
 })

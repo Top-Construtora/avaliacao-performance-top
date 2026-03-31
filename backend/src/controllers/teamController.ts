@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth';
+import { notificationService } from '../services/notificationService';
 
 export const teamController = {
   async getTeams(req: AuthRequest, res: Response, next: NextFunction) {
@@ -170,6 +171,24 @@ export const teamController = {
         .select();
 
       if (error) throw error;
+
+      // Notificar o novo membro
+      const { data: team } = await req.supabase
+        .from('teams')
+        .select('name')
+        .eq('id', id)
+        .single();
+
+      notificationService.send(req.supabase, {
+        type: 'team_member_added',
+        title: 'Adicionado a uma equipe',
+        message: `Você foi adicionado à equipe "${team?.name || 'Nova equipe'}".`,
+        targets: [{ type: 'user', user_id }],
+        actor_id: req.user?.id,
+        action_url: '/teams',
+        entity_type: 'team',
+        entity_id: id,
+      }).catch(err => console.error('Notification error:', err));
 
       res.status(201).json({ success: true, data });
     } catch (error) {

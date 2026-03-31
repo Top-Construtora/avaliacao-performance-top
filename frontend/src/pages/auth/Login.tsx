@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn, signInWithMicrosoft, isAuthenticated, loading } = useAuth();
+  const { signIn, signInWithMicrosoft, isAuthenticated, loading, sessionExpired } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -162,6 +162,18 @@ export default function Login() {
                   </p>
                 </div>
               </div>
+
+              {/* Aviso de sessão expirada */}
+              {sessionExpired && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200"
+                >
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <span>Sua sessão expirou. Faça login novamente.</span>
+                </motion.div>
+              )}
 
               {/* Botão Principal - Login com Microsoft */}
               <button

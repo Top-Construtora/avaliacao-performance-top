@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { evaluationService } from '../services/evaluationService';
 import { AuthRequest } from '../middleware/auth';
+import { notificationService } from '../services/notificationService';
 
 export const evaluationController = {
   // ====================================
@@ -67,13 +68,26 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const { id } = req.params;
-      
+
       const updatedCycle = await evaluationService.updateCycleStatus(
         authReq.supabase,
         id,
         'open'
       );
-      
+
+      // Notificar todos os colaboradores
+      notificationService.send(authReq.supabase, {
+        type: 'evaluation_cycle_opened',
+        title: 'Ciclo de avaliação aberto',
+        message: `O ciclo "${updatedCycle?.title || 'Avaliação'}" está aberto. Complete sua autoavaliação.`,
+        targets: [{ type: 'all' }],
+        actor_id: authReq.user!.id,
+        priority: 'high',
+        action_url: '/self-evaluation',
+        entity_type: 'evaluation_cycle',
+        entity_id: id,
+      }).catch(err => console.error('Notification error:', err));
+
       res.json({
         success: true,
         data: updatedCycle
@@ -89,13 +103,25 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const { id } = req.params;
-      
+
       const updatedCycle = await evaluationService.updateCycleStatus(
         authReq.supabase,
         id,
         'closed'
       );
-      
+
+      // Notificar todos os colaboradores
+      notificationService.send(authReq.supabase, {
+        type: 'evaluation_cycle_closed',
+        title: 'Ciclo de avaliação encerrado',
+        message: `O ciclo "${updatedCycle?.title || 'Avaliação'}" foi encerrado.`,
+        targets: [{ type: 'all' }],
+        actor_id: authReq.user!.id,
+        action_url: '/',
+        entity_type: 'evaluation_cycle',
+        entity_id: id,
+      }).catch(err => console.error('Notification error:', err));
+
       res.json({
         success: true,
         data: updatedCycle
@@ -301,12 +327,28 @@ export const evaluationController = {
   async createSelfEvaluation(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      
+
       const evaluation = await evaluationService.createSelfEvaluation(
         authReq.supabase,
         req.body
       );
-      
+
+      // Notificar o líder direto
+      if (authReq.user?.reports_to) {
+        notificationService.send(authReq.supabase, {
+          type: 'self_evaluation_completed',
+          title: 'Autoavaliação concluída',
+          message: `${authReq.user!.name} completou sua autoavaliação.`,
+          targets: [{ type: 'user', user_id: authReq.user!.reports_to }],
+          actor_id: authReq.user!.id,
+          action_url: '/leader-evaluation',
+          entity_type: 'self_evaluation',
+          entity_id: evaluation.id,
+          group_key: `self_eval_${req.body.cycleId}_${authReq.user!.id}`,
+          anti_spam: 'aggregate',
+        }).catch(err => console.error('Notification error:', err));
+      }
+
       res.json({
         success: true,
         data: evaluation
@@ -321,12 +363,26 @@ export const evaluationController = {
   async createLeaderEvaluation(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      
+
       const evaluation = await evaluationService.createLeaderEvaluation(
         authReq.supabase,
         req.body
       );
-      
+
+      // Notificar o colaborador avaliado
+      if (req.body.employeeId) {
+        notificationService.send(authReq.supabase, {
+          type: 'leader_evaluation_completed',
+          title: 'Avaliação do líder concluída',
+          message: `${authReq.user!.name} concluiu sua avaliação.`,
+          targets: [{ type: 'user', user_id: req.body.employeeId }],
+          actor_id: authReq.user!.id,
+          action_url: '/self-evaluation',
+          entity_type: 'leader_evaluation',
+          entity_id: evaluation.id,
+        }).catch(err => console.error('Notification error:', err));
+      }
+
       res.json({
         success: true,
         data: evaluation

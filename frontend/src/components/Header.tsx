@@ -23,31 +23,22 @@ import {
   Target
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
+import type { Notification as NotificationType } from '../types/notification.types';
 
 interface HeaderProps {
   isMobileMenuOpen?: boolean;
   setIsMobileMenuOpen?: (value: boolean) => void;
 }
 
-interface Notification {
-  id: number;
-  type: 'success' | 'info' | 'warning' | 'alert' | 'achievement';
-  icon: any;
-  title: string;
-  description: string;
-  fullText: string;
-  time: string;
-  read: boolean;
-  actions?: string[];
-}
-
 export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: HeaderProps) {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const { isDirector, isLeader, isAdmin } = useUserRole();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [expandedNotifications, setExpandedNotifications] = useState<{ [key: number]: boolean }>({});
+  const [expandedNotifications, setExpandedNotifications] = useState<{ [key: string]: boolean }>({});
   const notificationsRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -90,63 +81,34 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
     }
   };
 
-  // Definindo as notificações
-  const [notifications, setNotifications] = useState<Notification[]>([
-    { 
-      id: 1, 
-      type: 'success',
-      icon: CheckCircle,
-      title: 'Avaliação concluída', 
-      description: 'Sua autoavaliação foi salva com sucesso.',
-      fullText: 'Sua autoavaliação do ciclo 2024/2025 foi salva com sucesso. Você pode editar suas respostas até o prazo final em 30/01/2025.',
-      time: '5 min atrás', 
-      read: false,
-      actions: ['Ver Avaliação', 'Editar']
-    },
-    { 
-      id: 2, 
-      type: 'info',
-      icon: UserCheck,
-      title: 'Novo ciclo disponível', 
-      description: 'O ciclo de avaliação 2025 está aberto.',
-      fullText: 'O novo ciclo de avaliação de Performance 2025 está disponível. Você tem até 30/01/2025 para completar sua autoavaliação. Não esqueça de avaliar todas as competências técnicas e comportamentais.',
-      time: '1 hora atrás', 
-      read: false,
-      actions: ['Iniciar Avaliação']
-    },
-    { 
-      id: 3, 
-      type: 'warning',
-      icon: FileText,
-      title: 'PDI pendente', 
-      description: 'Você tem um plano de desenvolvimento aguardando.',
-      fullText: 'Seu Plano de Desenvolvimento Individual (PDI) para o próximo ciclo precisa ser revisado e aprovado. Revise as metas estabelecidas e faça os ajustes necessários.',
-      time: '2 horas atrás', 
-      read: true,
-      actions: ['Revisar PDI']
-    },
-    { 
-      id: 4, 
-      type: 'alert',
-      icon: AlertCircle,
-      title: 'Ação necessária', 
-      description: 'Existem 2 avaliações aguardando sua aprovação.',
-      fullText: 'Existem 2 avaliações aguardando sua aprovação como líder. Os colaboradores Pedro Oliveira e Ana Costa já finalizaram suas autoavaliações.',
-      time: '3 horas atrás', 
-      read: true,
-      actions: ['Revisar Avaliações']
-    },
-    {
-      id: 5,
-      type: 'achievement',
-      icon: Target,
-      title: 'Meta alcançada!',
-      description: 'Parabéns! Você completou todas as avaliações.',
-      fullText: 'Você completou com sucesso todas as avaliações do seu time dentro do prazo estabelecido. Isso demonstra seu comprometimento com o desenvolvimento da equipe.',
-      time: '1 dia atrás',
-      read: false
+  // Ícone baseado na displayCategory
+  const getNotificationIcon = (category: string) => {
+    switch (category) {
+      case 'success': return CheckCircle;
+      case 'warning': return AlertCircle;
+      case 'alert': return AlertCircle;
+      case 'achievement': return Target;
+      default: return Bell;
     }
-  ]);
+  };
+
+  // Formatar tempo relativo
+  const formatRelativeTime = (isoDate: string) => {
+    const now = Date.now();
+    const date = new Date(isoDate).getTime();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return 'Agora';
+    if (minutes < 60) return `${minutes} min atrás`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h atrás`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d atrás`;
+    return new Date(isoDate).toLocaleDateString('pt-BR');
+  };
+
+  // Últimas 5 notificações para o dropdown
+  const recentNotifications = notifications.slice(0, 5);
 
   // Effect para detectar clique fora
   useEffect(() => {
@@ -193,52 +155,25 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
     return 'bg-gradient-to-r from-secondary-50 to-secondary-100 dark:from-secondary-900/20 dark:to-secondary-800/20 text-secondary-700 dark:text-secondary-300 border-secondary-200 dark:border-secondary-700';
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const toggleNotificationExpanded = (id: number) => {
+  const toggleNotificationExpanded = (id: string) => {
     setExpandedNotifications(prev => ({
       ...prev,
       [id]: !prev[id]
     }));
   }
 
-  const markAsRead = (id: number) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, read: true }))
-    );
-  };
-
-  const handleNotificationAction = (action: string) => {
-    setShowNotifications(false);
-    // Aqui você pode adicionar a lógica para cada ação
-    switch (action) {
-      case 'Ver Avaliação':
-        navigate('/self-evaluation');
-        break;
-      case 'Iniciar Avaliação':
-        navigate('/self-evaluation');
-        break;
-      case 'Revisar PDI':
-        navigate('/action-pdi');
-        break;
-      case 'Revisar Avaliações':
-        navigate('/leader-evaluation');
-        break;
-      default:
-        break;
+  const handleNotificationClick = (notification: NotificationType) => {
+    if (!notification.read) {
+      markAsRead([notification.id]);
+    }
+    if (notification.action_url) {
+      setShowNotifications(false);
+      navigate(notification.action_url);
     }
   };
 
-  const getNotificationConfig = (type: Notification['type']) => {
-    return notificationTypeConfig[type] || notificationTypeConfig.info;
+  const getNotificationConfig = (category: string) => {
+    return notificationTypeConfig[category as keyof typeof notificationTypeConfig] || notificationTypeConfig.info;
   };
 
   return (
@@ -354,14 +289,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
 
                   {/* Lista de notificações */}
                   <div className="max-h-[calc(100vh-200px)] sm:max-h-96 overflow-y-auto custom-scrollbar">
-                    <div className="px-4 py-8 text-center bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-700">
-                      <div className="inline-flex p-3 rounded-full bg-amber-100 dark:bg-amber-800/30 mb-2">
-                        <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
-                      </div>
-                      <p className="text-sm text-amber-800 dark:text-amber-200 font-semibold">Funcionalidade em desenvolvimento</p>
-                      <p className="text-xs text-amber-600 dark:text-amber-300 mt-1">As notificações estarão disponíveis em breve</p>
-                    </div>
-                    {notifications.length === 0 ? (
+                    {recentNotifications.length === 0 ? (
                       <div className="px-4 py-12 text-center">
                         <div className="inline-flex p-4 rounded-full bg-gray-50 dark:bg-yt-elevated mb-3">
                           <Bell className="h-8 w-8 text-gray-300 dark:text-gray-600" />
@@ -370,59 +298,47 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Você está em dia com tudo!</p>
                       </div>
                     ) : (
-                      notifications.map((notification) => {
-                        const config = getNotificationConfig(notification.type);
+                      recentNotifications.map((notification) => {
+                        const config = getNotificationConfig(notification.displayCategory);
+                        const IconComponent = getNotificationIcon(notification.displayCategory);
                         return (
                           <div
                             key={notification.id}
-                            className={`relative transition-all duration-200 ${
+                            onClick={() => handleNotificationClick(notification)}
+                            className={`relative transition-all duration-200 cursor-pointer ${
                               !notification.read ? config.bgColor : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
                             }`}
                           >
-                            {/* Indicador de não lida */}
                             {!notification.read && (
                               <div className={`absolute left-0 top-0 bottom-0 w-1 ${config.dotColor}`} />
                             )}
-                            
-                            <div className="px-3 sm:px-4 py-3 sm:py-4 cursor-pointer border-b border-gray-50 dark:border-yt-border last:border-0">
+
+                            <div className="px-3 sm:px-4 py-3 sm:py-4 border-b border-gray-50 dark:border-yt-border last:border-0">
                               <div className="flex items-start space-x-2 sm:space-x-3">
                                 <div className={`p-2 rounded-lg ${config.iconBg} flex-shrink-0 shadow-sm`}>
-                                  <notification.icon className={`h-4 w-4 ${config.iconColor}`} />
+                                  <IconComponent className={`h-4 w-4 ${config.iconColor}`} />
                                 </div>
-                                
+
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-start justify-between gap-2">
                                     <div className="flex-1">
                                       <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-0.5">
                                         {notification.title}
                                       </p>
-                                      <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                                        {expandedNotifications[notification.id] 
-                                          ? notification.fullText 
-                                          : notification.description}
+                                      <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-2">
+                                        {notification.message}
                                       </p>
-                                      {notification.fullText !== notification.description && (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleNotificationExpanded(notification.id);
-                                          }}
-                                          className="text-[11px] text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium mt-1 hover:underline"
-                                        >
-                                          {expandedNotifications[notification.id] ? 'Ver menos' : 'Ver mais'}
-                                        </button>
-                                      )}
                                       <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5 flex items-center">
                                         <Clock className="h-3 w-3 mr-0.5" />
-                                        {notification.time}
+                                        {formatRelativeTime(notification.created_at)}
                                       </p>
                                     </div>
-                                    
+
                                     {!notification.read && (
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          markAsRead(notification.id);
+                                          markAsRead([notification.id]);
                                         }}
                                         className="text-[11px] text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium whitespace-nowrap hover:underline"
                                       >
@@ -430,22 +346,18 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                                       </button>
                                     )}
                                   </div>
-                                  
-                                  {/* Ações da notificação */}
-                                  {notification.actions && notification.actions.length > 0 && (
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                      {notification.actions.map((action, index) => (
-                                        <button
-                                          key={index}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleNotificationAction(action);
-                                          }}
-                                          className="text-xs px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 dark:hover:from-primary-700 dark:hover:to-primary-800 transition-all duration-200 shadow-sm hover:shadow font-medium"
-                                        >
-                                          {action}
-                                        </button>
-                                      ))}
+
+                                  {notification.action_url && (
+                                    <div className="mt-2">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleNotificationClick(notification);
+                                        }}
+                                        className="text-xs px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 dark:hover:from-primary-700 dark:hover:to-primary-800 transition-all duration-200 shadow-sm hover:shadow font-medium"
+                                      >
+                                        Ver detalhes
+                                      </button>
                                     </div>
                                   )}
                                 </div>
@@ -458,7 +370,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
                   </div>
 
                   {/* Footer do dropdown */}
-                  {notifications.length > 0 && (
+                  {recentNotifications.length > 0 && (
                     <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 dark:bg-yt-elevated border-t border-gray-100 dark:border-yt-border sticky bottom-0">
                       <button 
                         onClick={() => {

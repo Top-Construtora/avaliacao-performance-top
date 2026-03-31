@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { supabaseAdmin } from '../config/supabase';
+import { notificationService } from '../services/notificationService';
 
 export const interviewController = {
   // Listar entrevistas com filtros
@@ -105,6 +106,26 @@ export const interviewController = {
 
       if (error) throw error;
 
+      // Notificar colaborador e entrevistador
+      const notifType = type === 'exit' ? 'interview_exit_scheduled' : 'interview_90day_scheduled';
+      const notifTitle = type === 'exit' ? 'Entrevista de desligamento agendada' : 'Entrevista de 90 dias agendada';
+      const dateStr = scheduled_date ? new Date(scheduled_date).toLocaleDateString('pt-BR') : '';
+
+      notificationService.send(supabaseAdmin, {
+        type: notifType,
+        title: notifTitle,
+        message: `Uma entrevista foi agendada${dateStr ? ` para ${dateStr}` : ''}.`,
+        targets: [
+          { type: 'user', user_id: employee_id },
+          { type: 'user', user_id: interviewer_id },
+        ],
+        actor_id: req.user?.id,
+        priority: type === 'exit' ? 'high' : 'medium',
+        action_url: `/interviews/${data?.id}`,
+        entity_type: 'interview',
+        entity_id: data?.id,
+      }).catch(err => console.error('Notification error:', err));
+
       res.status(201).json({ success: true, data });
     } catch (error) {
       next(error);
@@ -137,6 +158,22 @@ export const interviewController = {
       if (error) throw error;
       if (!data) {
         return res.status(404).json({ success: false, error: 'Entrevista não encontrada' });
+      }
+
+      // Notificar quando entrevista é concluída
+      if (status === 'completed' && data.employee_id) {
+        notificationService.send(supabaseAdmin, {
+          type: 'interview_completed',
+          title: 'Entrevista concluída',
+          message: `A entrevista ${data.type === 'exit' ? 'de desligamento' : 'de 90 dias'} foi concluída.`,
+          targets: [
+            { type: 'user', user_id: data.employee_id },
+          ],
+          actor_id: req.user?.id,
+          action_url: `/interviews/${data.id}`,
+          entity_type: 'interview',
+          entity_id: data.id,
+        }).catch(err => console.error('Notification error:', err));
       }
 
       res.json({ success: true, data });
