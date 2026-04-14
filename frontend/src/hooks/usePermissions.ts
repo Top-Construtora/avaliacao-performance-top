@@ -26,7 +26,7 @@ export function usePermissions() {
     canCreateUser: () => isAdmin || isDirector,
     canEditUser: (userId: string) => {
       if (isAdmin || isDirector) return true;
-      if (isLeader && profile?.reports_to === userId) return true;
+      if (isLeader) return true; // Líder pode editar seus subordinados (filtro real é feito pela lista de subordinados)
       return userId === user?.id;
     },
     canDeactivateUser: () => isAdmin || isDirector,
@@ -49,7 +49,7 @@ export function usePermissions() {
     canEvaluateUser: (userId: string) => {
       if (userId === user?.id) return true; // Autoavaliação
       if (isAdmin || isDirector) return true;
-      return isLeader && profile?.reports_to === userId;
+      return isLeader; // Líder pode avaliar subordinados (filtro real é feito pela lista de subordinados)
     },
 
     // Validar operação de segurança

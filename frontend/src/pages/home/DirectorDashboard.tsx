@@ -48,7 +48,7 @@ const DirectorDashboard = () => {
         };
 
         // Status dos liderados
-        const subordinates = users.filter(u => u.reports_to === profile.id && u.active);
+        const subordinates = users.filter(u => u.reportsTo === profile.id && u.active);
         const teamData = subordinates.map(subordinate => {
           const evalData = dashboard.find((d: any) => String(d.employee_id) === String(subordinate.id));
 
