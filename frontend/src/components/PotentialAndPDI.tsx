@@ -230,11 +230,18 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     });
   };
 
-  const potentialRatingLabels = {
+  const potentialRatingLabels: Record<number, { label: string; color: string; darkColor: string }> = {
     1: { label: 'Não atende o esperado', color: 'bg-red-500', darkColor: 'dark:bg-red-600' },
     2: { label: 'Em desenvolvimento', color: 'bg-stone-600', darkColor: 'dark:bg-stone-700' },
     3: { label: 'Atende ao esperado', color: 'bg-green-800', darkColor: 'dark:bg-green-900' },
     4: { label: 'Supera', color: 'bg-green-500', darkColor: 'dark:bg-green-600' }
+  };
+
+  const getRatingInfo = (score: number | undefined) => {
+    if (!score || !potentialRatingLabels[score]) {
+      return { label: 'N/A', color: 'bg-gray-400', darkColor: 'dark:bg-gray-600' };
+    }
+    return potentialRatingLabels[score];
   };
 
   const statusOptions = [
@@ -758,8 +765,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             {index + 1}. {item.name}
                           </h3>
                           {item.score && (
-                            <span className={`inline-flex px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${potentialRatingLabels[item.score as keyof typeof potentialRatingLabels].color} ${potentialRatingLabels[item.score as keyof typeof potentialRatingLabels].darkColor} text-white self-start sm:self-auto`}>
-                              {potentialRatingLabels[item.score as keyof typeof potentialRatingLabels].label}
+                            <span className={`inline-flex px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getRatingInfo(item.score).color} ${getRatingInfo(item.score).darkColor} text-white self-start sm:self-auto`}>
+                              {getRatingInfo(item.score).label}
                             </span>
                           )}
                         </div>
@@ -775,11 +782,11 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                       // Visualização estática - apenas mostra a nota
                       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-xl p-6">
                         <div className="text-center">
-                          <div className={`text-5xl font-bold mb-2 ${potentialRatingLabels[item.score as keyof typeof potentialRatingLabels].color.replace('bg-', 'text-')}`}>
+                          <div className={`text-5xl font-bold mb-2 ${getRatingInfo(item.score).color.replace('bg-', 'text-')}`}>
                             {item.score}
                           </div>
                           <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {potentialRatingLabels[item.score as keyof typeof potentialRatingLabels].label}
+                            {getRatingInfo(item.score).label}
                           </div>
                         </div>
                       </div>
