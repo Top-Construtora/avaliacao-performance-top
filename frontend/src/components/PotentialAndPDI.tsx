@@ -169,7 +169,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       return { ...prev, [key]: updatedPrazos };
     });
 
-    // Limpar formulário mas manter o prazo selecionado
+    // Fechar formulário e limpar campos
+    setEditingPdiItemPrazo(null);
     setNewPdiItem({
       competencia: '',
       calendarizacao: '',
@@ -177,7 +178,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       resultadosEsperados: '',
       status: '1',
       observacao: '',
-      prazo: prazo
+      prazo: ''
     });
 
     toast.success(`Item adicionado ao PDI de ${prazo === 'curto' ? 'Curto' : prazo === 'medio' ? 'Médio' : 'Longo'} Prazo!`);
