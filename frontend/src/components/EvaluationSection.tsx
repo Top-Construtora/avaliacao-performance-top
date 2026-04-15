@@ -64,11 +64,16 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
     ));
   };
 
-  const ratingLabels = {
+  const ratingLabels: Record<number, { label: string; color: string; darkColor: string }> = {
     1: { label: 'Insatisfatório', color: 'bg-red-500', darkColor: 'dark:bg-red-600' },
     2: { label: 'Em Desenvolvimento', color: 'bg-accent-500', darkColor: 'dark:bg-accent-600' },
     3: { label: 'Satisfatório', color: 'bg-primary-500', darkColor: 'dark:bg-primary-600' },
     4: { label: 'Excepcional', color: 'bg-green-500', darkColor: 'dark:bg-green-600' }
+  };
+
+  const getSafeRating = (score: number | undefined) => {
+    if (!score || !ratingLabels[score]) return null;
+    return ratingLabels[score];
   };
 
   const itemVariants = {
@@ -151,10 +156,10 @@ const EvaluationSection: React.FC<EvaluationSectionProps> = ({
                       <h4 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">{item.name}</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">{item.description}</p>
                     </div>
-                    {item.score && (
+                    {item.score && getSafeRating(item.score) && (
                       <div className="text-center sm:text-right flex-shrink-0">
-                        <div className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${ratingLabels[item.score as keyof typeof ratingLabels].color} ${ratingLabels[item.score as keyof typeof ratingLabels].darkColor} text-white`}>
-                          {ratingLabels[item.score as keyof typeof ratingLabels].label}
+                        <div className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getSafeRating(item.score)!.color} ${getSafeRating(item.score)!.darkColor} text-white`}>
+                          {getSafeRating(item.score)!.label}
                         </div>
                       </div>
                     )}

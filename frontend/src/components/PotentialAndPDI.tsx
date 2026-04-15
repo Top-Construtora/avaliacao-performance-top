@@ -707,7 +707,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
               const iconMap: { [key: string]: React.ElementType } = {
                 'pot1': Rocket, 'pot2': BookOpen, 'pot3': Award, 'pot4': Target
               };
-              const IconComponent = iconMap[item.id];
+              const IconComponent = iconMap[item.id] || Target;
 
               const colorMap: { [key: string]: any } = {
                 'pot1': {
@@ -744,7 +744,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                 }
               };
 
-              const colors = colorMap[item.id];
+              const colors = colorMap[item.id] || colorMap['pot1'];
 
               return (
                 <motion.div
