@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -90,6 +90,9 @@ const Consensus = () => {
   const [employees, setEmployees] = useState<UserWithDetails[]>([]);
   const [selectedLeaderId, setSelectedLeaderId] = useState<string>('');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
+  // Ref para rastrear qual colaborador os scores em memória pertencem,
+  // evitando que o auto-save grave dados do colaborador antigo na key do novo
+  const scoresOwnerIdRef = useRef<string>('');
   const [consensusScores, setConsensusScores] = useState<ScoreMap>({});
   const [consensusObservations, setConsensusObservations] = useState<Record<string, string>>({});
   const [selfScores, setSelfScores] = useState<ScoreMap>({});
@@ -608,7 +611,6 @@ const Consensus = () => {
 
             // Se os dados foram salvos há menos de 24 horas, restaurar aqui
             if (hoursDiff < 24) {
-              console.log('📝 Restaurando dados do auto-save após carregar avaliações...');
               if (parsed.consensusScores) setConsensusScores(parsed.consensusScores);
               if (parsed.consensusObservations) setConsensusObservations(parsed.consensusObservations);
               if (parsed.potentialScore) setPotentialScore(parsed.potentialScore);
@@ -632,6 +634,10 @@ const Consensus = () => {
         }
       }
 
+      // Marcar que os scores em memória pertencem a este colaborador
+      // (só agora o auto-save pode gravar em localStorage)
+      scoresOwnerIdRef.current = selectedEmployeeId;
+
     } catch (error) {
       console.error('Error loading evaluations:', error);
       toast.error('Erro ao carregar avaliações');
@@ -644,8 +650,14 @@ const Consensus = () => {
   // para evitar race condition onde os dados restaurados eram sobrescritos
 
   // Auto-save: Salvar dados no localStorage quando houver mudanças
+  // IMPORTANTE: só salva se os scores pertencem ao colaborador selecionado,
+  // evitando vazar dados de um colaborador para a key de outro ao trocar a seleção
   useEffect(() => {
-    if (selectedEmployeeId && (Object.keys(consensusScores).length > 0 || Object.keys(consensusObservations).length > 0)) {
+    if (
+      selectedEmployeeId &&
+      scoresOwnerIdRef.current === selectedEmployeeId &&
+      (Object.keys(consensusScores).length > 0 || Object.keys(consensusObservations).length > 0)
+    ) {
       const autoSaveKey = `consensus_autosave_${selectedEmployeeId}`;
       const dataToSave = {
         consensusScores,
@@ -655,11 +667,6 @@ const Consensus = () => {
       };
 
       localStorage.setItem(autoSaveKey, JSON.stringify(dataToSave));
-      console.log('💾 Auto-save realizado:', {
-        numScores: Object.keys(consensusScores).length,
-        numObservations: Object.keys(consensusObservations).length,
-        potentialScore
-      });
     }
   }, [consensusScores, consensusObservations, potentialScore, selectedEmployeeId]);
 
@@ -862,6 +869,7 @@ const Consensus = () => {
       toast.success('Consenso salvo com sucesso!');
 
       // Reset form
+      scoresOwnerIdRef.current = '';
       setSelectedEmployeeId('');
       setSelectedLeaderId('');
       setConsensusScores({});
@@ -1064,7 +1072,14 @@ const Consensus = () => {
               <select
                 className="w-full pl-10 pr-10 rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 appearance-none cursor-pointer"
                 value={selectedEmployeeId}
-                onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                onChange={(e) => {
+                  // Limpar scores em memória ANTES de mudar o colaborador para
+                  // evitar que o auto-save grave dados do anterior na key do novo
+                  scoresOwnerIdRef.current = '';
+                  setConsensusScores({});
+                  setConsensusObservations({});
+                  setSelectedEmployeeId(e.target.value);
+                }}
                 disabled={!selectedLeaderId || loading}
               >
                 <option value="">
