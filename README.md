@@ -1,4 +1,4 @@
-# Avaliação de Performance - Top Construtora
+# Sistema de Gente & Gestão - Top Construtora
 
 ![React](https://img.shields.io/badge/React-18.3-61dafb?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178c6?logo=typescript&logoColor=white)
@@ -8,7 +8,7 @@
 ![Vite](https://img.shields.io/badge/Vite-5.4-646cff?logo=vite&logoColor=white)
 ![License](https://img.shields.io/badge/Licença-Privado-red)
 
-Sistema de avaliação de desempenho, gestão de carreira e desenvolvimento pessoal para a **Top Construtora**. Monorepo com frontend React e backend Express, ambos em TypeScript.
+Sistema de Gente & Gestão para acompanhamento de colaboradores, avaliação de desempenho, gestão de carreira e desenvolvimento pessoal da **Top Construtora**. Monorepo com frontend React e backend Express, ambos em TypeScript.
 
 ---
 
@@ -372,4 +372,4 @@ cd backend && npm start
 
 ---
 
-Desenvolvido para **Top Construtora**
+Sistema de Gente & Gestão — desenvolvido para **Top Construtora**

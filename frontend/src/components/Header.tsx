@@ -194,8 +194,8 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
         {/* Centro - Título */}
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <h1 className="text-base sm:text-lg md:text-xl font-semibold text-white truncate font-lemon-milk tracking-wider">
-            <span className="hidden sm:inline">Sistema de Gente e Gestão</span>
-            <span className="sm:hidden">Gente e Gestão</span>
+            <span className="hidden sm:inline">Sistema de Gente &amp; Gestão</span>
+            <span className="sm:hidden">Gente &amp; Gestão</span>
           </h1>
           <p className="text-xs sm:text-sm text-white/70 flex items-center">
             <Calendar className="w-3 h-3 mr-1 flex-shrink-0" />

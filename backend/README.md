@@ -1,6 +1,6 @@
-# Backend - Avaliação de Performance
+# Backend - Sistema de Gente & Gestão
 
-API REST desenvolvida com Express, TypeScript e Supabase para o sistema de avaliação de desempenho.
+API REST desenvolvida com Express, TypeScript e Supabase para o Sistema de Gente & Gestão (avaliações, PDI, carreira e gestão organizacional).
 
 ## Stack Tecnológico
 

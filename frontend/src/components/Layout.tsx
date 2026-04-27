@@ -129,7 +129,7 @@ export default function Layout() {
         {/* Footer */}
         <footer className="bg-white dark:bg-yt-surface border-t border-gray-300 dark:border-yt-border py-4 px-4 sm:px-6">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400 space-y-2 sm:space-y-0">
-            <p>&copy; {new Date().getFullYear()} GIO - Sistema de Gente e Gestão</p>
+            <p>&copy; {new Date().getFullYear()} GIO - Sistema de Gente &amp; Gestão</p>
             <p>Versão 1.2.0</p>
           </div>
         </footer>

@@ -133,7 +133,7 @@ export const exportService = {
 
       // Criar workbook
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'Sistema de Avaliacao';
+      workbook.creator = 'Sistema de Gente & Gestao';
       workbook.created = new Date();
 
       // Aba única com informações da trilha e cargos

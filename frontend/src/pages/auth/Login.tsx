@@ -90,12 +90,12 @@ export default function Login() {
             <div>
               <h1 className="text-5xl font-bold leading-tight mb-4 font-lemon-milk tracking-wider">
                 Sistema de<br />
-                <span className="text-[#12b0a0]">Avaliação de</span><br />
-                Performance
+                <span className="text-[#12b0a0]">Gente &amp;</span><br />
+                Gestão
               </h1>
               <p className="text-xl text-white/80 leading-relaxed">
-                Gerencie avaliações de desempenho, acompanhe o desenvolvimento
-                da equipe e impulsione resultados com feedbacks estruturados.
+                Gerencie pessoas, acompanhe o desenvolvimento da equipe e
+                impulsione resultados com avaliações e feedbacks estruturados.
               </p>
             </div>
           </div>

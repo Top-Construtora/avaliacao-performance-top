@@ -1,6 +1,6 @@
-# Frontend - Avaliação de Performance
+# Frontend - Sistema de Gente & Gestão
 
-Sistema de avaliação de desempenho desenvolvido com React 18, TypeScript e Tailwind CSS.
+Frontend do Sistema de Gente & Gestão desenvolvido com React 18, TypeScript e Tailwind CSS. Inclui módulos de avaliação de desempenho, PDI, carreira e gestão organizacional.
 
 ## Stack Tecnológico
 
