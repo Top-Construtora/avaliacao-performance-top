@@ -160,9 +160,10 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
         // Carregar competências organizacionais (deliveries) da nova tabela
         await loadOrganizationalCompetencies();
 
-        // Carregar employees do Supabase
+        // Carregar employees do Supabase via view users_safe (mascara
+        // a coluna `position` para usuários marcados como sigilosos).
         const { data: usersData } = await supabase
-          .from('users')
+          .from('users_safe' as any)
           .select('*')
           .eq('active', true);
         

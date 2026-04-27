@@ -13,7 +13,14 @@ export const userController = {
         is_director: req.query.is_director === 'true' ? true : undefined,
         is_leader_or_director: req.query.is_leader_or_director === 'true' ? true : undefined,
         reports_to: req.query.reports_to as string,
-        currentUserEmail: authReq.user?.email
+        currentUserEmail: authReq.user?.email,
+        viewer: authReq.user
+          ? {
+              id: authReq.user.id,
+              is_admin: (authReq.user as any).is_admin,
+              is_director: authReq.user.is_director,
+            }
+          : undefined,
       };
 
       const users = await userService.getUsers(filters);
@@ -29,9 +36,17 @@ export const userController = {
 
   async getUserById(req: Request, res: Response, next: NextFunction) {
     try {
+      const authReq = req as AuthRequest;
       const { id } = req.params;
-      const user = await userService.getUserById(id);
-      
+      const viewer = authReq.user
+        ? {
+            id: authReq.user.id,
+            is_admin: (authReq.user as any).is_admin,
+            is_director: authReq.user.is_director,
+          }
+        : undefined;
+      const user = await userService.getUserById(id, viewer);
+
       res.json({
         success: true,
         data: user
@@ -108,7 +123,14 @@ export const userController = {
     try {
       const authReq = req as AuthRequest;
       const { leaderId } = req.params;
-      const subordinates = await userService.getSubordinates(leaderId, authReq.user?.email);
+      const viewer = authReq.user
+        ? {
+            id: authReq.user.id,
+            is_admin: (authReq.user as any).is_admin,
+            is_director: authReq.user.is_director,
+          }
+        : undefined;
+      const subordinates = await userService.getSubordinates(leaderId, authReq.user?.email, viewer);
 
       res.json({
         success: true,

@@ -29,6 +29,10 @@ export interface User {
   track_id?: string;
   position_id?: string;
 
+  // Cargo sigiloso — quando true, o backend mascara o cargo real
+  // para usuários sem permissão (admin/diretor/líder direto/próprio veem cru).
+  position_is_confidential?: boolean;
+
   // Relacionamentos (opcionais, preenchidos em algumas queries)
   department?: Department;
   teams?: Team[];

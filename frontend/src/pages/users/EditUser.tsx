@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { PermissionGuard } from '../../components/PermissionGuard';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useAuth } from '../../context/AuthContext';
 import UserProfileFields from '../../components/UserProfileFields';
 
 
@@ -50,7 +51,9 @@ const EditUser = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const permissions = usePermissions();
-  
+  const { profile } = useAuth();
+  const isAdmin = profile?.is_admin === true;
+
   // Hooks do Supabase
   const { users, loading: usersLoading, updateUser, reload: reloadUsers } = useSupabaseUsers();
   const { teams, loading: teamsLoading } = useSupabaseTeams();
@@ -96,6 +99,7 @@ const EditUser = () => {
     internLevel: 'A' as 'A' | 'B' | 'C' | 'D' | 'E', // Este é o nível salarial
     contractType: 'CLT' as 'CLT' | 'PJ',
     observations: '',
+    positionIsConfidential: false,
   });
 
   const [originalData, setOriginalData] = useState(formData);
@@ -315,6 +319,7 @@ const EditUser = () => {
         internLevel: user.intern_level || 'A' as 'A' | 'B' | 'C' | 'D' | 'E', // Internível é o nível salarial
         contractType: user.contract_type || 'CLT' as 'CLT' | 'PJ',
         observations: user.observations || '',
+        positionIsConfidential: (user as any).position_is_confidential === true,
       };
 
       setFormData(userData);
@@ -502,7 +507,10 @@ const EditUser = () => {
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
         observations: formData.observations || null,
-      });
+        ...(isAdmin
+          ? { position_is_confidential: formData.positionIsConfidential }
+          : {}),
+      } as any);
 
       // Atualizar times do usuário
       // Primeiro remove todos os times
@@ -1246,6 +1254,38 @@ const EditUser = () => {
                   />
                 </button>
               </div>
+
+              {/* Cargo Sigiloso (admin only) */}
+              {isAdmin && (
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl">
+                  <div className="pr-4">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-amber-500" />
+                      Cargo sigiloso
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Quando ativado, o cargo real fica visível apenas para o próprio
+                      colaborador, administradores, diretores e o líder direto. Demais
+                      usuários veem uma versão genérica no formato &quot;Cargo de Time&quot;.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, positionIsConfidential: !formData.positionIsConfidential })}
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                      formData.positionIsConfidential ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                    aria-pressed={formData.positionIsConfidential}
+                    aria-label="Marcar cargo como sigiloso"
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        formData.positionIsConfidential ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              )}
 
               {/* Password Change */}
               <div className="p-4 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl">

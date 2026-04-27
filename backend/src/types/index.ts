@@ -27,9 +27,15 @@ export interface User {
   current_salary?: number;
   track_id?: string;
   position_id?: string;
-  
+
+  // Cargo sigiloso — quando true, oculta o cargo real para usuários
+  // sem permissão (mascarado como "Cargo de Time" no backend).
+  position_is_confidential?: boolean;
+
+  is_admin?: boolean;
+
   // Novos campos de perfil pessoal
-  
+
 }
 
 // Auth types
@@ -351,6 +357,8 @@ export interface UsersRow {
   track_id: string | null;
   position_id: string | null;
   intern_level: string | null;
+  position_is_confidential?: boolean;
+  is_admin?: boolean;
 }
 
 export interface UsersInsert {
@@ -378,6 +386,7 @@ export interface UsersInsert {
   current_track_position_id?: string | null;
   current_salary_level_id?: string | null;
   current_salary?: number | null;
+  position_is_confidential?: boolean;
 }
 
 export interface UsersUpdate {
@@ -403,6 +412,7 @@ export interface UsersUpdate {
   current_track_position_id?: string | null;
   current_salary_level_id?: string | null;
   current_salary?: number | null;
+  position_is_confidential?: boolean;
 }
 
 // Tipos auxiliares
@@ -430,6 +440,7 @@ export interface CreateUserRequest {
   position_id?: string;
   intern_level?: string;
   contract_type?: ContractType;
+  position_is_confidential?: boolean;
 }
 
 export interface UpdateUserRequest {
@@ -448,6 +459,7 @@ export interface UpdateUserRequest {
   position_id?: string;
   intern_level?: string;
   contract_type?: ContractType;
+  position_is_confidential?: boolean;
 }
 
 // Auth types

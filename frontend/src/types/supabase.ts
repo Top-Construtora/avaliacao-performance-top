@@ -66,6 +66,7 @@ export interface Database {
           position_id?: string | null
           intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null
           can_view_subordinate_ninebox?: boolean
+          position_is_confidential?: boolean
         }
         Insert: {
           id: string
@@ -95,6 +96,7 @@ export interface Database {
           position_id?: string | null
           intern_level?: 'A' | 'B' | 'C' | 'D' | 'E' | null
           can_view_subordinate_ninebox?: boolean
+          position_is_confidential?: boolean
         }
         Update: {
           id?: string
@@ -133,6 +135,7 @@ export interface Database {
           practices_sports?: boolean
           sports?: string[] | null
           can_view_subordinate_ninebox?: boolean
+          position_is_confidential?: boolean
         }
       }
       teams: {

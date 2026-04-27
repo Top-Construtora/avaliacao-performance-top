@@ -3,6 +3,11 @@ import { supabaseAdmin } from '../config/supabase';
 import { ApiError } from '../middleware/errorHandler';
 import { User } from '../types';
 import { filterRestrictedUsers } from '../utils/userFilterUtils';
+import {
+  applyPositionMasking,
+  applyPositionMaskingToOne,
+  ViewerContext,
+} from '../utils/positionMaskingUtils';
 
 export const userService = {
   async getUsers(filters?: {
@@ -12,6 +17,7 @@ export const userService = {
     is_leader_or_director?: boolean;
     reports_to?: string;
     currentUserEmail?: string;
+    viewer?: ViewerContext;
   }) {
     // Select com relacionamentos para trilha e posição salarial
     let query = supabaseAdmin.from('users').select(`
@@ -56,10 +62,13 @@ export const userService = {
     // Aplicar filtro de usuários restritos
     const filteredData = filterRestrictedUsers(filters?.currentUserEmail, data || []);
 
-    return filteredData;
+    // Aplicar mascaramento de cargo sigiloso
+    const maskedData = await applyPositionMasking(filters?.viewer, filteredData);
+
+    return maskedData;
   },
 
-  async getUserById(id: string) {
+  async getUserById(id: string, viewer?: ViewerContext) {
     const { data, error } = await supabaseAdmin
       .from('users')
       .select('*')
@@ -70,7 +79,7 @@ export const userService = {
       throw new ApiError(404, 'User not found');
     }
 
-    return data;
+    return await applyPositionMaskingToOne(viewer, data);
   },
 
   async createUser(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>) {
@@ -317,7 +326,7 @@ export const userService = {
     }
   },
 
-  async getSubordinates(leaderId: string, currentUserEmail?: string) {
+  async getSubordinates(leaderId: string, currentUserEmail?: string, viewer?: ViewerContext) {
     const { data, error } = await supabaseAdmin
       .from('users')
       .select('*')
@@ -332,7 +341,10 @@ export const userService = {
     // Aplicar filtro de usuários restritos
     const filteredData = filterRestrictedUsers(currentUserEmail, data || []);
 
-    return filteredData;
+    // Aplicar mascaramento de cargo sigiloso
+    const maskedData = await applyPositionMasking(viewer, filteredData);
+
+    return maskedData;
   },
 
   // Novos métodos para estatísticas

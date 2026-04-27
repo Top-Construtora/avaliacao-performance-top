@@ -11,11 +11,12 @@ import {
   Users, Shield, Mail, Calendar,
   X, Check, AlertCircle, Briefcase, UserCheck,
   Sparkles, Crown, User, Phone, CalendarDays, Upload,
-  Eye, EyeOff, Save, Loader2,
+  Eye, EyeOff, Save, Loader2, Lock,
   CheckCircle2, ChevronDown, UserPlus, Building2,
   FileText, UserCog, GitBranch,
   Route, Layers, TrendingUp, MessageSquare
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface Track {
   id: string;
@@ -44,7 +45,9 @@ interface Position {
 
 const RegisterUser = () => {
   const navigate = useNavigate();
-  
+  const { profile } = useAuth();
+  const isAdmin = profile?.is_admin === true;
+
   // Hooks do Supabase
   const { users, loading: usersLoading, reload: reloadUsers } = useSupabaseUsers();
   const { teams, loading: teamsLoading } = useSupabaseTeams();
@@ -86,6 +89,7 @@ const RegisterUser = () => {
     internLevel: 'A' as 'A' | 'B' | 'C' | 'D' | 'E',
     contractType: 'CLT' as 'CLT' | 'PJ',
     observations: '',
+    positionIsConfidential: false,
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -395,7 +399,10 @@ const RegisterUser = () => {
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
         observations: formData.observations || null,
-      });
+        ...(isAdmin
+          ? { position_is_confidential: formData.positionIsConfidential }
+          : {}),
+      } as any);
 
       // Adicionar usuário aos times, se especificado
       if (formData.teamIds && formData.teamIds.length > 0 && formData.profileType !== 'director') {
@@ -1095,6 +1102,41 @@ const RegisterUser = () => {
             </p>
           </div>
         </motion.div>
+
+        {/* Cargo Sigiloso (admin only) */}
+        {isAdmin && (
+          <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+              <Lock className="h-5 w-5 mr-2 text-amber-500" />
+              Confidencialidade do Cargo
+            </h3>
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl">
+              <div className="pr-4">
+                <h4 className="font-medium text-gray-900 dark:text-gray-100">Cargo sigiloso</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Quando ativado, o cargo real fica visível apenas para o próprio
+                  colaborador, administradores, diretores e o líder direto. Demais
+                  usuários veem uma versão genérica no formato &quot;Cargo de Time&quot;.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, positionIsConfidential: !formData.positionIsConfidential })}
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                  formData.positionIsConfidential ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+                aria-pressed={formData.positionIsConfidential}
+                aria-label="Marcar cargo como sigiloso"
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    formData.positionIsConfidential ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Action Buttons */}
