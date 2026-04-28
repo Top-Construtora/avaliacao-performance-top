@@ -222,22 +222,30 @@ export default function Sidebar({
       title: 'Desenvolvimento',
       items: [
         {
-          label: 'Meu PDI',
+          label: 'PDI',
           icon: BookOpen,
-          path: '/my-pdi',
-          allowedRoles: ['director', 'leader', 'collaborator'],
-        },
-        {
-          label: 'Gerenciar PDI',
-          icon: BookOpen,
-          path: '/pdi',
-          allowedRoles: ['admin', 'director', 'leader'],
-        },
-        {
-          label: 'Calendário PDI',
-          icon: Calendar,
-          path: '/pdi-calendar',
-          allowedRoles: ['admin', 'director', 'leader'],
+          hasDropdown: true,
+          allowedRoles: ['admin', 'director', 'leader', 'collaborator'],
+          subItems: [
+            {
+              label: 'Meu PDI',
+              icon: BookOpen,
+              path: '/my-pdi',
+              allowedRoles: ['director', 'leader', 'collaborator'],
+            },
+            {
+              label: 'Gerenciar PDI',
+              icon: BookOpen,
+              path: '/pdi',
+              allowedRoles: ['admin', 'director', 'leader'],
+            },
+            {
+              label: 'Calendário PDI',
+              icon: Calendar,
+              path: '/pdi-calendar',
+              allowedRoles: ['admin', 'director', 'leader'],
+            },
+          ],
         },
       ],
     },
@@ -312,7 +320,14 @@ export default function Sidebar({
   const filteredSections = navSections
     .map(section => ({
       ...section,
-      items: section.items.filter(filterItem),
+      items: section.items
+        .filter(filterItem)
+        .map(item =>
+          item.subItems
+            ? { ...item, subItems: item.subItems.filter(filterItem) }
+            : item
+        )
+        .filter(item => !item.hasDropdown || (item.subItems && item.subItems.length > 0)),
     }))
     .filter(section => {
       // Remover seções vazias
