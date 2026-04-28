@@ -5,11 +5,10 @@ import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import {
-  ArrowLeft, Save, Briefcase, FileText, Users as UsersIcon,
-  Plus, Trash2, Calendar, Star, UserPlus, Mail, Phone, Link,
-  MessageSquare, CheckCircle, XCircle, Clock,
+  ArrowLeft, Save, Briefcase, FileText,
+  MessageSquare,
 } from 'lucide-react';
-import { recruitmentService, JobOpening, JobCandidate } from '../../services/recruitment.service';
+import { recruitmentService, JobOpening } from '../../services/recruitment.service';
 import { useSupabaseData } from '../../hooks/useSupabaseData';
 
 const TextareaField = ({ label, value, onChange, placeholder, rows = 3 }: {
@@ -23,16 +22,6 @@ const TextareaField = ({ label, value, onChange, placeholder, rows = 3 }: {
     />
   </div>
 );
-
-const candidateStatusConfig: Record<string, { label: string; color: string }> = {
-  received: { label: 'Recebido', color: 'bg-gray-100 dark:bg-yt-elevated text-gray-700 dark:text-gray-300' },
-  screening: { label: 'Triagem', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
-  interview_scheduled: { label: 'Entrevista Agendada', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' },
-  interviewed: { label: 'Entrevistado', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' },
-  approved: { label: 'Aprovado', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' },
-  rejected: { label: 'Reprovado', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' },
-  hired: { label: 'Contratado', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' },
-};
 
 const RecruitmentForm = () => {
   const navigate = useNavigate();
@@ -65,13 +54,6 @@ const RecruitmentForm = () => {
   const [briefRequiredSkills, setBriefRequiredSkills] = useState('');
   const [briefNiceToHave, setBriefNiceToHave] = useState('');
   const [briefObservations, setBriefObservations] = useState('');
-
-  // Candidatos (só no modo edição)
-  const [showAddCandidate, setShowAddCandidate] = useState(false);
-  const [newCandidateName, setNewCandidateName] = useState('');
-  const [newCandidateEmail, setNewCandidateEmail] = useState('');
-  const [newCandidatePhone, setNewCandidatePhone] = useState('');
-  const [newCandidateSource, setNewCandidateSource] = useState('');
 
   useEffect(() => {
     if (id) loadOpening();
@@ -131,55 +113,18 @@ const RecruitmentForm = () => {
       if (isEditing) {
         await recruitmentService.updateJobOpening(id!, payload as any);
         toast.success('Vaga atualizada!');
+        navigate(`/recruitment/${id}`);
+        return;
       } else {
         const created = await recruitmentService.createJobOpening(payload as any);
         toast.success('Vaga solicitada com sucesso!');
         navigate(`/recruitment/${created.id}`);
         return;
       }
-      loadOpening();
     } catch (error) {
       toast.error('Erro ao salvar');
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleAddCandidate = async () => {
-    if (!newCandidateName.trim()) {
-      toast.error('Nome do candidato é obrigatório');
-      return;
-    }
-    try {
-      await recruitmentService.createCandidate({
-        job_opening_id: id!,
-        name: newCandidateName,
-        email: newCandidateEmail || null,
-        phone: newCandidatePhone || null,
-        source: newCandidateSource || null,
-      });
-      toast.success('Candidato adicionado!');
-      setNewCandidateName('');
-      setNewCandidateEmail('');
-      setNewCandidatePhone('');
-      setNewCandidateSource('');
-      setShowAddCandidate(false);
-      loadOpening();
-    } catch (error) {
-      toast.error('Erro ao adicionar candidato');
-    }
-  };
-
-  const handleCandidateStatus = async (candidateId: string, status: string) => {
-    try {
-      await recruitmentService.updateCandidate(candidateId, { status } as any);
-      setOpening(prev => prev ? {
-        ...prev,
-        candidates: prev.candidates?.map(c => c.id === candidateId ? { ...c, status } : c),
-      } : null);
-      toast.success('Status atualizado');
-    } catch (error) {
-      toast.error('Erro ao atualizar');
     }
   };
 
@@ -322,84 +267,6 @@ const RecruitmentForm = () => {
         </motion.div>
       </div>
 
-      {/* Candidatos (só no modo edição) */}
-      {isEditing && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center">
-              <UsersIcon className="h-5 w-5 mr-2 text-primary-700 dark:text-primary-400" />
-              Candidatos ({opening?.candidates?.length || 0})
-            </h2>
-            <Button variant="outline" onClick={() => setShowAddCandidate(!showAddCandidate)} icon={<UserPlus size={16} />} size="sm">
-              Adicionar
-            </Button>
-          </div>
-
-          {/* Form de adicionar candidato */}
-          {showAddCandidate && (
-            <div className="p-4 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl border border-gray-200 dark:border-yt-border mb-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-                <input type="text" value={newCandidateName} onChange={(e) => setNewCandidateName(e.target.value)} placeholder="Nome *"
-                  className="rounded-lg border-gray-200 dark:border-yt-border bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 text-sm" />
-                <input type="email" value={newCandidateEmail} onChange={(e) => setNewCandidateEmail(e.target.value)} placeholder="Email"
-                  className="rounded-lg border-gray-200 dark:border-yt-border bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 text-sm" />
-                <input type="text" value={newCandidatePhone} onChange={(e) => setNewCandidatePhone(e.target.value)} placeholder="Telefone"
-                  className="rounded-lg border-gray-200 dark:border-yt-border bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 text-sm" />
-                <select value={newCandidateSource} onChange={(e) => setNewCandidateSource(e.target.value)}
-                  className="rounded-lg border-gray-200 dark:border-yt-border bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 text-sm">
-                  <option value="">Fonte</option>
-                  <option value="linkedin">LinkedIn</option>
-                  <option value="indicacao">Indicação</option>
-                  <option value="site">Site</option>
-                  <option value="outro">Outro</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" size="sm" onClick={() => setShowAddCandidate(false)}>Cancelar</Button>
-                <Button variant="primary" size="sm" onClick={handleAddCandidate} icon={<Plus size={14} />}>Adicionar</Button>
-              </div>
-            </div>
-          )}
-
-          {/* Lista de candidatos */}
-          <div className="space-y-2">
-            {opening?.candidates?.map(candidate => {
-              const statusInfo = candidateStatusConfig[candidate.status] || candidateStatusConfig.received;
-              return (
-                <div key={candidate.id} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl border border-gray-100 dark:border-yt-border">
-                  <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                    {candidate.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{candidate.name}</p>
-                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                      {candidate.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{candidate.email}</span>}
-                      {candidate.source && <span>{candidate.source}</span>}
-                    </div>
-                  </div>
-                  <select
-                    value={candidate.status}
-                    onChange={(e) => handleCandidateStatus(candidate.id, e.target.value)}
-                    className={`text-xs rounded-lg border-0 font-medium px-2 py-1 ${statusInfo.color}`}
-                  >
-                    {Object.entries(candidateStatusConfig).map(([key, config]) => (
-                      <option key={key} value={key}>{config.label}</option>
-                    ))}
-                  </select>
-                </div>
-              );
-            })}
-
-            {(!opening?.candidates || opening.candidates.length === 0) && (
-              <div className="text-center py-8 text-gray-400 dark:text-gray-500">
-                <UsersIcon className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-sm">Nenhum candidato registrado</p>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 };

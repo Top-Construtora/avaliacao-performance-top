@@ -102,7 +102,7 @@ export default function Sidebar({
       ],
     },
     {
-      title: 'Colaboradores',
+      title: 'Estrutura',
       allowedRoles: ['admin', 'director'],
       items: [
         {
@@ -160,55 +160,73 @@ export default function Sidebar({
       ],
     },
     {
-      title: 'Avaliação',
+      title: 'Avaliação de Desempenho',
       items: [
         {
-          label: 'Gerenciar Ciclos',
+          label: 'Ciclo',
           icon: RotateCcw,
-          path: '/cycle',
+          hasDropdown: true,
           allowedRoles: ['admin', 'director'],
+          subItems: [
+            {
+              label: 'Gerenciar Ciclos',
+              icon: RotateCcw,
+              path: '/cycle',
+              allowedRoles: ['admin', 'director'],
+            },
+            {
+              label: 'Código Cultural',
+              icon: Award,
+              path: '/codigo-cultural',
+              allowedRoles: ['admin', 'director'],
+            },
+          ],
         },
         {
-          label: 'Código Cultural',
-          icon: Award,
-          path: '/codigo-cultural',
-          allowedRoles: ['admin', 'director'],
-        },
-        {
-          label: 'Autoavaliação',
+          label: 'Avaliações',
           icon: FileText,
-          path: '/self-evaluation',
-          hideForRoles: ['admin', 'director'],
+          hasDropdown: true,
+          subItems: [
+            {
+              label: 'Autoavaliação',
+              icon: FileText,
+              path: '/self-evaluation',
+              hideForRoles: ['admin', 'director'],
+            },
+            {
+              label: 'Avaliação do Líder',
+              icon: Users,
+              path: '/leader-evaluation',
+              allowedRoles: ['admin', 'leader', 'director'],
+            },
+            {
+              label: 'Consenso',
+              icon: Handshake,
+              path: '/consensus',
+              allowedRoles: ['admin', 'director'],
+            },
+          ],
         },
         {
-          label: 'Avaliação do Líder',
-          icon: Users,
-          path: '/leader-evaluation',
-          allowedRoles: ['admin', 'leader', 'director'],
-        },
-        {
-          label: 'Consenso',
-          icon: Handshake,
-          path: '/consensus',
-          allowedRoles: ['admin', 'director'],
-        },
-        {
-          label: 'Comitê de Gente',
+          label: 'Comitê',
           icon: Grid3X3,
-          path: '/nine-box',
+          hasDropdown: true,
           allowedRoles: ['admin', 'director', 'leader'],
+          subItems: [
+            {
+              label: 'Comitê de Gente',
+              icon: Grid3X3,
+              path: '/nine-box',
+              allowedRoles: ['admin', 'director', 'leader'],
+            },
+            {
+              label: 'Guia NineBox',
+              icon: BookOpen,
+              path: '/nine-box-guide',
+              allowedRoles: ['admin', 'director', 'leader'],
+            },
+          ],
         },
-        {
-          label: 'Guia NineBox',
-          icon: BookOpen,
-          path: '/nine-box-guide',
-          allowedRoles: ['admin', 'director', 'leader'],
-        },
-      ],
-    },
-    {
-      title: 'Desenvolvimento',
-      items: [
         {
           label: 'PDI',
           icon: BookOpen,
@@ -235,10 +253,16 @@ export default function Sidebar({
             },
           ],
         },
+        {
+          label: 'Relatórios',
+          icon: PieChart,
+          path: '/reports',
+          allowedRoles: ['admin', 'director'],
+        },
       ],
     },
     {
-      title: 'Recrutamento',
+      title: 'Recrutamento e Seleção',
       allowedRoles: ['admin', 'director', 'leader'],
       items: [
         {
@@ -254,7 +278,7 @@ export default function Sidebar({
               allowedRoles: ['admin', 'director', 'leader'],
             },
             {
-              label: '90 Dias e Desligamento',
+              label: 'Onboard e Offboard',
               icon: ClipboardList,
               path: '/interviews',
               allowedRoles: ['admin', 'director', 'leader'],
@@ -264,24 +288,12 @@ export default function Sidebar({
       ],
     },
     {
-      title: 'Satisfação',
+      title: 'Engajamento',
       items: [
         {
           label: 'Pesquisas',
           icon: SmilePlus,
           path: '/satisfaction',
-        },
-      ],
-    },
-    {
-      title: 'Relatórios',
-      allowedRoles: ['admin', 'director'],
-      items: [
-        {
-          label: 'Relatórios',
-          icon: PieChart,
-          path: '/reports',
-          allowedRoles: ['admin', 'director'],
         },
       ],
     },

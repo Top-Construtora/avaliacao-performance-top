@@ -46,6 +46,7 @@ const SatisfactionRespond = lazy(() => import('./pages/satisfaction/Satisfaction
 const SatisfactionResults = lazy(() => import('./pages/satisfaction/SatisfactionResults'));
 const RecruitmentList = lazy(() => import('./pages/recruitment/RecruitmentList'));
 const RecruitmentForm = lazy(() => import('./pages/recruitment/RecruitmentForm'));
+const RecruitmentView = lazy(() => import('./pages/recruitment/RecruitmentView'));
 const InterviewList = lazy(() => import('./pages/interviews/InterviewList'));
 const InterviewForm = lazy(() => import('./pages/interviews/InterviewForm'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -370,6 +371,14 @@ function App() {
                     />
                     <Route
                       path="recruitment/:id"
+                      element={
+                        <ProtectedRoute allowedRoles={['director', 'leader']}>
+                          <RecruitmentView />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="recruitment/:id/edit"
                       element={
                         <ProtectedRoute allowedRoles={['director', 'leader']}>
                           <RecruitmentForm />

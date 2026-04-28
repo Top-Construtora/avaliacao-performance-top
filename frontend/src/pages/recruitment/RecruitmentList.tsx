@@ -12,6 +12,7 @@ import {
   Calendar,
   MapPin,
   Eye,
+  Pencil,
   Trash2,
   PlayCircle,
   StopCircle,
@@ -136,46 +137,39 @@ const RecruitmentList = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 dark:from-gray-700 dark:via-gray-800 dark:to-gray-900 rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.total}</p>
-              <p className="text-sm text-gray-300 font-medium">Total Vagas</p>
-            </div>
-            <Briefcase className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-500 opacity-50" />
-          </div>
-
-          <div className="relative overflow-hidden bg-gradient-to-br from-green-600 via-green-700 to-green-800 rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.open}</p>
-              <p className="text-sm text-green-100 font-medium">Abertas</p>
-            </div>
-            <PlayCircle className="absolute -bottom-2 -right-2 h-16 w-16 text-green-400 opacity-50" />
-          </div>
-
-          <div className="relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.totalCandidates}</p>
-              <p className="text-sm text-primary-100 font-medium">Currículos</p>
-            </div>
-            <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-primary-600 opacity-50" />
-          </div>
-
-          <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.totalInterviews}</p>
-              <p className="text-sm text-blue-100 font-medium">Entrevistas</p>
-            </div>
-            <Calendar className="absolute -bottom-2 -right-2 h-16 w-16 text-blue-400 opacity-50" />
-          </div>
-
-          <div className="relative overflow-hidden bg-gradient-to-br from-stone-800 via-stone-800 to-stone-900 rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.closed}</p>
-              <p className="text-sm text-stone-100 font-medium">Fechadas</p>
-            </div>
-            <CheckCircle className="absolute -bottom-2 -right-2 h-16 w-16 text-stone-600 opacity-50" />
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
+          {[
+            { value: stats.total, label: 'Total Vagas', icon: Briefcase, gradient: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)' },
+            { value: stats.open, label: 'Abertas', icon: PlayCircle, gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' },
+            { value: stats.totalCandidates, label: 'Currículos', icon: Users, gradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)' },
+            { value: stats.totalInterviews, label: 'Entrevistas', icon: Calendar, gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' },
+            { value: stats.closed, label: 'Fechadas', icon: CheckCircle, gradient: 'linear-gradient(135deg, #64748b 0%, #475569 100%)' },
+          ].map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className="relative bg-white dark:bg-yt-surface rounded-xl p-3 sm:p-4 border border-gray-200 dark:border-yt-border shadow-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex-shrink-0 inline-flex p-2 rounded-lg shadow-sm"
+                    style={{ background: stat.gradient }}
+                  >
+                    <Icon className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 font-lemon-milk tracking-wide leading-none">
+                      {stat.value}
+                    </p>
+                    <p className="text-[11px] sm:text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mt-1 truncate">
+                      {stat.label}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </motion.div>
 
@@ -291,9 +285,17 @@ const RecruitmentList = () => {
                           <button
                             onClick={() => navigate(`/recruitment/${opening.id}`)}
                             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-primary-600 transition-colors"
-                            title="Ver detalhes"
+                            title="Visualizar vaga"
                           >
                             <Eye className="h-4 w-4" />
+                          </button>
+
+                          <button
+                            onClick={() => navigate(`/recruitment/${opening.id}/edit`)}
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-primary-600 transition-colors"
+                            title="Editar vaga"
+                          >
+                            <Pencil className="h-4 w-4" />
                           </button>
 
                           {opening.status === 'draft' && (
