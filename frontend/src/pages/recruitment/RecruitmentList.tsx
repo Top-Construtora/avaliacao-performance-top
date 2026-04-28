@@ -12,12 +12,10 @@ import {
   Calendar,
   MapPin,
   Eye,
-  Edit,
   Trash2,
   PlayCircle,
   StopCircle,
   FileText,
-  UserPlus,
   CheckCircle,
   Clock,
   AlertCircle,
@@ -212,127 +210,7 @@ const RecruitmentList = () => {
           />
         </div>
 
-        <div className="space-y-3">
-          {filteredOpenings.map(opening => {
-            const statusInfo = statusConfig[opening.status] || statusConfig.draft;
-            const StatusIcon = statusInfo.icon;
-            const prioInfo = priorityConfig[opening.priority] || priorityConfig.normal;
-
-            return (
-              <motion.div
-                key={opening.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl border border-gray-100 dark:border-yt-border hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 p-4"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 p-2.5 rounded-xl bg-primary-100 dark:bg-primary-900/30">
-                    <Briefcase className="h-5 w-5 text-primary-700 dark:text-primary-400" />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{opening.title}</h3>
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
-                        <StatusIcon className="h-3.5 w-3.5" />
-                        {statusInfo.label}
-                      </span>
-                      {opening.priority !== 'normal' && (
-                        <span className={`text-xs font-medium ${prioInfo.color}`}>
-                          <AlertCircle className="h-3 w-3 inline mr-0.5" />
-                          {prioInfo.label}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
-                      {opening.department && (
-                        <span className="flex items-center gap-1">
-                          <Briefcase className="h-3.5 w-3.5" />
-                          {opening.department.name}
-                        </span>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <Users className="h-3.5 w-3.5" />
-                        {opening.candidate_count || 0} currículos
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5" />
-                        {opening.interview_count || 0} entrevistas
-                      </span>
-                      {opening.positions_count > 1 && (
-                        <span className="flex items-center gap-1">
-                          <UserPlus className="h-3.5 w-3.5" />
-                          {opening.positions_count} posições
-                        </span>
-                      )}
-                      {opening.location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5" />
-                          {opening.location}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                      Solicitado por: {opening.requester?.name || 'N/A'}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button
-                      onClick={() => navigate(`/recruitment/${opening.id}`)}
-                      className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 hover:text-primary-600 transition-colors"
-                      title="Ver detalhes"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-
-                    {opening.status === 'draft' && (
-                      <button
-                        onClick={() => handleStatusChange(opening.id, 'open')}
-                        className="p-2 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/20 text-gray-500 hover:text-green-600 transition-colors"
-                        title="Abrir vaga"
-                      >
-                        <PlayCircle className="h-4 w-4" />
-                      </button>
-                    )}
-
-                    {opening.status === 'open' && (
-                      <button
-                        onClick={() => handleStatusChange(opening.id, 'in_progress')}
-                        className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/20 text-gray-500 hover:text-blue-600 transition-colors"
-                        title="Iniciar processo"
-                      >
-                        <Clock className="h-4 w-4" />
-                      </button>
-                    )}
-
-                    {['open', 'in_progress'].includes(opening.status) && (
-                      <button
-                        onClick={() => handleStatusChange(opening.id, 'closed')}
-                        className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-900/20 text-gray-500 hover:text-stone-600 transition-colors"
-                        title="Fechar vaga"
-                      >
-                        <StopCircle className="h-4 w-4" />
-                      </button>
-                    )}
-
-                    {canDelete && (
-                      <button
-                        onClick={() => handleDelete(opening.id)}
-                        className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 hover:text-red-600 transition-colors"
-                        title="Excluir"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {filteredOpenings.length === 0 && (
+        {filteredOpenings.length === 0 ? (
           <div className="text-center py-12">
             <Briefcase className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Nenhuma vaga encontrada</h3>
@@ -340,6 +218,130 @@ const RecruitmentList = () => {
             <Button variant="primary" onClick={() => navigate('/recruitment/new')} icon={<Plus size={18} />}>
               Solicitar Vaga
             </Button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-yt-border">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-yt-border text-sm">
+              <thead className="bg-gray-50 dark:bg-yt-elevated/50">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <th scope="col" className="px-4 py-3">Vaga</th>
+                  <th scope="col" className="px-4 py-3">Departamento</th>
+                  <th scope="col" className="px-4 py-3">Local</th>
+                  <th scope="col" className="px-4 py-3">Status</th>
+                  <th scope="col" className="px-4 py-3 text-center">Currículos</th>
+                  <th scope="col" className="px-4 py-3 text-center">Entrevistas</th>
+                  <th scope="col" className="px-4 py-3 text-center">Posições</th>
+                  <th scope="col" className="px-4 py-3">Solicitante</th>
+                  <th scope="col" className="px-4 py-3 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-yt-border bg-white dark:bg-yt-surface">
+                {filteredOpenings.map(opening => {
+                  const statusInfo = statusConfig[opening.status] || statusConfig.draft;
+                  const StatusIcon = statusInfo.icon;
+                  const prioInfo = priorityConfig[opening.priority] || priorityConfig.normal;
+
+                  return (
+                    <tr
+                      key={opening.id}
+                      className="hover:bg-gray-50 dark:hover:bg-yt-elevated/40 transition-colors"
+                    >
+                      <td className="px-4 py-3 align-middle">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{opening.title}</span>
+                          {opening.priority !== 'normal' && (
+                            <span className={`inline-flex items-center text-xs font-medium ${prioInfo.color}`}>
+                              <AlertCircle className="h-3 w-3 mr-0.5" />
+                              {prioInfo.label}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 align-middle text-gray-600 dark:text-gray-300">
+                        {opening.department?.name || '—'}
+                      </td>
+                      <td className="px-4 py-3 align-middle text-gray-600 dark:text-gray-300">
+                        {opening.location ? (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                            {opening.location}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
+                          <StatusIcon className="h-3.5 w-3.5" />
+                          {statusInfo.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 align-middle text-center text-gray-700 dark:text-gray-200 tabular-nums">
+                        {opening.candidate_count || 0}
+                      </td>
+                      <td className="px-4 py-3 align-middle text-center text-gray-700 dark:text-gray-200 tabular-nums">
+                        {opening.interview_count || 0}
+                      </td>
+                      <td className="px-4 py-3 align-middle text-center text-gray-700 dark:text-gray-200 tabular-nums">
+                        {opening.positions_count || 1}
+                      </td>
+                      <td className="px-4 py-3 align-middle text-gray-600 dark:text-gray-300">
+                        {opening.requester?.name || 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => navigate(`/recruitment/${opening.id}`)}
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-primary-600 transition-colors"
+                            title="Ver detalhes"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+
+                          {opening.status === 'draft' && (
+                            <button
+                              onClick={() => handleStatusChange(opening.id, 'open')}
+                              className="p-2 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/20 text-gray-500 hover:text-green-600 transition-colors"
+                              title="Abrir vaga"
+                            >
+                              <PlayCircle className="h-4 w-4" />
+                            </button>
+                          )}
+
+                          {opening.status === 'open' && (
+                            <button
+                              onClick={() => handleStatusChange(opening.id, 'in_progress')}
+                              className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/20 text-gray-500 hover:text-blue-600 transition-colors"
+                              title="Iniciar processo"
+                            >
+                              <Clock className="h-4 w-4" />
+                            </button>
+                          )}
+
+                          {['open', 'in_progress'].includes(opening.status) && (
+                            <button
+                              onClick={() => handleStatusChange(opening.id, 'closed')}
+                              className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-900/20 text-gray-500 hover:text-stone-600 transition-colors"
+                              title="Fechar vaga"
+                            >
+                              <StopCircle className="h-4 w-4" />
+                            </button>
+                          )}
+
+                          {canDelete && (
+                            <button
+                              onClick={() => handleDelete(opening.id)}
+                              className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 hover:text-red-600 transition-colors"
+                              title="Excluir"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
