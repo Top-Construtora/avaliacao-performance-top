@@ -207,11 +207,11 @@ export default function Sidebar({
       ],
     },
     {
-      title: 'Entrevistas',
+      title: '90 Dias e Desligamento',
       allowedRoles: ['admin', 'director', 'leader'],
       items: [
         {
-          label: 'Entrevistas',
+          label: '90 Dias e Desligamento',
           icon: ClipboardList,
           path: '/interviews',
           allowedRoles: ['admin', 'director', 'leader'],

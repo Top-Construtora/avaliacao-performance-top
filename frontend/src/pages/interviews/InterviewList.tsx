@@ -120,10 +120,10 @@ const InterviewList = () => {
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
               <ClipboardList className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-900 dark:text-primary-300 mr-2 sm:mr-3 flex-shrink-0" />
-              Entrevistas
+              90 Dias e Desligamento
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
-              Entrevistas de 90 dias e desligamento
+              Entrevistas de acompanhamento de 90 dias e de desligamento
             </p>
           </div>
 
