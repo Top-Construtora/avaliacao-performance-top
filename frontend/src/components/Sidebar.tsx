@@ -207,18 +207,6 @@ export default function Sidebar({
       ],
     },
     {
-      title: '90 Dias e Desligamento',
-      allowedRoles: ['admin', 'director', 'leader'],
-      items: [
-        {
-          label: '90 Dias e Desligamento',
-          icon: ClipboardList,
-          path: '/interviews',
-          allowedRoles: ['admin', 'director', 'leader'],
-        },
-      ],
-    },
-    {
       title: 'Desenvolvimento',
       items: [
         {
@@ -254,10 +242,24 @@ export default function Sidebar({
       allowedRoles: ['admin', 'director', 'leader'],
       items: [
         {
-          label: 'Vagas',
+          label: 'Recrutamento',
           icon: Briefcase,
-          path: '/recruitment',
+          hasDropdown: true,
           allowedRoles: ['admin', 'director', 'leader'],
+          subItems: [
+            {
+              label: 'Vagas',
+              icon: Briefcase,
+              path: '/recruitment',
+              allowedRoles: ['admin', 'director', 'leader'],
+            },
+            {
+              label: '90 Dias e Desligamento',
+              icon: ClipboardList,
+              path: '/interviews',
+              allowedRoles: ['admin', 'director', 'leader'],
+            },
+          ],
         },
       ],
     },
