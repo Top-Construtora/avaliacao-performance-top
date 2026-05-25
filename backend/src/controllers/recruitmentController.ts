@@ -185,6 +185,10 @@ export const recruitmentController = {
       if (updates.status === 'closed' && !updates.closed_at) {
         updates.closed_at = new Date().toISOString();
       }
+      // Reabrir vaga: limpa closed_at para que um próximo fechamento gere novo carimbo
+      if (updates.status && updates.status !== 'closed' && updates.status !== 'cancelled') {
+        updates.closed_at = null;
+      }
 
       // Remover campos de relacionamento para não causar erro
       delete updates.department;

@@ -32,6 +32,25 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
   cancelled: { label: 'Cancelada', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300', icon: StopCircle },
 };
 
+const computeSla = (opening: JobOpening): { days: number; label: string; color: string; closed: boolean } | null => {
+  const start = opening.opened_at || opening.created_at;
+  if (!start) return null;
+  const isClosed = opening.status === 'closed' || opening.status === 'cancelled';
+  const end = isClosed ? (opening.closed_at || opening.updated_at) : new Date().toISOString();
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  const days = Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)));
+  const label = `${days} ${days === 1 ? 'dia' : 'dias'}`;
+  if (isClosed) {
+    return { days, label, color: 'bg-gray-100 dark:bg-yt-elevated text-gray-700 dark:text-gray-300', closed: true };
+  }
+  const color = days >= 60
+    ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+    : days >= 30
+      ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+      : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
+  return { days, label, color, closed: false };
+};
+
 const priorityConfig: Record<string, { label: string; color: string }> = {
   low: { label: 'Baixa', color: 'text-gray-500' },
   normal: { label: 'Normal', color: 'text-blue-500' },
@@ -177,17 +196,24 @@ const RecruitmentList = () => {
       <div className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
           <div className="flex items-center bg-gray-100/80 dark:bg-yt-elevated/50 rounded-xl p-1.5">
-            {['all', 'open', 'in_progress', 'draft', 'closed'].map(s => (
+            {[
+              { value: 'all', label: 'Todas' },
+              { value: 'draft', label: 'Rascunhos' },
+              { value: 'open', label: 'Abertas' },
+              { value: 'in_progress', label: 'Em Andamento' },
+              { value: 'closed', label: 'Fechadas' },
+              { value: 'cancelled', label: 'Canceladas' },
+            ].map(s => (
               <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
+                key={s.value}
+                onClick={() => setStatusFilter(s.value)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  statusFilter === s
+                  statusFilter === s.value
                     ? 'bg-white dark:bg-yt-elevated text-primary-600 dark:text-primary-400 shadow-sm'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'
                 }`}
               >
-                {s === 'all' ? 'Todas' : s === 'open' ? 'Abertas' : s === 'in_progress' ? 'Em Andamento' : s === 'draft' ? 'Rascunhos' : 'Fechadas'}
+                {s.label}
               </button>
             ))}
           </div>
@@ -222,6 +248,7 @@ const RecruitmentList = () => {
                   <th scope="col" className="px-4 py-3">Departamento</th>
                   <th scope="col" className="px-4 py-3">Local</th>
                   <th scope="col" className="px-4 py-3">Status</th>
+                  <th scope="col" className="px-4 py-3 text-center">SLA</th>
                   <th scope="col" className="px-4 py-3 text-center">Currículos</th>
                   <th scope="col" className="px-4 py-3 text-center">Entrevistas</th>
                   <th scope="col" className="px-4 py-3 text-center">Posições</th>
@@ -234,6 +261,7 @@ const RecruitmentList = () => {
                   const statusInfo = statusConfig[opening.status] || statusConfig.draft;
                   const StatusIcon = statusInfo.icon;
                   const prioInfo = priorityConfig[opening.priority] || priorityConfig.normal;
+                  const sla = computeSla(opening);
 
                   return (
                     <tr
@@ -267,6 +295,19 @@ const RecruitmentList = () => {
                           <StatusIcon className="h-3.5 w-3.5" />
                           {statusInfo.label}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 align-middle text-center">
+                        {sla ? (
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium tabular-nums ${sla.color}`}
+                            title={sla.closed ? 'Tempo total até o fechamento' : 'Dias desde a abertura'}
+                          >
+                            <Clock className="h-3.5 w-3.5" />
+                            {sla.label}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 align-middle text-center text-gray-700 dark:text-gray-200 tabular-nums">
                         {opening.candidate_count || 0}
@@ -325,6 +366,16 @@ const RecruitmentList = () => {
                               title="Fechar vaga"
                             >
                               <StopCircle className="h-4 w-4" />
+                            </button>
+                          )}
+
+                          {['closed', 'cancelled'].includes(opening.status) && (
+                            <button
+                              onClick={() => handleStatusChange(opening.id, 'open')}
+                              className="p-2 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/20 text-gray-500 hover:text-green-600 transition-colors"
+                              title="Reabrir vaga"
+                            >
+                              <PlayCircle className="h-4 w-4" />
                             </button>
                           )}
 
