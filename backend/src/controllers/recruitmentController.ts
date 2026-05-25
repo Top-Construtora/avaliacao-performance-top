@@ -9,6 +9,8 @@ export const recruitmentController = {
   async getJobOpenings(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { status, department_id, requested_by } = req.query;
+      const user = req.user!;
+      const isPrivileged = user.is_admin || user.is_director;
 
       let query = supabaseAdmin
         .from('job_openings')
@@ -22,6 +24,13 @@ export const recruitmentController = {
       if (status) query = query.eq('status', status);
       if (department_id) query = query.eq('department_id', department_id);
       if (requested_by) query = query.eq('requested_by', requested_by);
+
+      // Leaders veem apenas vagas que solicitaram ou do próprio departamento
+      if (!isPrivileged) {
+        const orClauses = [`requested_by.eq.${user.id}`];
+        if (user.department_id) orClauses.push(`department_id.eq.${user.department_id}`);
+        query = query.or(orClauses.join(','));
+      }
 
       const { data, error } = await query;
       if (error) throw error;
@@ -74,6 +83,17 @@ export const recruitmentController = {
       if (error) throw error;
       if (!opening) {
         return res.status(404).json({ success: false, error: 'Vaga não encontrada' });
+      }
+
+      // Leaders só podem abrir vagas que solicitaram ou do próprio departamento
+      const user = req.user!;
+      const isPrivileged = user.is_admin || user.is_director;
+      if (!isPrivileged) {
+        const isOwner = opening.requested_by === user.id;
+        const sameDept = !!user.department_id && opening.department_id === user.department_id;
+        if (!isOwner && !sameDept) {
+          return res.status(403).json({ success: false, error: 'Você não tem permissão para visualizar esta vaga' });
+        }
       }
 
       // Buscar candidatos
