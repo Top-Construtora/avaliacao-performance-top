@@ -142,9 +142,17 @@ export const evaluationService = {
   // Dashboard do ciclo
   async getCycleDashboard(supabase: any, cycleId: string, currentUserEmail?: string) {
     try {
-      // OTIMIZAÇÃO: Executar todas as 5 queries em PARALELO com Promise.all
-      const [usersResult, selfEvalsResult, leaderEvalsResult, consensusEvalsResult, teamMembersResult] = await Promise.all([
-        // Query 1: Buscar TODOS os usuários ativos (exceto admins)
+      // OTIMIZAÇÃO: Executar todas as queries em PARALELO com Promise.all
+      const [cycleResult, usersResult, selfEvalsResult, leaderEvalsResult, consensusEvalsResult, teamMembersResult] = await Promise.all([
+        // Query 0: Buscar o ciclo para saber a data de término (usada como cutoff)
+        supabase
+          .from('evaluation_cycles')
+          .select('id, end_date')
+          .eq('id', cycleId)
+          .single(),
+
+        // Query 1: Buscar usuários (exceto admins). Inclui inativos — quem foi
+        // desligado depois ainda precisa aparecer com suas notas no ciclo.
         supabase
           .from('users')
           .select(`
@@ -154,9 +162,10 @@ export const evaluationService = {
             position,
             is_director,
             department_id,
+            active,
+            created_at,
             departments:department_id(id, name)
           `)
-          .eq('active', true)
           .eq('is_admin', false),
 
         // Query 2: Buscar autoavaliações
@@ -202,17 +211,36 @@ export const evaluationService = {
       ]);
 
       // Extrair dados e verificar erros
+      const { data: cycle, error: cycleError } = cycleResult;
       const { data: allUsers, error: usersError } = usersResult;
       const { data: selfEvals, error: selfError } = selfEvalsResult;
       const { data: leaderEvals, error: leaderError } = leaderEvalsResult;
       const { data: consensusEvals, error: consensusError } = consensusEvalsResult;
       const { data: teamMembers, error: teamMembersError } = teamMembersResult;
 
+      if (cycleError) console.error('Error fetching cycle:', cycleError);
       if (usersError) console.error('Error fetching users:', usersError);
       if (selfError) console.error('Error fetching self evaluations:', selfError);
       if (leaderError) console.error('Error fetching leader evaluations:', leaderError);
       if (consensusError) console.error('Error fetching consensus evaluations:', consensusError);
       if (teamMembersError) console.error('Error fetching team members:', teamMembersError);
+
+      // Regra de inclusão no relatório do ciclo:
+      // - Quem tem qualquer avaliação no ciclo entra sempre (mesmo desativado).
+      // - Quem não tem avaliação só entra se estava ativo e foi criado até a
+      //   data de término do ciclo (potencial "pendente" legítimo).
+      const cycleEndDate = cycle?.end_date ? new Date(`${cycle.end_date}T23:59:59.999Z`).getTime() : null;
+      const employeesWithEvals = new Set<string>([
+        ...(selfEvals || []).map((e: any) => e.employee_id),
+        ...(leaderEvals || []).map((e: any) => e.employee_id),
+        ...(consensusEvals || []).map((e: any) => e.employee_id),
+      ]);
+      const usersInCycle = (allUsers || []).filter((u: any) => {
+        if (employeesWithEvals.has(u.id)) return true;
+        if (u.active !== true) return false;
+        if (!cycleEndDate || !u.created_at) return true;
+        return new Date(u.created_at).getTime() <= cycleEndDate;
+      });
 
       // Criar mapas de usuário -> departamento e usuário -> time via team_members
       const userDepartmentMap = new Map<string, string>();
@@ -227,7 +255,7 @@ export const evaluationService = {
       });
 
       // Aplicar filtro de usuários restritos (geral)
-      let filteredUsers = filterRestrictedUsers(currentUserEmail, allUsers || []);
+      let filteredUsers = filterRestrictedUsers(currentUserEmail, usersInCycle);
       // Aplicar filtro específico de avaliações (Comitê/Consenso)
       filteredUsers = filterEvaluationRestrictedUsers(currentUserEmail, filteredUsers);
 
