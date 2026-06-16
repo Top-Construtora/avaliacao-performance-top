@@ -37,12 +37,19 @@ declare module 'jspdf' {
 }
 
 const Reports = () => {
-  const { 
-    currentCycle, 
-    loadCurrentCycle, 
-    loading: evaluationLoading 
+  const {
+    currentCycle,
+    loadCurrentCycle,
+    loading: evaluationLoading
   } = useEvaluation();
-  
+
+  const [availableCycles, setAvailableCycles] = useState<EvaluationCycle[]>([]);
+  const [selectedCycleId, setSelectedCycleId] = useState<string | null>(null);
+  const selectedCycle = useMemo(
+    () => availableCycles.find(c => c.id === selectedCycleId) || currentCycle || null,
+    [availableCycles, selectedCycleId, currentCycle]
+  );
+
   const [activeTab, setActiveTab] = useState<'overview' | 'detailed' | 'extract'>('overview');
   const [showMobileActions, setShowMobileActions] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,6 +59,17 @@ const Reports = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<UserWithDetails[]>([]);
   const [dashboard, setDashboard] = useState<CycleDashboard[]>([]);
+
+  const cycleFileSlug = useMemo(() => {
+    if (!selectedCycle?.title) return '';
+    const slug = selectedCycle.title
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .toLowerCase();
+    return slug ? `_${slug}` : '';
+  }, [selectedCycle?.title]);
 
   // Estados para os cards de visão geral
   const [summaryData, setSummaryData] = useState({
@@ -97,20 +115,32 @@ const Reports = () => {
     loadInitialData();
   }, []);
 
-  // Carregar dashboard quando o ciclo mudar
+  // Carregar dashboard quando o ciclo selecionado mudar
   useEffect(() => {
-    if (currentCycle) {
-      loadDashboardData(currentCycle.id);
+    if (selectedCycle) {
+      loadDashboardData(selectedCycle.id);
+    } else {
+      setDashboard([]);
     }
-  }, [currentCycle]);
+  }, [selectedCycle?.id]);
 
   const loadInitialData = async () => {
     try {
       setLoading(true);
 
-      // Carregar ciclo atual se não estiver carregado
+      // Carregar lista de ciclos (todos, inclusive fechados)
+      const cycles = await evaluationService.getAllCycles();
+      setAvailableCycles(cycles);
+
+      // Tentar carregar ciclo atual; se não houver, usa o mais recente
       if (!currentCycle) {
         await loadCurrentCycle();
+      }
+
+      // Definir seleção inicial: prioridade para o ciclo ativo; senão, o mais recente
+      const fallbackCycle = currentCycle || cycles[0] || null;
+      if (fallbackCycle) {
+        setSelectedCycleId(fallbackCycle.id);
       }
 
       // Carregar departamentos
@@ -132,6 +162,13 @@ const Reports = () => {
       setLoading(false);
     }
   };
+
+  // Quando o ciclo atual carregar tardiamente, ajustar seleção se ainda não houver
+  useEffect(() => {
+    if (currentCycle && !selectedCycleId) {
+      setSelectedCycleId(currentCycle.id);
+    }
+  }, [currentCycle, selectedCycleId]);
 
   const loadDashboardData = async (cycleId: string) => {
     try {
@@ -428,7 +465,7 @@ const Reports = () => {
     const resumoData = [
       ...stats,
       { label: '', value: '' },
-      { label: 'Ciclo', value: currentCycle?.title || '-' },
+      { label: 'Ciclo', value: selectedCycle?.title || '-' },
       { label: 'Data de Exportação', value: new Date().toLocaleString('pt-BR') },
     ].map(r => ({ 'Indicador': r.label, 'Valor': r.value }));
 
@@ -499,7 +536,7 @@ const Reports = () => {
     XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
 
     const dataAtual = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `relatorio_avaliacoes_${dataAtual}.xlsx`);
+    XLSX.writeFile(wb, `relatorio_avaliacoes${cycleFileSlug}_${dataAtual}.xlsx`);
     toast.success('Relatório de Avaliações gerado!');
   };
 
@@ -552,7 +589,7 @@ const Reports = () => {
     XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
 
     const dataAtual = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `relatorio_colaboradores_${dataAtual}.xlsx`);
+    XLSX.writeFile(wb, `relatorio_colaboradores${cycleFileSlug}_${dataAtual}.xlsx`);
     toast.success('Relatório de Colaboradores gerado!');
   };
 
@@ -601,7 +638,7 @@ const Reports = () => {
     XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
 
     const dataAtual = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `relatorio_gestao_salarial_${dataAtual}.xlsx`);
+    XLSX.writeFile(wb, `relatorio_gestao_salarial${cycleFileSlug}_${dataAtual}.xlsx`);
     toast.success('Relatório de Gestão Salarial gerado!');
   };
 
@@ -661,7 +698,7 @@ const Reports = () => {
     XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
 
     const dataAtual = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `relatorio_ninebox_${dataAtual}.xlsx`);
+    XLSX.writeFile(wb, `relatorio_ninebox${cycleFileSlug}_${dataAtual}.xlsx`);
     toast.success('Relatório Nine Box gerado!');
   };
 
@@ -673,8 +710,8 @@ const Reports = () => {
 
     doc.setFontSize(10);
     doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 25);
-    if (currentCycle) {
-      doc.text(`Ciclo: ${currentCycle.title}`, 14, 32);
+    if (selectedCycle) {
+      doc.text(`Ciclo: ${selectedCycle.title}`, 14, 32);
     }
 
     const tableData = filteredData.map((item: CycleDashboard) => {
@@ -701,7 +738,7 @@ const Reports = () => {
       headStyles: { fillColor: [22, 101, 52] }
     });
 
-    doc.save('relatorio_avaliacoes.pdf');
+    doc.save(`relatorio_avaliacoes${cycleFileSlug}.pdf`);
     toast.success('Relatório PDF gerado com sucesso!');
   };
 
@@ -742,7 +779,7 @@ const Reports = () => {
     XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
 
     const dataAtual = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `relatorio_avaliacoes_${dataAtual}.xlsx`);
+    XLSX.writeFile(wb, `relatorio_avaliacoes${cycleFileSlug}_${dataAtual}.xlsx`);
     toast.success('Relatório Excel gerado com sucesso!');
   };
 
@@ -882,15 +919,22 @@ const Reports = () => {
     return <LoadingSpinner minHeight="min-h-[60vh]" />;
   }
 
-  if (!currentCycle) {
+  if (!selectedCycle && availableCycles.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <p className="text-gray-500 dark:text-gray-400">Nenhum ciclo de avaliação ativo</p>
+          <p className="text-gray-500 dark:text-gray-400">Nenhum ciclo de avaliação encontrado</p>
         </div>
       </div>
     );
   }
+
+  const cycleStatusLabel = (status: string) => {
+    if (status === 'open' || status === 'active') return 'Ativo';
+    if (status === 'closed') return 'Fechado';
+    if (status === 'draft') return 'Rascunho';
+    return status;
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fadeIn">
@@ -903,10 +947,27 @@ const Reports = () => {
               <span className="break-words">Central de Relatórios</span>
             </h1>
             <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
-              Acompanhe o progresso das avaliações - {currentCycle.title}
+              Acompanhe o progresso das avaliações{selectedCycle ? ` - ${selectedCycle.title}` : ''}
             </p>
           </div>
-          
+
+          <div className="flex items-center gap-2">
+            <label htmlFor="cycle-selector" className="text-sm font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap">
+              Ciclo:
+            </label>
+            <select
+              id="cycle-selector"
+              value={selectedCycleId || ''}
+              onChange={(e) => setSelectedCycleId(e.target.value || null)}
+              className="rounded-lg border border-gray-200 dark:border-yt-border bg-white dark:bg-yt-elevated text-sm text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-primary-500 focus:ring-primary-500"
+            >
+              {availableCycles.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.title} ({cycleStatusLabel(c.status)})
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
