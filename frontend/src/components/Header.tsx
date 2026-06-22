@@ -1,10 +1,11 @@
 import { useRef, useState, useEffect } from 'react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from './ThemeToggle';
 import {
   Bell,
-  Calendar,
   ChevronDown,
   ChevronRight,
   LogOut,
@@ -34,6 +35,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
   const { user, profile, signOut } = useAuth();
   const { isDirector, isLeader, isAdmin } = useUserRole();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [expandedNotifications, setExpandedNotifications] = useState<{ [key: string]: boolean }>(
@@ -116,6 +118,12 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
 
   // Últimas 5 notificações para o dropdown
   const recentNotifications = notifications.slice(0, 5);
+
+  // Relógio — atualiza a cada minuto
+  useEffect(() => {
+    const t = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(t);
+  }, []);
 
   // Effect para detectar clique fora
   useEffect(() => {
@@ -255,22 +263,13 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
               </motion.span>
             </span>
           </h1>
-          <p className="text-xs sm:text-sm text-white/70 flex items-center">
-            <Calendar className="w-3 h-3 mr-1 flex-shrink-0" />
-            <span className="hidden md:inline">
-              {new Date().toLocaleDateString('pt-BR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+          <p className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-[0.12em]">
+            <span className="font-medium text-gray-400">
+              {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
             </span>
-            <span className="md:hidden">
-              {new Date().toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-              })}
+            <span className="text-gray-600">·</span>
+            <span className="text-sm font-bold tracking-normal text-white">
+              {format(currentTime, 'HH:mm')}
             </span>
           </p>
         </div>
