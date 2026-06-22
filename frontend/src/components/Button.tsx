@@ -21,25 +21,30 @@ const Button = ({
   className = '',
   icon,
 }: ButtonProps) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:-translate-y-0.5 hover:shadow-md font-lemon-milk tracking-wide';
-  
+  const baseClasses =
+    'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background hover:-translate-y-0.5 hover:shadow-md font-lemon-milk tracking-wide';
+
+  // gio v4.0: primary = CTA lime (assinatura); demais via tokens de status/grafite.
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-[#1e6076] to-[#12b0a0] hover:from-[#1a5a6b] hover:to-[#0f9d8a] text-white focus:ring-[#12b0a0]/50',
-    secondary: 'bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-500',
-    success: 'bg-emerald-500 hover:bg-emerald-600 text-white focus:ring-emerald-500',
-    danger: 'bg-red-500 hover:bg-red-600 text-white focus:ring-red-500',
-    warning: 'bg-amber-500 hover:bg-amber-600 text-white focus:ring-amber-500',
-    outline: 'border-2 border-[#1e6076] bg-white text-[#1e6076] hover:bg-[#12b0a0]/5 hover:border-[#12b0a0] hover:text-[#12b0a0] focus:ring-[#12b0a0]/50',
+    primary: 'bg-lime text-obsidian hover:bg-lime-deep focus:ring-lime/50',
+    secondary: 'bg-primary text-primary-foreground hover:opacity-90 focus:ring-primary/50',
+    success: 'bg-success text-white hover:opacity-90 focus:ring-success/50',
+    danger: 'bg-destructive text-destructive-foreground hover:opacity-90 focus:ring-destructive/50',
+    warning: 'bg-warning text-obsidian hover:opacity-90 focus:ring-warning/50',
+    outline:
+      'border-2 border-border bg-card text-foreground hover:border-lime hover:text-lime-deep dark:hover:text-lime focus:ring-lime/50',
   };
-  
+
   const sizeClasses = {
     sm: 'px-4 py-2 text-sm',
     md: 'px-6 py-3 text-base',
     lg: 'px-6 py-3 text-lg',
   };
-  
-  const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed hover:transform-none hover:shadow-none' : '';
-  
+
+  const disabledClasses = disabled
+    ? 'opacity-50 cursor-not-allowed hover:transform-none hover:shadow-none'
+    : '';
+
   return (
     <button
       type={type}

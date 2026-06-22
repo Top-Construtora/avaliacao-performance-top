@@ -23,12 +23,14 @@ const StatusBadge = ({ status, className = '' }: StatusBadgeProps) => {
       label = 'Concluída';
       break;
     default:
-      badgeClass = 'bg-blue-500/10 text-blue-500 border border-blue-500/20';
+      badgeClass = 'bg-muted-foreground/10 text-muted-foreground border border-muted-foreground/20';
       label = status;
   }
 
   return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium ${badgeClass} ${className} whitespace-nowrap`}>
+    <span
+      className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium ${badgeClass} ${className} whitespace-nowrap`}
+    >
       {label}
     </span>
   );

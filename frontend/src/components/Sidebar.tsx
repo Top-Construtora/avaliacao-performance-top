@@ -31,8 +31,11 @@ import {
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import { usePeopleCommitteePermission } from '../hooks/usePeopleCommittee';
-import logo from '../../assets/images/logo.png';
+import logo from '@/assets/images/gio-wordmark.png';
 import { toast } from 'react-hot-toast';
+
+// gio v4.0: wordmark preto sobre transparente → invertido p/ branco na sidebar obsidian
+const INVERT_TO_WHITE = 'invert(1) brightness(1.1)';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -70,7 +73,11 @@ export default function Sidebar({
   const { isDirector, isLeader, isAdmin, role } = useUserRole();
   const { canViewPeopleCommittee } = usePeopleCommitteePermission();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [collapsedDropdown, setCollapsedDropdown] = useState<{ label: string; top: number; subItems: NavItem[] } | null>(null);
+  const [collapsedDropdown, setCollapsedDropdown] = useState<{
+    label: string;
+    top: number;
+    subItems: NavItem[];
+  } | null>(null);
 
   useEffect(() => {
     if (!collapsedDropdown) return;
@@ -332,18 +339,16 @@ export default function Sidebar({
 
   // Filtrar seções e itens baseado no papel do usuário
   const filteredSections = navSections
-    .map(section => ({
+    .map((section) => ({
       ...section,
       items: section.items
         .filter(filterItem)
-        .map(item =>
-          item.subItems
-            ? { ...item, subItems: item.subItems.filter(filterItem) }
-            : item
+        .map((item) =>
+          item.subItems ? { ...item, subItems: item.subItems.filter(filterItem) } : item,
         )
-        .filter(item => !item.hasDropdown || (item.subItems && item.subItems.length > 0)),
+        .filter((item) => !item.hasDropdown || (item.subItems && item.subItems.length > 0)),
     }))
-    .filter(section => {
+    .filter((section) => {
       // Remover seções vazias
       if (section.items.length === 0) return false;
       // Verificar permissão da seção
@@ -370,12 +375,15 @@ export default function Sidebar({
   const sidebarContent = (isMobile: boolean = false) => (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Logo */}
-      <div className={`h-[77px] flex items-center border-b border-white/10 ${isCollapsed && !isMobile ? 'justify-center px-2' : 'justify-between pl-2 pr-4'}`}>
+      <div
+        className={`h-[77px] flex items-center ${isCollapsed && !isMobile ? 'justify-center px-2' : 'justify-between px-4'}`}
+      >
         <div className={`flex items-center ${isCollapsed && !isMobile ? 'justify-center' : ''}`}>
           <img
             src={logo}
-            alt="Logo da empresa"
-            className={`object-contain ${isCollapsed && !isMobile ? 'h-10 w-auto' : 'h-16 w-auto'}`}
+            alt="gio"
+            className={`object-contain ${isCollapsed && !isMobile ? 'h-8 w-auto' : 'h-9 w-auto'}`}
+            style={{ filter: INVERT_TO_WHITE }}
           />
         </div>
         {/* Botão de toggle - só aparece no modo expandido */}
@@ -404,143 +412,151 @@ export default function Sidebar({
       )}
 
       {/* Menu de navegação */}
-      <nav className={`flex-1 py-4 overflow-y-auto overflow-x-hidden ${isCollapsed && !isMobile ? 'px-2' : 'px-3'}`}>
+      <nav
+        className={`flex-1 py-4 overflow-y-auto overflow-x-hidden ${isCollapsed && !isMobile ? 'px-2' : 'px-3'}`}
+      >
         <div className="space-y-1">
-          {filteredSections.map((section, sectionIndex) => (
-            <div key={section.title || 'home'}>
+          {filteredSections.map((section) => (
+            <div key={section.title || 'home'} className="mb-5">
               {/* Título da seção */}
-              {section.title && (
-                isCollapsed && !isMobile ? (
+              {section.title &&
+                (isCollapsed && !isMobile ? (
                   <div className="my-3 mx-1 border-t border-white/10" />
                 ) : (
-                  <div className={`px-4 pt-5 pb-2 ${sectionIndex === 0 ? 'pt-0' : ''}`}>
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
-                      {section.title}
-                    </span>
+                  <div className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+                    {section.title}
                   </div>
-                )
-              )}
+                ))}
 
               {/* Itens da seção */}
-              {section.items.map((item) => (
-                <div key={item.label} className="relative group">
-                  {item.hasDropdown ? (
-                    <>
-                      {isCollapsed && !isMobile ? (
-                        // Modo colapsado com dropdown — portal renderiza o menu fora do overflow
-                        <button
-                          onClick={(e) => handleCollapsedDropdown(e, item)}
-                          className={`
+              <div className="space-y-1">
+                {section.items.map((item) => (
+                  <div key={item.label} className="relative group">
+                    {item.hasDropdown ? (
+                      <>
+                        {isCollapsed && !isMobile ? (
+                          // Modo colapsado com dropdown — portal renderiza o menu fora do overflow
+                          <button
+                            onClick={(e) => handleCollapsedDropdown(e, item)}
+                            className={`
                             w-full flex items-center justify-center p-3 rounded-lg transition-all duration-200
-                            ${collapsedDropdown?.label === item.label
-                              ? 'bg-white/10 text-white'
-                              : 'text-white/90 hover:bg-white/10 hover:text-white'
+                            ${
+                              collapsedDropdown?.label === item.label
+                                ? 'bg-white/10 text-white'
+                                : 'text-gray-400 hover:bg-white/5 hover:text-white'
                             }
                           `}
-                          title={item.label}
-                        >
-                          <item.icon className="h-5 w-5 flex-shrink-0" />
-                        </button>
-                      ) : (
-                        // Modo expandido com dropdown
-                        <>
-                          <button
-                            onClick={() => handleDropdownToggle(item.label)}
-                            className={`
-                              w-full flex items-center justify-between px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
-                              ${openDropdown === item.label
-                                ? 'bg-white/10 text-white'
-                                : 'text-white/90 hover:bg-white/10 hover:text-white'
+                            title={item.label}
+                          >
+                            <item.icon className="h-5 w-5 flex-shrink-0" />
+                          </button>
+                        ) : (
+                          // Modo expandido com dropdown
+                          <>
+                            <button
+                              onClick={() => handleDropdownToggle(item.label)}
+                              className={`
+                              w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
+                              ${
+                                openDropdown === item.label
+                                  ? 'bg-white/10 text-white'
+                                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
                               }
                             `}
-                          >
-                            <div className="flex items-center">
-                              <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
-                              <span>{item.label}</span>
-                            </div>
-                            <ChevronDown
-                              className={`h-4 w-4 transition-transform duration-200 ${
-                                openDropdown === item.label ? 'rotate-180' : ''
-                              }`}
-                            />
-                          </button>
+                            >
+                              <div className="flex items-center">
+                                <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                                <span>{item.label}</span>
+                              </div>
+                              <ChevronDown
+                                className={`h-4 w-4 transition-transform duration-200 ${
+                                  openDropdown === item.label ? 'rotate-180' : ''
+                                }`}
+                              />
+                            </button>
 
-                          <AnimatePresence>
-                            {openDropdown === item.label && item.subItems && (
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.2 }}
-                                className="overflow-hidden"
-                              >
-                                <div className="pl-4 mt-1 space-y-1">
-                                  {item.subItems.map((subItem) => (
-                                    <NavLink
-                                      key={subItem.path}
-                                      to={subItem.path!}
-                                      className={({ isActive }) => `
-                                        flex items-center px-4 py-2.5 text-[14px] font-medium rounded-lg transition-all duration-200
-                                        ${isActive
-                                          ? 'bg-[#12b0a0]/15 text-[#12b0a0] border-l-2 border-[#12b0a0]'
-                                          : 'text-white/80 hover:bg-white/10 hover:text-white'
+                            <AnimatePresence>
+                              {openDropdown === item.label && item.subItems && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="ml-5 mt-1 space-y-1 border-l border-white/10 pl-3">
+                                    {item.subItems.map((subItem) => (
+                                      <NavLink
+                                        key={subItem.path}
+                                        to={subItem.path!}
+                                        className={({ isActive }) => `
+                                        flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200
+                                        ${
+                                          isActive
+                                            ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20'
+                                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                         }
                                       `}
-                                      onClick={() => setIsMobileMenuOpen(false)}
-                                    >
-                                      <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
-                                      <span>{subItem.label}</span>
-                                    </NavLink>
-                                  ))}
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </>
-                      )}
-                    </>
-                  ) : isCollapsed && !isMobile ? (
-                    // Item simples em modo colapsado
-                    <NavLink
-                      to={item.path!}
-                      className={({ isActive }) => `
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                      >
+                                        <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
+                                        <span>{subItem.label}</span>
+                                      </NavLink>
+                                    ))}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </>
+                        )}
+                      </>
+                    ) : isCollapsed && !isMobile ? (
+                      // Item simples em modo colapsado
+                      <NavLink
+                        to={item.path!}
+                        className={({ isActive }) => `
                         flex items-center justify-center p-3 rounded-lg transition-all duration-200
-                        ${isActive
-                          ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
-                          : 'text-white/90 hover:bg-white/10 hover:text-white'
+                        ${
+                          isActive
+                            ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20'
+                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
                         }
                       `}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      title={item.label}
-                    >
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                    </NavLink>
-                  ) : (
-                    // Item simples em modo expandido
-                    <NavLink
-                      to={item.path!}
-                      className={({ isActive }) => `
-                        flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
-                        ${isActive
-                          ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
-                          : 'text-white/90 hover:bg-white/10 hover:text-white'
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        title={item.label}
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                      </NavLink>
+                    ) : (
+                      // Item simples em modo expandido
+                      <NavLink
+                        to={item.path!}
+                        className={({ isActive }) => `
+                        flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
+                        ${
+                          isActive
+                            ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20'
+                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
                         }
                       `}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
-                      <span>{item.label}</span>
-                    </NavLink>
-                  )}
-                </div>
-              ))}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                        <span>{item.label}</span>
+                      </NavLink>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
       </nav>
 
       {/* Separador e opções inferiores */}
-      <div className={`py-4 border-t border-white/10 ${isCollapsed && !isMobile ? 'px-2' : 'px-3'}`}>
+      <div
+        className={`py-4 border-t border-white/10 ${isCollapsed && !isMobile ? 'px-2' : 'px-3'}`}
+      >
         <div className="space-y-1">
           {isCollapsed && !isMobile ? (
             // Modo colapsado
@@ -549,7 +565,7 @@ export default function Sidebar({
                 to="/settings"
                 className={({ isActive }) => `
                   flex items-center justify-center p-3 rounded-lg transition-all duration-200
-                  ${isActive ? 'bg-[#12b0a0]/15 text-[#12b0a0]' : 'text-white/90 hover:bg-white/10 hover:text-white'}
+                  ${isActive ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}
                 `}
                 onClick={() => setIsMobileMenuOpen(false)}
                 title="Configurações"
@@ -561,7 +577,7 @@ export default function Sidebar({
                 to="/help"
                 className={({ isActive }) => `
                   flex items-center justify-center p-3 rounded-lg transition-all duration-200
-                  ${isActive ? 'bg-[#12b0a0]/15 text-[#12b0a0]' : 'text-white/90 hover:bg-white/10 hover:text-white'}
+                  ${isActive ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}
                 `}
                 onClick={() => setIsMobileMenuOpen(false)}
                 title="Ajuda"
@@ -583,10 +599,11 @@ export default function Sidebar({
               <NavLink
                 to="/settings"
                 className={({ isActive }) => `
-                  flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
-                  ${isActive
-                    ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
-                    : 'text-white/90 hover:bg-white/10 hover:text-white'
+                  flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
+                  ${
+                    isActive
+                      ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20'
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
                   }
                 `}
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -598,10 +615,11 @@ export default function Sidebar({
               <NavLink
                 to="/help"
                 className={({ isActive }) => `
-                  flex items-center px-4 py-3 text-[15px] font-medium rounded-lg transition-all duration-200
-                  ${isActive
-                    ? 'bg-[#12b0a0]/15 text-[#12b0a0]'
-                    : 'text-white/90 hover:bg-white/10 hover:text-white'
+                  flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
+                  ${
+                    isActive
+                      ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20'
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
                   }
                 `}
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -612,7 +630,7 @@ export default function Sidebar({
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center px-4 py-3 text-[15px] font-medium rounded-lg text-[#F87171] hover:bg-[#F87171]/10 hover:text-[#F87171] transition-all duration-200"
+                className="w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-[#F87171] hover:bg-[#F87171]/10 hover:text-[#F87171] transition-all duration-200"
               >
                 <LogOut className="h-5 w-5 mr-3 flex-shrink-0" />
                 <span>Sair</span>
@@ -627,44 +645,48 @@ export default function Sidebar({
   return (
     <>
       {/* Portal: dropdown do modo colapsado — renderizado fora do overflow */}
-      {collapsedDropdown && isCollapsed && createPortal(
-        <AnimatePresence>
-          <motion.div
-            key={collapsedDropdown.label}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            transition={{ duration: 0.2 }}
-            style={{ position: 'fixed', left: 80, top: collapsedDropdown.top, zIndex: 9999 }}
-            className="bg-[#1e2938] rounded-lg shadow-lg py-2 min-w-[200px]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {collapsedDropdown.subItems.map((subItem) => (
-              <NavLink
-                key={subItem.path}
-                to={subItem.path!}
-                className={({ isActive }) => `
-                  flex items-center px-4 py-2.5 text-[14px] font-medium transition-all duration-200
-                  ${isActive ? 'bg-[#12b0a0]/15 text-[#12b0a0]' : 'text-white/80 hover:bg-white/10 hover:text-white'}
+      {collapsedDropdown &&
+        isCollapsed &&
+        createPortal(
+          <AnimatePresence>
+            <motion.div
+              key={collapsedDropdown.label}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.2 }}
+              style={{ position: 'fixed', left: 80, top: collapsedDropdown.top, zIndex: 9999 }}
+              className="bg-[#232327] border border-white/10 rounded-lg shadow-lg py-2 min-w-[200px]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {collapsedDropdown.subItems.map((subItem) => (
+                <NavLink
+                  key={subItem.path}
+                  to={subItem.path!}
+                  className={({ isActive }) => `
+                  flex items-center px-3 py-2 text-sm font-medium transition-all duration-200
+                  ${isActive ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20' : 'text-white/80 hover:bg-white/10 hover:text-white'}
                 `}
-                onClick={() => { setCollapsedDropdown(null); setIsMobileMenuOpen(false); }}
-              >
-                <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
-                <span>{subItem.label}</span>
-              </NavLink>
-            ))}
-          </motion.div>
-        </AnimatePresence>,
-        document.body
-      )}
+                  onClick={() => {
+                    setCollapsedDropdown(null);
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
+                  <span>{subItem.label}</span>
+                </NavLink>
+              ))}
+            </motion.div>
+          </AnimatePresence>,
+          document.body,
+        )}
 
       {/* Sidebar Desktop */}
       <motion.aside
         initial={false}
         animate={{ width: isCollapsed ? 72 : 256 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="hidden md:flex flex-col fixed h-full z-30"
-        style={{ background: 'linear-gradient(180deg, #1e6076 0%, #1F2937 30%)' }}
+        className="hidden md:flex flex-col fixed h-full z-30 bg-[#1A1A1A]"
       >
         {sidebarContent(false)}
       </motion.aside>
@@ -688,8 +710,7 @@ export default function Sidebar({
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.3 }}
-              className="md:hidden flex flex-col fixed h-full w-64 z-50"
-              style={{ background: 'linear-gradient(180deg, #1e6076 0%, #1F2937 30%)' }}
+              className="md:hidden flex flex-col fixed h-full w-64 z-50 bg-[#1A1A1A]"
             >
               {sidebarContent(true)}
             </motion.aside>

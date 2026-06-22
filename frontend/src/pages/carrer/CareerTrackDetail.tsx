@@ -4,25 +4,33 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import {
-  ArrowLeft, Plus, Edit, Trash2, DollarSign, TrendingUp,
-  ChevronRight, Users,
-  GitBranch, Briefcase, Save
+  ArrowLeft,
+  Plus,
+  Edit,
+  Trash2,
+  DollarSign,
+  TrendingUp,
+  ChevronRight,
+  Users,
+  GitBranch,
+  Briefcase,
+  Save,
 } from 'lucide-react';
 import { salaryService, CareerTrack, TrackPosition } from '../../services/salary.service';
 import { RoleGuard } from '../../components/RoleGuard';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 interface PositionWithDetails extends Omit<TrackPosition, 'position' | 'class'> {
-    position?: {
-      id: string;
-      name: string;
-      description?: string;
-    };
-    class?: {
-      id: string;
-      code: string;
-      name: string;
-    };
+  position?: {
+    id: string;
+    name: string;
+    description?: string;
+  };
+  class?: {
+    id: string;
+    code: string;
+    name: string;
+  };
 }
 
 const CareerTrackDetail = () => {
@@ -41,7 +49,7 @@ const CareerTrackDetail = () => {
     position_id: '',
     class_id: '',
     base_salary: '',
-    order_index: 1
+    order_index: 1,
   });
 
   // Estados para porcentagens dos interníveis
@@ -50,7 +58,7 @@ const CareerTrackDetail = () => {
     B: 3,
     C: 5,
     D: 10,
-    E: 15
+    E: 15,
   });
 
   useEffect(() => {
@@ -65,7 +73,7 @@ const CareerTrackDetail = () => {
       setLoading(true);
       const [trackData, positionsData] = await Promise.all([
         salaryService.getTrackById(trackId!),
-        salaryService.getPositionsByTrack(trackId!)
+        salaryService.getPositionsByTrack(trackId!),
       ]);
       setTrack(trackData);
       setPositions(positionsData.sort((a, b) => a.order_index - b.order_index));
@@ -81,7 +89,7 @@ const CareerTrackDetail = () => {
     try {
       const [positionsData, classesData] = await Promise.all([
         salaryService.getPositions(),
-        salaryService.getClasses()
+        salaryService.getClasses(),
       ]);
       setAvailablePositions(positionsData);
       setAvailableClasses(classesData.sort((a, b) => a.order_index - b.order_index));
@@ -98,11 +106,16 @@ const CareerTrackDetail = () => {
         class_id: formData.class_id,
         base_salary: parseFloat(formData.base_salary),
         order_index: formData.order_index,
-        active: true
+        active: true,
       });
       toast.success('Cargo adicionado à trilha');
       setShowAddPosition(false);
-      setFormData({ position_id: '', class_id: '', base_salary: '', order_index: positions.length + 1 });
+      setFormData({
+        position_id: '',
+        class_id: '',
+        base_salary: '',
+        order_index: positions.length + 1,
+      });
       loadTrackData();
     } catch (error) {
       toast.error('Erro ao adicionar cargo');
@@ -122,7 +135,7 @@ const CareerTrackDetail = () => {
 
   const handleDeletePosition = async (positionId: string) => {
     if (!confirm('Tem certeza que deseja remover este cargo da trilha?')) return;
-    
+
     try {
       await salaryService.deleteTrackPosition(positionId);
       toast.success('Cargo removido da trilha');
@@ -135,7 +148,7 @@ const CareerTrackDetail = () => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
+      currency: 'BRL',
     }).format(value);
   };
 
@@ -151,7 +164,7 @@ const CareerTrackDetail = () => {
   if (!track) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600 dark:text-gray-400">Trilha não encontrada</p>
+        <p className="text-muted-foreground">Trilha não encontrada</p>
         <Button onClick={() => navigate('/salary')} className="mt-4">
           Voltar
         </Button>
@@ -165,22 +178,18 @@ const CareerTrackDetail = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm border border-gray-100 dark:border-yt-border p-6"
+        className="bg-card rounded-2xl shadow-sm border border-border p-6"
       >
         <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="outline"
-            onClick={() => navigate('/salary')}
-            className="p-2"
-          >
+          <Button variant="outline" onClick={() => navigate('/salary')} className="p-2">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
-              <GitBranch className="h-6 w-6 text-primary-500" />
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+              <GitBranch className="h-6 w-6 text-lime-deep dark:text-lime" />
               {track.name}
             </h1>
-            <div className="flex items-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
               {track.code && <span>Código: {track.code}</span>}
               {track.department && (
                 <span className="flex items-center gap-1">
@@ -188,20 +197,17 @@ const CareerTrackDetail = () => {
                   {track.department.name}
                 </span>
               )}
-              <span className={`px-2 py-1 rounded-full text-xs ${
-                track.active
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                  : 'bg-gray-100 text-gray-700 dark:bg-yt-elevated dark:text-gray-300'
-              }`}>
+              <span
+                className={`px-2 py-1 rounded-full text-xs ${
+                  track.active ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'
+                }`}
+              >
                 {track.active ? 'Ativa' : 'Inativa'}
               </span>
             </div>
           </div>
           <RoleGuard allowedRoles={['director', 'leader']}>
-            <Button
-              variant="primary"
-              onClick={() => setShowAddPosition(true)}
-            >
+            <Button variant="primary" onClick={() => setShowAddPosition(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Adicionar Cargo
             </Button>
@@ -209,9 +215,7 @@ const CareerTrackDetail = () => {
         </div>
 
         {track.description && (
-          <p className="text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-yt-elevated/50 p-4 rounded-lg">
-            {track.description}
-          </p>
+          <p className="text-muted-foreground bg-secondary p-4 rounded-lg">{track.description}</p>
         )}
       </motion.div>
 
@@ -219,10 +223,10 @@ const CareerTrackDetail = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm border border-gray-100 dark:border-yt-border p-6"
+        className="bg-card rounded-2xl shadow-sm border border-border p-6"
       >
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-6 flex items-center gap-2">
-          <Briefcase className="h-5 w-5 text-primary-500" />
+        <h2 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
+          <Briefcase className="h-5 w-5 text-lime-deep dark:text-lime" />
           Progressão de Cargos
         </h2>
 
@@ -237,17 +241,17 @@ const CareerTrackDetail = () => {
             >
               {/* Linha conectora */}
               {index < positions.length - 1 && (
-                <div className="absolute left-8 top-16 w-0.5 h-16 bg-gray-300 dark:bg-gray-600" />
+                <div className="absolute left-8 top-16 w-0.5 h-16 bg-border" />
               )}
 
               <div className="flex items-start gap-4">
                 {/* Indicador de ordem */}
-                <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                <div className="flex-shrink-0 w-16 h-16 bg-lime text-obsidian rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
                   {position.order_index}
                 </div>
 
                 {/* Card do cargo */}
-                <div className="flex-1 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-5 border border-gray-200 dark:border-yt-border">
+                <div className="flex-1 bg-secondary rounded-xl p-5 border border-border">
                   {editingPosition === position.id ? (
                     /* Modo edição */
                     <div className="space-y-4">
@@ -256,19 +260,21 @@ const CareerTrackDetail = () => {
                         value={position.base_salary}
                         onChange={(e) => {
                           const newPositions = [...positions];
-                          const idx = newPositions.findIndex(p => p.id === position.id);
+                          const idx = newPositions.findIndex((p) => p.id === position.id);
                           newPositions[idx].base_salary = parseFloat(e.target.value);
                           setPositions(newPositions);
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-surface"
+                        className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background rounded-lg"
                         placeholder="Salário base"
                       />
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          onClick={() => handleUpdatePosition(position.id, {
-                            base_salary: position.base_salary
-                          })}
+                          onClick={() =>
+                            handleUpdatePosition(position.id, {
+                              base_salary: position.base_salary,
+                            })
+                          }
                         >
                           <Save className="h-4 w-4 mr-1" />
                           Salvar
@@ -287,14 +293,14 @@ const CareerTrackDetail = () => {
                     <div>
                       <div className="flex items-start justify-between">
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                          <h3 className="text-lg font-semibold text-foreground">
                             {position.position?.name || 'Cargo'}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          <p className="text-sm text-muted-foreground mt-1">
                             Classe {position.class?.code} - {position.class?.name}
                           </p>
                           {position.position?.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                            <p className="text-sm text-muted-foreground mt-2">
                               {position.position.description}
                             </p>
                           )}
@@ -312,7 +318,7 @@ const CareerTrackDetail = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => handleDeletePosition(position.id)}
-                              className="text-red-600 hover:text-red-700"
+                              className="text-destructive hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -322,16 +328,14 @@ const CareerTrackDetail = () => {
 
                       <div className="mt-4 flex items-center gap-6">
                         <div className="flex items-center gap-2">
-                          <DollarSign className="h-5 w-5 text-green-600" />
-                          <span className="font-semibold text-gray-900 dark:text-gray-100">
+                          <DollarSign className="h-5 w-5 text-success" />
+                          <span className="font-semibold text-foreground">
                             {formatCurrency(position.base_salary)}
                           </span>
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
-                            (base)
-                          </span>
+                          <span className="text-sm text-muted-foreground">(base)</span>
                         </div>
                         {index < positions.length - 1 && (
-                          <div className="flex items-center gap-1 text-primary-600 dark:text-primary-400">
+                          <div className="flex items-center gap-1 text-lime-deep dark:text-lime">
                             <TrendingUp className="h-4 w-4" />
                             <span className="text-sm font-medium">Próximo nível</span>
                             <ChevronRight className="h-4 w-4" />
@@ -340,18 +344,28 @@ const CareerTrackDetail = () => {
                       </div>
 
                       {/* Cálculo com interníveis */}
-                      <div className="mt-4 p-3 bg-gray-100 dark:bg-yt-surface rounded-lg">
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                      <div className="mt-4 p-3 bg-secondary rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-2">
                           Salário com interníveis:
                         </p>
                         <div className="grid grid-cols-5 gap-2 text-center">
                           {['A', 'B', 'C', 'D', 'E'].map((level, idx) => (
                             <div key={level} className="text-xs">
-                              <div className="font-medium text-naue-black dark:text-gray-300 font-medium">
-                                {level}
-                              </div>
-                              <div className="text-gray-600 dark:text-gray-400">
-                                {formatCurrency(position.base_salary * (1 + (idx === 0 ? 0 : idx === 1 ? 0.03 : idx === 2 ? 0.05 : idx === 3 ? 0.10 : 0.15)))}
+                              <div className="font-medium text-foreground font-medium">{level}</div>
+                              <div className="text-muted-foreground">
+                                {formatCurrency(
+                                  position.base_salary *
+                                    (1 +
+                                      (idx === 0
+                                        ? 0
+                                        : idx === 1
+                                          ? 0.03
+                                          : idx === 2
+                                            ? 0.05
+                                            : idx === 3
+                                              ? 0.1
+                                              : 0.15)),
+                                )}
                               </div>
                             </div>
                           ))}
@@ -365,7 +379,7 @@ const CareerTrackDetail = () => {
           ))}
 
           {positions.length === 0 && (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+            <div className="text-center py-12 text-muted-foreground">
               <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Nenhum cargo adicionado a esta trilha ainda.</p>
               <p className="text-sm mt-2">Clique em "Adicionar Cargo" para começar.</p>
@@ -376,44 +390,44 @@ const CareerTrackDetail = () => {
 
       {/* Modal Adicionar Cargo */}
       {showAddPosition && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-yt-surface rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-popover text-popover-foreground border border-border rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           >
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              Adicionar Cargo à Trilha
-            </h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">Adicionar Cargo à Trilha</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+                <label className="block text-sm font-medium text-foreground font-medium mb-1">
                   Cargo
                 </label>
                 <select
                   value={formData.position_id}
                   onChange={(e) => setFormData({ ...formData, position_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated"
+                  className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background rounded-lg"
                 >
                   <option value="">Selecione um cargo</option>
-                  {availablePositions.map(pos => (
-                    <option key={pos.id} value={pos.id}>{pos.name}</option>
+                  {availablePositions.map((pos) => (
+                    <option key={pos.id} value={pos.id}>
+                      {pos.name}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+                <label className="block text-sm font-medium text-foreground font-medium mb-1">
                   Classe Salarial
                 </label>
                 <select
                   value={formData.class_id}
                   onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated"
+                  className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background rounded-lg"
                 >
                   <option value="">Selecione uma classe</option>
-                  {availableClasses.map(cls => (
+                  {availableClasses.map((cls) => (
                     <option key={cls.id} value={cls.id}>
                       Classe {cls.code} - {cls.name}
                     </option>
@@ -422,69 +436,75 @@ const CareerTrackDetail = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+                <label className="block text-sm font-medium text-foreground font-medium mb-1">
                   Salário Base
                 </label>
                 <input
                   type="number"
                   value={formData.base_salary}
                   onChange={(e) => setFormData({ ...formData, base_salary: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated"
+                  className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background rounded-lg"
                   placeholder="0.00"
                   step="0.01"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+                <label className="block text-sm font-medium text-foreground font-medium mb-1">
                   Ordem na Trilha
                 </label>
                 <input
                   type="number"
                   value={formData.order_index}
-                  onChange={(e) => setFormData({ ...formData, order_index: parseInt(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated"
+                  onChange={(e) =>
+                    setFormData({ ...formData, order_index: parseInt(e.target.value) })
+                  }
+                  className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background rounded-lg"
                   min="1"
                 />
               </div>
 
               {/* Configuração de Interníveis */}
               {formData.base_salary && parseFloat(formData.base_salary) > 0 && (
-                <div className="border-t border-gray-200 dark:border-yt-border pt-4">
-                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-3">
+                <div className="border-t border-border pt-4">
+                  <label className="block text-sm font-medium text-foreground font-medium mb-3">
                     Interníveis - Configure as Porcentagens
                   </label>
                   <div className="space-y-3">
                     {(['A', 'B', 'C', 'D', 'E'] as const).map((level) => (
-                      <div key={level} className="bg-gray-50 dark:bg-yt-elevated/50 p-3 rounded-lg">
+                      <div key={level} className="bg-secondary p-3 rounded-lg">
                         <div className="flex items-center gap-4">
-                          <div className="flex-shrink-0 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                          <div className="flex-shrink-0 w-8 h-8 bg-lime text-obsidian rounded-full flex items-center justify-center font-bold text-sm">
                             {level}
                           </div>
                           <div className="flex-1 grid grid-cols-2 gap-3">
                             <div>
-                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                              <label className="block text-xs text-muted-foreground mb-1">
                                 Porcentagem (%)
                               </label>
                               <input
                                 type="number"
                                 value={levelPercentages[level]}
-                                onChange={(e) => setLevelPercentages({
-                                  ...levelPercentages,
-                                  [level]: parseFloat(e.target.value) || 0
-                                })}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-yt-border rounded dark:bg-yt-surface"
+                                onChange={(e) =>
+                                  setLevelPercentages({
+                                    ...levelPercentages,
+                                    [level]: parseFloat(e.target.value) || 0,
+                                  })
+                                }
+                                className="w-full px-2 py-1.5 text-sm border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background rounded"
                                 placeholder="0"
                                 step="0.1"
                                 min="0"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                              <label className="block text-xs text-muted-foreground mb-1">
                                 Salário Calculado
                               </label>
-                              <div className="px-2 py-1.5 text-sm bg-gray-100 dark:bg-yt-surface border border-gray-300 dark:border-yt-border rounded font-medium text-green-600 dark:text-green-400">
-                                {formatCurrency(calculateSalaryByLevel(parseFloat(formData.base_salary), level))}
+                              <div className="px-2 py-1.5 text-sm bg-secondary border border-border rounded font-medium text-success">
+                                {formatCurrency(
+                                  calculateSalaryByLevel(parseFloat(formData.base_salary), level),
+                                )}
                               </div>
                             </div>
                           </div>
@@ -492,8 +512,9 @@ const CareerTrackDetail = () => {
                       </div>
                     ))}
                   </div>
-                  <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                    Os salários são calculados automaticamente com base no salário base e nas porcentagens configuradas.
+                  <div className="mt-3 text-xs text-muted-foreground">
+                    Os salários são calculados automaticamente com base no salário base e nas
+                    porcentagens configuradas.
                   </div>
                 </div>
               )}
@@ -513,7 +534,12 @@ const CareerTrackDetail = () => {
                 variant="outline"
                 onClick={() => {
                   setShowAddPosition(false);
-                  setFormData({ position_id: '', class_id: '', base_salary: '', order_index: positions.length + 1 });
+                  setFormData({
+                    position_id: '',
+                    class_id: '',
+                    base_salary: '',
+                    order_index: positions.length + 1,
+                  });
                 }}
                 className="flex-1"
               >

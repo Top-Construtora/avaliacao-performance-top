@@ -20,22 +20,26 @@ const ageRangeOptions = [
   { value: '18+', label: '18+ anos' },
 ];
 
-const UserProfileFields: React.FC<UserProfileFieldsProps> = ({ formData, onChange, errors = {} }) => {
+const UserProfileFields: React.FC<UserProfileFieldsProps> = ({
+  formData,
+  onChange,
+  errors = {},
+}) => {
   return (
-    <div className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-        <Users className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+    <div className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border">
+      <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+        <Users className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
         Informações Pessoais
       </h3>
-      
+
       <div className="space-y-4">
         {/* Has Children Toggle */}
-        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl">
+        <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
           <div className="flex items-center">
-            <Baby className="h-5 w-5 text-gray-600 dark:text-gray-400 mr-3" />
+            <Baby className="h-5 w-5 text-muted-foreground mr-3" />
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-gray-100">Possui filhos?</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <h4 className="font-medium text-foreground">Possui filhos?</h4>
+              <p className="text-sm text-muted-foreground mt-1">
                 Informação opcional para melhor gestão de benefícios
               </p>
             </div>
@@ -46,7 +50,7 @@ const UserProfileFields: React.FC<UserProfileFieldsProps> = ({ formData, onChang
               onChange('has_children', !formData.has_children);
             }}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              formData.has_children ? 'bg-primary-600 dark:bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
+              formData.has_children ? 'bg-lime' : 'bg-secondary'
             }`}
           >
             <span

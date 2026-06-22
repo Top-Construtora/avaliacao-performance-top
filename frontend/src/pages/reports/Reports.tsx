@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  BarChart3, 
-  FileDown, 
-  Download, 
-  Printer, 
+import {
+  BarChart3,
+  FileDown,
+  Download,
+  Printer,
   Share2,
   MoreVertical,
   X,
@@ -15,7 +15,7 @@ import {
   Clock,
   AlertTriangle,
   Target,
-  FileSpreadsheet
+  FileSpreadsheet,
 } from 'lucide-react';
 import Button from '../../components/Button';
 import jsPDF from 'jspdf';
@@ -37,17 +37,13 @@ declare module 'jspdf' {
 }
 
 const Reports = () => {
-  const {
-    currentCycle,
-    loadCurrentCycle,
-    loading: evaluationLoading
-  } = useEvaluation();
+  const { currentCycle, loadCurrentCycle, loading: evaluationLoading } = useEvaluation();
 
   const [availableCycles, setAvailableCycles] = useState<EvaluationCycle[]>([]);
   const [selectedCycleId, setSelectedCycleId] = useState<string | null>(null);
   const selectedCycle = useMemo(
-    () => availableCycles.find(c => c.id === selectedCycleId) || currentCycle || null,
-    [availableCycles, selectedCycleId, currentCycle]
+    () => availableCycles.find((c) => c.id === selectedCycleId) || currentCycle || null,
+    [availableCycles, selectedCycleId, currentCycle],
   );
 
   const [activeTab, setActiveTab] = useState<'overview' | 'detailed' | 'extract'>('overview');
@@ -77,7 +73,7 @@ const Reports = () => {
     completedEvaluations: 0,
     inProgress: 0,
     pending: 0,
-    completionRate: 0
+    completionRate: 0,
   });
 
   // Estados para times e departamentos expandidos
@@ -85,29 +81,31 @@ const Reports = () => {
   const [expandedDepts, setExpandedDepts] = useState<Set<string>>(new Set());
 
   // Estados para o progresso por departamento (com times)
-  const [departmentProgress, setDepartmentProgress] = useState<Array<{
-    id: string;
-    name: string;
-    total: number;
-    completed: number;
-    inProgress: number;
-    pending: number;
-    teams: Array<{
+  const [departmentProgress, setDepartmentProgress] = useState<
+    Array<{
       id: string;
       name: string;
       total: number;
       completed: number;
-      completionRate: number;
-    }>;
-  }>>([]);
+      inProgress: number;
+      pending: number;
+      teams: Array<{
+        id: string;
+        name: string;
+        total: number;
+        completed: number;
+        completionRate: number;
+      }>;
+    }>
+  >([]);
 
   // === OTIMIZAÇÃO: Criar Maps para lookups rápidos (O(1) em vez de O(n)) ===
   const usersMap = useMemo(() => {
-    return new Map(users.map(u => [u.id, u]));
+    return new Map(users.map((u) => [u.id, u]));
   }, [users]);
 
   const departmentsMap = useMemo(() => {
-    return new Map(departments.map(d => [d.id, d]));
+    return new Map(departments.map((d) => [d.id, d]));
   }, [departments]);
 
   // Carregar dados ao montar o componente
@@ -153,8 +151,7 @@ const Reports = () => {
 
       // Carregar usuários
       const allUsers = await usersService.getAll();
-      setUsers(allUsers.filter(u => u.active));
-
+      setUsers(allUsers.filter((u) => u.active));
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
       toast.error('Erro ao carregar dados do relatório');
@@ -181,7 +178,10 @@ const Reports = () => {
   };
 
   // Emails excluídos dos cards de resumo
-  const summaryExcludedEmails = new Set(['admintop@sistema.com', 'usuarioteste1@topconstrutora.com']);
+  const summaryExcludedEmails = new Set([
+    'admintop@sistema.com',
+    'usuarioteste1@topconstrutora.com',
+  ]);
 
   // Calcular dados do resumo sempre que o dashboard mudar
   useEffect(() => {
@@ -194,55 +194,58 @@ const Reports = () => {
       const totalEmployees = filteredDashboard.length;
 
       // COMPLETO: autoavaliação + líder + consenso + PDI (ninebox_position) todos completos
-      const completedEvaluations = filteredDashboard.filter(
-        (d: CycleDashboard) => {
-          const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
-          if (isDirector) {
-            return d.leader_evaluation_status === 'completed' && d.ninebox_position;
-          }
-          return d.self_evaluation_status === 'completed' &&
-                 d.leader_evaluation_status === 'completed' &&
-                 d.consensus_status === 'completed' &&
-                 d.ninebox_position;
+      const completedEvaluations = filteredDashboard.filter((d: CycleDashboard) => {
+        const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+        if (isDirector) {
+          return d.leader_evaluation_status === 'completed' && d.ninebox_position;
         }
-      ).length;
+        return (
+          d.self_evaluation_status === 'completed' &&
+          d.leader_evaluation_status === 'completed' &&
+          d.consensus_status === 'completed' &&
+          d.ninebox_position
+        );
+      }).length;
 
       // EM ANDAMENTO: pelo menos UMA avaliação completa mas não tudo
-      const inProgress = filteredDashboard.filter(
-        (d: CycleDashboard) => {
-          const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+      const inProgress = filteredDashboard.filter((d: CycleDashboard) => {
+        const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
 
-          // Se já está completo, não conta como em andamento
-          if (isDirector) {
-            const isComplete = d.leader_evaluation_status === 'completed' && d.ninebox_position;
-            if (isComplete) return false;
-            // Em andamento se leader foi iniciado ou completo sem ninebox
-            return d.leader_evaluation_status === 'completed' || d.leader_evaluation_status === 'in-progress';
-          } else {
-            const isComplete = d.self_evaluation_status === 'completed' &&
-                              d.leader_evaluation_status === 'completed' &&
-                              d.consensus_status === 'completed' &&
-                              d.ninebox_position;
-            if (isComplete) return false;
-            // Em andamento se pelo menos autoavaliação OU líder está completo
-            return d.self_evaluation_status === 'completed' || d.leader_evaluation_status === 'completed';
-          }
+        // Se já está completo, não conta como em andamento
+        if (isDirector) {
+          const isComplete = d.leader_evaluation_status === 'completed' && d.ninebox_position;
+          if (isComplete) return false;
+          // Em andamento se leader foi iniciado ou completo sem ninebox
+          return (
+            d.leader_evaluation_status === 'completed' ||
+            d.leader_evaluation_status === 'in-progress'
+          );
+        } else {
+          const isComplete =
+            d.self_evaluation_status === 'completed' &&
+            d.leader_evaluation_status === 'completed' &&
+            d.consensus_status === 'completed' &&
+            d.ninebox_position;
+          if (isComplete) return false;
+          // Em andamento se pelo menos autoavaliação OU líder está completo
+          return (
+            d.self_evaluation_status === 'completed' || d.leader_evaluation_status === 'completed'
+          );
         }
-      ).length;
+      }).length;
 
       // PENDENTE: nada foi iniciado
       const pending = totalEmployees - completedEvaluations - inProgress;
 
-      const completionRate = totalEmployees > 0
-        ? Math.round((completedEvaluations / totalEmployees) * 100)
-        : 0;
+      const completionRate =
+        totalEmployees > 0 ? Math.round((completedEvaluations / totalEmployees) * 100) : 0;
 
       setSummaryData({
         totalEmployees,
         completedEvaluations,
         inProgress,
         pending,
-        completionRate
+        completionRate,
       });
     }
   }, [dashboard, usersMap]);
@@ -253,10 +256,12 @@ const Reports = () => {
     if (isDirector) {
       return d.leader_evaluation_status === 'completed' && !!d.ninebox_position;
     }
-    return d.self_evaluation_status === 'completed' &&
-           d.leader_evaluation_status === 'completed' &&
-           d.consensus_status === 'completed' &&
-           !!d.ninebox_position;
+    return (
+      d.self_evaluation_status === 'completed' &&
+      d.leader_evaluation_status === 'completed' &&
+      d.consensus_status === 'completed' &&
+      !!d.ninebox_position
+    );
   };
 
   // Calcular progresso por departamento (com times) - OTIMIZADO com useMemo
@@ -266,7 +271,7 @@ const Reports = () => {
     }
 
     // Criar índice de departamento por nome (lowercase) para lookup rápido
-    const deptNameMap = new Map(departments.map(d => [d.name.toLowerCase(), d]));
+    const deptNameMap = new Map(departments.map((d) => [d.name.toLowerCase(), d]));
 
     // Agrupar dashboard por departamento (uma única passagem)
     const dashboardByDept = new Map<string, CycleDashboard[]>();
@@ -280,7 +285,7 @@ const Reports = () => {
 
     // Agrupar times por departamento
     const teamsByDept = new Map<string, Team[]>();
-    teams.forEach(t => {
+    teams.forEach((t) => {
       if (!teamsByDept.has(t.department_id)) {
         teamsByDept.set(t.department_id, []);
       }
@@ -288,60 +293,67 @@ const Reports = () => {
     });
 
     return departments
-      .filter(dept => dept.name.toLowerCase() !== 'diretoria')
-      .map(dept => {
-      const deptEmployees = dashboardByDept.get(dept.name.toLowerCase()) || [];
-      const total = deptEmployees.length;
-      const completed = deptEmployees.filter(isEvaluationCompleted).length;
+      .filter((dept) => dept.name.toLowerCase() !== 'diretoria')
+      .map((dept) => {
+        const deptEmployees = dashboardByDept.get(dept.name.toLowerCase()) || [];
+        const total = deptEmployees.length;
+        const completed = deptEmployees.filter(isEvaluationCompleted).length;
 
-      const inProgress = deptEmployees.filter((d: CycleDashboard) => {
-        if (isEvaluationCompleted(d)) return false;
-        const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
-        if (isDirector) {
-          return d.leader_evaluation_status === 'completed' || d.leader_evaluation_status === 'in-progress';
-        }
-        return d.self_evaluation_status === 'completed' || d.leader_evaluation_status === 'completed';
-      }).length;
+        const inProgress = deptEmployees.filter((d: CycleDashboard) => {
+          if (isEvaluationCompleted(d)) return false;
+          const isDirector = d.self_evaluation_status === 'n/a' && d.consensus_status === 'n/a';
+          if (isDirector) {
+            return (
+              d.leader_evaluation_status === 'completed' ||
+              d.leader_evaluation_status === 'in-progress'
+            );
+          }
+          return (
+            d.self_evaluation_status === 'completed' || d.leader_evaluation_status === 'completed'
+          );
+        }).length;
 
-      const pending = total - completed - inProgress;
+        const pending = total - completed - inProgress;
 
-      // Calcular progresso por time
-      const deptTeams = teamsByDept.get(dept.id) || [];
+        // Calcular progresso por time
+        const deptTeams = teamsByDept.get(dept.id) || [];
 
-      // Criar índice de employees por team_name
-      const employeesByTeam = new Map<string, CycleDashboard[]>();
-      deptEmployees.forEach(d => {
-        const teamNameLower = d.team_name?.toLowerCase() || '';
-        if (!employeesByTeam.has(teamNameLower)) {
-          employeesByTeam.set(teamNameLower, []);
-        }
-        employeesByTeam.get(teamNameLower)!.push(d);
-      });
+        // Criar índice de employees por team_name
+        const employeesByTeam = new Map<string, CycleDashboard[]>();
+        deptEmployees.forEach((d) => {
+          const teamNameLower = d.team_name?.toLowerCase() || '';
+          if (!employeesByTeam.has(teamNameLower)) {
+            employeesByTeam.set(teamNameLower, []);
+          }
+          employeesByTeam.get(teamNameLower)!.push(d);
+        });
 
-      const teamsProgress = deptTeams.map(team => {
-        const teamEmployees = employeesByTeam.get(team.name.toLowerCase()) || [];
-        const teamTotal = teamEmployees.length;
-        const teamCompleted = teamEmployees.filter(isEvaluationCompleted).length;
+        const teamsProgress = deptTeams
+          .map((team) => {
+            const teamEmployees = employeesByTeam.get(team.name.toLowerCase()) || [];
+            const teamTotal = teamEmployees.length;
+            const teamCompleted = teamEmployees.filter(isEvaluationCompleted).length;
+
+            return {
+              id: team.id,
+              name: team.name,
+              total: teamTotal,
+              completed: teamCompleted,
+              completionRate: teamTotal > 0 ? Math.round((teamCompleted / teamTotal) * 100) : 0,
+            };
+          })
+          .filter((t) => t.total > 0 && t.name.toLowerCase() !== 'diretoria');
 
         return {
-          id: team.id,
-          name: team.name,
-          total: teamTotal,
-          completed: teamCompleted,
-          completionRate: teamTotal > 0 ? Math.round((teamCompleted / teamTotal) * 100) : 0
+          id: dept.id,
+          name: dept.name,
+          total,
+          completed,
+          inProgress,
+          pending,
+          teams: teamsProgress,
         };
-      }).filter(t => t.total > 0 && t.name.toLowerCase() !== 'diretoria');
-
-      return {
-        id: dept.id,
-        name: dept.name,
-        total,
-        completed,
-        inProgress,
-        pending,
-        teams: teamsProgress
-      };
-    });
+      });
   }, [dashboard, departments, teams]);
 
   // Atualizar estado quando o cálculo mudar
@@ -352,7 +364,7 @@ const Reports = () => {
   // Memoizar lista ordenada para renderização
   const sortedDepartmentProgress = useMemo(() => {
     return departmentProgress
-      .filter(dept => dept.total > 0)
+      .filter((dept) => dept.total > 0)
       .sort((a, b) => {
         const rateA = a.total > 0 ? (a.completed / a.total) * 100 : 0;
         const rateB = b.total > 0 ? (b.completed / b.total) * 100 : 0;
@@ -374,14 +386,16 @@ const Reports = () => {
       const user = usersMap.get(item.employee_id);
       if (!user) return false;
 
-      const matchesSearch = !searchTerm ||
+      const matchesSearch =
+        !searchTerm ||
         user.name.toLowerCase().includes(searchTermLower) ||
         user.position.toLowerCase().includes(searchTermLower);
 
-      const matchesDepartment = !selectedDepartment ||
-        user.teams?.some(t => t.department_id === selectedDepartment);
+      const matchesDepartment =
+        !selectedDepartment || user.teams?.some((t) => t.department_id === selectedDepartment);
 
-      const matchesStatus = !selectedStatus ||
+      const matchesStatus =
+        !selectedStatus ||
         item.self_evaluation_status === selectedStatus ||
         item.leader_evaluation_status === selectedStatus ||
         item.consensus_status === selectedStatus;
@@ -440,7 +454,7 @@ const Reports = () => {
     numCols: number,
     numRows: number,
     colWidths: { wch: number }[],
-    centerCols?: number[]
+    centerCols?: number[],
   ) => {
     ws['!cols'] = colWidths;
     // Header row height
@@ -467,7 +481,7 @@ const Reports = () => {
       { label: '', value: '' },
       { label: 'Ciclo', value: selectedCycle?.title || '-' },
       { label: 'Data de Exportação', value: new Date().toLocaleString('pt-BR') },
-    ].map(r => ({ 'Indicador': r.label, 'Valor': r.value }));
+    ].map((r) => ({ Indicador: r.label, Valor: r.value }));
 
     const wsResumo = XLSX.utils.json_to_sheet(resumoData);
     wsResumo['!cols'] = [{ wch: 28 }, { wch: 25 }];
@@ -486,27 +500,39 @@ const Reports = () => {
 
   // === Funções de exportação da tab Extrair ===
   const exportEvaluationsExcel = () => {
-    const data = dashboard.filter((item: CycleDashboard) => {
-      const email = usersMap.get(item.employee_id)?.email || item.employee_email || '';
-      return !excludedEmails.has(email.toLowerCase());
-    }).map((item: CycleDashboard) => {
-      const user = usersMap.get(item.employee_id);
-      const deptName = getDeptName(item, user);
+    const data = dashboard
+      .filter((item: CycleDashboard) => {
+        const email = usersMap.get(item.employee_id)?.email || item.employee_email || '';
+        return !excludedEmails.has(email.toLowerCase());
+      })
+      .map((item: CycleDashboard) => {
+        const user = usersMap.get(item.employee_id);
+        const deptName = getDeptName(item, user);
 
-      return {
-        'Nome': user?.name || item.employee_name || '-',
-        'Cargo': user?.position || item.employee_position || '-',
-        'Departamento': deptName,
-        'Email': user?.email || item.employee_email || '-',
-        'Status Autoavaliação': getStatusLabel(item.self_evaluation_status),
-        'Nota Autoavaliação': item.self_evaluation_score != null ? Number(item.self_evaluation_score.toFixed(1)) : '-',
-        'Status Líder': getStatusLabel(item.leader_evaluation_status),
-        'Nota Líder': item.leader_evaluation_score != null ? Number(item.leader_evaluation_score.toFixed(1)) : '-',
-        'Status Consenso': getStatusLabel(item.consensus_status),
-        'Nota Consenso': (item.consensus_performance_score ?? item.consensus_score) != null ? Number((item.consensus_performance_score ?? item.consensus_score)!.toFixed(1)) : '-',
-        'Posição Nine Box': item.ninebox_position || 'Pendente',
-      };
-    }).sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
+        return {
+          Nome: user?.name || item.employee_name || '-',
+          Cargo: user?.position || item.employee_position || '-',
+          Departamento: deptName,
+          Email: user?.email || item.employee_email || '-',
+          'Status Autoavaliação': getStatusLabel(item.self_evaluation_status),
+          'Nota Autoavaliação':
+            item.self_evaluation_score != null
+              ? Number(item.self_evaluation_score.toFixed(1))
+              : '-',
+          'Status Líder': getStatusLabel(item.leader_evaluation_status),
+          'Nota Líder':
+            item.leader_evaluation_score != null
+              ? Number(item.leader_evaluation_score.toFixed(1))
+              : '-',
+          'Status Consenso': getStatusLabel(item.consensus_status),
+          'Nota Consenso':
+            (item.consensus_performance_score ?? item.consensus_score) != null
+              ? Number((item.consensus_performance_score ?? item.consensus_score)!.toFixed(1))
+              : '-',
+          'Posição Nine Box': item.ninebox_position || 'Pendente',
+        };
+      })
+      .sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
 
     const ws = XLSX.utils.json_to_sheet(data);
     const colWidths = [
@@ -529,9 +555,17 @@ const Reports = () => {
 
     const wsResumo = buildResumoSheet([
       { label: 'Total de Avaliações', value: data.length },
-      { label: 'Completas', value: data.filter(d => d['Status Consenso'] === 'Completo').length },
-      { label: 'Em Andamento', value: data.filter(d => d['Status Consenso'] === 'Em Andamento').length },
-      { label: 'Pendentes', value: data.filter(d => d['Status Consenso'] === 'Pendente' || d['Status Consenso'] === 'Aguardando').length },
+      { label: 'Completas', value: data.filter((d) => d['Status Consenso'] === 'Completo').length },
+      {
+        label: 'Em Andamento',
+        value: data.filter((d) => d['Status Consenso'] === 'Em Andamento').length,
+      },
+      {
+        label: 'Pendentes',
+        value: data.filter(
+          (d) => d['Status Consenso'] === 'Pendente' || d['Status Consenso'] === 'Aguardando',
+        ).length,
+      },
     ]);
     XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
 
@@ -541,28 +575,31 @@ const Reports = () => {
   };
 
   const exportEmployeesExcel = () => {
-    const data = users.filter(u => !excludedEmails.has(u.email.toLowerCase())).map((user: UserWithDetails) => {
-      const deptName = user.teams?.[0]?.department_id
-        ? departmentsMap.get(user.teams[0].department_id)?.name || '-'
-        : '-';
-      const teamNames = user.teams?.map(t => t.name).join(', ') || '-';
+    const data = users
+      .filter((u) => !excludedEmails.has(u.email.toLowerCase()))
+      .map((user: UserWithDetails) => {
+        const deptName = user.teams?.[0]?.department_id
+          ? departmentsMap.get(user.teams[0].department_id)?.name || '-'
+          : '-';
+        const teamNames = user.teams?.map((t) => t.name).join(', ') || '-';
 
-      return {
-        'Nome': user.name,
-        'Email': user.email,
-        'Cargo': user.position || '-',
-        'Departamento': deptName,
-        'Time(s)': teamNames,
-        'Líder': user.manager?.name || '-',
-        'Data Admissão': user.admission_date
-          ? new Date(user.admission_date).toLocaleDateString('pt-BR')
-          : user.join_date
-            ? new Date(user.join_date).toLocaleDateString('pt-BR')
-            : '-',
-        'Tipo Contrato': user.contract_type || '-',
-        'Ativo': user.active ? 'Sim' : 'Não',
-      };
-    }).sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
+        return {
+          Nome: user.name,
+          Email: user.email,
+          Cargo: user.position || '-',
+          Departamento: deptName,
+          'Time(s)': teamNames,
+          Líder: user.manager?.name || '-',
+          'Data Admissão': user.admission_date
+            ? new Date(user.admission_date).toLocaleDateString('pt-BR')
+            : user.join_date
+              ? new Date(user.join_date).toLocaleDateString('pt-BR')
+              : '-',
+          'Tipo Contrato': user.contract_type || '-',
+          Ativo: user.active ? 'Sim' : 'Não',
+        };
+      })
+      .sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
 
     const ws = XLSX.utils.json_to_sheet(data);
     const colWidths = [
@@ -574,7 +611,7 @@ const Reports = () => {
       { wch: 25 }, // Líder
       { wch: 16 }, // Data Admissão
       { wch: 14 }, // Tipo Contrato
-      { wch: 8 },  // Ativo
+      { wch: 8 }, // Ativo
     ];
     applySheetStyles(ws, 9, data.length, colWidths, [6, 7, 8]);
 
@@ -583,8 +620,8 @@ const Reports = () => {
 
     const wsResumo = buildResumoSheet([
       { label: 'Total de Colaboradores', value: data.length },
-      { label: 'Ativos', value: data.filter(d => d['Ativo'] === 'Sim').length },
-      { label: 'Inativos', value: data.filter(d => d['Ativo'] === 'Não').length },
+      { label: 'Ativos', value: data.filter((d) => d['Ativo'] === 'Sim').length },
+      { label: 'Inativos', value: data.filter((d) => d['Ativo'] === 'Não').length },
     ]);
     XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
 
@@ -594,24 +631,27 @@ const Reports = () => {
   };
 
   const exportSalaryExcel = () => {
-    const data = users.filter(u => !excludedEmails.has(u.email.toLowerCase())).map((user: UserWithDetails) => {
-      const deptName = user.teams?.[0]?.department_id
-        ? departmentsMap.get(user.teams[0].department_id)?.name || '-'
-        : '-';
+    const data = users
+      .filter((u) => !excludedEmails.has(u.email.toLowerCase()))
+      .map((user: UserWithDetails) => {
+        const deptName = user.teams?.[0]?.department_id
+          ? departmentsMap.get(user.teams[0].department_id)?.name || '-'
+          : '-';
 
-      return {
-        'Nome': user.name,
-        'Cargo': user.position || '-',
-        'Departamento': deptName,
-        'Trilha': user.track?.name || '-',
-        'Classe Salarial': user.track_position?.class?.name || '-',
-        'Nível': user.salary_level?.name || '-',
-        'Salário Atual': user.current_salary
-          ? `R$ ${user.current_salary.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-          : '-',
-        'Tipo Contrato': user.contract_type || '-',
-      };
-    }).sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
+        return {
+          Nome: user.name,
+          Cargo: user.position || '-',
+          Departamento: deptName,
+          Trilha: user.track?.name || '-',
+          'Classe Salarial': user.track_position?.class?.name || '-',
+          Nível: user.salary_level?.name || '-',
+          'Salário Atual': user.current_salary
+            ? `R$ ${user.current_salary.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+            : '-',
+          'Tipo Contrato': user.contract_type || '-',
+        };
+      })
+      .sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
 
     const ws = XLSX.utils.json_to_sheet(data);
     const colWidths = [
@@ -629,7 +669,7 @@ const Reports = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Gestão Salarial');
 
-    const comSalario = users.filter(u => u.current_salary);
+    const comSalario = users.filter((u) => u.current_salary);
     const wsResumo = buildResumoSheet([
       { label: 'Total de Colaboradores', value: data.length },
       { label: 'Com Salário Definido', value: comSalario.length },
@@ -644,35 +684,50 @@ const Reports = () => {
 
   const getPromotedQuadrantLabel = (quadrant: number | null | undefined): string => {
     switch (quadrant) {
-      case 1: return 'Baixo';
-      case 2: return 'Médio';
-      case 3: return 'Alto';
-      default: return '-';
+      case 1:
+        return 'Baixo';
+      case 2:
+        return 'Médio';
+      case 3:
+        return 'Alto';
+      default:
+        return '-';
     }
   };
 
   const exportNineBoxExcel = () => {
     const nineBoxData = dashboard.filter((item: CycleDashboard) => {
       const email = usersMap.get(item.employee_id)?.email || item.employee_email || '';
-      return !excludedEmails.has(email.toLowerCase()) &&
-        item.consensus_performance_score && item.consensus_potential_score;
+      return (
+        !excludedEmails.has(email.toLowerCase()) &&
+        item.consensus_performance_score &&
+        item.consensus_potential_score
+      );
     });
 
-    const data = nineBoxData.map((item: CycleDashboard) => {
-      const user = usersMap.get(item.employee_id);
-      const deptName = getDeptName(item, user);
+    const data = nineBoxData
+      .map((item: CycleDashboard) => {
+        const user = usersMap.get(item.employee_id);
+        const deptName = getDeptName(item, user);
 
-      return {
-        'Nome': user?.name || item.employee_name || '-',
-        'Cargo': user?.position || item.employee_position || '-',
-        'Departamento': deptName,
-        'Nota Performance': item.consensus_performance_score != null ? Number(item.consensus_performance_score.toFixed(1)) : '-',
-        'Nota Potencial': item.consensus_potential_score != null ? Number(item.consensus_potential_score.toFixed(1)) : '-',
-        'Posição Nine Box': item.ninebox_position || '-',
-        'Quadrante Promovido': getPromotedQuadrantLabel(item.promoted_potential_quadrant),
-        'Deliberações do Comitê': item.committee_deliberations || '-',
-      };
-    }).sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
+        return {
+          Nome: user?.name || item.employee_name || '-',
+          Cargo: user?.position || item.employee_position || '-',
+          Departamento: deptName,
+          'Nota Performance':
+            item.consensus_performance_score != null
+              ? Number(item.consensus_performance_score.toFixed(1))
+              : '-',
+          'Nota Potencial':
+            item.consensus_potential_score != null
+              ? Number(item.consensus_potential_score.toFixed(1))
+              : '-',
+          'Posição Nine Box': item.ninebox_position || '-',
+          'Quadrante Promovido': getPromotedQuadrantLabel(item.promoted_potential_quadrant),
+          'Deliberações do Comitê': item.committee_deliberations || '-',
+        };
+      })
+      .sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
 
     const ws = XLSX.utils.json_to_sheet(data);
     const colWidths = [
@@ -692,8 +747,14 @@ const Reports = () => {
 
     const wsResumo = buildResumoSheet([
       { label: 'Total no Nine Box', value: data.length },
-      { label: 'Com Promoção de Quadrante', value: nineBoxData.filter(d => d.promoted_potential_quadrant).length },
-      { label: 'Com Deliberações', value: nineBoxData.filter(d => d.committee_deliberations).length },
+      {
+        label: 'Com Promoção de Quadrante',
+        value: nineBoxData.filter((d) => d.promoted_potential_quadrant).length,
+      },
+      {
+        label: 'Com Deliberações',
+        value: nineBoxData.filter((d) => d.committee_deliberations).length,
+      },
     ]);
     XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
 
@@ -725,7 +786,7 @@ const Reports = () => {
         getStatusLabel(item.self_evaluation_status),
         getStatusLabel(item.leader_evaluation_status),
         getStatusLabel(item.consensus_status),
-        item.ninebox_position || 'Pendente'
+        item.ninebox_position || 'Pendente',
       ];
     });
 
@@ -735,7 +796,7 @@ const Reports = () => {
       startY: 40,
       theme: 'grid',
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [22, 101, 52] }
+      headStyles: { fillColor: [22, 101, 52] },
     });
 
     doc.save(`relatorio_avaliacoes${cycleFileSlug}.pdf`);
@@ -743,24 +804,27 @@ const Reports = () => {
   };
 
   const exportExcel = () => {
-    const data = filteredData.filter((item: CycleDashboard) => {
-      const email = usersMap.get(item.employee_id)?.email || item.employee_email || '';
-      return !excludedEmails.has(email.toLowerCase());
-    }).map((item: CycleDashboard) => {
-      const user = usersMap.get(item.employee_id);
-      const deptName = getDeptName(item, user);
+    const data = filteredData
+      .filter((item: CycleDashboard) => {
+        const email = usersMap.get(item.employee_id)?.email || item.employee_email || '';
+        return !excludedEmails.has(email.toLowerCase());
+      })
+      .map((item: CycleDashboard) => {
+        const user = usersMap.get(item.employee_id);
+        const deptName = getDeptName(item, user);
 
-      return {
-        'Nome': user?.name || '-',
-        'Cargo': user?.position || '-',
-        'Departamento': deptName,
-        'Autoavaliação': getStatusLabel(item.self_evaluation_status),
-        'Avaliação do Líder': getStatusLabel(item.leader_evaluation_status),
-        'Consenso': getStatusLabel(item.consensus_status),
-        'PDI': item.ninebox_position ? 'Definido' : 'Pendente',
-        'Posição Nine Box': item.ninebox_position || 'Pendente'
-      };
-    }).sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
+        return {
+          Nome: user?.name || '-',
+          Cargo: user?.position || '-',
+          Departamento: deptName,
+          Autoavaliação: getStatusLabel(item.self_evaluation_status),
+          'Avaliação do Líder': getStatusLabel(item.leader_evaluation_status),
+          Consenso: getStatusLabel(item.consensus_status),
+          PDI: item.ninebox_position ? 'Definido' : 'Pendente',
+          'Posição Nine Box': item.ninebox_position || 'Pendente',
+        };
+      })
+      .sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
 
     const ws = XLSX.utils.json_to_sheet(data);
     const colWidths = [
@@ -795,60 +859,67 @@ const Reports = () => {
 
   const getStatusLabel = (status: string | null | undefined): string => {
     switch (status) {
-      case 'completed': return 'Completo';
-      case 'in-progress': return 'Em Andamento';
-      case 'pending': return 'Pendente';
-      case 'n/a': return 'N/A';
-      default: return 'Aguardando';
+      case 'completed':
+        return 'Completo';
+      case 'in-progress':
+        return 'Em Andamento';
+      case 'pending':
+        return 'Pendente';
+      case 'n/a':
+        return 'N/A';
+      default:
+        return 'Aguardando';
     }
   };
 
   const getStatusBadge = (status: string | null | undefined) => {
     const label = getStatusLabel(status);
     const statusConfig = {
-      'Completo': {
-        bgColor: 'bg-status-success/10',
-        textColor: 'text-status-success',
-        borderColor: 'border-status-success/20',
-        icon: CheckCircle
+      Completo: {
+        bgColor: 'bg-success/15',
+        textColor: 'text-success',
+        borderColor: 'border-success/20',
+        icon: CheckCircle,
       },
       'Em Andamento': {
-        bgColor: 'bg-status-warning/10',
-        textColor: 'text-status-warning',
-        borderColor: 'border-status-warning/20',
-        icon: Clock
+        bgColor: 'bg-warning/15',
+        textColor: 'text-warning',
+        borderColor: 'border-warning/20',
+        icon: Clock,
       },
-      'Pendente': {
-        bgColor: 'bg-status-danger/10',
-        textColor: 'text-status-danger',
-        borderColor: 'border-status-danger/20',
-        icon: AlertTriangle
+      Pendente: {
+        bgColor: 'bg-destructive/15',
+        textColor: 'text-destructive',
+        borderColor: 'border-destructive/20',
+        icon: AlertTriangle,
       },
       'N/A': {
-        bgColor: 'bg-gray-100 dark:bg-yt-elevated',
-        textColor: 'text-gray-500 dark:text-gray-400',
-        borderColor: 'border-gray-300 dark:border-yt-border',
-        icon: Target
+        bgColor: 'bg-secondary',
+        textColor: 'text-muted-foreground',
+        borderColor: 'border-border',
+        icon: Target,
       },
-      'Definido': {
-        bgColor: 'bg-status-success/10',
-        textColor: 'text-status-success',
-        borderColor: 'border-status-success/20',
-        icon: Target
+      Definido: {
+        bgColor: 'bg-success/15',
+        textColor: 'text-success',
+        borderColor: 'border-success/20',
+        icon: Target,
       },
-      'Aguardando': {
-        bgColor: 'bg-status-info/10',
-        textColor: 'text-status-info',
-        borderColor: 'border-status-info/20',
-        icon: Clock
-      }
+      Aguardando: {
+        bgColor: 'bg-lime/20',
+        textColor: 'text-lime-deep dark:text-lime',
+        borderColor: 'border-lime/30',
+        icon: Clock,
+      },
     };
 
     const config = statusConfig[label as keyof typeof statusConfig] || statusConfig['Pendente'];
     const Icon = config.icon;
 
     return (
-      <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium ${config.bgColor} ${config.textColor} border ${config.borderColor}`}>
+      <span
+        className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium ${config.bgColor} ${config.textColor} border ${config.borderColor}`}
+      >
         <Icon size={10} className="mr-1 flex-shrink-0" />
         <span className="truncate">{label}</span>
       </span>
@@ -857,59 +928,83 @@ const Reports = () => {
 
   const getScoreBadge = (score: number | null | undefined) => {
     if (!score) {
-      return (
-        <span className="text-sm text-gray-400 dark:text-gray-600">-</span>
-      );
+      return <span className="text-sm text-muted-foreground">-</span>;
     }
 
     const getScoreColor = () => {
-      if (score >= 9) return 'text-primary-500 dark:text-primary-400';
-      if (score >= 7) return 'text-gray-600 dark:text-gray-500';
-      if (score >= 5) return 'text-yellow-600 dark:text-yellow-500';
-      return 'text-red-600 dark:text-red-500';
+      if (score >= 9) return 'text-lime-deep dark:text-lime';
+      if (score >= 7) return 'text-muted-foreground';
+      if (score >= 5) return 'text-warning';
+      return 'text-destructive';
     };
 
-    return (
-      <span className={`text-lg font-bold ${getScoreColor()}`}>
-        {score.toFixed(1)}
-      </span>
-    );
+    return <span className={`text-lg font-bold ${getScoreColor()}`}>{score.toFixed(1)}</span>;
   };
 
   const getNineBoxBadge = (position: string | null | undefined, item?: CycleDashboard) => {
     if (!position) {
       // Se for diretor (autoavaliação e consenso são n/a), mostrar N/A ao invés de Pendente
       if (item && item.self_evaluation_status === 'n/a' && item.consensus_status === 'n/a') {
-        return (
-          <span className="text-sm text-gray-500 dark:text-gray-400">N/A</span>
-        );
+        return <span className="text-sm text-muted-foreground">N/A</span>;
       }
-      return (
-        <span className="text-sm text-gray-400 dark:text-gray-600">Pendente</span>
-      );
+      return <span className="text-sm text-muted-foreground">Pendente</span>;
     }
 
     // Configuração de cores baseada na posição
     const positionConfig: Record<string, { bg: string; text: string; border: string }> = {
-      'B1': { bg: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-700' },
-      'B2': { bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-700 dark:text-orange-300', border: 'border-orange-200 dark:border-orange-700' },
-      'B3': { bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-700' },
-      'B4': { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-700' },
-      'B5': { bg: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-700 dark:text-yellow-300', border: 'border-yellow-200 dark:border-yellow-700' },
-      'B6': { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-700' },
-      'B7': { bg: 'bg-rose-50 dark:bg-rose-900/20', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-700' },
-      'B8': { bg: 'bg-indigo-50 dark:bg-indigo-900/20', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-200 dark:border-indigo-700' },
-      'B9': { bg: 'bg-primary-500 dark:bg-primary-600', text: 'text-white', border: 'border-primary-500 dark:border-primary-700' },
+      B1: {
+        bg: 'bg-red-50 dark:bg-red-900/20',
+        text: 'text-red-700 dark:text-red-300',
+        border: 'border-red-200 dark:border-red-700',
+      },
+      B2: {
+        bg: 'bg-orange-50 dark:bg-orange-900/20',
+        text: 'text-orange-700 dark:text-orange-300',
+        border: 'border-orange-200 dark:border-orange-700',
+      },
+      B3: {
+        bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+        text: 'text-emerald-700 dark:text-emerald-300',
+        border: 'border-emerald-200 dark:border-emerald-700',
+      },
+      B4: {
+        bg: 'bg-amber-50 dark:bg-amber-900/20',
+        text: 'text-amber-700 dark:text-amber-300',
+        border: 'border-amber-200 dark:border-amber-700',
+      },
+      B5: {
+        bg: 'bg-yellow-50 dark:bg-yellow-900/20',
+        text: 'text-yellow-700 dark:text-yellow-300',
+        border: 'border-yellow-200 dark:border-yellow-700',
+      },
+      B6: {
+        bg: 'bg-blue-50 dark:bg-blue-900/20',
+        text: 'text-blue-700 dark:text-blue-300',
+        border: 'border-blue-200 dark:border-blue-700',
+      },
+      B7: {
+        bg: 'bg-rose-50 dark:bg-rose-900/20',
+        text: 'text-rose-700 dark:text-rose-300',
+        border: 'border-rose-200 dark:border-rose-700',
+      },
+      B8: {
+        bg: 'bg-indigo-50 dark:bg-indigo-900/20',
+        text: 'text-indigo-700 dark:text-indigo-300',
+        border: 'border-indigo-200 dark:border-indigo-700',
+      },
+      B9: { bg: 'bg-lime', text: 'text-obsidian', border: 'border-lime' },
     };
 
     const config = positionConfig[position] || {
-      bg: 'bg-gray-50 dark:bg-yt-bg/20',
-      text: 'text-gray-700 dark:text-gray-300',
-      border: 'border-gray-200 dark:border-yt-border'
+      bg: 'bg-secondary',
+      text: 'text-muted-foreground',
+      border: 'border-border',
     };
 
     return (
-      <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-bold ${config.bg} ${config.text} border ${config.border}`}>
+      <span
+        className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-bold ${config.bg} ${config.text} border ${config.border}`}
+      >
         {position}
       </span>
     );
@@ -923,7 +1018,7 @@ const Reports = () => {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <p className="text-gray-500 dark:text-gray-400">Nenhum ciclo de avaliação encontrado</p>
+          <p className="text-muted-foreground">Nenhum ciclo de avaliação encontrado</p>
         </div>
       </div>
     );
@@ -939,29 +1034,32 @@ const Reports = () => {
   return (
     <div className="space-y-4 sm:space-y-6 animate-fadeIn">
       {/* Header */}
-      <div className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border">
+      <div className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center flex-wrap">
-              <BarChart3 className="text-primary-500 dark:text-primary-400 mr-2 sm:mr-3 flex-shrink-0" />
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center flex-wrap">
+              <BarChart3 className="text-lime-deep dark:text-lime mr-2 sm:mr-3 flex-shrink-0" />
               <span className="break-words">Central de Relatórios</span>
             </h1>
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm md:text-base text-muted-foreground mt-1">
               Acompanhe o progresso das avaliações{selectedCycle ? ` - ${selectedCycle.title}` : ''}
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <label htmlFor="cycle-selector" className="text-sm font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap">
+            <label
+              htmlFor="cycle-selector"
+              className="text-sm font-medium text-muted-foreground whitespace-nowrap"
+            >
               Ciclo:
             </label>
             <select
               id="cycle-selector"
               value={selectedCycleId || ''}
               onChange={(e) => setSelectedCycleId(e.target.value || null)}
-              className="rounded-lg border border-gray-200 dark:border-yt-border bg-white dark:bg-yt-elevated text-sm text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-primary-500 focus:ring-primary-500"
+              className="rounded-lg border border-border bg-secondary text-sm text-foreground px-3 py-2 focus:border-[#D2FF00] focus:ring-[#D2FF00]/20"
             >
-              {availableCycles.map(c => (
+              {availableCycles.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.title} ({cycleStatusLabel(c.status)})
                 </option>
@@ -972,14 +1070,14 @@ const Reports = () => {
       </div>
 
       {/* Tabs */}
-      <div className="bg-naue-white dark:bg-yt-surface p-1 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border">
+      <div className="bg-card p-1 rounded-2xl shadow-sm hover:shadow-md border border-border">
         <div className="flex space-x-1">
           <button
             onClick={() => setActiveTab('overview')}
             className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
               activeTab === 'overview'
-                ? 'bg-primary-500 text-white'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                ? 'bg-lime text-obsidian'
+                : 'text-muted-foreground hover:bg-accent'
             }`}
           >
             <BarChart3 size={16} />
@@ -989,8 +1087,8 @@ const Reports = () => {
             onClick={() => setActiveTab('detailed')}
             className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
               activeTab === 'detailed'
-                ? 'bg-primary-500 text-white'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                ? 'bg-lime text-obsidian'
+                : 'text-muted-foreground hover:bg-accent'
             }`}
           >
             <Users size={16} />
@@ -1000,8 +1098,8 @@ const Reports = () => {
             onClick={() => setActiveTab('extract')}
             className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
               activeTab === 'extract'
-                ? 'bg-primary-500 text-white'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                ? 'bg-lime text-obsidian'
+                : 'text-muted-foreground hover:bg-accent'
             }`}
           >
             <FileDown size={16} />
@@ -1018,15 +1116,16 @@ const Reports = () => {
           className="grid grid-cols-1 sm:grid-cols-2 gap-4"
         >
           {/* Relatório de Avaliações */}
-          <div className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border flex flex-col">
+          <div className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border flex flex-col">
             <div className="flex items-center space-x-3 mb-3">
-              <div className="p-2 bg-top-teal-light dark:bg-top-teal/20 rounded-lg">
-                <FileSpreadsheet className="text-top-teal dark:text-top-teal" size={24} />
+              <div className="p-2 bg-secondary rounded-lg">
+                <FileSpreadsheet className="text-foreground" size={24} />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Relatório de Avaliações</h3>
+              <h3 className="text-base font-semibold text-foreground">Relatório de Avaliações</h3>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1">
-              Exporta nome, cargo, departamento, email, status e notas de cada etapa (autoavaliação, líder, consenso) e posição Nine Box.
+            <p className="text-sm text-muted-foreground mb-4 flex-1">
+              Exporta nome, cargo, departamento, email, status e notas de cada etapa (autoavaliação,
+              líder, consenso) e posição Nine Box.
             </p>
             <Button
               variant="primary"
@@ -1039,15 +1138,18 @@ const Reports = () => {
           </div>
 
           {/* Relatório de Colaboradores */}
-          <div className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border flex flex-col">
+          <div className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border flex flex-col">
             <div className="flex items-center space-x-3 mb-3">
-              <div className="p-2 bg-top-blue-light dark:bg-top-blue/20 rounded-lg">
-                <Users className="text-top-blue dark:text-top-blue" size={24} />
+              <div className="p-2 bg-secondary rounded-lg">
+                <Users className="text-foreground" size={24} />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Relatório de Colaboradores</h3>
+              <h3 className="text-base font-semibold text-foreground">
+                Relatório de Colaboradores
+              </h3>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1">
-              Exporta dados cadastrais: nome, email, cargo, departamento, time(s), líder, data de admissão, tipo de contrato e status.
+            <p className="text-sm text-muted-foreground mb-4 flex-1">
+              Exporta dados cadastrais: nome, email, cargo, departamento, time(s), líder, data de
+              admissão, tipo de contrato e status.
             </p>
             <Button
               variant="primary"
@@ -1060,15 +1162,18 @@ const Reports = () => {
           </div>
 
           {/* Relatório de Gestão Salarial */}
-          <div className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border flex flex-col">
+          <div className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border flex flex-col">
             <div className="flex items-center space-x-3 mb-3">
-              <div className="p-2 bg-accent-50 dark:bg-accent-500/20 rounded-lg">
-                <BarChart3 className="text-accent-500 dark:text-accent-400" size={24} />
+              <div className="p-2 bg-secondary rounded-lg">
+                <BarChart3 className="text-foreground" size={24} />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Relatório de Gestão Salarial</h3>
+              <h3 className="text-base font-semibold text-foreground">
+                Relatório de Gestão Salarial
+              </h3>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1">
-              Exporta dados salariais: nome, cargo, departamento, trilha, classe salarial, nível, salário atual e tipo de contrato.
+            <p className="text-sm text-muted-foreground mb-4 flex-1">
+              Exporta dados salariais: nome, cargo, departamento, trilha, classe salarial, nível,
+              salário atual e tipo de contrato.
             </p>
             <Button
               variant="primary"
@@ -1081,15 +1186,16 @@ const Reports = () => {
           </div>
 
           {/* Relatório Nine Box */}
-          <div className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border flex flex-col">
+          <div className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border flex flex-col">
             <div className="flex items-center space-x-3 mb-3">
-              <div className="p-2 bg-top-gold-light dark:bg-top-gold/20 rounded-lg">
-                <Target className="text-top-gold-dark dark:text-top-gold" size={24} />
+              <div className="p-2 bg-secondary rounded-lg">
+                <Target className="text-foreground" size={24} />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Relatório Nine Box</h3>
+              <h3 className="text-base font-semibold text-foreground">Relatório Nine Box</h3>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1">
-              Exporta dados do Nine Box: nome, cargo, departamento, notas de performance e potencial, posição, quadrante promovido e deliberações do comitê.
+            <p className="text-sm text-muted-foreground mb-4 flex-1">
+              Exporta dados do Nine Box: nome, cargo, departamento, notas de performance e
+              potencial, posição, quadrante promovido e deliberações do comitê.
             </p>
             <Button
               variant="primary"
@@ -1111,79 +1217,88 @@ const Reports = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-gradient-to-br from-primary-500 to-primary-700 p-6 rounded-xl shadow-lg text-white"
+              className="bg-card p-6 rounded-xl shadow-lg border border-border"
             >
               <div className="flex items-center justify-between mb-2">
-                <Users className="w-8 h-8 opacity-80" />
-                <span className="text-xs font-medium bg-white/20 px-2 py-1 rounded-full">
+                <Users className="w-8 h-8 text-lime-deep dark:text-lime" />
+                <span className="text-xs font-medium bg-lime/20 text-lime-deep dark:text-lime px-2 py-1 rounded-full">
                   {summaryData.completionRate}%
                 </span>
               </div>
-              <h3 className="text-3xl font-bold mb-1">{summaryData.totalEmployees}</h3>
-              <p className="text-sm opacity-90">Total de Colaboradores</p>
+              <h3 className="text-3xl font-bold text-foreground mb-1">
+                {summaryData.totalEmployees}
+              </h3>
+              <p className="text-sm text-muted-foreground">Total de Colaboradores</p>
             </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border"
+              className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border"
             >
               <div className="flex items-center justify-between mb-2">
-                <CheckCircle className="w-8 h-8 text-primary-500 dark:text-primary-400" />
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  {summaryData.totalEmployees > 0 ? Math.round((summaryData.completedEvaluations / summaryData.totalEmployees) * 100) : 0}%
+                <CheckCircle className="w-8 h-8 text-success" />
+                <span className="text-xs font-medium text-muted-foreground">
+                  {summaryData.totalEmployees > 0
+                    ? Math.round(
+                        (summaryData.completedEvaluations / summaryData.totalEmployees) * 100,
+                      )
+                    : 0}
+                  %
                 </span>
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+              <h3 className="text-3xl font-bold text-foreground mb-1">
                 {summaryData.completedEvaluations}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Avaliações Completas</p>
+              <p className="text-sm text-muted-foreground">Avaliações Completas</p>
             </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border"
+              className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border"
             >
               <div className="flex items-center justify-between mb-2">
-                <Clock className="w-8 h-8 text-blue-600 dark:text-blue-500" />
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  {summaryData.totalEmployees > 0 ? Math.round((summaryData.inProgress / summaryData.totalEmployees) * 100) : 0}%
+                <Clock className="w-8 h-8 text-lime-deep dark:text-lime" />
+                <span className="text-xs font-medium text-muted-foreground">
+                  {summaryData.totalEmployees > 0
+                    ? Math.round((summaryData.inProgress / summaryData.totalEmployees) * 100)
+                    : 0}
+                  %
                 </span>
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
-                {summaryData.inProgress}
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Em Andamento</p>
+              <h3 className="text-3xl font-bold text-foreground mb-1">{summaryData.inProgress}</h3>
+              <p className="text-sm text-muted-foreground">Em Andamento</p>
             </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-gradient-to-br from-yellow-500 to-yellow-600 p-6 rounded-xl shadow-lg text-white"
+              className="bg-card p-6 rounded-xl shadow-lg border border-border"
             >
               <div className="flex items-center justify-between mb-2">
-                <AlertTriangle className="w-8 h-8 opacity-80" />
-                <span className="text-xs font-medium bg-white/20 px-2 py-1 rounded-full">
-                  {summaryData.totalEmployees > 0 ? Math.round((summaryData.pending / summaryData.totalEmployees) * 100) : 0}%
+                <AlertTriangle className="w-8 h-8 text-warning" />
+                <span className="text-xs font-medium bg-warning/15 text-warning px-2 py-1 rounded-full">
+                  {summaryData.totalEmployees > 0
+                    ? Math.round((summaryData.pending / summaryData.totalEmployees) * 100)
+                    : 0}
+                  %
                 </span>
               </div>
-              <h3 className="text-3xl font-bold mb-1">{summaryData.pending}</h3>
-              <p className="text-sm opacity-90">Pendentes</p>
+              <h3 className="text-3xl font-bold text-foreground mb-1">{summaryData.pending}</h3>
+              <p className="text-sm text-muted-foreground">Pendentes</p>
             </motion.div>
-
           </div>
 
           {/* Progress by Department */}
-          <div className="bg-naue-white dark:bg-yt-surface p-6 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <BarChart3 className="mr-2 text-primary-500 dark:text-primary-400" size={20} />
+          <div className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border">
+            <h2 className="text-lg font-semibold text-foreground mb-6 flex items-center">
+              <BarChart3 className="mr-2 text-lime-deep dark:text-lime" size={20} />
               Progresso por Departamento
             </h2>
 
             <div className="space-y-3">
               {/* OTIMIZADO: Usar lista já ordenada e memoizada */}
               {sortedDepartmentProgress.map((dept, index) => {
-                const completionRate = dept.total > 0
-                  ? Math.round((dept.completed / dept.total) * 100)
-                  : 0;
+                const completionRate =
+                  dept.total > 0 ? Math.round((dept.completed / dept.total) * 100) : 0;
                 const isExpanded = expandedDepts.has(dept.id);
                 const hasTeams = dept.teams && dept.teams.length > 0;
 
@@ -1193,14 +1308,14 @@ const Reports = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="border border-gray-200 dark:border-yt-border rounded-xl overflow-hidden"
+                    className="border border-border rounded-xl overflow-hidden"
                   >
                     {/* Header do departamento (clicável) */}
                     <div
-                      className={`flex items-center gap-4 p-4 ${hasTeams ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50' : ''} transition-colors`}
+                      className={`flex items-center gap-4 p-4 ${hasTeams ? 'cursor-pointer hover:bg-accent' : ''} transition-colors`}
                       onClick={() => {
                         if (hasTeams) {
-                          setExpandedDepts(prev => {
+                          setExpandedDepts((prev) => {
                             const next = new Set(prev);
                             if (next.has(dept.id)) {
                               next.delete(dept.id);
@@ -1214,47 +1329,47 @@ const Reports = () => {
                     >
                       {/* Ícone de expandir */}
                       <div className="w-6 flex-shrink-0">
-                        {hasTeams && (
-                          isExpanded
-                            ? <ChevronDown size={18} className="text-gray-500" />
-                            : <ChevronRight size={18} className="text-gray-500" />
-                        )}
+                        {hasTeams &&
+                          (isExpanded ? (
+                            <ChevronDown size={18} className="text-muted-foreground" />
+                          ) : (
+                            <ChevronRight size={18} className="text-muted-foreground" />
+                          ))}
                       </div>
 
                       {/* Nome do departamento */}
                       <div className="w-36 flex-shrink-0">
-                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                          {dept.name}
-                        </span>
+                        <span className="text-sm font-semibold text-foreground">{dept.name}</span>
                       </div>
 
                       {/* Barra de progresso */}
                       <div className="flex-1 relative">
-                        <div className="w-full bg-gray-100 dark:bg-yt-elevated rounded-full h-5 overflow-hidden">
+                        <div className="w-full bg-secondary rounded-full h-5 overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${completionRate}%` }}
                             transition={{ duration: 0.8, delay: index * 0.05 }}
                             className="h-full rounded-full flex items-center justify-end pr-2"
                             style={{
-                              backgroundColor: completionRate === 100
-                                ? '#1e40af'
-                                : completionRate >= 70
-                                  ? '#3b82f6'
-                                  : completionRate >= 40
-                                    ? '#60a5fa'
-                                    : '#93c5fd'
+                              backgroundColor:
+                                completionRate === 100
+                                  ? '#D2FF00'
+                                  : completionRate >= 70
+                                    ? 'rgba(210, 255, 0, 0.85)'
+                                    : completionRate >= 40
+                                      ? 'rgba(210, 255, 0, 0.65)'
+                                      : 'rgba(210, 255, 0, 0.45)',
                             }}
                           >
                             {completionRate >= 20 && (
-                              <span className="text-xs font-semibold text-white">
+                              <span className="text-xs font-semibold text-obsidian">
                                 {completionRate}%
                               </span>
                             )}
                           </motion.div>
                         </div>
                         {completionRate < 20 && (
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
                             {completionRate}%
                           </span>
                         )}
@@ -1262,7 +1377,7 @@ const Reports = () => {
 
                       {/* Contador */}
                       <div className="w-16 flex-shrink-0 text-right">
-                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        <span className="text-sm font-medium text-muted-foreground">
                           {dept.completed}/{dept.total}
                         </span>
                       </div>
@@ -1275,50 +1390,51 @@ const Reports = () => {
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="border-t border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-surface/50"
+                        className="border-t border-border bg-secondary"
                       >
                         <div className="p-4 pl-14 space-y-3">
                           {dept.teams
                             .sort((a, b) => b.completionRate - a.completionRate)
                             .map((team) => (
-                            <div key={team.id} className="flex items-center gap-4">
-                              {/* Nome do time */}
-                              <div className="w-32 flex-shrink-0">
-                                <span className="text-xs font-medium text-gray-600 dark:text-gray-400 truncate block">
-                                  {team.name}
-                                </span>
-                              </div>
+                              <div key={team.id} className="flex items-center gap-4">
+                                {/* Nome do time */}
+                                <div className="w-32 flex-shrink-0">
+                                  <span className="text-xs font-medium text-muted-foreground truncate block">
+                                    {team.name}
+                                  </span>
+                                </div>
 
-                              {/* Barra de progresso do time */}
-                              <div className="flex-1 relative">
-                                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3 overflow-hidden">
-                                  <div
-                                    className="h-full rounded-full"
-                                    style={{
-                                      width: `${team.completionRate}%`,
-                                      backgroundColor: team.completionRate === 100
-                                        ? '#1e40af'
-                                        : team.completionRate >= 70
-                                          ? '#3b82f6'
-                                          : team.completionRate >= 40
-                                            ? '#60a5fa'
-                                            : '#93c5fd'
-                                    }}
-                                  />
+                                {/* Barra de progresso do time */}
+                                <div className="flex-1 relative">
+                                  <div className="w-full bg-secondary rounded-full h-3 overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full"
+                                      style={{
+                                        width: `${team.completionRate}%`,
+                                        backgroundColor:
+                                          team.completionRate === 100
+                                            ? '#D2FF00'
+                                            : team.completionRate >= 70
+                                              ? 'rgba(210, 255, 0, 0.85)'
+                                              : team.completionRate >= 40
+                                                ? 'rgba(210, 255, 0, 0.65)'
+                                                : 'rgba(210, 255, 0, 0.45)',
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Porcentagem e contador */}
+                                <div className="w-24 flex-shrink-0 text-right flex items-center justify-end gap-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    {team.completionRate}% ({team.completed}/{team.total})
+                                  </span>
+                                  {team.completionRate === 100 && (
+                                    <CheckCircle size={14} className="text-success flex-shrink-0" />
+                                  )}
                                 </div>
                               </div>
-
-                              {/* Porcentagem e contador */}
-                              <div className="w-24 flex-shrink-0 text-right flex items-center justify-end gap-1">
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  {team.completionRate}% ({team.completed}/{team.total})
-                                </span>
-                                {team.completionRate === 100 && (
-                                  <CheckCircle size={14} className="text-green-500 flex-shrink-0" />
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                            ))}
                         </div>
                       </motion.div>
                     )}
@@ -1327,7 +1443,7 @@ const Reports = () => {
               })}
 
               {sortedDepartmentProgress.length === 0 && (
-                <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                <p className="text-center text-muted-foreground py-4">
                   Nenhum departamento com colaboradores
                 </p>
               )}
@@ -1341,39 +1457,50 @@ const Reports = () => {
           className="space-y-4"
         >
           {/* Filters */}
-          <div className="bg-naue-white dark:bg-yt-surface p-4 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border">
+          <div className="bg-card p-4 rounded-2xl shadow-sm hover:shadow-md border border-border">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                  size={18}
+                />
                 <input
                   type="text"
                   placeholder="Buscar colaborador..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-all duration-200"
                 />
               </div>
-              
+
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Filter
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                  size={18}
+                />
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 appearance-none"
+                  className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-secondary text-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-all duration-200 appearance-none"
                 >
                   <option value="">Todos os departamentos</option>
-                  {departments.map(dept => (
-                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
                   ))}
                 </select>
               </div>
-              
+
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Filter
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                  size={18}
+                />
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 appearance-none"
+                  className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-secondary text-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-all duration-200 appearance-none"
                 >
                   <option value="">Todos os status</option>
                   <option value="completed">Completo</option>
@@ -1385,53 +1512,53 @@ const Reports = () => {
           </div>
 
           {/* Desktop Table */}
-          <div className="hidden md:block bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border overflow-hidden">
+          <div className="hidden md:block bg-card rounded-2xl shadow-sm hover:shadow-md border border-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-naue-light-gray dark:bg-yt-elevated">
+                <thead className="bg-secondary">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Colaborador
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Departamento
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Autoavaliação
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Líder
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Consenso
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       PDI
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Posição Nine Box
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-yt-surface divide-y divide-naue-border-gray dark:divide-gray-700">
+                <tbody className="bg-card divide-y divide-border">
                   {filteredData.map((item: CycleDashboard) => {
                     // OTIMIZADO: Usar Map para lookup O(1)
                     const user = usersMap.get(item.employee_id);
                     const deptName = getDeptName(item, user);
 
                     return (
-                      <tr key={item.employee_id} className="hover:bg-primary-50 dark:hover:bg-gray-700 transition-colors">
+                      <tr key={item.employee_id} className="hover:bg-accent transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-naue-black dark:text-gray-100">
+                            <div className="text-sm font-medium text-foreground">
                               {user?.name || '-'}
                             </div>
-                            <div className="text-sm text-naue-text-gray dark:text-gray-400">
+                            <div className="text-sm text-muted-foreground">
                               {user?.position || '-'}
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-naue-text-gray dark:text-gray-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {deptName}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -1472,21 +1599,21 @@ const Reports = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-naue-white dark:bg-yt-surface p-4 rounded-2xl shadow-sm hover:shadow-md border border-naue-border-gray dark:border-yt-border"
+                  className="bg-card p-4 rounded-2xl shadow-sm hover:shadow-md border border-border"
                 >
                   <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-primary-100 dark:bg-primary-600/30 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-semibold text-primary-500 dark:text-primary-400">
+                    <div className="flex-shrink-0 w-10 h-10 bg-lime/20 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-lime-deep dark:text-lime">
                         {user?.name?.charAt(0) || '?'}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                          <p className="text-sm font-medium text-foreground truncate">
                             {user?.name || '-'}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          <p className="text-xs text-muted-foreground truncate">
                             {user?.position || '-'} • {deptName}
                           </p>
                         </div>
@@ -1494,22 +1621,22 @@ const Reports = () => {
                           {getNineBoxBadge(item.ninebox_position, item)}
                         </div>
                       </div>
-                      
+
                       <div className="mt-3 grid grid-cols-2 gap-2">
                         <div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Autoavaliação</p>
+                          <p className="text-xs text-muted-foreground mb-1">Autoavaliação</p>
                           {getStatusBadge(item.self_evaluation_status)}
                         </div>
                         <div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Líder</p>
+                          <p className="text-xs text-muted-foreground mb-1">Líder</p>
                           {getStatusBadge(item.leader_evaluation_status)}
                         </div>
                         <div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Consenso</p>
+                          <p className="text-xs text-muted-foreground mb-1">Consenso</p>
                           {getStatusBadge(item.consensus_status)}
                         </div>
                         <div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">PDI</p>
+                          <p className="text-xs text-muted-foreground mb-1">PDI</p>
                           {item.self_evaluation_status === 'n/a' && item.consensus_status === 'n/a'
                             ? getStatusBadge('n/a')
                             : getStatusBadge(item.ninebox_position ? 'completed' : 'pending')}

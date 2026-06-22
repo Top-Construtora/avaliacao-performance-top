@@ -5,7 +5,11 @@ import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { ArrowLeft, Send, Star, MessageSquare, ToggleLeft, CheckCircle } from 'lucide-react';
-import { satisfactionService, SatisfactionSurvey, SatisfactionQuestion } from '../../services/satisfaction.service';
+import {
+  satisfactionService,
+  SatisfactionSurvey,
+  SatisfactionQuestion,
+} from '../../services/satisfaction.service';
 
 const SatisfactionRespond = () => {
   const navigate = useNavigate();
@@ -14,7 +18,9 @@ const SatisfactionRespond = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [hasResponded, setHasResponded] = useState(false);
-  const [answers, setAnswers] = useState<Record<string, { rating_value?: number; text_value?: string; boolean_value?: boolean }>>({});
+  const [answers, setAnswers] = useState<
+    Record<string, { rating_value?: number; text_value?: string; boolean_value?: boolean }>
+  >({});
 
   useEffect(() => {
     if (id) loadSurvey();
@@ -41,12 +47,15 @@ const SatisfactionRespond = () => {
     if (!survey?.questions) return;
 
     // Validar campos obrigatórios
-    const required = survey.questions.filter(q => q.required);
+    const required = survey.questions.filter((q) => q.required);
     for (const q of required) {
       const answer = answers[q.id];
-      if (!answer || (q.question_type === 'rating' && !answer.rating_value) ||
-          (q.question_type === 'text' && !answer.text_value?.trim()) ||
-          (q.question_type === 'yes_no' && answer.boolean_value === undefined)) {
+      if (
+        !answer ||
+        (q.question_type === 'rating' && !answer.rating_value) ||
+        (q.question_type === 'text' && !answer.text_value?.trim()) ||
+        (q.question_type === 'yes_no' && answer.boolean_value === undefined)
+      ) {
         toast.error(`Responda a pergunta: "${q.question_text}"`);
         return;
       }
@@ -76,11 +85,13 @@ const SatisfactionRespond = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-8 text-center"
+          className="bg-card rounded-2xl shadow-sm border border-border p-8 text-center"
         >
-          <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Você já respondeu esta pesquisa</h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">Obrigado pela sua participação!</p>
+          <CheckCircle className="h-16 w-16 text-success mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            Você já respondeu esta pesquisa
+          </h1>
+          <p className="text-muted-foreground mb-6">Obrigado pela sua participação!</p>
           <Button variant="primary" onClick={() => navigate('/satisfaction')}>
             Voltar
           </Button>
@@ -92,8 +103,10 @@ const SatisfactionRespond = () => {
   if (!survey || survey.status !== 'active') {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Esta pesquisa não está disponível.</p>
-        <Button variant="outline" onClick={() => navigate('/satisfaction')} className="mt-4">Voltar</Button>
+        <p className="text-muted-foreground">Esta pesquisa não está disponível.</p>
+        <Button variant="outline" onClick={() => navigate('/satisfaction')} className="mt-4">
+          Voltar
+        </Button>
       </div>
     );
   }
@@ -104,19 +117,24 @@ const SatisfactionRespond = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
+        className="bg-card rounded-2xl shadow-sm border border-border p-6"
       >
         <div className="flex items-center space-x-4 mb-4">
-          <button onClick={() => navigate('/satisfaction')} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors">
+          <button
+            onClick={() => navigate('/satisfaction')}
+            className="p-2 rounded-xl hover:bg-accent text-muted-foreground transition-colors"
+          >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">{survey.title}</h1>
-            {survey.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{survey.description}</p>}
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">{survey.title}</h1>
+            {survey.description && (
+              <p className="text-sm text-muted-foreground mt-1">{survey.description}</p>
+            )}
           </div>
         </div>
         {survey.is_anonymous && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-3 text-sm text-blue-700 dark:text-blue-300">
+          <div className="bg-secondary border border-border rounded-xl p-3 text-sm text-muted-foreground">
             Esta pesquisa é anônima. Suas respostas não serão vinculadas ao seu perfil.
           </div>
         )}
@@ -129,38 +147,37 @@ const SatisfactionRespond = () => {
         className="space-y-4"
       >
         {survey.questions?.map((question, index) => (
-          <div
-            key={question.id}
-            className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
-          >
+          <div key={question.id} className="bg-card rounded-2xl shadow-sm border border-border p-6">
             <div className="flex items-start gap-3 mb-4">
-              <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 flex items-center justify-center text-sm font-bold">
+              <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-lime/20 text-lime-deep dark:text-lime flex items-center justify-center text-sm font-bold">
                 {index + 1}
               </span>
               <div>
-                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <p className="text-sm font-semibold text-foreground">
                   {question.question_text}
-                  {question.required && <span className="text-red-500 ml-1">*</span>}
+                  {question.required && <span className="text-destructive ml-1">*</span>}
                 </p>
               </div>
             </div>
 
             {question.question_type === 'rating' && (
               <div className="flex items-center gap-2 ml-10">
-                {[1, 2, 3, 4, 5].map(rating => (
+                {[1, 2, 3, 4, 5].map((rating) => (
                   <button
                     key={rating}
-                    onClick={() => setAnswers(prev => ({ ...prev, [question.id]: { rating_value: rating } }))}
+                    onClick={() =>
+                      setAnswers((prev) => ({ ...prev, [question.id]: { rating_value: rating } }))
+                    }
                     className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 transition-all text-lg font-bold ${
                       answers[question.id]?.rating_value === rating
-                        ? 'border-primary-500 bg-primary-500 text-white shadow-md scale-110'
-                        : 'border-gray-200 dark:border-yt-border text-gray-500 dark:text-gray-400 hover:border-primary-300'
+                        ? 'border-[#D2FF00] bg-lime text-obsidian shadow-md scale-110'
+                        : 'border-border bg-secondary text-muted-foreground hover:border-[#D2FF00]'
                     }`}
                   >
                     {rating}
                   </button>
                 ))}
-                <div className="ml-3 flex justify-between text-[10px] text-gray-400 dark:text-gray-500 w-full max-w-[120px]">
+                <div className="ml-3 flex justify-between text-[10px] text-muted-foreground w-full max-w-[120px]">
                   <span>Insatisfeito</span>
                   <span>Satisfeito</span>
                 </div>
@@ -171,10 +188,15 @@ const SatisfactionRespond = () => {
               <div className="ml-10">
                 <textarea
                   value={answers[question.id]?.text_value || ''}
-                  onChange={(e) => setAnswers(prev => ({ ...prev, [question.id]: { text_value: e.target.value } }))}
+                  onChange={(e) =>
+                    setAnswers((prev) => ({
+                      ...prev,
+                      [question.id]: { text_value: e.target.value },
+                    }))
+                  }
                   placeholder="Sua resposta..."
                   rows={3}
-                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm resize-none"
+                  className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm resize-none"
                 />
               </div>
             )}
@@ -182,21 +204,25 @@ const SatisfactionRespond = () => {
             {question.question_type === 'yes_no' && (
               <div className="flex gap-3 ml-10">
                 <button
-                  onClick={() => setAnswers(prev => ({ ...prev, [question.id]: { boolean_value: true } }))}
+                  onClick={() =>
+                    setAnswers((prev) => ({ ...prev, [question.id]: { boolean_value: true } }))
+                  }
                   className={`px-8 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                     answers[question.id]?.boolean_value === true
-                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                      : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 hover:border-green-300'
+                      ? 'border-success bg-success/15 text-success'
+                      : 'border-border bg-secondary text-muted-foreground hover:border-success'
                   }`}
                 >
                   Sim
                 </button>
                 <button
-                  onClick={() => setAnswers(prev => ({ ...prev, [question.id]: { boolean_value: false } }))}
+                  onClick={() =>
+                    setAnswers((prev) => ({ ...prev, [question.id]: { boolean_value: false } }))
+                  }
                   className={`px-8 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                     answers[question.id]?.boolean_value === false
-                      ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                      : 'border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 hover:border-red-300'
+                      ? 'border-destructive bg-destructive/15 text-destructive'
+                      : 'border-border bg-secondary text-muted-foreground hover:border-destructive'
                   }`}
                 >
                   Não
@@ -209,7 +235,13 @@ const SatisfactionRespond = () => {
 
       {/* Submit */}
       <div className="flex justify-end pb-8">
-        <Button variant="primary" onClick={handleSubmit} disabled={submitting} icon={<Send size={18} />} size="lg">
+        <Button
+          variant="primary"
+          onClick={handleSubmit}
+          disabled={submitting}
+          icon={<Send size={18} />}
+          size="lg"
+        >
           {submitting ? 'Enviando...' : 'Enviar Respostas'}
         </Button>
       </div>

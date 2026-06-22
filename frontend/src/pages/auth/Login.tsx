@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogIn, Mail, Lock, Eye, EyeOff, AlertCircle, Users, Target, Award } from 'lucide-react';
-import logo from '../../../assets/images/logo.png';
-import logoTop2 from '../../../assets/images/logoTop2.png';
+import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
+import gioWordmark from '@/assets/images/gio-wordmark.png';
 import { useAuth } from '../../context/AuthContext';
+
+// gio — Identidade v4.0: split obsidian + grade blueprint + lime.
+// Marca GIO (wordmark) sobre obsidian; CTA lime; card com vidro.
+const INVERT_TO_WHITE = 'invert(1) brightness(1.1)';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -71,133 +74,145 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1e2938] via-[#1e6076] to-[#12b0a0] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent transform -skew-y-12 scale-150"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent transform skew-y-12 scale-150"></div>
-      </div>
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#1A1A1A] text-white">
+      {/* Grade blueprint — pano de fundo técnico (lime translúcido sobre obsidian) */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          backgroundImage: `linear-gradient(rgba(210,255,0,.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(210,255,0,.05) 1px, transparent 1px),
+            linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px)`,
+          backgroundSize: '90px 90px, 90px 90px, 22.5px 22.5px, 22.5px 22.5px',
+          maskImage: 'radial-gradient(ellipse 100% 100% at 45% 45%, black 30%, transparent 100%)',
+          WebkitMaskImage:
+            'radial-gradient(ellipse 100% 100% at 45% 45%, black 30%, transparent 100%)',
+        }}
+      />
 
-      <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-center relative z-10">
-        {/* Left Side - Branding & Info */}
-        <div className="hidden lg:flex flex-col justify-center space-y-8 text-white">
-          <div className="space-y-6">
-            <img
-              src={logo}
-              alt="Logo"
-              className="h-16 w-auto object-contain"
-            />
-            <div>
-              <h1 className="text-5xl font-bold leading-tight mb-4 font-lemon-milk tracking-wider">
-                Sistema de<br />
-                <span className="text-[#12b0a0]">Gente &amp;</span><br />
-                Gestão
-              </h1>
-              <p className="text-xl text-white/80 leading-relaxed">
-                Gerencie pessoas, acompanhe o desenvolvimento da equipe e
-                impulsione resultados com avaliações e feedbacks estruturados.
-              </p>
-            </div>
-          </div>
-
-          {/* Features */}
-          <div className="grid grid-cols-1 gap-4">
-            <div className="flex items-center gap-4 p-4 bg-white/10 backdrop-blur-sm rounded-2xl">
-              <div className="p-3 bg-[#12b0a0] rounded-xl">
-                <Target className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg font-lemon-milk">Avaliação 360°</h3>
-                <p className="text-white/70 text-sm">Autoavaliação, líder e consenso integrados</p>
-              </div>
+      <div className="relative z-10 grid min-h-screen grid-cols-1 lg:h-screen lg:grid-cols-[1.05fr_0.95fr]">
+        {/* ═══ ESQUERDA — PAINEL DE MARCA ═══ */}
+        <aside className="relative hidden flex-col justify-center overflow-hidden px-16 py-16 lg:flex xl:px-24">
+          <div className="relative z-[1] max-w-[560px]">
+            {/* Logo + tagline da marca */}
+            <div className="mb-12">
+              <img
+                src={gioWordmark}
+                alt="gio"
+                className="w-[240px] max-w-full"
+                style={{ filter: INVERT_TO_WHITE }}
+              />
+              <span className="mt-3 block text-[12px] font-medium uppercase tracking-[0.18em] text-white/35">
+                Gestão Inteligente de Obras
+              </span>
             </div>
 
-            <div className="flex items-center gap-4 p-4 bg-white/10 backdrop-blur-sm rounded-2xl">
-              <div className="p-3 bg-[#1e6076] rounded-xl">
-                <Users className="h-6 w-6 text-white" />
-              </div>
+            {/* Headline + subtítulo, ancorados por uma linha lime */}
+            <div className="flex gap-[14px]">
+              <div className="mt-2 w-[3px] shrink-0 self-stretch rounded-full bg-gradient-to-b from-[#D2FF00] via-[#D2FF00]/40 to-transparent" />
               <div>
-                <h3 className="font-semibold text-lg font-lemon-milk">Comitê de Gente</h3>
-                <p className="text-white/70 text-sm">Matriz Nine Box para gestão de talentos</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 p-4 bg-white/10 backdrop-blur-sm rounded-2xl">
-              <div className="p-3 bg-[#baa673] rounded-xl">
-                <Award className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg font-lemon-milk">PDI Integrado</h3>
-                <p className="text-white/70 text-sm">Plano de desenvolvimento individual</p>
+                <h1 className="mb-6 text-[48px] font-semibold leading-[1.08] tracking-[-0.035em] text-white">
+                  Pessoas no centro,{' '}
+                  <em className="not-italic text-[#D2FF00]">resultados em foco</em>.
+                </h1>
+                <p className="max-w-[460px] text-[17px] leading-[1.6] text-white/55">
+                  Avaliações de desempenho, comitê de gente e PDI em um só lugar, com o
+                  acompanhamento estruturado que o desenvolvimento da sua equipe precisa.
+                </p>
               </div>
             </div>
           </div>
-        </div>
+        </aside>
 
-        {/* Right Side - Login Form */}
-        <div className="flex items-center justify-center">
+        {/* ═══ DIREITA — FORMULÁRIO ═══ */}
+        <main className="relative flex items-center justify-center p-6 lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full max-w-md"
+            className="w-[430px] max-w-[calc(100%-48px)] sm:max-w-[calc(100%-80px)]"
           >
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 space-y-6 border-0">
-              {/* Logo e Título */}
-              <div className="text-center space-y-4 pb-2">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="p-3 bg-gradient-to-br from-[#12b0a0] to-[#1e6076] rounded-2xl w-16 h-16 mx-auto flex items-center justify-center"
-                >
-                  <img src={logoTop2} alt="Logo" className="h-10 w-auto object-contain" />
-                </motion.div>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 font-lemon-milk tracking-wide">
-                    Bem-vindo(a)!
-                  </h1>
-                  <p className="text-gray-600 mt-2">
-                    Faça login para acessar o sistema
-                  </p>
-                </div>
+            <div
+              className="relative rounded-[20px] border border-white/10 bg-[rgba(0,0,0,0.18)] px-10 pb-10 pt-11 shadow-[0_32px_64px_rgba(0,0,0,0.35)]"
+              style={{
+                backdropFilter: 'blur(28px) saturate(1.4)',
+                WebkitBackdropFilter: 'blur(28px) saturate(1.4)',
+              }}
+            >
+              {/* Barra de destaque lime (assinatura do card de autenticação) */}
+              <div className="absolute -top-px left-10 right-10 h-0.5 rounded-b-[4px] bg-[#D2FF00] opacity-90" />
+
+              {/* Logo + tagline */}
+              <div className="mb-7 flex flex-col items-center gap-2.5 text-center">
+                <img
+                  src={gioWordmark}
+                  alt="gio"
+                  className="block h-[40px] w-auto"
+                  style={{ filter: INVERT_TO_WHITE, imageRendering: 'auto' }}
+                />
+                <span className="text-[10.5px] font-medium uppercase tracking-[0.13em] text-[#8B8B95]">
+                  Gente &amp; Gestão
+                </span>
               </div>
+
+              <div className="mb-[26px] h-px w-full bg-white/[0.09]" />
+
+              <h2 className="mb-1.5 text-center text-[22px] font-semibold tracking-[-0.03em] text-white">
+                Bem-vindo(a)!
+              </h2>
+              <p className="mb-8 text-center text-[14px] text-[#8B8B95]">
+                Acesse sua conta para continuar.
+              </p>
 
               {/* Aviso de sessão expirada */}
               {sessionExpired && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200"
+                  className="mb-[18px] flex items-center gap-2 rounded-[9px] border border-[rgba(245,158,11,0.28)] bg-[rgba(245,158,11,0.12)] px-3.5 py-[11px] text-[13px] text-[#fcd34d]"
                 >
-                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <AlertCircle className="h-4 w-4 shrink-0" />
                   <span>Sua sessão expirou. Faça login novamente.</span>
                 </motion.div>
               )}
 
-              {/* Botão Principal - Login com Microsoft */}
+              {/* Erro de autenticação */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-[18px] flex items-center gap-2 rounded-[9px] border border-[rgba(255,80,80,0.22)] bg-[rgba(255,80,80,0.1)] px-3.5 py-[11px] text-[13px] text-[#ff9090]"
+                >
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{error}</span>
+                </motion.div>
+              )}
+
+              {/* Botão Principal — Login com Microsoft */}
               <button
                 type="button"
                 onClick={handleMicrosoftLogin}
                 disabled={isLoading || isLoadingMicrosoft}
-                className={`w-full py-4 px-6 rounded-lg font-semibold text-white text-base transition-all duration-200 flex items-center justify-center gap-3 shadow-lg ${
-                  isLoading || isLoadingMicrosoft
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-[#12b0a0] to-[#1e6076] hover:from-[#0f9d8a] hover:to-[#1a5a6b] hover:-translate-y-0.5 hover:shadow-xl focus:ring-2 focus:ring-[#12b0a0]/20 active:scale-[0.98]'
-                }`}
+                className="flex h-[50px] w-full items-center justify-center gap-3 rounded-[10px] border border-white/10 bg-white/[0.06] text-[14.5px] font-semibold text-white transition hover:border-white/[0.18] hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isLoadingMicrosoft ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                     <span>Conectando...</span>
                   </>
                 ) : (
                   <>
-                    <svg className="h-5 w-5" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
-                      <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
-                      <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
-                      <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+                    <svg
+                      className="h-5 w-5"
+                      viewBox="0 0 21 21"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect x="1" y="1" width="9" height="9" fill="#F25022" />
+                      <rect x="11" y="1" width="9" height="9" fill="#7FBA00" />
+                      <rect x="1" y="11" width="9" height="9" fill="#00A4EF" />
+                      <rect x="11" y="11" width="9" height="9" fill="#FFB900" />
                     </svg>
                     <span>Entrar com Microsoft</span>
                   </>
@@ -205,11 +220,11 @@ export default function Login() {
               </button>
 
               {/* Link para login alternativo */}
-              <div className="text-center">
+              <div className="mt-4 text-center">
                 <button
                   type="button"
                   onClick={() => setShowEmailLogin(!showEmailLogin)}
-                  className="text-sm text-gray-500 hover:text-[#12b0a0] transition-colors"
+                  className="text-[13px] text-[#8B8B95] transition-colors hover:text-[#D2FF00]"
                 >
                   {showEmailLogin ? 'Ocultar login com email' : 'Entrar com email e senha'}
                 </button>
@@ -225,97 +240,78 @@ export default function Login() {
                     transition={{ duration: 0.3 }}
                     className="overflow-hidden"
                   >
-                    <div className="pt-4 border-t border-gray-200 space-y-4">
-                      <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Campo de Email */}
-                        <div>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                            <input
-                              id="email"
-                              type="email"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                                error ? 'border-red-500' : 'border-gray-300'
-                              } focus:border-[#12b0a0] focus:ring-2 focus:ring-[#12b0a0]/20 transition-all bg-white text-sm`}
-                              placeholder="seu@email.com"
-                              disabled={isLoading}
-                            />
-                          </div>
+                    <div className="mt-5 border-t border-white/[0.09] pt-5">
+                      <form onSubmit={handleSubmit}>
+                        {/* E-mail */}
+                        <div className="mb-4 flex flex-col gap-1.5">
+                          <label
+                            htmlFor="email"
+                            className="text-[11.5px] font-semibold uppercase tracking-[0.07em] text-[#8B8B95]"
+                          >
+                            E-mail
+                          </label>
+                          <input
+                            id="email"
+                            type="email"
+                            autoComplete="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="seu@email.com.br"
+                            disabled={isLoading}
+                            className="h-12 w-full rounded-[10px] border border-white/10 bg-white/[0.06] px-4 text-[14.5px] text-white outline-none transition placeholder:text-[#8B8B95] placeholder:opacity-55 hover:border-white/[0.14] focus:border-[#D2FF00] focus:shadow-[0_0_0_3px_rgba(210,255,0,0.18)]"
+                          />
                         </div>
 
-                        {/* Campo de Senha */}
-                        <div>
+                        {/* Senha */}
+                        <div className="mb-6 flex flex-col gap-1.5">
+                          <label
+                            htmlFor="password"
+                            className="text-[11.5px] font-semibold uppercase tracking-[0.07em] text-[#8B8B95]"
+                          >
+                            Senha
+                          </label>
                           <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                             <input
                               id="password"
                               type={showPassword ? 'text' : 'password'}
+                              autoComplete="current-password"
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
-                              className={`w-full pl-10 pr-12 py-3 rounded-lg border ${
-                                error ? 'border-red-500' : 'border-gray-300'
-                              } focus:border-[#12b0a0] focus:ring-2 focus:ring-[#12b0a0]/20 transition-all bg-white text-sm`}
-                              placeholder="Sua senha"
+                              placeholder="••••••••"
                               disabled={isLoading}
+                              className="h-12 w-full rounded-[10px] border border-white/10 bg-white/[0.06] pl-4 pr-12 text-[14.5px] text-white outline-none transition placeholder:text-[#8B8B95] placeholder:opacity-55 hover:border-white/[0.14] focus:border-[#D2FF00] focus:shadow-[0_0_0_3px_rgba(210,255,0,0.18)]"
                             />
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-all duration-200"
+                              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#8B8B95] opacity-70 transition hover:opacity-100"
                               tabIndex={-1}
                             >
                               {showPassword ? (
-                                <EyeOff className="h-4 w-4" />
+                                <EyeOff className="h-[18px] w-[18px]" />
                               ) : (
-                                <Eye className="h-4 w-4" />
+                                <Eye className="h-[18px] w-[18px]" />
                               )}
                             </button>
                           </div>
                         </div>
 
-                        {/* Mensagem de Erro */}
-                        {error && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg"
-                          >
-                            <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                            <span>{error}</span>
-                          </motion.div>
-                        )}
-
-                        {/* Botão de Login */}
+                        {/* Entrar — CTA primário em lime vibrante */}
                         <button
                           type="submit"
                           disabled={isLoading || isLoadingMicrosoft}
-                          className={`w-full py-3 px-6 rounded-lg font-medium text-white text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
-                            isLoading || isLoadingMicrosoft
-                              ? 'bg-gray-400 cursor-not-allowed'
-                              : 'bg-gradient-to-r from-[#1e6076] to-[#12b0a0] hover:from-[#1a5a6b] hover:to-[#0f9d8a] active:scale-[0.98]'
-                          }`}
+                          className="relative flex h-[50px] w-full items-center justify-center rounded-[10px] bg-[#D2FF00] text-[15px] font-bold tracking-[0.02em] text-[#1A1A1A] shadow-[0_4px_16px_rgba(0,0,0,0.25)] transition hover:-translate-y-px hover:bg-[#C2EE00] hover:shadow-[0_6px_20px_rgba(0,0,0,0.3)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
                         >
-                          {isLoading ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                              <span>Entrando...</span>
-                            </>
-                          ) : (
-                            <>
-                              <LogIn className="h-4 w-4" />
-                              <span>Entrar</span>
-                            </>
-                          )}
+                          {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Entrar'}
                         </button>
 
                         {/* Link Esqueci senha */}
-                        <div className="text-center">
+                        <div className="mt-4 text-center">
                           <button
                             type="button"
                             onClick={() => navigate('/forgot-password')}
-                            className="text-xs text-gray-500 hover:text-[#12b0a0] transition-colors"
+                            className="text-[12px] text-[#8B8B95] transition-colors hover:text-[#D2FF00]"
                           >
                             Esqueci minha senha
                           </button>
@@ -326,15 +322,12 @@ export default function Login() {
                 )}
               </AnimatePresence>
 
-              {/* Footer */}
-              <div className="text-center pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-500">
-                  Sistema protegido por autenticação segura
-                </p>
+              <div className="mt-[26px] text-center text-[11px] tracking-[0.03em] text-[#8B8B95] opacity-55">
+                © 2026 gio · Sistema protegido por autenticação segura
               </div>
             </div>
           </motion.div>
-        </div>
+        </main>
       </div>
     </div>
   );

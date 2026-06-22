@@ -44,7 +44,7 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
     try {
       // Atualiza a senha no Supabase Auth
       const { error } = await supabase.auth.updateUser({
-        password: newPassword
+        password: newPassword,
       });
 
       if (error) {
@@ -79,23 +79,23 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white dark:bg-yt-surface rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8"
+            className="bg-popover text-popover-foreground border border-border rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8"
           >
             {/* Header */}
             <div className="text-center mb-6">
-              <div className="inline-flex p-3 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4">
-                <Shield className="w-8 h-8 text-primary-600 dark:text-primary-400" />
+              <div className="inline-flex p-3 rounded-full bg-lime/10 mb-4">
+                <Shield className="w-8 h-8 text-lime-deep dark:text-lime" />
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 font-lemon-milk tracking-wide">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground font-lemon-milk tracking-wide">
                 Bem-vindo(a), {profile?.name?.split(' ')[0]}!
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 Por segurança, você precisa criar uma nova senha para continuar.
               </p>
             </div>
@@ -104,23 +104,23 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Nova Senha */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Nova Senha
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input
                     type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-yt-border rounded-xl bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-10 py-3 border border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-xl focus:ring-2 focus:ring-[#D2FF00]/20 focus:border-[#D2FF00] focus:bg-background transition-all"
                     placeholder="Digite sua nova senha"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -129,46 +129,60 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
 
               {/* Confirmar Senha */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Confirmar Senha
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-yt-border rounded-xl bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-10 py-3 border border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-xl focus:ring-2 focus:ring-[#D2FF00]/20 focus:border-[#D2FF00] focus:bg-background transition-all"
                     placeholder="Confirme sua nova senha"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
 
               {/* Requisitos de senha */}
               {newPassword.length > 0 && (
-                <div className="space-y-2 p-3 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl">
-                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                    Requisitos da senha:
-                  </p>
+                <div className="space-y-2 p-3 bg-secondary rounded-xl">
+                  <p className="text-xs font-medium text-muted-foreground">Requisitos da senha:</p>
                   <div className="space-y-1">
-                    <div className={`flex items-center gap-2 text-xs ${passwordRequirements.minLength ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${passwordRequirements.minLength ? 'bg-green-600' : 'bg-gray-400'}`} />
+                    <div
+                      className={`flex items-center gap-2 text-xs ${passwordRequirements.minLength ? 'text-success' : 'text-muted-foreground'}`}
+                    >
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full ${passwordRequirements.minLength ? 'bg-success' : 'bg-muted-foreground'}`}
+                      />
                       Mínimo 6 caracteres
                     </div>
-                    <div className={`flex items-center gap-2 text-xs ${passwordRequirements.hasLetter ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${passwordRequirements.hasLetter ? 'bg-green-600' : 'bg-gray-400'}`} />
+                    <div
+                      className={`flex items-center gap-2 text-xs ${passwordRequirements.hasLetter ? 'text-success' : 'text-muted-foreground'}`}
+                    >
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full ${passwordRequirements.hasLetter ? 'bg-success' : 'bg-muted-foreground'}`}
+                      />
                       Pelo menos uma letra
                     </div>
-                    <div className={`flex items-center gap-2 text-xs ${passwordRequirements.hasNumber ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${passwordRequirements.hasNumber ? 'bg-green-600' : 'bg-gray-400'}`} />
+                    <div
+                      className={`flex items-center gap-2 text-xs ${passwordRequirements.hasNumber ? 'text-success' : 'text-muted-foreground'}`}
+                    >
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full ${passwordRequirements.hasNumber ? 'bg-success' : 'bg-muted-foreground'}`}
+                      />
                       Pelo menos um número
                     </div>
                   </div>
@@ -177,16 +191,15 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
 
               {/* Mensagem de erro se senhas não coincidem */}
               {confirmPassword.length > 0 && newPassword !== confirmPassword && (
-                <p className="text-sm text-red-500 dark:text-red-400">
-                  As senhas não coincidem
-                </p>
+                <p className="text-sm text-destructive">As senhas não coincidem</p>
               )}
 
               {/* Alerta */}
-              <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
-                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-amber-700 dark:text-amber-300">
-                  Esta ação é obrigatória e não pode ser ignorada. Sua nova senha será usada para acessar o sistema.
+              <div className="flex items-start gap-2 p-3 bg-warning/10 rounded-xl border border-warning/20">
+                <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-warning">
+                  Esta ação é obrigatória e não pode ser ignorada. Sua nova senha será usada para
+                  acessar o sistema.
                 </p>
               </div>
 
@@ -194,17 +207,29 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
               <button
                 type="submit"
                 disabled={!isPasswordValid || isLoading}
-                className={`w-full py-3 px-4 rounded-xl font-medium text-white transition-all ${
+                className={`w-full py-3 px-4 rounded-xl font-medium transition-all ${
                   isPasswordValid && !isLoading
-                    ? 'bg-primary-600 hover:bg-primary-700 shadow-lg hover:shadow-xl'
-                    : 'bg-gray-400 cursor-not-allowed'
+                    ? 'bg-lime text-obsidian hover:bg-lime/90 shadow-lg hover:shadow-xl'
+                    : 'bg-secondary text-muted-foreground cursor-not-allowed'
                 }`}
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
                     <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                     Alterando senha...
                   </span>

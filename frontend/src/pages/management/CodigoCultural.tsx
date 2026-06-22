@@ -17,7 +17,7 @@ import {
   CheckCircle,
   GripVertical,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react';
 
 interface OrganizationalCompetency {
@@ -51,7 +51,7 @@ const CodigoCultural = () => {
     name: '',
     description: '',
     position: 1,
-    is_active: true
+    is_active: true,
   });
 
   // Verificar se o usuário tem permissão
@@ -71,7 +71,11 @@ const CodigoCultural = () => {
     try {
       setLoading(true);
       const data = await competencyService.getOrganizationalCompetencies();
-      setCompetencies((data || []).sort((a: OrganizationalCompetency, b: OrganizationalCompetency) => a.position - b.position));
+      setCompetencies(
+        (data || []).sort(
+          (a: OrganizationalCompetency, b: OrganizationalCompetency) => a.position - b.position,
+        ),
+      );
     } catch (error: any) {
       console.error('Erro ao carregar competências:', error);
       toast.error('Erro ao carregar competências organizacionais');
@@ -87,7 +91,7 @@ const CodigoCultural = () => {
       name: competency.name,
       description: competency.description,
       position: competency.position,
-      is_active: competency.is_active
+      is_active: competency.is_active,
     });
     setShowAddForm(false);
   };
@@ -98,7 +102,7 @@ const CodigoCultural = () => {
       name: '',
       description: '',
       position: competencies.length + 1,
-      is_active: true
+      is_active: true,
     });
   };
 
@@ -109,7 +113,7 @@ const CodigoCultural = () => {
       name: '',
       description: '',
       position: competencies.length + 1,
-      is_active: true
+      is_active: true,
     });
   };
 
@@ -154,7 +158,9 @@ const CodigoCultural = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta competência? Esta ação não pode ser desfeita.')) {
+    if (
+      !confirm('Tem certeza que deseja excluir esta competência? Esta ação não pode ser desfeita.')
+    ) {
       return;
     }
 
@@ -174,11 +180,7 @@ const CodigoCultural = () => {
         is_active: !competency.is_active,
       });
 
-      toast.success(
-        competency.is_active
-          ? 'Competência desativada'
-          : 'Competência ativada'
-      );
+      toast.success(competency.is_active ? 'Competência desativada' : 'Competência ativada');
       loadCompetencies();
     } catch (error: any) {
       console.error('Erro ao alterar status:', error);
@@ -191,29 +193,26 @@ const CodigoCultural = () => {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="space-y-6"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-6">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex-1">
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
-              <Award className="h-7 w-7 lg:h-8 lg:w-8 text-primary-00 dark:text-primary-300" />
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-3">
+              <Award className="h-7 w-7 lg:h-8 lg:w-8 text-lime-deep dark:text-lime" />
               Código Cultural
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-muted-foreground mt-2">
               Gerencie as competências organizacionais que definem a cultura da empresa
             </p>
             <div className="flex items-center gap-2 mt-3">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-600/30 text-primary-00 dark:text-primary-300 border border-primary-200 dark:border-primary-700">
-                {competencies.length} {competencies.length === 1 ? 'competência cadastrada' : 'competências cadastradas'}
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-lime/20 text-lime-deep dark:text-lime border border-lime/30">
+                {competencies.length}{' '}
+                {competencies.length === 1 ? 'competência cadastrada' : 'competências cadastradas'}
               </span>
               {competencies.length > 0 && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700">
-                  {competencies.filter(c => c.is_active).length} ativas
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-success/15 text-success border border-success/20">
+                  {competencies.filter((c) => c.is_active).length} ativas
                 </span>
               )}
             </div>
@@ -240,86 +239,84 @@ const CodigoCultural = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-6"
+            className="bg-card rounded-xl shadow-sm border border-border p-6"
           >
             <div className="flex items-center gap-2 mb-6">
               {editingId ? (
                 <>
-                  <Edit2 className="h-5 w-5 text-primary-00 dark:text-primary-300" />
-                  <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                    Editar Competência
-                  </h2>
+                  <Edit2 className="h-5 w-5 text-lime-deep dark:text-lime" />
+                  <h2 className="text-lg font-semibold text-foreground">Editar Competência</h2>
                 </>
               ) : (
                 <>
-                  <Plus className="h-5 w-5 text-primary-00 dark:text-primary-300" />
-                  <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                    Nova Competência
-                  </h2>
+                  <Plus className="h-5 w-5 text-lime-deep dark:text-lime" />
+                  <h2 className="text-lg font-semibold text-foreground">Nova Competência</h2>
                 </>
               )}
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   Nome da Competência *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-yt-border focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-primary-00 dark:focus:border-primary-700 bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 transition-all"
+                  className="w-full px-4 py-3 rounded-lg border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-all"
                   placeholder="Ex: Meritocracia e Missão Compartilhada"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   Descrição *
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={4}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-yt-border focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-primary-00 dark:focus:border-primary-700 bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-lg border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-all resize-none"
                   placeholder="Descreva o que esta competência significa..."
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   {formData.description.length} caracteres
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Posição
                   </label>
                   <input
                     type="number"
                     min="1"
                     value={formData.position}
-                    onChange={(e) => setFormData({ ...formData, position: parseInt(e.target.value) || 1 })}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-yt-border focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-primary-00 dark:focus:border-primary-700 bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100"
+                    onChange={(e) =>
+                      setFormData({ ...formData, position: parseInt(e.target.value) || 1 })
+                    }
+                    className="w-full px-4 py-3 rounded-lg border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background"
                   />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Define a ordem nas avaliações
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Status
                   </label>
-                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-gray-300 dark:border-yt-border hover:border-primary-300 dark:hover:border-primary-700 transition-colors bg-white dark:bg-yt-elevated">
+                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-border hover:border-[#D2FF00] transition-colors bg-secondary">
                     <input
                       type="checkbox"
                       checked={formData.is_active}
                       onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                      className="w-5 h-5 text-primary-00 border-gray-300 rounded focus:ring-primary-800 dark:border-yt-border dark:focus:ring-primary-700"
+                      className="w-5 h-5 text-lime border-border rounded focus:ring-[#D2FF00]/20"
                     />
                     <div className="flex-1">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <span className="text-sm font-medium text-muted-foreground">
                         Competência ativa
                       </span>
                     </div>
@@ -350,22 +347,22 @@ const CodigoCultural = () => {
       </AnimatePresence>
 
       {/* Competencies List */}
-      <div className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border overflow-hidden">
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
         <div className="p-6">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
-            <Award className="h-5 w-5 text-primary-00 dark:text-primary-300" />
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Award className="h-5 w-5 text-lime-deep dark:text-lime" />
             Competências Cadastradas
           </h2>
 
           {competencies.length === 0 ? (
             <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-yt-elevated mb-4">
-                <AlertCircle className="h-8 w-8 text-gray-400 dark:text-gray-600" />
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary mb-4">
+                <AlertCircle className="h-8 w-8 text-muted-foreground" />
               </div>
-              <p className="text-gray-500 dark:text-gray-400 mb-1">
+              <p className="text-muted-foreground mb-1">
                 Nenhuma competência organizacional cadastrada
               </p>
-              <p className="text-sm text-gray-400 dark:text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Clique em "Nova Competência" para adicionar a primeira
               </p>
             </div>
@@ -379,16 +376,16 @@ const CodigoCultural = () => {
                   transition={{ delay: index * 0.03 }}
                   className={`p-4 rounded-lg border-2 transition-all ${
                     editingId === competency.id
-                      ? 'border-primary-00 dark:border-primary-700 bg-primary-50 dark:bg-primary-600/20'
+                      ? 'border-[#D2FF00] bg-lime/10'
                       : competency.is_active
-                      ? 'border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-surface/50 hover:border-primary-300 dark:hover:border-primary-600'
-                      : 'border-gray-200 dark:border-yt-border bg-gray-100 dark:bg-yt-elevated/50 opacity-70'
+                        ? 'border-border bg-secondary hover:border-[#D2FF00]'
+                        : 'border-border bg-secondary opacity-70'
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0 mt-1">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-600/30">
-                        <span className="text-primary-00 dark:text-primary-300 font-bold text-sm">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-lime/20">
+                        <span className="text-lime-deep dark:text-lime font-bold text-sm">
                           {competency.position}
                         </span>
                       </div>
@@ -397,10 +394,8 @@ const CodigoCultural = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4 mb-2">
                         <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                            {competency.name}
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          <h3 className="font-semibold text-foreground mb-2">{competency.name}</h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             {competency.description}
                           </p>
                         </div>
@@ -408,7 +403,7 @@ const CodigoCultural = () => {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             onClick={() => handleEdit(competency)}
-                            className="p-2 text-primary-900 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-600/20 rounded-lg transition-colors"
+                            className="p-2 text-lime-deep dark:text-lime hover:bg-accent rounded-lg transition-colors"
                             title="Editar competência"
                           >
                             <Edit2 size={18} />
@@ -416,7 +411,7 @@ const CodigoCultural = () => {
 
                           <button
                             onClick={() => handleDelete(competency.id)}
-                            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                             title="Excluir competência"
                           >
                             <Trash2 size={18} />
@@ -433,13 +428,16 @@ const CodigoCultural = () => {
       </div>
 
       {/* Info Box */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+      <div className="bg-lime/10 border border-lime/30 rounded-lg p-4">
         <div className="flex gap-3">
-          <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800 dark:text-blue-200">
+          <AlertCircle className="h-5 w-5 text-lime-deep dark:text-lime flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-foreground">
             <p className="font-medium mb-1">Importante:</p>
-            <ul className="list-disc list-inside space-y-1 text-blue-700 dark:text-blue-300">
-              <li>As competências organizacionais definidas aqui serão utilizadas em todas as avaliações</li>
+            <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+              <li>
+                As competências organizacionais definidas aqui serão utilizadas em todas as
+                avaliações
+              </li>
               <li>Competências inativas não aparecerão nos formulários de avaliação</li>
               <li>A posição define a ordem em que aparecem nas avaliações</li>
               <li>Ao editar uma competência, as avaliações futuras usarão a nova versão</li>

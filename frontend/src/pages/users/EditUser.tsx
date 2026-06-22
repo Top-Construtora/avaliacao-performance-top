@@ -2,7 +2,11 @@ import { useState, useRef, useEffect, ChangeEvent } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../../hooks/useSupabaseData';
+import {
+  useSupabaseUsers,
+  useSupabaseTeams,
+  useSupabaseDepartments,
+} from '../../hooks/useSupabaseData';
 import { supabase } from '../../lib/supabase';
 import { api } from '../../config/api';
 import { salaryService } from '../../services/salary.service';
@@ -10,17 +14,46 @@ import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 import {
-  Users, Shield, Mail, Calendar, AlertCircle, Briefcase, UserCheck,
-  Sparkles, Crown, User, Phone, CalendarDays, Camera, Upload,
-  ArrowLeft, Save, Loader2, CheckCircle2, ChevronDown, UserPlus,
-  Edit2, X, Check, Info, Building2, Lock, Unlock, TrendingUp, Route, Layers,
-  FileText, UserCog, GitBranch, Network, MessageSquare
+  Users,
+  Shield,
+  Mail,
+  Calendar,
+  AlertCircle,
+  Briefcase,
+  UserCheck,
+  Sparkles,
+  Crown,
+  User,
+  Phone,
+  CalendarDays,
+  Camera,
+  Upload,
+  ArrowLeft,
+  Save,
+  Loader2,
+  CheckCircle2,
+  ChevronDown,
+  UserPlus,
+  Edit2,
+  X,
+  Check,
+  Info,
+  Building2,
+  Lock,
+  Unlock,
+  TrendingUp,
+  Route,
+  Layers,
+  FileText,
+  UserCog,
+  GitBranch,
+  Network,
+  MessageSquare,
 } from 'lucide-react';
 import { PermissionGuard } from '../../components/PermissionGuard';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useAuth } from '../../context/AuthContext';
 import UserProfileFields from '../../components/UserProfileFields';
-
 
 interface Track {
   id: string;
@@ -75,7 +108,9 @@ const EditUser = () => {
   const [positionsLoading, setPositionsLoading] = useState(false);
 
   // Estados para níveis salariais
-  const [salaryLevels, setSalaryLevels] = useState<Array<{ id: string; name: string; percentage: number; order_index: number }>>([]);
+  const [salaryLevels, setSalaryLevels] = useState<
+    Array<{ id: string; name: string; percentage: number; order_index: number }>
+  >([]);
   const [salaryLevelsLoading, setSalaryLevelsLoading] = useState(false);
   const [calculatedSalary, setCalculatedSalary] = useState<number | null>(null);
 
@@ -110,11 +145,8 @@ const EditUser = () => {
     const loadTracks = async () => {
       setTracksLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('career_tracks')
-          .select('*')
-          .order('name');
-        
+        const { data, error } = await supabase.from('career_tracks').select('*').order('name');
+
         if (error) throw error;
         setTracks(data || []);
       } catch (error) {
@@ -137,25 +169,28 @@ const EditUser = () => {
           .from('track_positions')
           .select('*')
           .order('order_index');
-        
+
         if (trackError) throw trackError;
 
         if (trackPositions && trackPositions.length > 0) {
-          const positionIds = trackPositions.map(tp => tp.position_id);
+          const positionIds = trackPositions.map((tp) => tp.position_id);
           const { data: positionsData, error: positionsError } = await supabase
             .from('job_positions')
             .select('id, name, code, description')
             .in('id', positionIds);
 
           if (!positionsError && positionsData) {
-            const positionsMap = positionsData.reduce((acc, pos) => {
-              acc[pos.id] = pos;
-              return acc;
-            }, {} as Record<string, any>);
+            const positionsMap = positionsData.reduce(
+              (acc, pos) => {
+                acc[pos.id] = pos;
+                return acc;
+              },
+              {} as Record<string, any>,
+            );
 
-            const enrichedPositions = trackPositions.map(tp => ({
+            const enrichedPositions = trackPositions.map((tp) => ({
               ...tp,
-              position: positionsMap[tp.position_id] || null
+              position: positionsMap[tp.position_id] || null,
             }));
 
             setPositions(enrichedPositions);
@@ -203,16 +238,17 @@ const EditUser = () => {
   // Usa o salaryService para considerar porcentagens customizadas por cargo
   useEffect(() => {
     if (formData.positionId && formData.internLevel) {
-      const selectedLevel = salaryLevels.find(l => l.name === formData.internLevel);
+      const selectedLevel = salaryLevels.find((l) => l.name === formData.internLevel);
 
       if (selectedLevel) {
         const toastId = toast.loading('Calculando salário...');
-        salaryService.calculateSalary(formData.positionId, selectedLevel.id)
-          .then(result => {
+        salaryService
+          .calculateSalary(formData.positionId, selectedLevel.id)
+          .then((result) => {
             setCalculatedSalary(result.calculatedSalary);
             toast.success('Salário atualizado!', { id: toastId });
           })
-          .catch(error => {
+          .catch((error) => {
             console.error('Erro ao calcular salário:', error);
             setCalculatedSalary(null);
             toast.error('Erro ao calcular salário', { id: toastId });
@@ -228,15 +264,15 @@ const EditUser = () => {
   // Filtrar trilhas por departamento
   useEffect(() => {
     if (formData.departmentId && tracks.length > 0) {
-      const filtered = tracks.filter(track => track.department_id === formData.departmentId);
+      const filtered = tracks.filter((track) => track.department_id === formData.departmentId);
       setFilteredTracks(filtered);
-      if (!filtered.find(t => t.id === formData.trackId)) {
-        setFormData(prev => ({ ...prev, trackId: '', positionId: '', internLevel: 'A' }));
+      if (!filtered.find((t) => t.id === formData.trackId)) {
+        setFormData((prev) => ({ ...prev, trackId: '', positionId: '', internLevel: 'A' }));
       }
     } else {
       setFilteredTracks([]);
       if (formData.departmentId === '') {
-        setFormData(prev => ({ ...prev, trackId: '', positionId: '', internLevel: 'A' }));
+        setFormData((prev) => ({ ...prev, trackId: '', positionId: '', internLevel: 'A' }));
       }
     }
   }, [formData.departmentId, tracks]);
@@ -244,15 +280,15 @@ const EditUser = () => {
   // Filtrar cargos por trilha
   useEffect(() => {
     if (formData.trackId && positions.length > 0) {
-      const filtered = positions.filter(pos => pos.track_id === formData.trackId);
+      const filtered = positions.filter((pos) => pos.track_id === formData.trackId);
       setFilteredPositions(filtered);
-      if (!filtered.find(p => p.id === formData.positionId)) {
-        setFormData(prev => ({ ...prev, positionId: '', internLevel: 'A' }));
+      if (!filtered.find((p) => p.id === formData.positionId)) {
+        setFormData((prev) => ({ ...prev, positionId: '', internLevel: 'A' }));
       }
     } else {
       setFilteredPositions([]);
       if (formData.trackId === '') {
-        setFormData(prev => ({ ...prev, positionId: '', internLevel: 'A' }));
+        setFormData((prev) => ({ ...prev, positionId: '', internLevel: 'A' }));
       }
     }
   }, [formData.trackId, positions]);
@@ -260,22 +296,29 @@ const EditUser = () => {
   // Atualizar campo 'position' (nome) quando 'positionId' mudar
   useEffect(() => {
     if (formData.positionId && positions.length > 0) {
-      const selectedPosition = positions.find(p => p.id === formData.positionId);
+      const selectedPosition = positions.find((p) => p.id === formData.positionId);
       if (selectedPosition) {
         const positionName = selectedPosition.position?.name || selectedPosition.position_id;
-        setFormData(prev => ({ 
-          ...prev, 
-          position: positionName
+        setFormData((prev) => ({
+          ...prev,
+          position: positionName,
         }));
       }
     } else if (formData.positionId === '') {
-      setFormData(prev => ({ ...prev, position: '' }));
+      setFormData((prev) => ({ ...prev, position: '' }));
     }
   }, [formData.positionId, positions]);
 
   // Carregar dados do usuário
   useEffect(() => {
-    if (id && users.length > 0 && departments.length > 0 && tracks.length > 0 && positions.length > 0 && salaryLevels.length > 0) {
+    if (
+      id &&
+      users.length > 0 &&
+      departments.length > 0 &&
+      tracks.length > 0 &&
+      positions.length > 0 &&
+      salaryLevels.length > 0
+    ) {
       loadUserData();
     }
   }, [id, users, departments, tracks, positions, salaryLevels]);
@@ -283,8 +326,8 @@ const EditUser = () => {
   const loadUserData = async () => {
     setLoadingUser(true);
     try {
-      const user = users.find(u => u.id === id);
-      
+      const user = users.find((u) => u.id === id);
+
       if (!user) {
         toast.error('Usuário não encontrado');
         navigate('/users');
@@ -297,7 +340,7 @@ const EditUser = () => {
         .select('team_id')
         .eq('user_id', id);
 
-      const userTeamIds = teamMemberships?.map(tm => tm.team_id) || [];
+      const userTeamIds = teamMemberships?.map((tm) => tm.team_id) || [];
 
       const userData = {
         name: user.name || '',
@@ -306,7 +349,7 @@ const EditUser = () => {
         isLeader: user.is_leader || false,
         isDirector: user.is_director || false,
         teamIds: userTeamIds,
-        profileType: user.is_director ? 'director' : user.is_leader ? 'leader' : 'regular' as any,
+        profileType: user.is_director ? 'director' : user.is_leader ? 'leader' : ('regular' as any),
         phone: user.phone || '',
         birthDate: user.birth_date || '',
         joinDate: user.join_date || '',
@@ -316,8 +359,8 @@ const EditUser = () => {
         departmentId: user.department_id || '',
         trackId: user.track_id || '',
         positionId: user.current_track_position_id || '',
-        internLevel: user.intern_level || 'A' as 'A' | 'B' | 'C' | 'D' | 'E', // Internível é o nível salarial
-        contractType: user.contract_type || 'CLT' as 'CLT' | 'PJ',
+        internLevel: user.intern_level || ('A' as 'A' | 'B' | 'C' | 'D' | 'E'), // Internível é o nível salarial
+        contractType: user.contract_type || ('CLT' as 'CLT' | 'PJ'),
         observations: user.observations || '',
         positionIsConfidential: (user as any).position_is_confidential === true,
       };
@@ -337,9 +380,9 @@ const EditUser = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
@@ -350,15 +393,15 @@ const EditUser = () => {
       transition: {
         type: 'spring',
         stiffness: 100,
-      }
-    }
+      },
+    },
   };
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     // Limita a 11 dígitos
     const limitedNumbers = numbers.slice(0, 11);
-    
+
     // Aplica a formatação com a máscara
     return limitedNumbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
   };
@@ -368,11 +411,11 @@ const EditUser = () => {
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
       age--;
     }
-    
+
     return age;
   };
 
@@ -383,7 +426,7 @@ const EditUser = () => {
         toast.error('A imagem deve ter no máximo 5MB');
         return;
       }
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({ ...formData, profileImage: reader.result as string });
@@ -393,15 +436,15 @@ const EditUser = () => {
   };
 
   const handleProfileFieldChange = (field: string, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) errors.name = 'Nome é obrigatório';
     if (!formData.email.trim()) errors.email = 'Email é obrigatório';
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -415,36 +458,40 @@ const EditUser = () => {
       if (age < 16) errors.birthDate = 'Idade mínima: 16 anos';
       if (age > 100) errors.birthDate = 'Data de nascimento inválida';
     }
-    
+
     // Validação da data de admissão
     if (!formData.joinDate) {
       errors.joinDate = 'Data de admissão é obrigatória';
     } else {
       const joinDate = new Date(formData.joinDate);
       const today = new Date();
-      
+
       if (joinDate > today) {
         errors.joinDate = 'Data de admissão não pode ser futura';
       }
-      
+
       if (formData.birthDate) {
         const birthDate = new Date(formData.birthDate);
         const minWorkAge = new Date(birthDate);
         minWorkAge.setFullYear(minWorkAge.getFullYear() + 16);
-        
+
         if (joinDate < minWorkAge) {
           errors.joinDate = 'Data de admissão inválida (avaliado teria menos de 16 anos)';
         }
       }
     }
-    
+
     if (formData.teamIds.length === 0 && formData.profileType !== 'director') {
       errors.teams = 'Selecione pelo menos um time';
     }
     if (formData.profileType === 'regular' && !formData.reportsTo) {
       errors.reportsTo = 'Selecione um avaliador';
     }
-    if (formData.profileType === 'leader' && !formData.reportsTo && users.find(u => u.id === id)?.is_director === false) {
+    if (
+      formData.profileType === 'leader' &&
+      !formData.reportsTo &&
+      users.find((u) => u.id === id)?.is_director === false
+    ) {
       errors.reportsTo = 'Selecione quem este avaliador reporta';
     }
 
@@ -465,7 +512,7 @@ const EditUser = () => {
         errors.confirmPassword = 'As senhas não coincidem';
       }
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -485,7 +532,7 @@ const EditUser = () => {
 
     try {
       // Buscar o salary_level_id baseado no internLevel
-      const selectedSalaryLevel = salaryLevels.find(l => l.name === formData.internLevel);
+      const selectedSalaryLevel = salaryLevels.find((l) => l.name === formData.internLevel);
 
       // Atualizar dados do usuário
       await updateUser(id!, {
@@ -507,28 +554,21 @@ const EditUser = () => {
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
         observations: formData.observations || null,
-        ...(isAdmin
-          ? { position_is_confidential: formData.positionIsConfidential }
-          : {}),
+        ...(isAdmin ? { position_is_confidential: formData.positionIsConfidential } : {}),
       } as any);
 
       // Atualizar times do usuário
       // Primeiro remove todos os times
-      await supabase
-        .from('team_members')
-        .delete()
-        .eq('user_id', id);
+      await supabase.from('team_members').delete().eq('user_id', id);
 
       // Depois adiciona os novos
       if (formData.teamIds.length > 0 && formData.profileType !== 'director') {
-        const teamMembers = formData.teamIds.map(teamId => ({
+        const teamMembers = formData.teamIds.map((teamId) => ({
           team_id: teamId,
           user_id: id!,
         }));
 
-        await supabase
-          .from('team_members')
-          .insert(teamMembers);
+        await supabase.from('team_members').insert(teamMembers);
       }
 
       // Atualizar senha via backend API
@@ -544,12 +584,11 @@ const EditUser = () => {
 
       await reloadUsers();
       toast.success('Usuário atualizado com sucesso!');
-      
+
       // Redirecionar após sucesso
       setTimeout(() => {
         navigate('/users');
       }, 1500);
-      
     } catch (error) {
       console.error('Erro ao atualizar usuário:', error);
       toast.error('Erro ao atualizar usuário');
@@ -559,7 +598,14 @@ const EditUser = () => {
   };
 
   // Loading state
-  if (usersLoading || teamsLoading || depsLoading || loadingUser || tracksLoading || positionsLoading) {
+  if (
+    usersLoading ||
+    teamsLoading ||
+    depsLoading ||
+    loadingUser ||
+    tracksLoading ||
+    positionsLoading
+  ) {
     return <LoadingSpinner />;
   }
 
@@ -570,25 +616,27 @@ const EditUser = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-4 sm:p-8"
+          className="bg-card rounded-2xl shadow-sm dark:shadow-lg border border-border p-4 sm:p-8"
         >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
-            <div>            
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                <Edit2 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-500 dark:text-primary-400 mr-2 sm:mr-3 flex-shrink-0" />
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
+                <Edit2 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-lime-deep dark:text-lime mr-2 sm:mr-3 flex-shrink-0" />
                 Editar Usuário
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">
                 Atualize as informações do avaliado
               </p>
             </div>
             {/* Status Badge */}
             <div className="flex items-center space-x-4">
-              <span className={`px-4 py-2 rounded-full text-sm font-medium flex items-center ${
-                formData.active
-                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-                  : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
-              }`}>
+              <span
+                className={`px-4 py-2 rounded-full text-sm font-medium flex items-center ${
+                  formData.active
+                    ? 'bg-success/15 text-success'
+                    : 'bg-destructive/15 text-destructive'
+                }`}
+              >
                 {formData.active ? (
                   <>
                     <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -606,16 +654,19 @@ const EditUser = () => {
         </motion.div>
 
         {/* Main Content */}
-        <motion.div 
+        <motion.div
           className="space-y-6"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
           {/* Profile Type Selection */}
-          <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <Shield className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+          <motion.div
+            variants={itemVariants}
+            className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          >
+            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+              <Shield className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
               Tipo de Perfil
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -625,38 +676,38 @@ const EditUser = () => {
                   label: 'Avaliado',
                   description: 'Membro da equipe com acesso padrão',
                   icon: UserCheck,
-                  gradient: 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
-                  selectedBg: 'bg-secondary-50 dark:bg-secondary-900/20',
-                  selectedBorder: 'border-secondary-500 dark:border-secondary-400',
-                  selectedText: 'text-secondary-700 dark:text-secondary-300'
+                  gradient: 'bg-secondary',
+                  selectedBg: 'bg-card ring-2 ring-lime/60',
+                  selectedBorder: 'border-lime',
+                  selectedText: 'text-lime-deep dark:text-lime',
                 },
                 {
                   value: 'leader',
                   label: 'Avaliador',
                   description: 'Gerencia equipes e avaliações',
                   icon: Crown,
-                  gradient: 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
-                  selectedBg: 'bg-primary-50 dark:bg-primary-900/20',
-                  selectedBorder: 'border-primary-500 dark:border-primary-400',
-                  selectedText: 'text-primary-700 dark:text-primary-300'
+                  gradient: 'bg-secondary',
+                  selectedBg: 'bg-card ring-2 ring-lime/60',
+                  selectedBorder: 'border-lime',
+                  selectedText: 'text-lime-deep dark:text-lime',
                 },
                 {
                   value: 'director',
                   label: 'Diretor',
                   description: 'Acesso completo ao sistema',
                   icon: Sparkles,
-                  gradient: 'from-gray-700 to-gray-800 dark:from-gray-600 dark:to-gray-700',
-                  selectedBg: 'bg-gray-50 dark:bg-yt-bg/20',
-                  selectedBorder: 'border-gray-500 dark:border-gray-400',
-                  selectedText: 'text-naue-black dark:text-gray-300 font-medium'
-                }
+                  gradient: 'bg-secondary',
+                  selectedBg: 'bg-card ring-2 ring-lime/60',
+                  selectedBorder: 'border-lime',
+                  selectedText: 'text-lime-deep dark:text-lime font-medium',
+                },
               ].map((type) => (
-                <label 
+                <label
                   key={type.value}
                   className={`relative flex flex-col p-6 rounded-lg border cursor-pointer transition-all transform hover:scale-[1.02] ${
-                    formData.profileType === type.value 
+                    formData.profileType === type.value
                       ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
-                      : 'bg-gray-50/50 dark:bg-yt-elevated/20 border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500'
+                      : 'bg-secondary border-border hover:border-lime'
                   }`}
                 >
                   <input
@@ -664,37 +715,52 @@ const EditUser = () => {
                     name="profileType"
                     value={type.value}
                     checked={formData.profileType === type.value}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      profileType: e.target.value as any,
-                      isLeader: e.target.value !== 'regular',
-                      isDirector: e.target.value === 'director'
-                    })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        profileType: e.target.value as any,
+                        isLeader: e.target.value !== 'regular',
+                        isDirector: e.target.value === 'director',
+                      })
+                    }
                     className="sr-only"
                   />
                   <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-xl bg-gradient-to-br ${type.gradient} shadow-md`}>
-                      <type.icon className="h-6 w-6 text-white" />
+                    <div
+                      className={`p-3 rounded-xl shadow-md transition-colors ${
+                        formData.profileType === type.value
+                          ? 'bg-lime text-obsidian'
+                          : `${type.gradient} text-foreground`
+                      }`}
+                    >
+                      <type.icon className="h-6 w-6" />
                     </div>
                     {formData.profileType === type.value && (
-                      <div className="bg-white dark:bg-yt-elevated rounded-full p-1.5 shadow-md">
-                        <Check className="h-4 w-4 text-secondary-600 dark:text-secondary-400" />
+                      <div className="rounded-full bg-lime p-1.5 shadow-md">
+                        <Check className="h-4 w-4 text-obsidian" />
                       </div>
                     )}
                   </div>
-                  <h4 className={`font-bold text-base mb-1 ${
-                    formData.profileType === type.value ? type.selectedText : 'text-gray-900 dark:text-gray-100'
-                  }`}>{type.label}</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{type.description}</p>
+                  <h4
+                    className={`font-bold text-base mb-1 ${
+                      formData.profileType === type.value ? type.selectedText : 'text-foreground'
+                    }`}
+                  >
+                    {type.label}
+                  </h4>
+                  <p className="text-sm text-muted-foreground">{type.description}</p>
                 </label>
               ))}
             </div>
           </motion.div>
 
           {/* Contract Type Selection */}
-          <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <FileText className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+          <motion.div
+            variants={itemVariants}
+            className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          >
+            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+              <FileText className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
               Tipo de Contrato
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -704,28 +770,28 @@ const EditUser = () => {
                   label: 'CLT',
                   description: 'Contrato de trabalho com carteira assinada',
                   icon: Shield,
-                  gradient: 'from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
-                  selectedBg: 'bg-primary-50 dark:bg-primary-900/20',
-                  selectedBorder: 'border-primary-500 dark:border-primary-400',
-                  selectedText: 'text-primary-700 dark:text-primary-300'
+                  gradient: 'bg-secondary',
+                  selectedBg: 'bg-card ring-2 ring-lime/60',
+                  selectedBorder: 'border-lime',
+                  selectedText: 'text-lime-deep dark:text-lime',
                 },
                 {
                   value: 'PJ',
                   label: 'PJ',
                   description: 'Pessoa Jurídica - Prestador de serviços',
                   icon: Briefcase,
-                  gradient: 'from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
-                  selectedBg: 'bg-secondary-50 dark:bg-secondary-900/20',
-                  selectedBorder: 'border-secondary-500 dark:border-secondary-400',
-                  selectedText: 'text-secondary-700 dark:text-secondary-300'
-                }
+                  gradient: 'bg-secondary',
+                  selectedBg: 'bg-card ring-2 ring-lime/60',
+                  selectedBorder: 'border-lime',
+                  selectedText: 'text-lime-deep dark:text-lime',
+                },
               ].map((type) => (
-                <label 
+                <label
                   key={type.value}
                   className={`relative flex flex-col p-6 rounded-lg border cursor-pointer transition-all transform hover:scale-[1.02] ${
-                    formData.contractType === type.value 
+                    formData.contractType === type.value
                       ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
-                      : 'bg-gray-50/50 dark:bg-yt-elevated/20 border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500'
+                      : 'bg-secondary border-border hover:border-lime'
                   }`}
                 >
                   <input
@@ -733,55 +799,74 @@ const EditUser = () => {
                     name="contractType"
                     value={type.value}
                     checked={formData.contractType === type.value}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      contractType: e.target.value as 'CLT' | 'PJ'
-                    })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        contractType: e.target.value as 'CLT' | 'PJ',
+                      })
+                    }
                     className="sr-only"
                   />
                   <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-xl bg-gradient-to-br ${type.gradient} shadow-md`}>
-                      <type.icon className="h-6 w-6 text-white" />
+                    <div
+                      className={`p-3 rounded-xl shadow-md transition-colors ${
+                        formData.contractType === type.value
+                          ? 'bg-lime text-obsidian'
+                          : `${type.gradient} text-foreground`
+                      }`}
+                    >
+                      <type.icon className="h-6 w-6" />
                     </div>
                     {formData.contractType === type.value && (
-                      <div className="bg-white dark:bg-yt-elevated rounded-full p-1.5 shadow-md">
-                        <Check className="h-4 w-4 text-secondary-600 dark:text-secondary-400" />
+                      <div className="rounded-full bg-lime p-1.5 shadow-md">
+                        <Check className="h-4 w-4 text-obsidian" />
                       </div>
                     )}
                   </div>
-                  <h4 className={`font-bold text-base mb-1 ${
-                    formData.contractType === type.value ? type.selectedText : 'text-gray-900 dark:text-gray-100'
-                  }`}>{type.label}</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{type.description}</p>
+                  <h4
+                    className={`font-bold text-base mb-1 ${
+                      formData.contractType === type.value ? type.selectedText : 'text-foreground'
+                    }`}
+                  >
+                    {type.label}
+                  </h4>
+                  <p className="text-sm text-muted-foreground">{type.description}</p>
                 </label>
               ))}
             </div>
           </motion.div>
 
           {/* Basic Information */}
-          <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <User className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+          <motion.div
+            variants={itemVariants}
+            className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          >
+            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+              <User className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
               Informações Básicas
             </h3>
-            
+
             {/* Profile Image */}
-            <div className="mb-6 pb-6 border-b border-gray-100 dark:border-yt-border">
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-4">
+            <div className="mb-6 pb-6 border-b border-border">
+              <label className="block text-sm font-medium text-foreground font-medium mb-4">
                 Foto do Perfil
               </label>
               <div className="flex items-center space-x-4">
                 <div className="relative">
-                  <div 
-                    className="h-24 w-24 rounded-2xl bg-gray-100 dark:bg-yt-elevated flex items-center justify-center overflow-hidden cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group border-2 border-dashed border-gray-300 dark:border-yt-border"
+                  <div
+                    className="h-24 w-24 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden cursor-pointer hover:bg-accent transition-colors group border-2 border-dashed border-border"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     {formData.profileImage ? (
-                      <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                      <img
+                        src={formData.profileImage}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <div className="text-center">
-                        <Upload className="h-8 w-8 text-gray-400 dark:text-gray-500 mx-auto mb-1 group-hover:text-gray-600 dark:group-hover:text-gray-400" />
-                        <span className="text-xs text-gray-500 dark:text-gray-400">Upload</span>
+                        <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
+                        <span className="text-xs text-muted-foreground">Upload</span>
                       </div>
                     )}
                   </div>
@@ -792,7 +877,7 @@ const EditUser = () => {
                         e.stopPropagation();
                         setFormData({ ...formData, profileImage: null });
                       }}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-colors"
+                      className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:bg-destructive/90 transition-colors"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -805,7 +890,7 @@ const EditUser = () => {
                     className="hidden"
                   />
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-muted-foreground">
                   <p>Clique para fazer upload</p>
                   <p className="text-xs mt-1">JPG, PNG ou GIF (máx. 5MB)</p>
                 </div>
@@ -814,22 +899,22 @@ const EditUser = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground font-medium mb-2">
                   Nome completo *
                 </label>
                 <input
                   type="text"
-                  className={`w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
-                    formErrors.name 
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                      : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                  className={`w-full px-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
+                    formErrors.name
+                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                   }`}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Digite o nome completo"
                 />
                 {formErrors.name && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                  <p className="text-sm text-destructive mt-2 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     {formErrors.name}
                   </p>
@@ -837,45 +922,47 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground font-medium mb-2">
                   Email corporativo *
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <input
                     type="email"
-                    className="w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 border-gray-200 dark:border-yt-border cursor-not-allowed"
+                    className="w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-muted-foreground placeholder:text-muted-foreground border-border cursor-not-allowed"
                     value={formData.email}
                     disabled
                     title="Email não pode ser alterado"
                   />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
+                <p className="text-xs text-muted-foreground mt-1 flex items-center">
                   <Info className="h-3 w-3 mr-1" />
                   Email não pode ser alterado
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground font-medium mb-2">
                   Telefone
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <input
                     type="tel"
-                    className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
-                      formErrors.phone 
-                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                        : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                    className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
+                      formErrors.phone
+                        ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                        : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                     }`}
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: formatPhone(e.target.value) })
+                    }
                     placeholder="(00) 00000-0000"
                   />
                 </div>
                 {formErrors.phone && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                  <p className="text-sm text-destructive mt-2 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     {formErrors.phone}
                   </p>
@@ -883,24 +970,24 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground font-medium mb-2">
                   Data de nascimento
                 </label>
                 <div className="relative">
-                  <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <input
                     type="date"
-                    className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                      formErrors.birthDate 
-                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                        : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                    className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground ${
+                      formErrors.birthDate
+                        ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                        : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                     }`}
                     value={formData.birthDate}
                     onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
                   />
                 </div>
                 {formErrors.birthDate && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                  <p className="text-sm text-destructive mt-2 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     {formErrors.birthDate}
                   </p>
@@ -908,17 +995,17 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground font-medium mb-2">
                   Data de Admissão *
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <input
                     type="date"
-                    className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                      formErrors.joinDate 
-                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                        : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                    className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground ${
+                      formErrors.joinDate
+                        ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                        : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                     }`}
                     value={formData.joinDate}
                     onChange={(e) => setFormData({ ...formData, joinDate: e.target.value })}
@@ -926,7 +1013,7 @@ const EditUser = () => {
                   />
                 </div>
                 {formErrors.joinDate && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                  <p className="text-sm text-destructive mt-2 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     {formErrors.joinDate}
                   </p>
@@ -936,38 +1023,43 @@ const EditUser = () => {
           </motion.div>
 
           {/* Career Information */}
-          <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <TrendingUp className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+          <motion.div
+            variants={itemVariants}
+            className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          >
+            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+              <TrendingUp className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
               Informações de Carreira
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground font-medium mb-2">
                   Departamento *
                 </label>
                 <div className="relative">
-                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                   <select
-                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                      formErrors.departmentId 
-                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                        : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                      formErrors.departmentId
+                        ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                        : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                     }`}
                     value={formData.departmentId}
                     onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
                     disabled={depsLoading}
                   >
                     <option value="">Selecione um departamento</option>
-                    {departments.map(dept => (
-                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
                     ))}
                   </select>
                 </div>
                 {formErrors.departmentId && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                  <p className="text-sm text-destructive mt-2 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     {formErrors.departmentId}
                   </p>
@@ -975,32 +1067,36 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground font-medium mb-2">
                   Trilha *
                 </label>
                 <div className="relative">
-                  <Route className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                  <Route className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                   <select
-                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                      formErrors.trackId 
-                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                        : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                      formErrors.trackId
+                        ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                        : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                     }`}
                     value={formData.trackId}
                     onChange={(e) => setFormData({ ...formData, trackId: e.target.value })}
                     disabled={!formData.departmentId || tracksLoading}
                   >
                     <option value="">
-                      {!formData.departmentId ? 'Selecione um departamento primeiro' : 'Selecione uma trilha'}
+                      {!formData.departmentId
+                        ? 'Selecione um departamento primeiro'
+                        : 'Selecione uma trilha'}
                     </option>
-                    {filteredTracks.map(track => (
-                      <option key={track.id} value={track.id}>{track.name}</option>
+                    {filteredTracks.map((track) => (
+                      <option key={track.id} value={track.id}>
+                        {track.name}
+                      </option>
                     ))}
                   </select>
                 </div>
                 {formErrors.trackId && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                  <p className="text-sm text-destructive mt-2 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     {formErrors.trackId}
                   </p>
@@ -1008,17 +1104,17 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground font-medium mb-2">
                   Cargo *
                 </label>
                 <div className="relative">
-                  <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                  <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                   <select
-                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                      formErrors.positionId 
-                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                        : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                      formErrors.positionId
+                        ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                        : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                     }`}
                     value={formData.positionId}
                     onChange={(e) => setFormData({ ...formData, positionId: e.target.value })}
@@ -1027,7 +1123,7 @@ const EditUser = () => {
                     <option value="">
                       {!formData.trackId ? 'Selecione uma trilha primeiro' : 'Selecione um cargo'}
                     </option>
-                    {filteredPositions.map(position => {
+                    {filteredPositions.map((position) => {
                       const positionName = position.position?.name || position.position_id;
                       return (
                         <option key={position.id} value={position.id}>
@@ -1038,7 +1134,7 @@ const EditUser = () => {
                   </select>
                 </div>
                 {formErrors.positionId && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                  <p className="text-sm text-destructive mt-2 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     {formErrors.positionId}
                   </p>
@@ -1046,20 +1142,25 @@ const EditUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground font-medium mb-2">
                   Nível Salarial *
                 </label>
                 <div className="relative">
-                  <Layers className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                  <Layers className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                   <select
-                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                      formErrors.internLevel 
-                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                        : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                      formErrors.internLevel
+                        ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                        : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                     }`}
                     value={formData.internLevel}
-                    onChange={(e) => setFormData({ ...formData, internLevel: e.target.value as 'A' | 'B' | 'C' | 'D' | 'E' })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        internLevel: e.target.value as 'A' | 'B' | 'C' | 'D' | 'E',
+                      })
+                    }
                     disabled={!formData.positionId}
                   >
                     <option value="A">A</option>
@@ -1070,12 +1171,12 @@ const EditUser = () => {
                   </select>
                 </div>
                 {formErrors.internLevel && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                  <p className="text-sm text-destructive mt-2 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     {formErrors.internLevel}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   O salário será calculado automaticamente com base no cargo e nível
                 </p>
               </div>
@@ -1093,46 +1194,55 @@ const EditUser = () => {
 
           {/* Team Allocation */}
           {formData.profileType !== 'director' && (
-            <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-                <Users className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+            <motion.div
+              variants={itemVariants}
+              className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+            >
+              <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+                <Users className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
                 Alocação em Times *
               </h3>
               <div className="max-h-64 overflow-y-auto pr-2 space-y-2">
-                {teams.map(team => (
-                  <label key={team.id} className={`flex items-center p-4 rounded-xl cursor-pointer transition-all group ${
-                    formData.teamIds.includes(team.id)
-                      ? 'bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-500 dark:border-primary-400'
-                      : 'bg-gray-50 dark:bg-yt-elevated/30 border-2 border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500'
-                  }`}>
+                {teams.map((team) => (
+                  <label
+                    key={team.id}
+                    className={`flex items-center p-4 rounded-xl cursor-pointer transition-all group ${
+                      formData.teamIds.includes(team.id)
+                        ? 'bg-secondary border-2 border-lime ring-1 ring-lime/40'
+                        : 'bg-secondary border-2 border-border hover:border-lime'
+                    }`}
+                  >
                     <input
                       type="checkbox"
-                      className="w-5 h-5 rounded border-gray-300 dark:border-yt-border text-primary-600 dark:text-primary-300 focus:ring-primary-500 dark:focus:ring-primary-400"
+                      className="w-5 h-5 rounded border-border text-lime focus:ring-[#D2FF00]/20"
                       checked={formData.teamIds.includes(team.id)}
                       onChange={(e) => {
                         if (e.target.checked) {
                           setFormData({ ...formData, teamIds: [...formData.teamIds, team.id] });
                         } else {
-                          setFormData({ ...formData, teamIds: formData.teamIds.filter(id => id !== team.id) });
+                          setFormData({
+                            ...formData,
+                            teamIds: formData.teamIds.filter((id) => id !== team.id),
+                          });
                         }
                       }}
                     />
                     <div className="ml-4 flex-1">
-                      <span className="font-medium text-gray-900 dark:text-gray-100 block">{team.name}</span>
+                      <span className="font-medium text-foreground block">{team.name}</span>
                       {team.department && (
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                        <span className="text-sm text-muted-foreground">
                           Depto: {team.department.name}
                         </span>
                       )}
                     </div>
                     {formData.teamIds.includes(team.id) && (
-                      <CheckCircle2 className="h-5 w-5 text-primary-600 dark:text-primary-400 ml-2" />
+                      <CheckCircle2 className="h-5 w-5 text-lime-deep dark:text-lime ml-2" />
                     )}
                   </label>
                 ))}
               </div>
               {formErrors.teams && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <p className="text-sm text-destructive mt-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {formErrors.teams}
                 </p>
@@ -1142,32 +1252,37 @@ const EditUser = () => {
 
           {/* Hierarchy */}
           {(formData.profileType === 'regular' || formData.profileType === 'leader') && (
-            <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-                <GitBranch className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+            <motion.div
+              variants={itemVariants}
+              className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+            >
+              <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+                <GitBranch className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
                 Hierarquia
               </h3>
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground font-medium mb-2">
                   Reporta para *
                 </label>
                 <div className="relative">
-                  <UserCog className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                  <UserCog className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                   <select
-                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                      formErrors.reportsTo 
-                        ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                        : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                    className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                      formErrors.reportsTo
+                        ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                        : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                     }`}
                     value={formData.reportsTo}
                     onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
                   >
                     <option value="">
-                      {formData.profileType === 'regular' ? 'Selecione um avaliador' : 'Selecione quem este avaliador reporta'}
+                      {formData.profileType === 'regular'
+                        ? 'Selecione um avaliador'
+                        : 'Selecione quem este avaliador reporta'}
                     </option>
                     {users
-                      .filter(u => {
+                      .filter((u) => {
                         // Não mostrar admins na lista
                         if (u.is_admin) return false;
 
@@ -1177,7 +1292,7 @@ const EditUser = () => {
                         // Para líderes, podem reportar para outros líderes ou diretores
                         return (u.is_leader || u.is_director) && u.id !== id;
                       })
-                      .map(superior => (
+                      .map((superior) => (
                         <option key={superior.id} value={superior.id}>
                           {superior.name} - {superior.position}
                           {superior.is_director && ' (Diretor)'}
@@ -1187,13 +1302,13 @@ const EditUser = () => {
                   </select>
                 </div>
                 {formErrors.reportsTo && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                  <p className="text-sm text-destructive mt-2 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     {formErrors.reportsTo}
                   </p>
                 )}
                 {formData.profileType === 'leader' && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     Avaliadores podem reportar para outros avaliadores ou diretores
                   </p>
                 )}
@@ -1202,41 +1317,47 @@ const EditUser = () => {
           )}
 
           {/* Observations */}
-          <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <MessageSquare className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+          <motion.div
+            variants={itemVariants}
+            className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          >
+            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+              <MessageSquare className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
               Observações / Anotações
             </h3>
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-foreground font-medium mb-2">
                 Observações sobre o colaborador
               </label>
               <textarea
-                className="w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400 resize-none"
+                className="w-full px-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 resize-none"
                 rows={4}
                 value={formData.observations}
                 onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
                 placeholder="Adicione observações, anotações ou informações relevantes sobre este colaborador..."
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Este campo é opcional e será exibido no Comitê de Gente
               </p>
             </div>
           </motion.div>
 
           {/* Account Settings */}
-          <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <Lock className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+          <motion.div
+            variants={itemVariants}
+            className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          >
+            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+              <Lock className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
               Configurações da Conta
             </h3>
-            
+
             <div className="space-y-4">
               {/* Active Status Toggle */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100">Status da Conta</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <h4 className="font-medium text-foreground">Status da Conta</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Usuários inativos não podem acessar o sistema
                   </p>
                 </div>
@@ -1244,7 +1365,7 @@ const EditUser = () => {
                   type="button"
                   onClick={() => setFormData({ ...formData, active: !formData.active })}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    formData.active ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'
+                    formData.active ? 'bg-success' : 'bg-secondary'
                   }`}
                 >
                   <span
@@ -1257,23 +1378,28 @@ const EditUser = () => {
 
               {/* Cargo Sigiloso (admin only) */}
               {isAdmin && (
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl">
+                <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
                   <div className="pr-4">
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      <Lock className="h-4 w-4 text-amber-500" />
+                    <h4 className="font-medium text-foreground flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-warning" />
                       Cargo sigiloso
                     </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      Quando ativado, o cargo real fica visível apenas para o próprio
-                      colaborador, administradores, diretores e o líder direto. Demais
-                      usuários veem uma versão genérica no formato &quot;Cargo de Time&quot;.
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Quando ativado, o cargo real fica visível apenas para o próprio colaborador,
+                      administradores, diretores e o líder direto. Demais usuários veem uma versão
+                      genérica no formato &quot;Cargo de Time&quot;.
                     </p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, positionIsConfidential: !formData.positionIsConfidential })}
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        positionIsConfidential: !formData.positionIsConfidential,
+                      })
+                    }
                     className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                      formData.positionIsConfidential ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'
+                      formData.positionIsConfidential ? 'bg-warning' : 'bg-secondary'
                     }`}
                     aria-pressed={formData.positionIsConfidential}
                     aria-label="Marcar cargo como sigiloso"
@@ -1288,11 +1414,11 @@ const EditUser = () => {
               )}
 
               {/* Password Change */}
-              <div className="p-4 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl">
+              <div className="p-4 bg-secondary rounded-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100">Alterar Senha</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <h4 className="font-medium text-foreground">Alterar Senha</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
                       Defina uma nova senha para o usuário
                     </p>
                   </div>
@@ -1303,7 +1429,7 @@ const EditUser = () => {
                       setNewPassword('');
                       setConfirmPassword('');
                     }}
-                    className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium text-sm"
+                    className="text-lime-deep dark:text-lime hover:opacity-80 font-medium text-sm"
                   >
                     {showPasswordChange ? 'Cancelar' : 'Alterar'}
                   </button>
@@ -1317,22 +1443,22 @@ const EditUser = () => {
                     className="space-y-4"
                   >
                     <div>
-                      <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
                         Nova senha
                       </label>
                       <input
                         type="password"
-                        className={`w-full px-4 py-3 text-base rounded-lg border transition-all bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                          formErrors.password 
-                            ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
-                            : 'border-gray-200 dark:border-yt-border'
+                        className={`w-full px-4 py-3 text-base rounded-lg border transition-all bg-secondary text-foreground ${
+                          formErrors.password
+                            ? 'border-destructive bg-destructive/10'
+                            : 'border-border'
                         }`}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="Mínimo 6 caracteres"
                       />
                       {formErrors.password && (
-                        <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                        <p className="text-sm text-destructive mt-2 flex items-center">
                           <AlertCircle className="h-4 w-4 mr-1" />
                           {formErrors.password}
                         </p>
@@ -1340,22 +1466,22 @@ const EditUser = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
                         Confirmar senha
                       </label>
                       <input
                         type="password"
-                        className={`w-full px-4 py-3 text-base rounded-lg border transition-all bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                          formErrors.confirmPassword 
-                            ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
-                            : 'border-gray-200 dark:border-yt-border'
+                        className={`w-full px-4 py-3 text-base rounded-lg border transition-all bg-secondary text-foreground ${
+                          formErrors.confirmPassword
+                            ? 'border-destructive bg-destructive/10'
+                            : 'border-border'
                         }`}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Digite a senha novamente"
                       />
                       {formErrors.confirmPassword && (
-                        <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                        <p className="text-sm text-destructive mt-2 flex items-center">
                           <AlertCircle className="h-4 w-4 mr-1" />
                           {formErrors.confirmPassword}
                         </p>
@@ -1369,8 +1495,8 @@ const EditUser = () => {
         </motion.div>
 
         {/* Action Buttons */}
-        <motion.div 
-          className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-4 sm:p-6"
+        <motion.div
+          className="bg-card rounded-2xl shadow-sm dark:shadow-lg border border-border p-4 sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -1391,7 +1517,13 @@ const EditUser = () => {
               disabled={isLoading || !hasChanges()}
               size="lg"
               className="w-full sm:w-auto"
-              icon={isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+              icon={
+                isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Save className="h-5 w-5" />
+                )
+              }
             >
               {isLoading ? 'Salvando...' : 'Salvar Alterações'}
             </Button>

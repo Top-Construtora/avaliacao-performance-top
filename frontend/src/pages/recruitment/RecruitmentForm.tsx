@@ -4,21 +4,31 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import {
-  ArrowLeft, Save, Briefcase, FileText,
-  MessageSquare,
-} from 'lucide-react';
+import { ArrowLeft, Save, Briefcase, FileText, MessageSquare } from 'lucide-react';
 import { recruitmentService, JobOpening } from '../../services/recruitment.service';
 import { useSupabaseData } from '../../hooks/useSupabaseData';
 
-const TextareaField = ({ label, value, onChange, placeholder, rows = 3 }: {
-  label: string; value: string; onChange: (val: string) => void; placeholder?: string; rows?: number;
+const TextareaField = ({
+  label,
+  value,
+  onChange,
+  placeholder,
+  rows = 3,
+}: {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+  rows?: number;
 }) => (
   <div>
-    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{label}</label>
+    <label className="block text-sm font-semibold text-muted-foreground mb-2">{label}</label>
     <textarea
-      value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows}
-      className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 resize-none"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      rows={rows}
+      className="w-full rounded-xl border border-border bg-secondary text-foreground text-sm placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 resize-none"
     />
   </div>
 );
@@ -99,14 +109,23 @@ const RecruitmentForm = () => {
     try {
       setSaving(true);
       const payload = {
-        title, description, department_id: departmentId || null,
-        positions_count: positionsCount, location, contract_type: contractType,
+        title,
+        description,
+        department_id: departmentId || null,
+        positions_count: positionsCount,
+        location,
+        contract_type: contractType,
         salary_range_min: salaryMin ? Number(salaryMin) : null,
         salary_range_max: salaryMax ? Number(salaryMax) : null,
-        requirements, benefits, priority,
-        brief_reason: briefReason, brief_expected_start: briefExpectedStart || null,
-        brief_team_context: briefTeamContext, brief_key_activities: briefKeyActivities,
-        brief_required_skills: briefRequiredSkills, brief_nice_to_have: briefNiceToHave,
+        requirements,
+        benefits,
+        priority,
+        brief_reason: briefReason,
+        brief_expected_start: briefExpectedStart || null,
+        brief_team_context: briefTeamContext,
+        brief_key_activities: briefKeyActivities,
+        brief_required_skills: briefRequiredSkills,
+        brief_nice_to_have: briefNiceToHave,
         brief_observations: briefObservations,
       };
 
@@ -133,26 +152,37 @@ const RecruitmentForm = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-card rounded-2xl shadow-sm border border-border p-6"
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <button onClick={() => navigate('/recruitment')} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors">
+            <button
+              onClick={() => navigate('/recruitment')}
+              className="p-2 rounded-xl hover:bg-accent text-muted-foreground transition-colors"
+            >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                <Briefcase className="h-6 w-6 text-primary-700 dark:text-primary-400 mr-2" />
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center">
+                <Briefcase className="h-6 w-6 text-lime-deep dark:text-lime mr-2" />
                 {isEditing ? title || 'Detalhes da Vaga' : 'Solicitar Nova Vaga'}
               </h1>
               {opening?.requester && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Solicitado por: {opening.requester.name}
                 </p>
               )}
             </div>
           </div>
-          <Button variant="primary" onClick={handleSave} disabled={saving} icon={<Save size={18} />}>
+          <Button
+            variant="primary"
+            onClick={handleSave}
+            disabled={saving}
+            icon={<Save size={18} />}
+          >
             {saving ? 'Salvando...' : isEditing ? 'Salvar' : 'Solicitar Vaga'}
           </Button>
         </div>
@@ -160,49 +190,85 @@ const RecruitmentForm = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Dados da Vaga */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6">
-          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center">
-            <FileText className="h-5 w-5 mr-2 text-primary-700 dark:text-primary-400" />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-2xl shadow-sm border border-border p-6"
+        >
+          <h2 className="text-lg font-bold text-foreground mb-6 flex items-center">
+            <FileText className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
             Descrição da Vaga
           </h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Título da Vaga *</label>
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Engenheiro Civil Sênior"
-                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3" />
+              <label className="block text-sm font-semibold text-muted-foreground mb-2">
+                Título da Vaga *
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: Engenheiro Civil Sênior"
+                className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Departamento</label>
-                <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3">
+                <label className="block text-sm font-semibold text-muted-foreground mb-2">
+                  Departamento
+                </label>
+                <select
+                  value={departmentId}
+                  onChange={(e) => setDepartmentId(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+                >
                   <option value="">Selecione</option>
-                  {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nº de Posições</label>
-                <input type="number" min={1} value={positionsCount} onChange={(e) => setPositionsCount(Number(e.target.value))}
-                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3" />
+                <label className="block text-sm font-semibold text-muted-foreground mb-2">
+                  Nº de Posições
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  value={positionsCount}
+                  onChange={(e) => setPositionsCount(Number(e.target.value))}
+                  className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tipo de Contrato</label>
-                <select value={contractType} onChange={(e) => setContractType(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3">
+                <label className="block text-sm font-semibold text-muted-foreground mb-2">
+                  Tipo de Contrato
+                </label>
+                <select
+                  value={contractType}
+                  onChange={(e) => setContractType(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+                >
                   <option value="CLT">CLT</option>
                   <option value="PJ">PJ</option>
                   <option value="INTERN">Estágio</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Prioridade</label>
-                <select value={priority} onChange={(e) => setPriority(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3">
+                <label className="block text-sm font-semibold text-muted-foreground mb-2">
+                  Prioridade
+                </label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+                >
                   <option value="low">Baixa</option>
                   <option value="normal">Normal</option>
                   <option value="high">Alta</option>
@@ -212,61 +278,130 @@ const RecruitmentForm = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Local</label>
-              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Ex: Escritório SP, Remoto, Híbrido"
-                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3" />
+              <label className="block text-sm font-semibold text-muted-foreground mb-2">
+                Local
+              </label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Ex: Escritório SP, Remoto, Híbrido"
+                className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Salário Mín (R$)</label>
-                <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="0"
-                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3" />
+                <label className="block text-sm font-semibold text-muted-foreground mb-2">
+                  Salário Mín (R$)
+                </label>
+                <input
+                  type="number"
+                  value={salaryMin}
+                  onChange={(e) => setSalaryMin(e.target.value)}
+                  placeholder="0"
+                  className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+                />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Salário Máx (R$)</label>
-                <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="0"
-                  className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3" />
+                <label className="block text-sm font-semibold text-muted-foreground mb-2">
+                  Salário Máx (R$)
+                </label>
+                <input
+                  type="number"
+                  value={salaryMax}
+                  onChange={(e) => setSalaryMax(e.target.value)}
+                  placeholder="0"
+                  className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+                />
               </div>
             </div>
 
-            <TextareaField label="Descrição" value={description} onChange={setDescription} placeholder="Descrição detalhada da vaga..." />
-            <TextareaField label="Requisitos" value={requirements} onChange={setRequirements} placeholder="Requisitos técnicos e comportamentais..." />
-            <TextareaField label="Benefícios" value={benefits} onChange={setBenefits} placeholder="Benefícios oferecidos..." />
+            <TextareaField
+              label="Descrição"
+              value={description}
+              onChange={setDescription}
+              placeholder="Descrição detalhada da vaga..."
+            />
+            <TextareaField
+              label="Requisitos"
+              value={requirements}
+              onChange={setRequirements}
+              placeholder="Requisitos técnicos e comportamentais..."
+            />
+            <TextareaField
+              label="Benefícios"
+              value={benefits}
+              onChange={setBenefits}
+              placeholder="Benefícios oferecidos..."
+            />
           </div>
         </motion.div>
 
         {/* Brief do Gestor */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6">
-          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center">
-            <MessageSquare className="h-5 w-5 mr-2 text-amber-600 dark:text-amber-400" />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-card rounded-2xl shadow-sm border border-border p-6"
+        >
+          <h2 className="text-lg font-bold text-foreground mb-6 flex items-center">
+            <MessageSquare className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
             Brief do Gestor
           </h2>
           <div className="space-y-4">
-            <TextareaField label="Motivo da abertura da vaga" value={briefReason} onChange={setBriefReason}
-              placeholder="Ex: Expansão da equipe, substituição, novo projeto..." />
+            <TextareaField
+              label="Motivo da abertura da vaga"
+              value={briefReason}
+              onChange={setBriefReason}
+              placeholder="Ex: Expansão da equipe, substituição, novo projeto..."
+            />
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Previsão de início</label>
-              <input type="date" value={briefExpectedStart} onChange={(e) => setBriefExpectedStart(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3" />
+              <label className="block text-sm font-semibold text-muted-foreground mb-2">
+                Previsão de início
+              </label>
+              <input
+                type="date"
+                value={briefExpectedStart}
+                onChange={(e) => setBriefExpectedStart(e.target.value)}
+                className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+              />
             </div>
 
-            <TextareaField label="Contexto da equipe" value={briefTeamContext} onChange={setBriefTeamContext}
-              placeholder="Tamanho da equipe, dinâmica, projetos em andamento..." />
-            <TextareaField label="Atividades principais do cargo" value={briefKeyActivities} onChange={setBriefKeyActivities}
-              placeholder="Quais serão as principais responsabilidades?" />
-            <TextareaField label="Habilidades e competências necessárias" value={briefRequiredSkills} onChange={setBriefRequiredSkills}
-              placeholder="Hard skills e soft skills obrigatórias..." />
-            <TextareaField label="Diferenciais desejáveis" value={briefNiceToHave} onChange={setBriefNiceToHave}
-              placeholder="Certificações, experiências, idiomas..." />
-            <TextareaField label="Observações adicionais" value={briefObservations} onChange={setBriefObservations}
-              placeholder="Qualquer informação relevante para o recrutamento..." />
+            <TextareaField
+              label="Contexto da equipe"
+              value={briefTeamContext}
+              onChange={setBriefTeamContext}
+              placeholder="Tamanho da equipe, dinâmica, projetos em andamento..."
+            />
+            <TextareaField
+              label="Atividades principais do cargo"
+              value={briefKeyActivities}
+              onChange={setBriefKeyActivities}
+              placeholder="Quais serão as principais responsabilidades?"
+            />
+            <TextareaField
+              label="Habilidades e competências necessárias"
+              value={briefRequiredSkills}
+              onChange={setBriefRequiredSkills}
+              placeholder="Hard skills e soft skills obrigatórias..."
+            />
+            <TextareaField
+              label="Diferenciais desejáveis"
+              value={briefNiceToHave}
+              onChange={setBriefNiceToHave}
+              placeholder="Certificações, experiências, idiomas..."
+            />
+            <TextareaField
+              label="Observações adicionais"
+              value={briefObservations}
+              onChange={setBriefObservations}
+              placeholder="Qualquer informação relevante para o recrutamento..."
+            />
           </div>
         </motion.div>
       </div>
-
     </div>
   );
 };

@@ -3,8 +3,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import {
-  Building, GitBranch, Plus, ChevronRight,
-  Trash2, Save, X, Settings, Download, FileText, FileSpreadsheet
+  Building,
+  GitBranch,
+  Plus,
+  ChevronRight,
+  Trash2,
+  Save,
+  X,
+  Settings,
+  Download,
+  FileText,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 // Importações corretas dos serviços
@@ -76,9 +85,9 @@ const SalaryAdminPage = () => {
       try {
         const departmentsResponse = await departmentsService.getDepartments();
         departmentsData = Array.isArray(departmentsResponse) ? departmentsResponse : [];
-        
+
         // Mapear para garantir que temos a estrutura correta
-        departmentsData = departmentsData.map(dept => ({
+        departmentsData = departmentsData.map((dept) => ({
           id: dept.id,
           name: dept.name,
           description: dept.description,
@@ -87,12 +96,11 @@ const SalaryAdminPage = () => {
           active: (dept as any).active !== false, // Default true se não especificado
           created_at: dept.created_at,
           updated_at: dept.updated_at,
-          createdAt: dept.createdAt
+          createdAt: dept.createdAt,
         }));
-        
+
         // Filtrar apenas departamentos ativos
-        departmentsData = departmentsData.filter(dept => dept.active !== false);
-        
+        departmentsData = departmentsData.filter((dept) => dept.active !== false);
       } catch (error) {
         console.error('Erro ao carregar departamentos:', error);
         departmentsData = [];
@@ -105,21 +113,23 @@ const SalaryAdminPage = () => {
         tracksData = Array.isArray(tracksResponse) ? tracksResponse : [];
       } catch (error: any) {
         console.error('Erro ao carregar trilhas:', error);
-        
+
         // Se for erro 404 ou 500, significa que talvez a tabela não exista ainda
         if (error.response?.status === 404 || error.response?.status === 500) {
           console.warn('Sistema de trilhas pode não estar configurado ainda no backend');
           toast('Sistema de trilhas em configuração. Continue para criar a primeira trilha.');
         }
-        
+
         tracksData = [];
       }
 
       setTracks(tracksData);
       setDepartments(departmentsData);
-      
+
       if (departmentsData.length === 0) {
-        toast('Nenhum departamento ativo encontrado. Crie departamentos primeiro através do menu "Gerenciar Usuários".');
+        toast(
+          'Nenhum departamento ativo encontrado. Crie departamentos primeiro através do menu "Gerenciar Usuários".',
+        );
       }
     } catch (error) {
       console.error('Erro geral ao carregar dados:', error);
@@ -139,25 +149,26 @@ const SalaryAdminPage = () => {
         code: formData.code || formData.name.toLowerCase().replace(/\s+/g, '_'),
         description: formData.description || '',
         department_id: formData.department_id,
-        active: true
+        active: true,
       };
 
       const newTrack = await salaryService.createTrack(trackData);
-      setTracks(prev => [...prev, newTrack]);
+      setTracks((prev) => [...prev, newTrack]);
       toast.success('Trilha de carreira criada com sucesso!');
       setShowCreateTrackModal(false);
       // Navega para a página de detalhes da nova trilha para continuar a configuração
       navigate(`/salary/tracks/${newTrack.id}`);
     } catch (error: any) {
       console.error('Erro detalhado ao criar trilha:', error);
-      
+
       // Tratamento de erro mais específico
       if (error.response) {
         // Erro da API
         console.error('Resposta de erro da API:', error.response);
-        const errorMessage = error.response.data?.error || 
-                           error.response.data?.message || 
-                           'Erro ao criar a trilha. Verifique os dados e tente novamente.';
+        const errorMessage =
+          error.response.data?.error ||
+          error.response.data?.message ||
+          'Erro ao criar a trilha. Verifique os dados e tente novamente.';
         toast.error(errorMessage);
       } else if (error.request) {
         // Sem resposta do servidor
@@ -171,10 +182,15 @@ const SalaryAdminPage = () => {
   };
 
   const handleDeleteTrack = async (trackId: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir esta trilha e todos os seus cargos associados?')) return;
+    if (
+      !window.confirm(
+        'Tem certeza que deseja excluir esta trilha e todos os seus cargos associados?',
+      )
+    )
+      return;
     try {
       await salaryService.deleteTrack(trackId);
-      setTracks(prev => prev.filter(t => t.id !== trackId));
+      setTracks((prev) => prev.filter((t) => t.id !== trackId));
       toast.success('Trilha excluída com sucesso.');
     } catch (error) {
       toast.error('Erro ao excluir a trilha.');
@@ -216,21 +232,21 @@ const SalaryAdminPage = () => {
 
   return (
     <RoleGuard allowedRoles={['director']}>
-      <div className="min-h-screen bg-gray-50 dark:bg-yt-bg p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* --- Cabeçalho --- */}
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm p-6"
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card rounded-2xl shadow-sm p-6"
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center font-lemon-milk tracking-wide">
-                  <Settings className="h-7 w-7 text-primary dark:text-primary-300 mr-3" />
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center font-lemon-milk tracking-wide">
+                  <Settings className="h-7 w-7 text-lime-deep dark:text-lime mr-3" />
                   Administração de Carreiras
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-muted-foreground mt-1">
                   Crie e gerencie as trilhas de carreira por departamento.
                 </p>
               </div>
@@ -244,59 +260,59 @@ const SalaryAdminPage = () => {
           </motion.div>
 
           {/* --- Lista de Trilhas de Carreira --- */}
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            transition={{ delay: 0.1 }} 
-            className="bg-white dark:bg-yt-surface rounded-xl shadow-sm p-6 space-y-4"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="bg-card rounded-xl shadow-sm p-6 space-y-4"
           >
-            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-              <GitBranch className="text-primary dark:text-primary-300" />
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <GitBranch className="text-lime-deep dark:text-lime" />
               Trilhas de Carreira Criadas
             </h2>
-            
+
             {tracks.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {tracks.map(track => {
-                  const department = departments.find(d => d.id === track.department_id);
+                {tracks.map((track) => {
+                  const department = departments.find((d) => d.id === track.department_id);
                   return (
                     <motion.div
                       key={track.id}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="bg-gray-50 dark:bg-yt-elevated/50 p-5 rounded-lg border border-gray-200 dark:border-yt-border hover:shadow-md transition-shadow group"
+                      className="bg-secondary p-5 rounded-lg border border-border hover:shadow-md transition-shadow group"
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
-                            {track.name}
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mt-1">
+                          <h3 className="font-bold text-lg text-foreground">{track.name}</h3>
+                          <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
                             <Building className="h-3 w-3" />
                             {department?.name || 'Departamento não encontrado'}
                           </p>
                           {track.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                            <p className="text-sm text-muted-foreground mt-2">
                               {track.description}
                             </p>
                           )}
                           <div className="mt-2">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
-                              track.active
-                                ? 'bg-primary-100 text-primary dark:bg-primary-600/30 dark:text-primary-400'
-                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                            }`}>
+                            <span
+                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
+                                track.active
+                                  ? 'bg-success/15 text-success'
+                                  : 'bg-destructive/15 text-destructive'
+                              }`}
+                            >
                               {track.active ? 'Ativa' : 'Inativa'}
                             </span>
                           </div>
                         </div>
                         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => handleDeleteTrack(track.id)} 
-                            className="text-gray-500 hover:text-red-500 transition-colors"
+                          <button
+                            onClick={() => handleDeleteTrack(track.id)}
+                            className="text-muted-foreground hover:text-destructive transition-colors"
                             title="Excluir trilha"
                           >
-                            <Trash2 className="h-4 w-4"/>
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </div>
@@ -316,28 +332,30 @@ const SalaryAdminPage = () => {
                           <Button
                             variant="secondary"
                             size="sm"
-                            onClick={() => setShowExportMenu(showExportMenu === track.id ? null : track.id)}
+                            onClick={() =>
+                              setShowExportMenu(showExportMenu === track.id ? null : track.id)
+                            }
                             disabled={exportingTrack === track.id}
                             title="Exportar dados da trilha"
                           >
                             {exportingTrack === track.id ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-lime" />
                             ) : (
                               <Download className="h-4 w-4" />
                             )}
                           </Button>
                           {showExportMenu === track.id && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-yt-elevated rounded-lg shadow-lg border border-gray-200 dark:border-yt-border z-10">
+                            <div className="absolute right-0 mt-2 w-48 bg-popover text-popover-foreground rounded-lg shadow-lg border border-border z-10">
                               <button
                                 onClick={() => handleExportPDF(track.id, track.name)}
-                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-t-lg"
+                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors rounded-t-lg"
                               >
                                 <FileText className="h-4 w-4" />
                                 Exportar para PDF
                               </button>
                               <button
                                 onClick={() => handleExportExcel(track.id, track.name)}
-                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-b-lg"
+                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors rounded-b-lg"
                               >
                                 <FileSpreadsheet className="h-4 w-4" />
                                 Exportar para Excel
@@ -351,12 +369,12 @@ const SalaryAdminPage = () => {
                 })}
               </div>
             ) : (
-              <div className="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg dark:border-yt-border">
-                <GitBranch className="h-12 w-12 text-primary-600 dark:text-primary-300 mx-auto mb-4" />
-                <p className="text-gray-500 dark:text-gray-400 font-medium">
+              <div className="text-center py-10 border-2 border-dashed border-border rounded-lg">
+                <GitBranch className="h-12 w-12 text-lime-deep dark:text-lime mx-auto mb-4" />
+                <p className="text-muted-foreground font-medium">
                   Nenhuma trilha de carreira foi criada ainda.
                 </p>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Comece clicando em "Criar Nova Trilha".
                 </p>
               </div>
@@ -390,7 +408,7 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
   const [formData, setFormData] = useState({
     name: '',
     department_id: '',
-    description: ''
+    description: '',
   });
 
   const handleSaveClick = () => {
@@ -402,27 +420,25 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      exit={{ opacity: 0 }} 
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
-      <motion.div 
-        initial={{ scale: 0.9, opacity: 0 }} 
-        animate={{ scale: 1, opacity: 1 }} 
-        exit={{ scale: 0.9, opacity: 0 }} 
-        className="bg-white dark:bg-yt-surface rounded-xl shadow-xl p-6 max-w-lg w-full"
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-popover text-popover-foreground border border-border rounded-xl shadow-xl p-6 max-w-lg w-full"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-            Criar Nova Trilha de Carreira
-          </h2>
-          <button 
-            onClick={onClose} 
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          <h2 className="text-xl font-bold text-foreground">Criar Nova Trilha de Carreira</h2>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -430,17 +446,17 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+            <label className="block text-sm font-medium text-foreground font-medium mb-1">
               Departamento *
             </label>
             <select
               value={formData.department_id}
-              onChange={(e) => setFormData(prev => ({ ...prev, department_id: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-transparent"
+              onChange={(e) => setFormData((prev) => ({ ...prev, department_id: e.target.value }))}
+              className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-lg focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background"
             >
               <option value="">Selecione um departamento</option>
               {departments.length > 0 ? (
-                departments.map(dept => (
+                departments.map((dept) => (
                   <option key={dept.id} value={dept.id}>
                     {dept.name}
                   </option>
@@ -452,33 +468,34 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
               )}
             </select>
             {departments.length === 0 && (
-              <p className="text-xs text-red-500 mt-1">
-                Nenhum departamento encontrado. Crie departamentos através do menu "Gerenciar Usuários".
+              <p className="text-xs text-destructive mt-1">
+                Nenhum departamento encontrado. Crie departamentos através do menu "Gerenciar
+                Usuários".
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+            <label className="block text-sm font-medium text-foreground font-medium mb-1">
               Nome da Trilha *
             </label>
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-transparent"
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+              className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-lg focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background"
               placeholder="Ex: Trilha de Engenharia, Trilha Comercial"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+            <label className="block text-sm font-medium text-foreground font-medium mb-1">
               Descrição (opcional)
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-transparent"
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-lg focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background"
               rows={3}
               placeholder="Descreva brevemente esta trilha de carreira"
             />
@@ -489,7 +506,7 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
           <Button variant="secondary" onClick={onClose}>
             Cancelar
           </Button>
-          <Button 
+          <Button
             onClick={handleSaveClick}
             disabled={!formData.name || !formData.department_id || departments.length === 0}
           >
