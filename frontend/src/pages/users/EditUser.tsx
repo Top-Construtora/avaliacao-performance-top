@@ -1393,7 +1393,9 @@ const EditUser = () => {
                       })
                     }
                     className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                      formData.positionIsConfidential ? 'bg-warning' : 'bg-secondary'
+                      formData.positionIsConfidential
+                        ? 'bg-warning'
+                        : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                     aria-pressed={formData.positionIsConfidential}
                     aria-label="Marcar cargo como sigiloso"
