@@ -94,7 +94,6 @@ export interface EvaluationExtended {
   final_score?: number;
   potential_score?: number;
   consensus_score?: number;
-  potential_score?: number;
   strengths_internal?: string;
   improvements?: string;
   observations?: string;
@@ -159,7 +158,6 @@ export interface CycleDashboard {
   self_score?: number;
   leader_evaluation_id?: string;
   leader_score?: number;
-  potential_score?: number;
   consensus_id?: string;
   consensus_performance_score?: number | null;
   consensus_potential_score?: number | null;
@@ -192,46 +190,52 @@ export const EVALUATION_COMPETENCIES = {
   technical: [
     {
       name: 'Gestão do Conhecimento',
-      description: 'Demonstra domínio técnico sobre a sua área de atuação e atua de maneira a favorecer o bom andamento de todos os processos e procedimentos.',
-      category: 'technical' as const
+      description:
+        'Demonstra domínio técnico sobre a sua área de atuação e atua de maneira a favorecer o bom andamento de todos os processos e procedimentos.',
+      category: 'technical' as const,
     },
     {
       name: 'Orientação a Resultados',
-      description: 'Atua com capacidade de focar na concretização dos objetivos, com intuito de garantir que os resultados sejam alcançados conforme o esperado. ',
-      category: 'technical' as const
+      description:
+        'Atua com capacidade de focar na concretização dos objetivos, com intuito de garantir que os resultados sejam alcançados conforme o esperado. ',
+      category: 'technical' as const,
     },
     {
       name: 'Pensamento Crítico',
       description: 'Capacidade de analisar cenários para buscar soluções superando desafios.',
-      category: 'technical' as const
+      category: 'technical' as const,
     },
     {
       name: 'Aderência aos Processos',
-      description: 'Trabalha em aderência aos processos de gestão da empresa, esforçando-se para compreender e atender os objetivos, cumprindo com os resutlados da área.',
-      category: 'technical' as const
-    }
+      description:
+        'Trabalha em aderência aos processos de gestão da empresa, esforçando-se para compreender e atender os objetivos, cumprindo com os resutlados da área.',
+      category: 'technical' as const,
+    },
   ],
   behavioral: [
     {
       name: 'Comunicação',
-      description: 'Possui capacidade de se expressar de forma clara e apropriada (seja escrita, verbal ou não verbal), entendo os questionamentos e sendo compreendido por seus colegas e clientes.',
-      category: 'behavioral' as const
+      description:
+        'Possui capacidade de se expressar de forma clara e apropriada (seja escrita, verbal ou não verbal), entendo os questionamentos e sendo compreendido por seus colegas e clientes.',
+      category: 'behavioral' as const,
     },
     {
       name: 'Inteligência Emocional',
-      description: 'Apresenta capacidade de enfrentar situações de estresse e/ou pressão de forma paciente, educada e responsável.',
-      category: 'behavioral' as const
+      description:
+        'Apresenta capacidade de enfrentar situações de estresse e/ou pressão de forma paciente, educada e responsável.',
+      category: 'behavioral' as const,
     },
     {
       name: 'Colaboração',
-      description: 'Possibilita entre o time uma troca de conhecimento e agilidade no cumprimento de metas e objetivos compartilhados, ou seja, trabalho em equipe.',
-      category: 'behavioral' as const
+      description:
+        'Possibilita entre o time uma troca de conhecimento e agilidade no cumprimento de metas e objetivos compartilhados, ou seja, trabalho em equipe.',
+      category: 'behavioral' as const,
     },
     {
       name: 'Flexibilidade',
       description: 'Capaz de se adaptar a mudanças e/ou situações inesperadas.',
-      category: 'behavioral' as const
-    }
+      category: 'behavioral' as const,
+    },
   ],
   // AVISO: As competências organizacionais abaixo são apenas fallback
   // Use deliveriesCriteria do EvaluationContext para obter as competências atualizadas do banco
@@ -239,24 +243,24 @@ export const EVALUATION_COMPETENCIES = {
     {
       name: 'Meritocracia e Missão Compartilhada',
       description: 'Reconhecimento por mérito e alinhamento com os valores da empresa',
-      category: 'deliveries' as const
+      category: 'deliveries' as const,
     },
     {
       name: 'Espiral de Passos',
       description: 'Evolução contínua através de pequenos passos consistentes',
-      category: 'deliveries' as const
+      category: 'deliveries' as const,
     },
     {
       name: 'Planejar é Preciso',
       description: 'Valorização do planejamento e organização como fator crítico de sucesso',
-      category: 'deliveries' as const
+      category: 'deliveries' as const,
     },
     {
       name: 'Melhoria Contínua',
       description: 'Busca constante por aperfeiçoamento e inovação em processos e resultados',
-      category: 'deliveries' as const
-    }
-  ]
+      category: 'deliveries' as const,
+    },
+  ],
 };
 
 // Helper functions
@@ -266,8 +270,11 @@ export const calculateAverageScore = (competencies: EvaluationCompetency[]): num
   return Number((sum / competencies.length).toFixed(2));
 };
 
-export const getCategoryScore = (competencies: EvaluationCompetency[], category: string): number => {
-  const categoryComps = competencies.filter(c => c.category === category);
+export const getCategoryScore = (
+  competencies: EvaluationCompetency[],
+  category: string,
+): number => {
+  const categoryComps = competencies.filter((c) => c.category === category);
   return calculateAverageScore(categoryComps);
 };
 
@@ -281,7 +288,7 @@ export const getNineBoxDescription = (position: number): string => {
     6: 'Forte Performance - Potencial para mudanças',
     7: 'Comprometimento - Especialista difícil de substituir',
     8: 'Alto Impacto - Contribuição de valor',
-    9: 'Futuro Líder - Potencial além da função atual'
+    9: 'Futuro Líder - Potencial além da função atual',
   };
   return descriptions[position] || 'Posição não definida';
 };
@@ -342,7 +349,7 @@ export type EvaluationStatus = 'pending' | 'in-progress' | 'completed';
 export type CompetencyCategory = 'technical' | 'behavioral' | 'deliveries';
 
 // Posições do Nine Box
-export type NineBoxPosition = 
+export type NineBoxPosition =
   | 'Questionável'
   | 'Novo/Desenvolvimento'
   | 'Enigma'
@@ -370,7 +377,7 @@ export interface EvaluationMetrics {
 export const calculateNineBoxPosition = (performance: number, potential: number): string => {
   const perfLevel = performance < 2 ? 'low' : performance < 3 ? 'medium' : 'high';
   const potLevel = potential <= 2 ? 'low' : potential <= 3 ? 'medium' : 'high';
-  
+
   const positions: { [key: string]: string } = {
     'low-low': 'Questionável',
     'low-medium': 'Novo/Desenvolvimento',
@@ -380,9 +387,9 @@ export const calculateNineBoxPosition = (performance: number, potential: number)
     'medium-high': 'Forte Performance',
     'high-low': 'Especialista',
     'high-medium': 'Alto Performance',
-    'high-high': 'Estrela'
+    'high-high': 'Estrela',
   };
-  
+
   return positions[`${perfLevel}-${potLevel}`] || 'Não classificado';
 };
 
@@ -402,10 +409,10 @@ export interface EvaluationHistory {
 export const getNineBoxPositionNumber = (performance: number, potential: number): number => {
   const perfLevel = performance < 2 ? 0 : performance < 3 ? 1 : 2;
   const potLevel = potential <= 2 ? 0 : potential <= 3 ? 1 : 2;
-  
+
   // Matriz 3x3: performance (linha) x potential (coluna)
   // 7 8 9
   // 4 5 6
   // 1 2 3
-  return (potLevel * 3) + perfLevel + 1;
+  return potLevel * 3 + perfLevel + 1;
 };

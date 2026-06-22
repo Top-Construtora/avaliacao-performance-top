@@ -1,0 +1,2 @@
+# Mantém a pasta de migrações versionada enquanto ela estiver vazia.
+# A primeira migração (baseline) é gerada por `npx supabase db pull` — ver ../README.md.

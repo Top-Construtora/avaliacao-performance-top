@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { useAuth, useUserRole } from '../context/AuthContext';
-import { 
-  UserRole, 
+import {
+  UserRole,
   hasPermission as checkPermission,
   validateSecurityOperation,
-  ROLE_PERMISSIONS
+  ROLE_PERMISSIONS,
 } from '../types/auth';
 
 export function usePermissions() {
@@ -14,54 +14,57 @@ export function usePermissions() {
   const isAdmin = profile?.is_admin === true;
 
   // Funções de verificação de permissão
-  const permissions = useMemo(() => ({
-    // Verificar permissão específica
-    hasPermission: (resource: string, action: 'create' | 'read' | 'update' | 'delete') => {
-      if (!user || !profile?.active) return false;
-      if (isAdmin) return true; // Admin tem todas as permissões
-      return checkPermission(role as UserRole, resource, action);
-    },
+  const permissions = useMemo(
+    () => ({
+      // Verificar permissão específica
+      hasPermission: (resource: string, action: 'create' | 'read' | 'update' | 'delete') => {
+        if (!user || !profile?.active) return false;
+        if (isAdmin) return true; // Admin tem todas as permissões
+        return checkPermission(role as UserRole, resource, action);
+      },
 
-    // Verificações rápidas
-    canCreateUser: () => isAdmin || isDirector,
-    canEditUser: (userId: string) => {
-      if (isAdmin || isDirector) return true;
-      if (isLeader) return true; // Líder pode editar seus subordinados (filtro real é feito pela lista de subordinados)
-      return userId === user?.id;
-    },
-    canDeactivateUser: () => isAdmin || isDirector,
-    canCreateTeam: () => isAdmin || isDirector || isLeader,
-    canEditTeam: (teamId: string, responsibleId?: string) => {
-      if (isAdmin || isDirector) return true;
-      return isLeader && responsibleId === user?.id;
-    },
-    canDeleteTeam: () => isAdmin || isDirector,
+      // Verificações rápidas
+      canCreateUser: () => isAdmin || isDirector,
+      canEditUser: (userId: string) => {
+        if (isAdmin || isDirector) return true;
+        if (isLeader) return true; // Líder pode editar seus subordinados (filtro real é feito pela lista de subordinados)
+        return userId === user?.id;
+      },
+      canDeactivateUser: () => isAdmin || isDirector,
+      canCreateTeam: () => isAdmin || isDirector || isLeader,
+      canEditTeam: (_teamId: string, responsibleId?: string) => {
+        if (isAdmin || isDirector) return true;
+        return isLeader && responsibleId === user?.id;
+      },
+      canDeleteTeam: () => isAdmin || isDirector,
 
-    canCreateDepartment: () => isAdmin || isDirector,
-    canEditDepartment: () => isAdmin || isDirector,
-    canDeleteDepartment: () => isAdmin || isDirector,
+      canCreateDepartment: () => isAdmin || isDirector,
+      canEditDepartment: () => isAdmin || isDirector,
+      canDeleteDepartment: () => isAdmin || isDirector,
 
-    canViewReports: () => isAdmin || isDirector,
-    canViewAuditLogs: () => isAdmin || isDirector,
-    canAccessConsensus: () => isAdmin || isDirector,
-    canAccessNineBox: () => isAdmin || isDirector,
+      canViewReports: () => isAdmin || isDirector,
+      canViewAuditLogs: () => isAdmin || isDirector,
+      canAccessConsensus: () => isAdmin || isDirector,
+      canAccessNineBox: () => isAdmin || isDirector,
 
-    canEvaluateUser: (userId: string) => {
-      if (userId === user?.id) return true; // Autoavaliação
-      if (isAdmin || isDirector) return true;
-      return isLeader; // Líder pode avaliar subordinados (filtro real é feito pela lista de subordinados)
-    },
+      canEvaluateUser: (userId: string) => {
+        if (userId === user?.id) return true; // Autoavaliação
+        if (isAdmin || isDirector) return true;
+        return isLeader; // Líder pode avaliar subordinados (filtro real é feito pela lista de subordinados)
+      },
 
-    // Validar operação de segurança
-    validateOperation: (operation: string, targetData?: any) => {
-      return validateSecurityOperation(operation, role as UserRole, targetData);
-    },
+      // Validar operação de segurança
+      validateOperation: (operation: string, targetData?: any) => {
+        return validateSecurityOperation(operation, role as UserRole, targetData);
+      },
 
-    // Obter todas as permissões do usuário
-    getAllPermissions: () => {
-      return ROLE_PERMISSIONS[role as UserRole] || [];
-    },
-  }), [user, profile, role, isDirector, isLeader, isAdmin]);
+      // Obter todas as permissões do usuário
+      getAllPermissions: () => {
+        return ROLE_PERMISSIONS[role as UserRole] || [];
+      },
+    }),
+    [user, profile, role, isDirector, isLeader, isAdmin],
+  );
 
   return permissions;
 }
@@ -80,7 +83,7 @@ export function useResourceAccess(resource: string) {
 
 // Hook para controle de visibilidade de elementos UI
 export function useUIPermissions() {
-  const { isDirector, isLeader, role } = useUserRole();
+  const { isDirector, isLeader } = useUserRole();
   const { profile } = useAuth();
 
   const isAdmin = profile?.is_admin === true;
@@ -121,12 +124,12 @@ export function useOperationValidator() {
       const validation = permissions.validateOperation(operation, targetData);
       return validation.isValid && profile?.active === true;
     },
-    
+
     getValidationErrors: (operation: string, targetData?: any): string[] => {
       const validation = permissions.validateOperation(operation, targetData);
       return validation.errors;
     },
-    
+
     getValidationWarnings: (operation: string, targetData?: any): string[] => {
       const validation = permissions.validateOperation(operation, targetData);
       return validation.warnings;

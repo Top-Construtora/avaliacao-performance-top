@@ -8,15 +8,14 @@ import type {
   NineBoxData,
   SelfEvaluation,
   LeaderEvaluation,
-  EvaluationSummary,
-  EvaluationHistory
+  EvaluationHistory,
 } from '../types/evaluation.types';
 
 export const evaluationService = {
   // ====================================
   // EVALUATION CYCLES
   // ====================================
-  
+
   // Renomeie para corresponder ao que o hook espera
   async getAllCycles(): Promise<EvaluationCycle[]> {
     try {
@@ -115,11 +114,11 @@ export const evaluationService = {
   async checkExistingEvaluation(
     cycleId: string,
     employeeId: string,
-    type: 'self' | 'leader'
+    type: 'self' | 'leader',
   ): Promise<boolean> {
     try {
       const response = await api.get(
-        `/evaluations/check?cycleId=${cycleId}&employeeId=${employeeId}&type=${type}`
+        `/evaluations/check?cycleId=${cycleId}&employeeId=${employeeId}&type=${type}`,
       );
       // O backend retorna { success: true, data: boolean }
       if (response && response.success !== undefined) {
@@ -134,7 +133,7 @@ export const evaluationService = {
   // ====================================
   // AUTOAVALIAÇÕES
   // ====================================
-  
+
   async getSelfEvaluations(employeeId: string, cycleId?: string): Promise<SelfEvaluation[]> {
     try {
       const url = cycleId
@@ -161,13 +160,13 @@ export const evaluationService = {
       tools?: string[];
       strengths_internal?: string[];
       qualities?: string[];
-    }
+    },
   ): Promise<SelfEvaluation> {
     console.log('📡 [evaluationService] Salvando autoavaliação:', {
       cycleId,
       employeeId,
       competenciesCount: competencies.length,
-      hasToolkit: !!toolkit
+      hasToolkit: !!toolkit,
     });
 
     try {
@@ -175,7 +174,7 @@ export const evaluationService = {
         cycleId,
         employeeId,
         competencies,
-        toolkit
+        toolkit,
       });
 
       console.log('✅ [evaluationService] Autoavaliação salva com sucesso:', response);
@@ -185,7 +184,7 @@ export const evaluationService = {
       console.error('❌ [evaluationService] Erro ao salvar autoavaliação:', {
         message: error.message,
         status: error.response?.status,
-        data: error.response?.data
+        data: error.response?.data,
       });
       throw error;
     }
@@ -194,7 +193,7 @@ export const evaluationService = {
   // ====================================
   // AVALIAÇÕES DE LÍDER
   // ====================================
-  
+
   async getLeaderEvaluations(employeeId: string, cycleId?: string): Promise<LeaderEvaluation[]> {
     try {
       const url = cycleId
@@ -229,7 +228,7 @@ export const evaluationService = {
       resources?: string[];
       timeline?: string;
     },
-    potentialDetails?: Record<string, { name: string; score: number }>
+    potentialDetails?: Record<string, { name: string; score: number }>,
   ): Promise<LeaderEvaluation> {
     try {
       const response = await api.post('/evaluations/leader', {
@@ -240,7 +239,7 @@ export const evaluationService = {
         potentialScore,
         potentialDetails,
         feedback,
-        pdi
+        pdi,
       });
       // O backend retorna { success: true, data: {...} }
       return response.data || response;
@@ -253,9 +252,7 @@ export const evaluationService = {
   // ====================================
   // CONSENSUS
   // ====================================
-  async createConsensusMeeting(
-    meeting: Partial<ConsensusMeeting>
-  ): Promise<ConsensusMeeting> {
+  async createConsensusMeeting(meeting: Partial<ConsensusMeeting>): Promise<ConsensusMeeting> {
     const response = await api.post('/evaluations/consensus', meeting);
     // O backend retorna { success: true, data: {...} }
     return response.data || response;
@@ -265,22 +262,22 @@ export const evaluationService = {
     meetingId: string,
     performanceScore: number,
     potentialScore: number,
-    notes: string
+    notes: string,
   ): Promise<void> {
     await api.put(`/evaluations/consensus/${meetingId}/complete`, {
       performanceScore,
       potentialScore,
-      notes
+      notes,
     });
   },
 
   // ====================================
   // FUNÇÕES AUXILIARES
   // ====================================
-  
+
   // Calcular score por categoria
   calculateCategoryScore(competencies: EvaluationCompetency[], category: string): number {
-    const categoryComps = competencies.filter(c => c.category === category);
+    const categoryComps = competencies.filter((c) => c.category === category);
     if (categoryComps.length === 0) return 0;
 
     const sum = categoryComps.reduce((acc, comp) => acc + (comp.score || 0), 0);
@@ -297,7 +294,7 @@ export const evaluationService = {
     const deliveriesScore = this.calculateCategoryScore(competencies, 'deliveries');
 
     // Aplicar pesos: technical 50%, behavioral 30%, deliveries 20%
-    const weightedScore = (technicalScore * 0.5) + (behavioralScore * 0.3) + (deliveriesScore * 0.2);
+    const weightedScore = technicalScore * 0.5 + behavioralScore * 0.3 + deliveriesScore * 0.2;
 
     // Arredondar para 10 casas decimais para eliminar erros de precisão de ponto flutuante
     return Math.round(weightedScore * 10000000000) / 10000000000;
@@ -307,7 +304,7 @@ export const evaluationService = {
   getNineBoxPosition(performance: number, potential: number): string {
     const perfLevel = performance <= 2 ? 'low' : performance <= 3 ? 'medium' : 'high';
     const potLevel = potential <= 2 ? 'low' : potential <= 3 ? 'medium' : 'high';
-    
+
     const positions: { [key: string]: string } = {
       'low-low': 'Questionável',
       'low-medium': 'Novo/Desenvolvimento',
@@ -317,16 +314,16 @@ export const evaluationService = {
       'medium-high': 'Forte Performance',
       'high-low': 'Especialista',
       'high-medium': 'Alto Performance',
-      'high-high': 'Estrela'
+      'high-high': 'Estrela',
     };
-    
+
     return positions[`${perfLevel}-${potLevel}`] || 'Não classificado';
   },
 
   // ====================================
   // PDI - PLANO DE DESENVOLVIMENTO INDIVIDUAL
   // ====================================
-  
+
   async savePDI(pdiData: {
     employeeId: string;
     goals: string[];
@@ -364,12 +361,15 @@ export const evaluationService = {
     }
   },
 
-  async updatePDI(pdiId: string, updates: {
-    goals?: string[];
-    actions?: string[];
-    resources?: string[];
-    timeline?: string;
-  }): Promise<any> {
+  async updatePDI(
+    pdiId: string,
+    updates: {
+      goals?: string[];
+      actions?: string[];
+      resources?: string[];
+      timeline?: string;
+    },
+  ): Promise<any> {
     try {
       const response = await api.put(`/evaluations/pdi/${pdiId}`, updates);
       // O backend retorna { success: true, data: {...} }
@@ -391,11 +391,11 @@ export const evaluationService = {
    */
   async promoteNineBoxQuadrant(
     consensusId: string,
-    promotedPotentialQuadrant: number
+    promotedPotentialQuadrant: number,
   ): Promise<any> {
     try {
       const response = await api.put(`/evaluations/consensus/${consensusId}/promote`, {
-        promotedPotentialQuadrant
+        promotedPotentialQuadrant,
       });
       // O backend retorna { success: true, data: {...} }
       return response.data || response;
@@ -431,13 +431,10 @@ export const evaluationService = {
    * @param consensusId - ID da avaliação de consenso
    * @param deliberations - Texto das deliberações
    */
-  async saveCommitteeDeliberations(
-    consensusId: string,
-    deliberations: string
-  ): Promise<any> {
+  async saveCommitteeDeliberations(consensusId: string, deliberations: string): Promise<any> {
     try {
       const response = await api.put(`/evaluations/consensus/${consensusId}/deliberations`, {
-        deliberations
+        deliberations,
       });
       // O backend retorna { success: true, data: {...} }
       return response.data || response;
@@ -445,5 +442,5 @@ export const evaluationService = {
       console.error('Erro ao salvar deliberações:', error);
       throw error;
     }
-  }
+  },
 };

@@ -3,10 +3,16 @@ import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler';
+import { requestId } from './middleware/requestId';
+import { AppError } from './errors/AppError';
+import { logger } from './lib/logger';
+import { initSentry } from './lib/sentry';
+import { captureException } from './lib/observability';
 import routes from './routes';
 
-// Carrega variáveis de ambiente
+// Carrega variáveis de ambiente e inicializa observabilidade (o quanto antes)
 dotenv.config();
+initSentry();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -28,9 +34,10 @@ const developmentOrigins = [
 ];
 
 // Determina quais origens usar baseado no ambiente
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? productionOrigins
-  : [...developmentOrigins, ...productionOrigins]; // Dev aceita localhost + produção
+const allowedOrigins =
+  process.env.NODE_ENV === 'production'
+    ? productionOrigins
+    : [...developmentOrigins, ...productionOrigins]; // Dev aceita localhost + produção
 
 // Adiciona a URL do frontend a partir das variáveis de ambiente se ela existir
 if (process.env.FRONTEND_URL && !allowedOrigins.includes(process.env.FRONTEND_URL)) {
@@ -51,51 +58,53 @@ const corsOptions: CorsOptions = {
   credentials: true, // Essencial para cookies e autenticação
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
+    'Content-Type',
+    'Authorization',
     'X-Requested-With',
     'Accept',
     'Prefer',
     'Origin',
     'Access-Control-Allow-Headers',
     'Access-Control-Request-Headers',
-    'Access-Control-Request-Method'
+    'Access-Control-Request-Method',
   ],
   exposedHeaders: ['X-Total-Count', 'Content-Range'],
   maxAge: 86400, // 24 horas
   preflightContinue: false,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
 };
 
 // --- MIDDLEWARES ---
 
 // Confiar no proxy do Render é crucial para obter o IP/origem correto
-app.set('trust proxy', 1); 
+app.set('trust proxy', 1);
 
 // IMPORTANTE: CORS deve vir ANTES do Helmet
 app.use(cors(corsOptions));
 
 // Helmet com configuração ajustada para não interferir com CORS
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  crossOriginOpenerPolicy: { policy: "unsafe-none" },
-  crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: false, // Vamos configurar manualmente abaixo
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginOpenerPolicy: { policy: 'unsafe-none' },
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false, // Vamos configurar manualmente abaixo
+  }),
+);
 
 // Configuração manual de CSP para permitir fontes do Google
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
     "default-src 'self'; " +
-    "font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com data:; " +
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-    "img-src 'self' data: https: blob:; " +
-    "connect-src 'self' https: wss: ws:; " +
-    "frame-ancestors 'none'; " +
-    "base-uri 'self'; " +
-    "form-action 'self'"
+      "font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com data:; " +
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+      "img-src 'self' data: https: blob:; " +
+      "connect-src 'self' https: wss: ws:; " +
+      "frame-ancestors 'none'; " +
+      "base-uri 'self'; " +
+      "form-action 'self'",
   );
   next();
 });
@@ -116,7 +125,10 @@ app.use((req, res, next) => {
   // Para requisições OPTIONS, responde imediatamente
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Prefer');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, X-Requested-With, Accept, Prefer',
+    );
     res.setHeader('Access-Control-Max-Age', '86400');
     return res.sendStatus(204);
   }
@@ -127,14 +139,15 @@ app.use((req, res, next) => {
 // Middleware para garantir que sempre enviamos Content-Type correto
 app.use((req, res, next) => {
   const originalJson = res.json.bind(res);
-  res.json = function(data: any) {
+  res.json = function (data: any) {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     return originalJson(data);
   };
   next();
 });
 
-// Logging em desenvolvimento removido para manter console limpo
+// Request ID — correlation id em logs, header de resposta e Sentry
+app.use(requestId);
 
 // --- ROTAS E HANDLERS ---
 
@@ -151,27 +164,31 @@ app.get('/', (req, res) => {
 
 // Rota de Health Check
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
+  res.status(200).json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     uptime: process.uptime(),
-    memory: process.memoryUsage()
+    memory: process.memoryUsage(),
   });
 });
 
-// Rotas da API
+// Rotas da API — /api/v1 é o caminho canônico (contrato novo);
+// /api é alias transitório p/ o frontend atual (legado). Ver docs/adr/0001.
+app.use(
+  '/api/v1',
+  (req, res, next) => {
+    res.locals.apiVersion = 'v1';
+    next();
+  },
+  routes,
+);
 app.use('/api', routes);
 
-// Handler para rotas não encontradas (404)
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'Rota não encontrada',
-    path: req.originalUrl,
-    method: req.method,
-    timestamp: new Date().toISOString()
-  });
+// Handler para rotas não encontradas (404) — flui pelo errorHandler
+// para respeitar o contrato da versão (v1 estruturado / legado string).
+app.use('*', (req, _res, next) => {
+  next(new AppError('NOT_FOUND', `Rota não encontrada: ${req.method} ${req.originalUrl}`));
 });
 
 // Middleware de tratamento de erros (deve ser o último)
@@ -181,27 +198,25 @@ app.use(errorHandler);
 
 // Handler de erros não capturados
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
-  console.error('Stack:', error.stack);
+  logger.fatal({ err: error }, 'Uncaught Exception');
+  captureException(error, { path: 'process', method: 'uncaughtException' });
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise);
-  console.error('Reason:', reason);
+process.on('unhandledRejection', (reason) => {
+  logger.error({ err: reason }, 'Unhandled Rejection');
+  captureException(reason, { path: 'process', method: 'unhandledRejection' });
 });
 
 app.listen(PORT, () => {
-  const environment = process.env.NODE_ENV || 'development';
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`🌍 Ambiente: ${environment}`);
-  console.log(`📍 URL: ${process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`}`);
-  console.log(`🔒 CORS configurado para ${environment.toUpperCase()}:`);
-  if (environment === 'production') {
-    console.log('   ⚠️  APENAS domínios de produção permitidos:');
-  } else {
-    console.log('   ✅ Localhost + produção permitidos:');
-  }
-  allowedOrigins.forEach(origin => console.log(`   - ${origin}`));
+  logger.info(
+    {
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development',
+      url: process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`,
+      allowedOrigins,
+    },
+    'Servidor iniciado',
+  );
 });
 
 export default app;

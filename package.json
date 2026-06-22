@@ -14,10 +14,23 @@
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ..",
     "clean": "rm -rf frontend/node_modules backend/node_modules node_modules",
     "clean:install": "npm run clean && npm run install:all",
-    "switch-env": "node switch-env.js"
+    "switch-env": "node switch-env.js",
+    "lint": "npm --prefix backend run lint && npm --prefix frontend run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md,yml,yaml}\"",
+    "prepare": "husky",
+    "db:new": "supabase migration new",
+    "db:diff": "supabase db diff",
+    "db:pull": "supabase db pull",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:lint": "supabase db lint"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.4",
     "supabase": "^2.31.8",
     "vite": "^7.0.6"
   },
@@ -35,5 +48,8 @@
   "description": "",
   "dependencies": {
     "date-fns": "^4.1.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,css,md,yml,yaml}": "prettier --write"
   }
 }
