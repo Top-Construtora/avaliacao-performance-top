@@ -19,3 +19,4 @@ não apodrece porque não descreve o estado atual, e sim a decisão no momento.
 - [0001](0001-api-error-contract.md) — Contrato de erro da API, versionamento e validação
 - [0002](0002-versioned-migrations.md) — Migrações de banco versionadas (Supabase CLI)
 - [0003](0003-observability-logging.md) — Observabilidade: logs estruturados (Pino) + Sentry
+- [0004](0004-deploy-and-environments.md) — Topologia de deploy e ambientes
