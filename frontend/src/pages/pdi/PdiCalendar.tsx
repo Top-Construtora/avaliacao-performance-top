@@ -55,22 +55,52 @@ interface CalendarEvent {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
-  '1': { label: 'Não Iniciado', color: 'bg-gray-100 dark:bg-yt-elevated text-gray-700 dark:text-gray-300 border-gray-200 dark:border-yt-border', icon: Clock },
-  '2': { label: 'Em Andamento', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700', icon: AlertCircle },
-  '3': { label: 'Em Progresso', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700', icon: AlertCircle },
-  '4': { label: 'Concluído', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700', icon: CheckCircle },
-  '5': { label: 'Cancelado', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-700', icon: XCircle },
+  '1': {
+    label: 'Não Iniciado',
+    color: 'bg-secondary text-muted-foreground border-border',
+    icon: Clock,
+  },
+  '2': {
+    label: 'Em Andamento',
+    color: 'bg-warning/15 text-warning border-warning/30',
+    icon: AlertCircle,
+  },
+  '3': {
+    label: 'Em Progresso',
+    color: 'bg-warning/15 text-warning border-warning/30',
+    icon: AlertCircle,
+  },
+  '4': {
+    label: 'Concluído',
+    color: 'bg-success/15 text-success border-success/30',
+    icon: CheckCircle,
+  },
+  '5': {
+    label: 'Cancelado',
+    color: 'bg-destructive/15 text-destructive border-destructive/30',
+    icon: XCircle,
+  },
 };
 
 const PRAZO_LABELS: Record<string, { label: string; color: string }> = {
-  curto: { label: 'Curto', color: 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' },
-  medio: { label: 'Médio', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' },
-  longo: { label: 'Longo', color: 'bg-stone-100 dark:bg-stone-900/30 text-stone-700 dark:text-stone-300' },
+  curto: { label: 'Curto', color: 'bg-lime/20 text-lime-deep dark:text-lime' },
+  medio: { label: 'Médio', color: 'bg-warning/15 text-warning' },
+  longo: { label: 'Longo', color: 'bg-secondary text-muted-foreground' },
 };
 
 const MONTHS_PT = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
 ];
 
 const WEEKDAYS_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -102,10 +132,10 @@ const PdiCalendar = () => {
   const calendarEvents = useMemo(() => {
     const events: CalendarEvent[] = [];
 
-    pdis.forEach(pdi => {
+    pdis.forEach((pdi) => {
       if (!pdi.items || !Array.isArray(pdi.items)) return;
 
-      pdi.items.forEach(item => {
+      pdi.items.forEach((item) => {
         if (!item.calendarizacao) return;
 
         // Tentar parsear a data
@@ -176,11 +206,11 @@ const PdiCalendar = () => {
 
   const getEventsForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return calendarEvents.filter(e => e.date === dateStr);
+    return calendarEvents.filter((e) => e.date === dateStr);
   };
 
   const selectedDateEvents = selectedDate
-    ? calendarEvents.filter(e => e.date === selectedDate)
+    ? calendarEvents.filter((e) => e.date === selectedDate)
     : [];
 
   const today = new Date();
@@ -194,13 +224,13 @@ const PdiCalendar = () => {
 
   // Stats
   const stats = useMemo(() => {
-    const allItems = pdis.flatMap(p => p.items || []);
+    const allItems = pdis.flatMap((p) => p.items || []);
     return {
       total: allItems.length,
-      notStarted: allItems.filter(i => i.status === '1').length,
-      inProgress: allItems.filter(i => ['2', '3'].includes(i.status)).length,
-      completed: allItems.filter(i => i.status === '4').length,
-      overdue: allItems.filter(i => {
+      notStarted: allItems.filter((i) => i.status === '1').length,
+      inProgress: allItems.filter((i) => ['2', '3'].includes(i.status)).length,
+      completed: allItems.filter((i) => i.status === '4').length,
+      overdue: allItems.filter((i) => {
         if (!i.calendarizacao || i.status === '4' || i.status === '5') return false;
         let dateStr = i.calendarizacao;
         if (dateStr.includes('/')) {
@@ -221,15 +251,15 @@ const PdiCalendar = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-8"
+        className="bg-card rounded-2xl shadow-sm border border-border p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-              <CalendarIcon className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-900 dark:text-primary-300 mr-2 sm:mr-3 flex-shrink-0" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
+              <CalendarIcon className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-lime-deep dark:text-lime mr-2 sm:mr-3 flex-shrink-0" />
               Calendário de PDI
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
               Visualize os prazos dos planos de desenvolvimento
             </p>
           </div>
@@ -237,44 +267,44 @@ const PdiCalendar = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 dark:from-gray-700 dark:via-gray-800 dark:to-gray-900 rounded-xl p-4 text-center shadow-lg">
+          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center">
             <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.total}</p>
-              <p className="text-sm text-gray-300 font-medium">Total Ações</p>
+              <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+              <p className="text-sm text-muted-foreground font-medium">Total Ações</p>
             </div>
-            <Target className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-500 opacity-50" />
+            <Target className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
           </div>
 
-          <div className="relative overflow-hidden bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 rounded-xl p-4 text-center shadow-lg">
+          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center">
             <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.notStarted}</p>
-              <p className="text-sm text-gray-200 font-medium">Não Iniciados</p>
+              <p className="text-2xl font-bold text-foreground">{stats.notStarted}</p>
+              <p className="text-sm text-muted-foreground font-medium">Não Iniciados</p>
             </div>
-            <Clock className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-500 opacity-50" />
+            <Clock className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
           </div>
 
-          <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-xl p-4 text-center shadow-lg">
+          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center">
             <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.inProgress}</p>
-              <p className="text-sm text-blue-100 font-medium">Em Andamento</p>
+              <p className="text-2xl font-bold text-foreground">{stats.inProgress}</p>
+              <p className="text-sm text-muted-foreground font-medium">Em Andamento</p>
             </div>
-            <AlertCircle className="absolute -bottom-2 -right-2 h-16 w-16 text-blue-400 opacity-50" />
+            <AlertCircle className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
           </div>
 
-          <div className="relative overflow-hidden bg-gradient-to-br from-green-600 via-green-700 to-green-800 rounded-xl p-4 text-center shadow-lg">
+          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center">
             <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.completed}</p>
-              <p className="text-sm text-green-100 font-medium">Concluídos</p>
+              <p className="text-2xl font-bold text-foreground">{stats.completed}</p>
+              <p className="text-sm text-muted-foreground font-medium">Concluídos</p>
             </div>
-            <CheckCircle className="absolute -bottom-2 -right-2 h-16 w-16 text-green-400 opacity-50" />
+            <CheckCircle className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
           </div>
 
-          <div className="relative overflow-hidden bg-gradient-to-br from-red-600 via-red-700 to-red-800 rounded-xl p-4 text-center shadow-lg">
+          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center">
             <div className="relative z-10">
-              <p className="text-2xl font-bold text-white">{stats.overdue}</p>
-              <p className="text-sm text-red-100 font-medium">Atrasados</p>
+              <p className="text-2xl font-bold text-foreground">{stats.overdue}</p>
+              <p className="text-sm text-muted-foreground font-medium">Atrasados</p>
             </div>
-            <XCircle className="absolute -bottom-2 -right-2 h-16 w-16 text-red-400 opacity-50" />
+            <XCircle className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
           </div>
         </div>
       </motion.div>
@@ -284,22 +314,22 @@ const PdiCalendar = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="lg:col-span-2 bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
+          className="lg:col-span-2 bg-card rounded-2xl shadow-sm border border-border p-6"
         >
           {/* Navegação do mês */}
           <div className="flex items-center justify-between mb-6">
             <button
               onClick={() => navigateMonth(-1)}
-              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              className="p-2 rounded-xl hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
+            <h2 className="text-lg font-bold text-foreground">
               {MONTHS_PT[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h2>
             <button
               onClick={() => navigateMonth(1)}
-              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              className="p-2 rounded-xl hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -307,20 +337,20 @@ const PdiCalendar = () => {
 
           {/* Filtro de status */}
           <div className="flex items-center gap-2 mb-4 flex-wrap">
-            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Filtrar:</span>
+            <span className="text-xs text-muted-foreground font-medium">Filtrar:</span>
             {[
               { value: 'all', label: 'Todos' },
               { value: '1', label: 'Não Iniciado' },
               { value: '2', label: 'Em Andamento' },
               { value: '4', label: 'Concluído' },
-            ].map(opt => (
+            ].map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setStatusFilter(opt.value)}
                 className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                   statusFilter === opt.value
-                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                    : 'bg-gray-100 dark:bg-yt-elevated text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    ? 'bg-lime/20 text-lime-deep dark:text-lime'
+                    : 'bg-secondary text-muted-foreground hover:bg-accent'
                 }`}
               >
                 {opt.label}
@@ -330,8 +360,11 @@ const PdiCalendar = () => {
 
           {/* Cabeçalho dos dias da semana */}
           <div className="grid grid-cols-7 gap-1 mb-1">
-            {WEEKDAYS_PT.map(day => (
-              <div key={day} className="text-center text-xs font-semibold text-gray-500 dark:text-gray-400 py-2">
+            {WEEKDAYS_PT.map((day) => (
+              <div
+                key={day}
+                className="text-center text-xs font-semibold text-muted-foreground py-2"
+              >
                 {day}
               </div>
             ))}
@@ -344,7 +377,9 @@ const PdiCalendar = () => {
               const dayEvents = getEventsForDate(date);
               const isToday = dateStr === todayStr;
               const isSelected = dateStr === selectedDate;
-              const hasOverdue = dayEvents.some(e => e.status !== '4' && e.status !== '5' && date < today);
+              const hasOverdue = dayEvents.some(
+                (e) => e.status !== '4' && e.status !== '5' && date < today,
+              );
 
               return (
                 <button
@@ -352,21 +387,23 @@ const PdiCalendar = () => {
                   onClick={() => setSelectedDate(dateStr === selectedDate ? null : dateStr)}
                   className={`relative min-h-[60px] sm:min-h-[72px] p-1 rounded-lg border transition-all text-left ${
                     isSelected
-                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 ring-1 ring-primary-500'
+                      ? 'border-[#D2FF00] bg-lime/10 ring-1 ring-[#D2FF00]'
                       : isToday
-                        ? 'border-primary-300 dark:border-primary-600 bg-primary-50/50 dark:bg-primary-900/10'
+                        ? 'border-lime/50 bg-lime/5'
                         : isCurrentMonth
-                          ? 'border-gray-100 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                          : 'border-transparent bg-gray-50/50 dark:bg-yt-surface/50'
+                          ? 'border-border hover:border-border hover:bg-accent'
+                          : 'border-transparent bg-secondary/50'
                   }`}
                 >
-                  <span className={`text-xs font-medium ${
-                    isToday
-                      ? 'text-primary-700 dark:text-primary-400 font-bold'
-                      : isCurrentMonth
-                        ? 'text-gray-700 dark:text-gray-300'
-                        : 'text-gray-400 dark:text-gray-600'
-                  }`}>
+                  <span
+                    className={`text-xs font-medium ${
+                      isToday
+                        ? 'text-lime-deep dark:text-lime font-bold'
+                        : isCurrentMonth
+                          ? 'text-foreground'
+                          : 'text-muted-foreground'
+                    }`}
+                  >
                     {date.getDate()}
                   </span>
 
@@ -385,7 +422,7 @@ const PdiCalendar = () => {
                         );
                       })}
                       {dayEvents.length > 2 && (
-                        <div className="text-[9px] text-gray-500 dark:text-gray-400 text-center font-medium">
+                        <div className="text-[9px] text-muted-foreground text-center font-medium">
                           +{dayEvents.length - 2}
                         </div>
                       )}
@@ -393,7 +430,7 @@ const PdiCalendar = () => {
                   )}
 
                   {hasOverdue && (
-                    <div className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-red-500" />
+                    <div className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-destructive" />
                   )}
                 </button>
               );
@@ -406,9 +443,9 @@ const PdiCalendar = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-naue-border-gray dark:border-yt-border p-6"
+          className="bg-card rounded-2xl shadow-sm border border-border p-6"
         >
-          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4">
+          <h3 className="text-lg font-bold text-foreground mb-4">
             {selectedDate
               ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', {
                   weekday: 'long',
@@ -420,8 +457,8 @@ const PdiCalendar = () => {
 
           {!selectedDate && (
             <div className="text-center py-8">
-              <CalendarIcon className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
                 Clique em um dia para ver os detalhes das ações de PDI
               </p>
             </div>
@@ -429,10 +466,8 @@ const PdiCalendar = () => {
 
           {selectedDate && selectedDateEvents.length === 0 && (
             <div className="text-center py-8">
-              <CalendarIcon className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Nenhuma ação de PDI para esta data
-              </p>
+              <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">Nenhuma ação de PDI para esta data</p>
             </div>
           )}
 
@@ -444,32 +479,29 @@ const PdiCalendar = () => {
                 const prazoInfo = PRAZO_LABELS[event.prazo] || PRAZO_LABELS.curto;
 
                 return (
-                  <div
-                    key={index}
-                    className="p-3 rounded-xl bg-gray-50 dark:bg-yt-elevated/50 border border-gray-100 dark:border-yt-border"
-                  >
+                  <div key={index} className="p-3 rounded-xl bg-secondary border border-border">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-semibold text-foreground">
                           {event.employeeName}
                         </span>
                       </div>
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${statusInfo.color}`}>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${statusInfo.color}`}
+                      >
                         <StatusIcon className="h-3 w-3" />
                         {statusInfo.label}
                       </span>
                     </div>
 
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                      {event.employeePosition}
-                    </p>
+                    <p className="text-xs text-muted-foreground mb-1">{event.employeePosition}</p>
 
-                    <p className="text-sm text-gray-800 dark:text-gray-200 font-medium mb-2">
-                      {event.competencia}
-                    </p>
+                    <p className="text-sm text-foreground font-medium mb-2">{event.competencia}</p>
 
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${prazoInfo.color}`}>
+                    <span
+                      className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${prazoInfo.color}`}
+                    >
                       Prazo {prazoInfo.label}
                     </span>
                   </div>

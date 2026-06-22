@@ -60,14 +60,15 @@ const AdminDashboard = () => {
       const DAYS_14 = 14 * 24 * 60 * 60 * 1000;
       const DAYS_7 = 7 * 24 * 60 * 60 * 1000;
 
-      const [cycleRes, usersRes, jobsRes, surveysRes, ninetyRes, exitRes] = await Promise.allSettled([
-        evaluationService.getCurrentCycle(),
-        userService.getUsers({ active: true }),
-        recruitmentService.getJobOpenings({ status: 'open' }),
-        satisfactionService.getSurveys('active'),
-        interviewService.getInterviews({ type: 'ninety_days', status: 'scheduled' }),
-        interviewService.getInterviews({ type: 'exit', status: 'scheduled' }),
-      ]);
+      const [cycleRes, usersRes, jobsRes, surveysRes, ninetyRes, exitRes] =
+        await Promise.allSettled([
+          evaluationService.getCurrentCycle(),
+          userService.getUsers({ active: true }),
+          recruitmentService.getJobOpenings({ status: 'open' }),
+          satisfactionService.getSurveys('active'),
+          interviewService.getInterviews({ type: 'ninety_days', status: 'scheduled' }),
+          interviewService.getInterviews({ type: 'exit', status: 'scheduled' }),
+        ]);
 
       const cycle = cycleRes.status === 'fulfilled' ? cycleRes.value : null;
       let cycleData: DashboardData['cycle'] = null;
@@ -77,7 +78,7 @@ const AdminDashboard = () => {
         try {
           const dashboard = await evaluationService.getCycleDashboard(cycle.id);
           const total = dashboard.length;
-          const finalizados = dashboard.filter(d => d.consensus_status === 'completed').length;
+          const finalizados = dashboard.filter((d) => d.consensus_status === 'completed').length;
           const pct = total > 0 ? Math.round((finalizados / total) * 100) : 0;
           consensosPendentes = total - finalizados;
           cycleData = { title: cycle.title, completionPct: pct };
@@ -87,13 +88,13 @@ const AdminDashboard = () => {
       }
 
       const openJobs = jobsRes.status === 'fulfilled' ? jobsRes.value : [];
-      const vagasParadas = openJobs.filter(j => {
+      const vagasParadas = openJobs.filter((j) => {
         const opened = j.opened_at ? new Date(j.opened_at).getTime() : null;
         return opened && now - opened > DAYS_14;
       }).length;
 
       const surveys = surveysRes.status === 'fulfilled' ? surveysRes.value : [];
-      const pesquisasExpirando = surveys.filter(s => {
+      const pesquisasExpirando = surveys.filter((s) => {
         if (!s.end_date) return false;
         const end = new Date(s.end_date).getTime();
         return end - now > 0 && end - now < DAYS_7;
@@ -101,7 +102,7 @@ const AdminDashboard = () => {
 
       const ninetyInterviews = ninetyRes.status === 'fulfilled' ? ninetyRes.value : [];
       const exitInterviews = exitRes.status === 'fulfilled' ? exitRes.value : [];
-      const entrevistasAtrasadas = [...ninetyInterviews, ...exitInterviews].filter(i => {
+      const entrevistasAtrasadas = [...ninetyInterviews, ...exitInterviews].filter((i) => {
         if (!i.scheduled_date) return false;
         return new Date(i.scheduled_date).getTime() < now;
       }).length;
@@ -122,7 +123,9 @@ const AdminDashboard = () => {
       setLoading(false);
     };
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const totalPendencias =
@@ -135,7 +138,12 @@ const AdminDashboard = () => {
     {
       icon: RotateCcw,
       label: 'Ciclo Ativo',
-      value: data.cycle?.completionPct != null ? `${data.cycle.completionPct}%` : (data.cycle ? '—' : 'Nenhum'),
+      value:
+        data.cycle?.completionPct != null
+          ? `${data.cycle.completionPct}%`
+          : data.cycle
+            ? '—'
+            : 'Nenhum',
       sub: data.cycle?.title ?? 'Crie um ciclo',
       onClick: () => navigate('/cycle'),
     },
@@ -194,7 +202,10 @@ const AdminDashboard = () => {
       visible: data.pendencias.entrevistasAtrasadas > 0,
       icon: ClipboardList,
       count: data.pendencias.entrevistasAtrasadas,
-      label: data.pendencias.entrevistasAtrasadas === 1 ? 'entrevista atrasada' : 'entrevistas atrasadas',
+      label:
+        data.pendencias.entrevistasAtrasadas === 1
+          ? 'entrevista atrasada'
+          : 'entrevistas atrasadas',
       cta: 'Reagendar',
       onClick: () => navigate('/interviews'),
     },
@@ -202,11 +213,12 @@ const AdminDashboard = () => {
       visible: data.pendencias.pesquisasExpirando > 0,
       icon: Clock,
       count: data.pendencias.pesquisasExpirando,
-      label: data.pendencias.pesquisasExpirando === 1 ? 'pesquisa encerrando' : 'pesquisas encerrando',
+      label:
+        data.pendencias.pesquisasExpirando === 1 ? 'pesquisa encerrando' : 'pesquisas encerrando',
       cta: 'Ver',
       onClick: () => navigate('/satisfaction'),
     },
-  ].filter(p => p.visible);
+  ].filter((p) => p.visible);
 
   const sections: Array<{
     title: string;
@@ -227,7 +239,12 @@ const AdminDashboard = () => {
       title: 'Recrutamento e Engajamento',
       cards: [
         { icon: Briefcase, title: 'Vagas', action: 'Ver vagas', path: '/recruitment' },
-        { icon: ClipboardList, title: 'Onboard e Offboard', action: 'Ver entrevistas', path: '/interviews' },
+        {
+          icon: ClipboardList,
+          title: 'Onboard e Offboard',
+          action: 'Ver entrevistas',
+          path: '/interviews',
+        },
         { icon: SmilePlus, title: 'Pesquisas', action: 'Ver pesquisas', path: '/satisfaction' },
       ],
     },
@@ -245,24 +262,25 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-4 sm:space-y-5">
-      {/* Welcome banner — compact */}
+      {/* Welcome banner — obsidian + assinatura lime (gio) */}
       <motion.div
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl px-5 sm:px-6 py-4 sm:py-5 text-white shadow-md transition-shadow duration-300"
-        style={{ background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)' }}
+        className="relative overflow-hidden rounded-2xl bg-[#1A1A1A] px-5 sm:px-6 py-4 sm:py-5 text-white shadow-md transition-shadow duration-300"
       >
+        {/* Barra de destaque lime na borda esquerda */}
+        <div className="absolute inset-y-0 left-0 w-1 bg-[#D2FF00]" />
         <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0">
+          <div className="min-w-0 pl-1">
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold font-lemon-milk tracking-wide truncate">
               Bem-vindo(a), {firstName}!
             </h1>
-            <p className="text-white/85 text-xs sm:text-sm mt-0.5">
+            <p className="text-white/60 text-xs sm:text-sm mt-0.5">
               Visão geral do Sistema de Gente & Gestão
             </p>
           </div>
-          <div className="hidden md:flex items-center space-x-2 bg-white/15 rounded-lg px-3 py-1.5 flex-shrink-0">
-            <Settings className="h-4 w-4" />
+          <div className="hidden md:flex items-center space-x-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 flex-shrink-0">
+            <Settings className="h-4 w-4 text-[#D2FF00]" />
             <span className="font-medium text-sm">Administrador</span>
           </div>
         </div>
@@ -283,37 +301,31 @@ const AdminDashboard = () => {
               variants={itemVariants}
               whileHover={{ y: -2 }}
               onClick={kpi.onClick}
-              className={`relative text-left bg-white dark:bg-yt-surface rounded-xl p-3 sm:p-3.5 border transition-all duration-300 shadow-sm hover:shadow-md group overflow-hidden
-                ${kpi.highlight
-                  ? 'border-status-warning-300 dark:border-status-warning-700'
-                  : 'border-gray-300 dark:border-yt-border'}`}
+              className={`relative text-left bg-card rounded-xl p-3 sm:p-3.5 border transition-all duration-300 shadow-sm hover:shadow-md hover:border-lime/40 group overflow-hidden
+                ${kpi.highlight ? 'border-warning/50' : 'border-border'}`}
             >
-              <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-5 dark:group-hover:opacity-10 transition-opacity duration-300"
-                style={{ background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)' }}
-              />
               <div className="relative z-10 flex items-center gap-3">
                 <div
-                  className="flex-shrink-0 inline-flex p-2 rounded-lg shadow-sm"
-                  style={{
-                    background: kpi.highlight
-                      ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
-                      : 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)',
-                  }}
+                  className={`flex-shrink-0 inline-flex p-2 rounded-lg transition-colors
+                    ${
+                      kpi.highlight
+                        ? 'bg-warning/15 text-warning'
+                        : 'bg-secondary text-foreground group-hover:bg-lime group-hover:text-obsidian'
+                    }`}
                 >
-                  <Icon className="h-4 w-4 text-white" />
+                  <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className={`text-xl sm:text-2xl font-bold font-lemon-milk tracking-wide leading-none
-                    ${kpi.highlight && totalPendencias > 0
-                      ? 'text-status-warning-600 dark:text-status-warning-400'
-                      : 'text-gray-900 dark:text-gray-100'}`}>
+                  <div
+                    className={`text-xl sm:text-2xl font-bold font-lemon-milk tracking-wide leading-none
+                    ${kpi.highlight && totalPendencias > 0 ? 'text-warning' : 'text-foreground'}`}
+                  >
                     {loading ? '…' : kpi.value}
                   </div>
-                  <div className="text-[11px] sm:text-xs font-semibold text-gray-700 dark:text-gray-300 mt-1 truncate">
+                  <div className="text-[11px] sm:text-xs font-semibold text-foreground/80 mt-1 truncate">
                     {kpi.label}
                   </div>
-                  <div className="text-[10px] sm:text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                  <div className="text-[10px] sm:text-[11px] text-muted-foreground truncate">
                     {kpi.sub}
                   </div>
                 </div>
@@ -323,45 +335,50 @@ const AdminDashboard = () => {
         })}
       </motion.div>
 
-      {/* Pendências — só renderiza se houver, em formato denso */}
+      {/* Pendências — card acolhedor, só renderiza se houver */}
       {pendenciasItems.length > 0 && (
         <motion.section
           id="pendencias-section"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="bg-white dark:bg-yt-surface rounded-xl border border-status-warning-200 dark:border-status-warning-800/50 shadow-sm overflow-hidden"
+          className="bg-card rounded-2xl border border-warning/25 shadow-sm overflow-hidden"
         >
-          <div className="px-4 sm:px-5 py-2.5 border-b border-status-warning-100 dark:border-status-warning-900/30 bg-gradient-to-r from-status-warning-50/70 to-amber-50/50 dark:from-status-warning-900/10 dark:to-amber-900/5 flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-status-warning-600 dark:text-status-warning-400 flex-shrink-0" />
-            <h2 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100 tracking-wide uppercase">
-              Ações Necessárias
-            </h2>
-            <span className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">
-              · {totalPendencias} {totalPendencias === 1 ? 'item' : 'itens'}
+          <div className="px-4 sm:px-5 py-3.5 bg-gradient-to-r from-warning/10 to-transparent flex items-center gap-3">
+            <span className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-warning/15 text-warning flex-shrink-0">
+              <AlertCircle className="h-5 w-5" />
             </span>
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-foreground leading-tight">
+                Precisa da sua atenção
+              </h2>
+              <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                {totalPendencias}{' '}
+                {totalPendencias === 1 ? 'item aguardando você' : 'itens aguardando você'}
+              </p>
+            </div>
           </div>
-          <ul className="divide-y divide-gray-100 dark:divide-yt-border">
+          <ul className="p-2 space-y-1">
             {pendenciasItems.map((p, idx) => {
               const Icon = p.icon;
               return (
                 <li key={idx}>
                   <button
                     onClick={p.onClick}
-                    className="w-full flex items-center gap-3 px-4 sm:px-5 py-2.5 hover:bg-gray-50 dark:hover:bg-yt-elevated transition-colors duration-200 text-left group"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-warning/5 transition-colors duration-200 text-left group"
                   >
-                    <Icon className="h-4 w-4 text-status-warning-600 dark:text-status-warning-400 flex-shrink-0" />
-                    <span className="text-base font-bold text-gray-900 dark:text-gray-100 font-lemon-milk leading-none">
-                      {p.count}
+                    <span className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-warning/10 text-warning flex-shrink-0 transition-colors group-hover:bg-warning/20">
+                      <Icon className="h-4 w-4" />
                     </span>
-                    <span className="text-sm text-gray-600 dark:text-gray-300 truncate flex-1">
-                      {p.label}
+                    <span className="min-w-0 flex-1 text-sm leading-snug truncate">
+                      <span className="font-bold text-warning">{p.count}</span>{' '}
+                      <span className="font-medium text-foreground">{p.label}</span>
                     </span>
-                    <span className="hidden sm:inline-flex items-center text-xs font-semibold whitespace-nowrap" style={{ color: '#12b0a0' }}>
-                      <span className="dark:text-[#12b0a0]">{p.cta}</span>
-                      <ArrowRight className="h-3.5 w-3.5 ml-1 transition-transform group-hover:translate-x-1 dark:text-[#12b0a0]" />
+                    <span className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold whitespace-nowrap text-lime-deep dark:text-lime rounded-full px-3 py-1.5 bg-lime/10 group-hover:bg-lime/20 transition-colors">
+                      {p.cta}
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                     </span>
-                    <ArrowRight className="sm:hidden h-3.5 w-3.5 text-gray-400 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="sm:hidden h-4 w-4 text-muted-foreground flex-shrink-0 transition-transform group-hover:translate-x-1" />
                   </button>
                 </li>
               );
@@ -370,21 +387,25 @@ const AdminDashboard = () => {
         </motion.section>
       )}
 
-      {/* Tudo em dia — inline, compacto */}
+      {/* Tudo em dia — acolhedor */}
       {!loading && pendenciasItems.length === 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.15 }}
-          className="bg-white dark:bg-yt-surface rounded-xl border border-status-success-200 dark:border-status-success-800/50 shadow-sm px-4 sm:px-5 py-2.5 flex items-center gap-2"
+          className="bg-card rounded-2xl border border-success/25 shadow-sm px-4 sm:px-5 py-3.5 flex items-center gap-3"
         >
-          <TrendingUp className="h-4 w-4 text-status-success-600 dark:text-status-success-400 flex-shrink-0" />
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Tudo em dia
+          <span className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-success/15 text-success flex-shrink-0">
+            <TrendingUp className="h-5 w-5" />
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            · sem pendências críticas
-          </span>
+          <div className="min-w-0">
+            <span className="block text-sm font-bold text-foreground leading-tight">
+              Tudo em dia 🎉
+            </span>
+            <span className="text-[11px] text-muted-foreground leading-tight">
+              Nenhuma pendência crítica por aqui
+            </span>
+          </div>
         </motion.div>
       )}
 
@@ -398,10 +419,10 @@ const AdminDashboard = () => {
           className="space-y-2.5"
         >
           <div className="flex items-center gap-3">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               {section.title}
             </h2>
-            <div className="flex-1 h-px bg-gradient-to-r from-gray-200 dark:from-yt-border to-transparent" />
+            <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
           </div>
 
           <motion.div
@@ -417,26 +438,19 @@ const AdminDashboard = () => {
                   key={card.title}
                   variants={itemVariants}
                   whileHover={{ y: -2 }}
-                  className="relative bg-white dark:bg-yt-surface rounded-xl p-3 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden border border-gray-300 dark:border-yt-border text-left"
+                  className="relative bg-card rounded-xl p-3 sm:p-3.5 shadow-sm hover:shadow-md hover:border-lime/40 transition-all duration-300 cursor-pointer group overflow-hidden border border-border text-left"
                   onClick={() => navigate(card.path)}
                 >
-                  <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-5 dark:group-hover:opacity-10 transition-opacity duration-300"
-                    style={{ background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)' }}
-                  />
                   <div className="relative z-10 flex flex-col gap-2">
-                    <div
-                      className="inline-flex p-1.5 rounded-lg shadow-sm w-fit"
-                      style={{ background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)' }}
-                    >
-                      <Icon className="h-4 w-4 text-white" />
+                    <div className="inline-flex p-1.5 rounded-lg w-fit bg-secondary text-foreground transition-colors group-hover:bg-lime group-hover:text-obsidian">
+                      <Icon className="h-4 w-4" />
                     </div>
-                    <h3 className="text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-100 font-lemon-milk tracking-wide leading-tight">
+                    <h3 className="text-xs sm:text-sm font-bold text-foreground font-lemon-milk tracking-wide leading-tight">
                       {card.title}
                     </h3>
-                    <div className="inline-flex items-center text-[11px] font-semibold transition-all duration-300" style={{ color: '#12b0a0' }}>
-                      <span className="dark:text-[#12b0a0]">{card.action}</span>
-                      <ArrowRight className="h-3 w-3 ml-1 transition-transform group-hover:translate-x-0.5 dark:text-[#12b0a0]" />
+                    <div className="inline-flex items-center text-[11px] font-semibold transition-all duration-300 text-lime-deep dark:text-lime">
+                      {card.action}
+                      <ArrowRight className="h-3 w-3 ml-1 transition-transform group-hover:translate-x-0.5" />
                     </div>
                   </div>
                 </motion.button>

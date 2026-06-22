@@ -2,11 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Calendar, Plus, Play, Lock, Edit, Clock,
-  CheckCircle, AlertCircle, Users, BarChart3,
-  Info, X, Save,
-  CalendarDays, Timer,
-  RefreshCw, Zap
+  Calendar,
+  Plus,
+  Play,
+  Lock,
+  Edit,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Users,
+  BarChart3,
+  Info,
+  X,
+  Save,
+  CalendarDays,
+  Timer,
+  RefreshCw,
+  Zap,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useEvaluation } from '../../hooks/useEvaluation';
@@ -27,7 +39,7 @@ const CycleManagement: React.FC = () => {
     closeCycle,
     loadAllCycles,
   } = useEvaluation();
-  
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedCycle, setSelectedCycle] = useState<EvaluationCycle | null>(null);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
@@ -35,12 +47,12 @@ const CycleManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [isCreating, setIsCreating] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     start_date: '',
-    end_date: ''
+    end_date: '',
   });
 
   // Check if user has permission (admin or director)
@@ -82,7 +94,7 @@ const CycleManagement: React.FC = () => {
         ...formData,
         status: 'draft',
         is_editable: true,
-        created_by: '' // Will be filled by the service
+        created_by: '', // Will be filled by the service
       });
 
       setShowCreateModal(false);
@@ -96,14 +108,11 @@ const CycleManagement: React.FC = () => {
   };
 
   const handleOpenCycle = async (cycleId: string) => {
-    const result = await toast.promise(
-      openCycle(cycleId),
-      {
-        loading: 'Abrindo ciclo...',
-        success: 'Ciclo aberto com sucesso!',
-        error: 'Erro ao abrir ciclo'
-      }
-    );
+    const result = await toast.promise(openCycle(cycleId), {
+      loading: 'Abrindo ciclo...',
+      success: 'Ciclo aberto com sucesso!',
+      error: 'Erro ao abrir ciclo',
+    });
   };
 
   const handleCloseCycle = (cycleId: string) => {
@@ -115,14 +124,11 @@ const CycleManagement: React.FC = () => {
     if (!cycleToClose) return;
     setShowCloseConfirm(false);
 
-    await toast.promise(
-      closeCycle(cycleToClose),
-      {
-        loading: 'Encerrando ciclo...',
-        success: 'Ciclo encerrado com sucesso!',
-        error: 'Erro ao encerrar ciclo'
-      }
-    );
+    await toast.promise(closeCycle(cycleToClose), {
+      loading: 'Encerrando ciclo...',
+      success: 'Ciclo encerrado com sucesso!',
+      error: 'Erro ao encerrar ciclo',
+    });
 
     setCycleToClose(null);
   };
@@ -133,42 +139,42 @@ const CycleManagement: React.FC = () => {
     const end = new Date(cycle.end_date);
 
     if (cycle.status === 'closed') {
-      return { 
-        color: 'bg-gray-100 text-gray-600 dark:bg-yt-surface dark:text-gray-400', 
-        icon: Lock, 
+      return {
+        color: 'bg-destructive/15 text-destructive',
+        icon: Lock,
         text: 'Encerrado',
-        dotColor: 'bg-gray-400'
+        dotColor: 'bg-destructive',
       };
     }
     if (cycle.status === 'draft') {
-      return { 
-        color: 'bg-stone-100 text-stone-700 dark:bg-stone-900/20 dark:text-stone-600', 
-        icon: Edit, 
+      return {
+        color: 'bg-warning/15 text-warning',
+        icon: Edit,
         text: 'Rascunho',
-        dotColor: 'bg-stone-500'
+        dotColor: 'bg-warning',
       };
     }
     if (now < start) {
-      return { 
-        color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400', 
-        icon: Clock, 
+      return {
+        color: 'bg-muted text-muted-foreground',
+        icon: Clock,
         text: 'Agendado',
-        dotColor: 'bg-blue-400'
+        dotColor: 'bg-muted-foreground',
       };
     }
     if (now > end) {
-      return { 
-        color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400', 
-        icon: AlertCircle, 
+      return {
+        color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400',
+        icon: AlertCircle,
         text: 'Expirado',
-        dotColor: 'bg-orange-400'
+        dotColor: 'bg-orange-400',
       };
     }
-    return { 
-      color: 'bg-primary-100 text-primary-700 dark:bg-primary-600/20 dark:text-primary-400',
+    return {
+      color: 'bg-success/15 text-success',
       icon: CheckCircle,
       text: 'Ativo',
-      dotColor: 'bg-primary-400'
+      dotColor: 'bg-success',
     };
   };
 
@@ -185,17 +191,18 @@ const CycleManagement: React.FC = () => {
   };
 
   // Filter cycles
-  const filteredCycles = cycles.filter(cycle => {
-    const matchesSearch = cycle.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         cycle.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+  const filteredCycles = cycles.filter((cycle) => {
+    const matchesSearch =
+      cycle.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cycle.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
     if (filterStatus === 'all') return matchesSearch;
-    
+
     const status = getCycleStatus(cycle);
     if (filterStatus === 'active' && status.text === 'Ativo') return matchesSearch;
     if (filterStatus === 'draft' && status.text === 'Rascunho') return matchesSearch;
     if (filterStatus === 'closed' && status.text === 'Encerrado') return matchesSearch;
-    
+
     return false;
   });
 
@@ -204,11 +211,9 @@ const CycleManagement: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <Lock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Acesso Restrito
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400">
+          <Lock className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-muted-foreground mb-2">Acesso Restrito</h2>
+          <p className="text-muted-foreground">
             Esta página está disponível apenas para administradores e diretores.
           </p>
         </div>
@@ -222,19 +227,19 @@ const CycleManagement: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-6"
+        className="bg-card rounded-xl shadow-sm border border-border p-6"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center font-lemon-milk tracking-wide">
-              <Calendar className="h-7 w-7 text-primary dark:text-primary-300 mr-3" />
+            <h1 className="text-2xl font-bold text-foreground flex items-center font-lemon-milk tracking-wide">
+              <Calendar className="h-7 w-7 text-lime-deep dark:text-lime mr-3" />
               Gerenciamento de Ciclos de Avaliação
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-muted-foreground mt-1">
               Controle completo sobre os ciclos de avaliação de performance
             </p>
           </div>
-          
+
           <div className="flex items-center space-x-3 mt-4 lg:mt-0">
             <Button
               variant="outline"
@@ -259,18 +264,17 @@ const CycleManagement: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4"
+            className="bg-gradient-to-r from-lime/10 to-transparent dark:from-lime/10 dark:to-transparent border border-lime/30 dark:border-lime/20 rounded-lg p-4"
           >
             <div className="flex items-start">
               <div className="flex-shrink-0">
-                <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <Zap className="h-5 w-5 text-lime-deep dark:text-lime mt-0.5" />
               </div>
               <div className="ml-3 flex-1">
-                <h3 className="font-medium text-blue-900 dark:text-blue-100">
-                  Ciclo Ativo: {currentCycle.title}
-                </h3>
-                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                  Período: {formatDate(currentCycle.start_date)} até {formatDate(currentCycle.end_date)}
+                <h3 className="font-medium text-foreground">Ciclo Ativo: {currentCycle.title}</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Período: {formatDate(currentCycle.start_date)} até{' '}
+                  {formatDate(currentCycle.end_date)}
                   {getDaysRemaining(currentCycle.end_date) > 0 && (
                     <span className="ml-2 font-medium">
                       • {getDaysRemaining(currentCycle.end_date)} dias restantes
@@ -284,49 +288,49 @@ const CycleManagement: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-          <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-primary-700 dark:text-primary-400 text-sm font-medium">Total de Ciclos</p>
-                <p className="text-2xl font-bold text-primary-900 dark:text-primary-100 mt-1">{cycles.length}</p>
+                <p className="text-lime-deep dark:text-lime text-sm font-medium">Total de Ciclos</p>
+                <p className="text-2xl font-bold text-foreground mt-1">{cycles.length}</p>
               </div>
-              <Calendar className="h-8 w-8 text-primary-800 dark:text-primary-300 opacity-50" />
+              <Calendar className="h-8 w-8 text-lime-deep dark:text-lime opacity-50" />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">Ciclos Ativos</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-                  {cycles.filter(c => getCycleStatus(c).text === 'Ativo').length}
+                <p className="text-muted-foreground text-sm font-medium">Ciclos Ativos</p>
+                <p className="text-2xl font-bold text-foreground mt-1">
+                  {cycles.filter((c) => getCycleStatus(c).text === 'Ativo').length}
                 </p>
               </div>
-              <CheckCircle className="h-8 w-8 text-gray-500 dark:text-gray-400 opacity-50" />
+              <CheckCircle className="h-8 w-8 text-muted-foreground opacity-50" />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-700 rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-stone-700 dark:text-stone-400 text-sm font-medium">Rascunhos</p>
-                <p className="text-2xl font-bold text-stone-900 dark:text-stone-100 mt-1">
-                  {cycles.filter(c => c.status === 'draft').length}
+                <p className="text-muted-foreground text-sm font-medium">Rascunhos</p>
+                <p className="text-2xl font-bold text-foreground mt-1">
+                  {cycles.filter((c) => c.status === 'draft').length}
                 </p>
               </div>
-              <Edit className="h-8 w-8 text-stone-600 dark:text-stone-500 opacity-50" />
+              <Edit className="h-8 w-8 text-muted-foreground opacity-50" />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">Encerrados</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-                  {cycles.filter(c => c.status === 'closed').length}
+                <p className="text-muted-foreground text-sm font-medium">Encerrados</p>
+                <p className="text-2xl font-bold text-foreground mt-1">
+                  {cycles.filter((c) => c.status === 'closed').length}
                 </p>
               </div>
-              <Lock className="h-8 w-8 text-gray-500 dark:text-gray-400 opacity-50" />
+              <Lock className="h-8 w-8 text-muted-foreground opacity-50" />
             </div>
           </div>
         </div>
@@ -335,19 +339,19 @@ const CycleManagement: React.FC = () => {
       {/* Cycles List */}
       <div className="space-y-4">
         {cyclesLoading ? (
-          <div className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-8">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-8">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-800 dark:border-primary-700 mx-auto"></div>
-              <p className="text-gray-500 dark:text-gray-400 mt-4">Carregando ciclos...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime mx-auto"></div>
+              <p className="text-muted-foreground mt-4">Carregando ciclos...</p>
             </div>
           </div>
         ) : filteredCycles.length === 0 ? (
-          <div className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-8">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-8">
             <div className="text-center">
-              <Calendar className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">
-                {searchTerm || filterStatus !== 'all' 
-                  ? 'Nenhum ciclo encontrado com os filtros aplicados' 
+              <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
+                {searchTerm || filterStatus !== 'all'
+                  ? 'Nenhum ciclo encontrado com os filtros aplicados'
                   : 'Nenhum ciclo de avaliação criado'}
               </p>
             </div>
@@ -357,33 +361,33 @@ const CycleManagement: React.FC = () => {
             const status = getCycleStatus(cycle);
             const StatusIcon = status.icon;
             const daysRemaining = getDaysRemaining(cycle.end_date);
-            
+
             return (
               <motion.div
                 key={cycle.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 whileHover={{ scale: 1.01 }}
-                className="bg-white dark:bg-yt-surface rounded-xl shadow-sm border border-gray-100 dark:border-yt-border p-6 hover:shadow-md transition-all duration-200"
+                className="bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-md transition-all duration-200"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center mb-2">
                       <div className={`w-2 h-2 rounded-full ${status.dotColor} mr-3`} />
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                        {cycle.title}
-                      </h3>
-                      <span className={`ml-3 px-3 py-1 rounded-full text-xs font-medium flex items-center ${status.color}`}>
+                      <h3 className="text-lg font-semibold text-foreground">{cycle.title}</h3>
+                      <span
+                        className={`ml-3 px-3 py-1 rounded-full text-xs font-medium flex items-center ${status.color}`}
+                      >
                         <StatusIcon className="h-3 w-3 mr-1" />
                         {status.text}
                       </span>
                     </div>
-                    
+
                     {cycle.description && (
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">{cycle.description}</p>
+                      <p className="text-muted-foreground text-sm mb-3">{cycle.description}</p>
                     )}
-                    
-                    <div className="flex flex-wrap items-center text-sm text-gray-500 dark:text-gray-400 gap-4">
+
+                    <div className="flex flex-wrap items-center text-sm text-muted-foreground gap-4">
                       <span className="flex items-center">
                         <CalendarDays className="h-4 w-4 mr-1" />
                         Início: {formatDate(cycle.start_date)}
@@ -393,7 +397,7 @@ const CycleManagement: React.FC = () => {
                         Término: {formatDate(cycle.end_date)}
                       </span>
                       {cycle.status === 'open' && daysRemaining > 0 && (
-                        <span className="flex items-center text-blue-600 dark:text-blue-400 font-medium">
+                        <span className="flex items-center text-lime-deep dark:text-lime font-medium">
                           <Timer className="h-4 w-4 mr-1" />
                           {daysRemaining} dias restantes
                         </span>
@@ -426,18 +430,18 @@ const CycleManagement: React.FC = () => {
                               title: cycle.title,
                               description: cycle.description || '',
                               start_date: cycle.start_date,
-                              end_date: cycle.end_date
+                              end_date: cycle.end_date,
                             });
                             setShowCreateModal(true);
                           }}
-                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                          className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
                           title="Editar ciclo"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                       </>
                     )}
-                    
+
                     {cycle.status === 'open' && (
                       <>
                         <Button
@@ -453,16 +457,14 @@ const CycleManagement: React.FC = () => {
                           size="sm"
                           onClick={() => handleCloseCycle(cycle.id)}
                           icon={<Lock className="h-4 w-4" />}
-                          className="text-red-600 hover:text-red-700 hover:border-red-300 dark:text-red-400 dark:hover:text-red-300"
+                          className="text-destructive hover:text-destructive hover:border-destructive"
                         >
                           Encerrar
                         </Button>
                       </>
                     )}
-
                   </div>
                 </div>
-
               </motion.div>
             );
           })
@@ -476,16 +478,16 @@ const CycleManagement: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center p-4 z-50"
+            className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-yt-surface rounded-xl shadow-xl p-6 max-w-md w-full"
+              className="bg-popover text-popover-foreground border border-border rounded-xl shadow-xl p-6 max-w-md w-full"
             >
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                <h2 className="text-xl font-bold text-foreground">
                   {selectedCycle ? 'Editar Ciclo' : 'Novo Ciclo de Avaliação'}
                 </h2>
                 <button
@@ -494,34 +496,34 @@ const CycleManagement: React.FC = () => {
                     setSelectedCycle(null);
                     setFormData({ title: '', description: '', start_date: '', end_date: '' });
                   }}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className="p-2 hover:bg-accent rounded-lg transition-colors"
                 >
-                  <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <X className="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+                  <label className="block text-sm font-medium text-foreground font-medium mb-1">
                     Título *
                   </label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-yt-elevated dark:text-gray-200"
+                    className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-lg focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background"
                     placeholder="Ex: Ciclo 2024 - Primeiro Semestre"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+                  <label className="block text-sm font-medium text-foreground font-medium mb-1">
                     Descrição
                   </label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-yt-elevated dark:text-gray-200"
+                    className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-lg focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background"
                     rows={3}
                     placeholder="Descrição opcional do ciclo"
                   />
@@ -529,34 +531,34 @@ const CycleManagement: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+                    <label className="block text-sm font-medium text-foreground font-medium mb-1">
                       Data de Início *
                     </label>
                     <input
                       type="date"
                       value={formData.start_date}
                       onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-yt-elevated dark:text-gray-200"
+                      className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-lg focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+                    <label className="block text-sm font-medium text-foreground font-medium mb-1">
                       Data de Término *
                     </label>
                     <input
                       type="date"
                       value={formData.end_date}
                       onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg focus:ring-2 focus:ring-primary-800 dark:focus:ring-primary-700 focus:border-transparent dark:bg-yt-elevated dark:text-gray-200"
+                      className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-lg focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background"
                     />
                   </div>
                 </div>
 
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
+                <div className="bg-secondary border border-border rounded-lg p-3">
                   <div className="flex items-start">
-                    <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-2 flex-shrink-0" />
-                    <div className="text-sm text-blue-700 dark:text-blue-300">
+                    <Info className="h-5 w-5 text-muted-foreground mt-0.5 mr-2 flex-shrink-0" />
+                    <div className="text-sm text-muted-foreground">
                       <p className="font-medium mb-1">Sobre as datas:</p>
                       <ul className="space-y-1 text-xs">
                         <li>• O ciclo será aberto automaticamente na data de início</li>
@@ -600,24 +602,22 @@ const CycleManagement: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center p-4 z-50"
+            className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-yt-surface rounded-xl shadow-xl p-6 max-w-sm w-full"
+              className="bg-popover text-popover-foreground border border-border rounded-xl shadow-xl p-6 max-w-sm w-full"
             >
               <div className="flex items-center space-x-3 mb-4">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                <div className="p-2 bg-destructive/15 rounded-lg">
+                  <AlertCircle className="h-5 w-5 text-destructive" />
                 </div>
-                <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
-                  Encerrar Ciclo
-                </h2>
+                <h2 className="text-lg font-bold text-foreground">Encerrar Ciclo</h2>
               </div>
 
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 Tem certeza que deseja encerrar este ciclo? Esta ação não pode ser desfeita.
               </p>
 
@@ -636,7 +636,7 @@ const CycleManagement: React.FC = () => {
                   variant="primary"
                   size="sm"
                   onClick={confirmCloseCycle}
-                  className="!bg-red-600 hover:!bg-red-700 !border-red-600"
+                  className="!bg-destructive hover:!bg-destructive/90 !border-destructive"
                   icon={<Lock className="h-4 w-4" />}
                 >
                   Encerrar
@@ -646,7 +646,6 @@ const CycleManagement: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 };

@@ -1,8 +1,26 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ArrowLeft, ArrowRight, Save, Send, AlertCircle, CheckCircle, Star, Award, BookOpen, Target, Rocket,
-  Calendar, Lightbulb, MessageSquare, Plus, X, ChevronDown, ChevronUp, FileText, TrendingUp
+  ArrowLeft,
+  ArrowRight,
+  Save,
+  Send,
+  AlertCircle,
+  CheckCircle,
+  Star,
+  Award,
+  BookOpen,
+  Target,
+  Rocket,
+  Calendar,
+  Lightbulb,
+  MessageSquare,
+  Plus,
+  X,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  TrendingUp,
 } from 'lucide-react';
 import Button from './Button';
 import { useEvaluation } from '../hooks/useEvaluation';
@@ -74,10 +92,12 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
   canProceedToStep3,
   selectedEmployee,
   hideActionButtons = false,
-  readOnly = false
+  readOnly = false,
 }) => {
   const { getNineBoxByEmployeeId } = useEvaluation();
-  const employeeNineBox: NineBoxData | undefined = selectedEmployee ? getNineBoxByEmployeeId(selectedEmployee.id) : undefined;
+  const employeeNineBox: NineBoxData | undefined = selectedEmployee
+    ? getNineBoxByEmployeeId(selectedEmployee.id)
+    : undefined;
 
   const [expandedPdiSections, setExpandedPdiSections] = useState({
     curto: true,
@@ -85,22 +105,29 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     longo: false,
   });
 
-  const [editingPdiItemPrazo, setEditingPdiItemPrazo] = useState<'curto' | 'medio' | 'longo' | null>(null);
-  const [newPdiItem, setNewPdiItem] = useState<Omit<ActionItem, 'id'> & { prazo: 'curto' | 'medio' | 'longo' | '' }>({
+  const [editingPdiItemPrazo, setEditingPdiItemPrazo] = useState<
+    'curto' | 'medio' | 'longo' | null
+  >(null);
+  const [newPdiItem, setNewPdiItem] = useState<
+    Omit<ActionItem, 'id'> & { prazo: 'curto' | 'medio' | 'longo' | '' }
+  >({
     competencia: '',
     calendarizacao: '',
     comoDesenvolver: '',
     resultadosEsperados: '',
     status: '1',
     observacao: '',
-    prazo: ''
+    prazo: '',
   });
 
   // Calcular total de itens do PDI
-  const totalPdiItems = pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length;
+  const totalPdiItems =
+    pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length;
 
   const calculatePotentialScores = () => {
-    const scores = potentialItems.filter(item => item.score !== undefined).map(item => item.score || 0);
+    const scores = potentialItems
+      .filter((item) => item.score !== undefined)
+      .map((item) => item.score || 0);
     if (scores.length === 0) return { results: 0, agility: 0, relationships: 0, final: 0 };
 
     const average = scores.reduce((a, b) => a + b, 0) / scores.length;
@@ -108,34 +135,43 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       results: potentialItems[0]?.score || 0,
       agility: potentialItems[1]?.score || 0,
       relationships: ((potentialItems[2]?.score || 0) + (potentialItems[3]?.score || 0)) / 2,
-      final: average
+      final: average,
     };
   };
 
   const handlePotentialScoreChange = (itemId: string, score: number) => {
-    setPotentialItems((prev: PotentialItem[]) => prev.map(item =>
-      item.id === itemId ? { ...item, score } : item
-    ));
+    setPotentialItems((prev: PotentialItem[]) =>
+      prev.map((item) => (item.id === itemId ? { ...item, score } : item)),
+    );
   };
 
   const togglePdiSection = (sectionKey: 'curto' | 'medio' | 'longo') => {
     setExpandedPdiSections((prev) => ({
       ...prev,
-      [sectionKey]: !prev[sectionKey]
+      [sectionKey]: !prev[sectionKey],
     }));
   };
 
-  const handleNewPdiItemChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleNewPdiItemChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setNewPdiItem((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const addPdiItem = () => {
-    if (!newPdiItem.competencia.trim() || !newPdiItem.comoDesenvolver.trim() || !newPdiItem.resultadosEsperados.trim() || !newPdiItem.prazo) {
-      toast.error('Preencha todos os campos obrigatórios: Competência, Como Desenvolver e Resultados Esperados.');
+    if (
+      !newPdiItem.competencia.trim() ||
+      !newPdiItem.comoDesenvolver.trim() ||
+      !newPdiItem.resultadosEsperados.trim() ||
+      !newPdiItem.prazo
+    ) {
+      toast.error(
+        'Preencha todos os campos obrigatórios: Competência, Como Desenvolver e Resultados Esperados.',
+      );
       return;
     }
 
@@ -146,16 +182,16 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       comoDesenvolver: newPdiItem.comoDesenvolver.trim(),
       resultadosEsperados: newPdiItem.resultadosEsperados.trim(),
       status: newPdiItem.status || '1',
-      observacao: newPdiItem.observacao.trim()
+      observacao: newPdiItem.observacao.trim(),
     };
 
     const prazo = newPdiItem.prazo;
 
     setPdiData((prev: PdiData) => {
       const prazoMap: { [key: string]: 'curtosPrazos' | 'mediosPrazos' | 'longosPrazos' } = {
-        'curto': 'curtosPrazos',
-        'medio': 'mediosPrazos',
-        'longo': 'longosPrazos'
+        curto: 'curtosPrazos',
+        medio: 'mediosPrazos',
+        longo: 'longosPrazos',
       };
 
       const key = prazoMap[newPdiItem.prazo];
@@ -178,20 +214,31 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       resultadosEsperados: '',
       status: '1',
       observacao: '',
-      prazo: ''
+      prazo: '',
     });
 
-    toast.success(`Item adicionado ao PDI de ${prazo === 'curto' ? 'Curto' : prazo === 'medio' ? 'Médio' : 'Longo'} Prazo!`);
+    toast.success(
+      `Item adicionado ao PDI de ${prazo === 'curto' ? 'Curto' : prazo === 'medio' ? 'Médio' : 'Longo'} Prazo!`,
+    );
   };
 
   const removePdiItem = (idToRemove: string, prazo: 'curto' | 'medio' | 'longo') => {
     setPdiData((prev: PdiData) => {
       if (prazo === 'curto') {
-        return { ...prev, curtosPrazos: prev.curtosPrazos.filter(item => item.id !== idToRemove) };
+        return {
+          ...prev,
+          curtosPrazos: prev.curtosPrazos.filter((item) => item.id !== idToRemove),
+        };
       } else if (prazo === 'medio') {
-        return { ...prev, mediosPrazos: prev.mediosPrazos.filter(item => item.id !== idToRemove) };
+        return {
+          ...prev,
+          mediosPrazos: prev.mediosPrazos.filter((item) => item.id !== idToRemove),
+        };
       } else if (prazo === 'longo') {
-        return { ...prev, longosPrazos: prev.longosPrazos.filter(item => item.id !== idToRemove) };
+        return {
+          ...prev,
+          longosPrazos: prev.longosPrazos.filter((item) => item.id !== idToRemove),
+        };
       }
       return prev;
     });
@@ -202,20 +249,20 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     category: 'curtosPrazos' | 'mediosPrazos' | 'longosPrazos',
     id: string,
     field: keyof ActionItem,
-    value: any
+    value: any,
   ) => {
     setPdiData((prev: PdiData) => ({
       ...prev,
-      [category]: prev[category].map(item =>
-        item.id === id ? { ...item, [field]: value } : item
-      )
+      [category]: prev[category].map((item) =>
+        item.id === id ? { ...item, [field]: value } : item,
+      ),
     }));
   };
 
   const openAddPdiItemForm = (prazo: 'curto' | 'medio' | 'longo') => {
-    setNewPdiItem(prev => ({ ...prev, prazo }));
+    setNewPdiItem((prev) => ({ ...prev, prazo }));
     setEditingPdiItemPrazo(prazo);
-    setExpandedPdiSections(prev => ({ ...prev, [prazo]: true }));
+    setExpandedPdiSections((prev) => ({ ...prev, [prazo]: true }));
   };
 
   const closeAddPdiItemForm = () => {
@@ -227,30 +274,35 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       resultadosEsperados: '',
       status: '1',
       observacao: '',
-      prazo: ''
+      prazo: '',
     });
   };
 
-  const potentialRatingLabels: Record<number, { label: string; color: string; darkColor: string }> = {
-    1: { label: 'Não atende o esperado', color: 'bg-red-500', darkColor: 'dark:bg-red-600' },
-    2: { label: 'Em desenvolvimento', color: 'bg-stone-600', darkColor: 'dark:bg-stone-700' },
-    3: { label: 'Atende ao esperado', color: 'bg-green-800', darkColor: 'dark:bg-green-900' },
-    4: { label: 'Supera', color: 'bg-green-500', darkColor: 'dark:bg-green-600' }
-  };
+  const potentialRatingLabels: Record<number, { label: string; color: string; darkColor: string }> =
+    {
+      1: { label: 'Não atende o esperado', color: 'bg-destructive', darkColor: '' },
+      2: { label: 'Em desenvolvimento', color: 'bg-warning', darkColor: '' },
+      3: { label: 'Atende ao esperado', color: 'bg-success/80', darkColor: '' },
+      4: { label: 'Supera', color: 'bg-success', darkColor: '' },
+    };
 
   const getRatingInfo = (score: number | undefined) => {
     if (!score || !potentialRatingLabels[score]) {
-      return { label: 'N/A', color: 'bg-gray-400', darkColor: 'dark:bg-gray-600' };
+      return { label: 'N/A', color: 'bg-muted-foreground', darkColor: '' };
     }
     return potentialRatingLabels[score];
   };
 
   const statusOptions = [
-    { value: '1', label: 'Não iniciado', color: 'bg-gray-100 dark:bg-yt-elevated text-gray-700 dark:text-gray-300 font-medium border-gray-300 dark:border-yt-border' },
-    { value: '2', label: 'Iniciado', color: 'bg-green-100 dark:bg-green-900/30 text-green-900 dark:text-green-300 border-green-300 dark:border-green-700' },
-    { value: '3', label: 'Em andamento', color: 'bg-stone-100 dark:bg-stone-900/30 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700' },
-    { value: '4', label: 'Quase concluído', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' },
-    { value: '5', label: 'Concluído', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700' }
+    {
+      value: '1',
+      label: 'Não iniciado',
+      color: 'bg-secondary text-muted-foreground font-medium border-border',
+    },
+    { value: '2', label: 'Iniciado', color: 'bg-success/10 text-success border-success/30' },
+    { value: '3', label: 'Em andamento', color: 'bg-warning/10 text-warning border-warning/30' },
+    { value: '4', label: 'Quase concluído', color: 'bg-warning/10 text-warning border-warning/30' },
+    { value: '5', label: 'Concluído', color: 'bg-success/10 text-success border-success/30' },
   ];
 
   const categories = [
@@ -259,53 +311,53 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       title: 'Curto Prazo',
       subtitle: '3 meses',
       icon: BookOpen,
-      gradient: 'from-top-teal to-top-teal-dark',
-      darkGradient: 'dark:from-top-teal-dark dark:to-top-teal',
-      bgColor: 'bg-top-teal-light',
-      darkBgColor: 'dark:bg-top-teal/10',
-      borderColor: 'border-top-teal/30',
-      darkBorderColor: 'dark:border-top-teal/40',
-      iconBg: 'bg-gradient-to-br from-top-teal to-top-teal-dark dark:from-top-teal-dark dark:to-top-teal',
-      description: 'Ações imediatas e de rápido impacto'
+      gradient: '',
+      darkGradient: '',
+      bgColor: 'bg-secondary',
+      darkBgColor: '',
+      borderColor: 'border-border',
+      darkBorderColor: '',
+      iconBg: 'bg-lime',
+      description: 'Ações imediatas e de rápido impacto',
     },
     {
       key: 'mediosPrazos' as const,
       title: 'Médio Prazo',
       subtitle: '3-6 meses',
       icon: Target,
-      gradient: 'from-top-blue to-top-blue-dark',
-      darkGradient: 'dark:from-top-blue-dark dark:to-top-blue',
-      bgColor: 'bg-top-blue-light',
-      darkBgColor: 'dark:bg-top-blue/10',
-      borderColor: 'border-top-blue/30',
-      darkBorderColor: 'dark:border-top-blue/40',
-      iconBg: 'bg-gradient-to-br from-top-blue to-top-blue-dark dark:from-top-blue-dark dark:to-top-blue',
-      description: 'Desenvolvimento contínuo e estruturado'
+      gradient: '',
+      darkGradient: '',
+      bgColor: 'bg-secondary',
+      darkBgColor: '',
+      borderColor: 'border-border',
+      darkBorderColor: '',
+      iconBg: 'bg-lime',
+      description: 'Desenvolvimento contínuo e estruturado',
     },
     {
       key: 'longosPrazos' as const,
       title: 'Longo Prazo',
       subtitle: '6-12 meses',
       icon: Rocket,
-      gradient: 'from-top-gold to-top-gold-dark',
-      darkGradient: 'dark:from-top-gold-dark dark:to-top-gold',
-      bgColor: 'bg-top-gold-light',
-      darkBgColor: 'dark:bg-top-gold/10',
-      borderColor: 'border-top-gold/30',
-      darkBorderColor: 'dark:border-top-gold/40',
-      iconBg: 'bg-gradient-to-br from-top-gold to-top-gold-dark dark:from-top-gold-dark dark:to-top-gold',
-      description: 'Visão estratégica e crescimento sustentável'
-    }
+      gradient: '',
+      darkGradient: '',
+      bgColor: 'bg-secondary',
+      darkBgColor: '',
+      borderColor: 'border-border',
+      darkBorderColor: '',
+      iconBg: 'bg-lime',
+      description: 'Visão estratégica e crescimento sustentável',
+    },
   ];
 
   const renderActionItems = (category: 'curtosPrazos' | 'mediosPrazos' | 'longosPrazos') => {
-    const categoryData = categories.find(cat => cat.key === category)!;
+    const categoryData = categories.find((cat) => cat.key === category)!;
     const items = pdiData[category] || [];
 
     const categoryToPrazoMap: { [key: string]: 'curto' | 'medio' | 'longo' } = {
-      'curtosPrazos': 'curto',
-      'mediosPrazos': 'medio',
-      'longosPrazos': 'longo'
+      curtosPrazos: 'curto',
+      mediosPrazos: 'medio',
+      longosPrazos: 'longo',
     };
     const prazo = categoryToPrazoMap[category];
 
@@ -316,7 +368,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-yt-surface rounded-xl sm:rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-gray-100 dark:border-yt-border overflow-hidden"
+        className="bg-card rounded-xl sm:rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border overflow-hidden"
       >
         <button
           onClick={() => togglePdiSection(prazo)}
@@ -324,24 +376,34 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 sm:space-x-4">
-              <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${categoryData.iconBg} shadow-md`}>
-                <categoryData.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              <div
+                className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${categoryData.iconBg} shadow-md`}
+              >
+                <categoryData.icon className="h-5 w-5 sm:h-6 sm:w-6 text-obsidian" />
               </div>
               <div className="text-left">
-                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 dark:text-gray-100">{categoryData.title}</h3>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5 hidden sm:block">{categoryData.subtitle} • {categoryData.description}</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 sm:hidden">{categoryData.subtitle}</p>
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-foreground">
+                  {categoryData.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">
+                  {categoryData.subtitle} • {categoryData.description}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5 sm:hidden">
+                  {categoryData.subtitle}
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="text-right">
-                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-100">{items.length}</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">itens</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
+                  {items.length}
+                </p>
+                <p className="text-xs text-muted-foreground">itens</p>
               </div>
               {isExpanded ? (
-                <ChevronUp className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                <ChevronUp className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <ChevronDown className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
               )}
             </div>
           </div>
@@ -360,8 +422,10 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                 {items.length === 0 && !isAddingItemToThisCategory ? (
                   !readOnly && (
                     <div className="text-center py-8 sm:py-12">
-                      <BookOpen className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm sm:text-base">Nenhum item de desenvolvimento adicionado</p>
+                      <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground mb-4 text-sm sm:text-base">
+                        Nenhum item de desenvolvimento adicionado
+                      </p>
                       <Button
                         variant="outline"
                         onClick={() => openAddPdiItemForm(prazo)}
@@ -380,27 +444,31 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: itemIndex * 0.1 }}
-                        className="bg-gray-50 dark:bg-yt-elevated/50 rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-200 dark:border-yt-border"
+                        className="bg-secondary rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 border border-border"
                       >
                         {/* Header do Item */}
                         <div className="flex items-start justify-between mb-4 sm:mb-6">
                           <div className="flex items-center space-x-3">
-                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl ${categoryData.iconBg} flex items-center justify-center text-white text-sm sm:text-base font-bold shadow-md`}>
+                            <div
+                              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl ${categoryData.iconBg} flex items-center justify-center text-obsidian text-sm sm:text-base font-bold shadow-md`}
+                            >
                               {itemIndex + 1}
                             </div>
                             <div>
-                              <h4 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-800 dark:text-gray-100">
+                              <h4 className="text-sm sm:text-base lg:text-lg font-semibold text-foreground">
                                 Item de Desenvolvimento
                               </h4>
-                              <span className={`inline-flex mt-1 px-2 py-1 rounded-full text-xs font-medium border ${statusOptions.find(s => s.value === item.status)?.color}`}>
-                                {statusOptions.find(s => s.value === item.status)?.label}
+                              <span
+                                className={`inline-flex mt-1 px-2 py-1 rounded-full text-xs font-medium border ${statusOptions.find((s) => s.value === item.status)?.color}`}
+                              >
+                                {statusOptions.find((s) => s.value === item.status)?.label}
                               </span>
                             </div>
                           </div>
                           {!readOnly && (
                             <button
                               onClick={() => removePdiItem(item.id, prazo)}
-                              className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
+                              className="p-1.5 sm:p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200"
                             >
                               <X size={16} className="sm:hidden" />
                               <X size={20} className="hidden sm:block" />
@@ -411,16 +479,19 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                         <div className="space-y-4 sm:space-y-6">
                           {/* Competência a desenvolver */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                              <Award className="h-4 w-4 mr-2 text-green-800 dark:text-green-600" />
+                            <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center">
+                              <Award className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
                               Competência a desenvolver
                             </label>
                             <textarea
-                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
+                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
                               placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
                               rows={3}
                               value={item.competencia}
-                              onChange={(e) => !readOnly && updateActionItem(category, item.id, 'competencia', e.target.value)}
+                              onChange={(e) =>
+                                !readOnly &&
+                                updateActionItem(category, item.id, 'competencia', e.target.value)
+                              }
                               disabled={readOnly}
                               readOnly={readOnly}
                             />
@@ -428,15 +499,23 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                           {/* Calendarização */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                              <Calendar className="h-4 w-4 mr-2 text-gray-600 dark:text-gray-400" />
+                            <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center">
+                              <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                               Calendarização (Mês/Ano)
                             </label>
                             <input
                               type="month"
-                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
+                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
                               value={item.calendarizacao}
-                              onChange={(e) => !readOnly && updateActionItem(category, item.id, 'calendarizacao', e.target.value)}
+                              onChange={(e) =>
+                                !readOnly &&
+                                updateActionItem(
+                                  category,
+                                  item.id,
+                                  'calendarizacao',
+                                  e.target.value,
+                                )
+                              }
                               disabled={readOnly}
                               readOnly={readOnly}
                             />
@@ -444,16 +523,24 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                           {/* Como desenvolver as competências */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                              <Lightbulb className="h-4 w-4 mr-2 text-stone-700 dark:text-stone-400" />
+                            <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center">
+                              <Lightbulb className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
                               Como desenvolver as competências
                             </label>
                             <textarea
-                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
+                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
                               rows={3}
                               placeholder="Descreva as ações e métodos para desenvolver esta competência..."
                               value={item.comoDesenvolver}
-                              onChange={(e) => !readOnly && updateActionItem(category, item.id, 'comoDesenvolver', e.target.value)}
+                              onChange={(e) =>
+                                !readOnly &&
+                                updateActionItem(
+                                  category,
+                                  item.id,
+                                  'comoDesenvolver',
+                                  e.target.value,
+                                )
+                              }
                               disabled={readOnly}
                               readOnly={readOnly}
                             />
@@ -461,35 +548,51 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                           {/* Resultados Esperados */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                              <Target className="h-4 w-4 mr-2 text-green-800 dark:text-green-600" />
+                            <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center">
+                              <Target className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
                               Resultados Esperados
                             </label>
                             <textarea
-                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
+                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
                               rows={3}
                               placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
                               value={item.resultadosEsperados}
-                              onChange={(e) => !readOnly && updateActionItem(category, item.id, 'resultadosEsperados', e.target.value)}
+                              onChange={(e) =>
+                                !readOnly &&
+                                updateActionItem(
+                                  category,
+                                  item.id,
+                                  'resultadosEsperados',
+                                  e.target.value,
+                                )
+                              }
                               disabled={readOnly}
                               readOnly={readOnly}
                             />
                           </div>
 
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-gray-200 dark:border-yt-border">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-border">
                             {/* Status */}
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                                <CheckCircle className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
+                              <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center">
+                                <CheckCircle className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
                                 Status
                               </label>
                               <select
-                                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
+                                className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
                                 value={item.status}
-                                onChange={(e) => !readOnly && updateActionItem(category, item.id, 'status', e.target.value as any)}
+                                onChange={(e) =>
+                                  !readOnly &&
+                                  updateActionItem(
+                                    category,
+                                    item.id,
+                                    'status',
+                                    e.target.value as any,
+                                  )
+                                }
                                 disabled={readOnly}
                               >
-                                {statusOptions.map(option => (
+                                {statusOptions.map((option) => (
                                   <option key={option.value} value={option.value}>
                                     {option.label}
                                   </option>
@@ -499,16 +602,19 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                             {/* Observação */}
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                                <MessageSquare className="h-4 w-4 mr-2 text-gray-600 dark:text-gray-400" />
+                              <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center">
+                                <MessageSquare className="h-4 w-4 mr-2 text-muted-foreground" />
                                 Observação
                               </label>
                               <textarea
-                                className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
+                                className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
                                 rows={2}
                                 placeholder="Observações adicionais..."
                                 value={item.observacao}
-                                onChange={(e) => !readOnly && updateActionItem(category, item.id, 'observacao', e.target.value)}
+                                onChange={(e) =>
+                                  !readOnly &&
+                                  updateActionItem(category, item.id, 'observacao', e.target.value)
+                                }
                                 disabled={readOnly}
                                 readOnly={readOnly}
                               />
@@ -543,16 +649,16 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="bg-white dark:bg-yt-surface rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-4 sm:p-6 lg:p-8 overflow-hidden mt-6"
+                      className="bg-card rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-border p-4 sm:p-6 lg:p-8 overflow-hidden mt-6"
                     >
                       <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                          <Plus className="h-6 w-6 text-green-800 dark:text-green-600 mr-3" />
+                        <h3 className="text-lg sm:text-xl font-bold text-foreground flex items-center">
+                          <Plus className="h-6 w-6 text-lime-deep dark:text-lime mr-3" />
                           Adicionar Novo Item de Desenvolvimento ({categoryData.title})
                         </h3>
                         <button
                           onClick={closeAddPdiItemForm}
-                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                          className="text-muted-foreground hover:text-foreground transition-colors"
                         >
                           <X size={24} />
                         </button>
@@ -560,8 +666,11 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                       <div className="space-y-4">
                         <div>
-                          <label htmlFor="competencia" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                            <Lightbulb size={16} className="mr-1 text-stone-700" />
+                          <label
+                            htmlFor="competencia"
+                            className="block text-sm font-medium text-muted-foreground mb-2 flex items-center"
+                          >
+                            <Lightbulb size={16} className="mr-1 text-lime-deep dark:text-lime" />
                             Competência a desenvolver
                           </label>
                           <textarea
@@ -571,14 +680,17 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             onChange={handleNewPdiItemChange}
                             placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
                             rows={3}
-                            className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 resize-none"
+                            className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 resize-none"
                           />
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label htmlFor="calendarizacao" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                              <Calendar size={16} className="mr-1 text-green-800" />
+                            <label
+                              htmlFor="calendarizacao"
+                              className="block text-sm font-medium text-muted-foreground mb-2 flex items-center"
+                            >
+                              <Calendar size={16} className="mr-1 text-lime-deep dark:text-lime" />
                               Calendarização (Mês/Ano)
                             </label>
                             <input
@@ -587,14 +699,17 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               name="calendarizacao"
                               value={newPdiItem.calendarizacao}
                               onChange={handleNewPdiItemChange}
-                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
+                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
                             />
                           </div>
                         </div>
 
                         <div>
-                          <label htmlFor="comoDesenvolver" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                            <FileText size={16} className="mr-1 text-gray-600" />
+                          <label
+                            htmlFor="comoDesenvolver"
+                            className="block text-sm font-medium text-muted-foreground mb-2 flex items-center"
+                          >
+                            <FileText size={16} className="mr-1 text-muted-foreground" />
                             Como desenvolver as competências
                           </label>
                           <textarea
@@ -604,13 +719,16 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             onChange={handleNewPdiItemChange}
                             placeholder="Descreva as ações e métodos para desenvolver esta competência..."
                             rows={3}
-                            className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 resize-none"
+                            className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 resize-none"
                           />
                         </div>
 
                         <div>
-                          <label htmlFor="resultadosEsperados" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                            <TrendingUp size={16} className="mr-1 text-green-500" />
+                          <label
+                            htmlFor="resultadosEsperados"
+                            className="block text-sm font-medium text-muted-foreground mb-2 flex items-center"
+                          >
+                            <TrendingUp size={16} className="mr-1 text-lime-deep dark:text-lime" />
                             Resultados Esperados
                           </label>
                           <textarea
@@ -620,14 +738,20 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             onChange={handleNewPdiItemChange}
                             placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
                             rows={3}
-                            className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 resize-none"
+                            className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 resize-none"
                           />
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                              <CheckCircle size={16} className="mr-1 text-cyan-500" />
+                            <label
+                              htmlFor="status"
+                              className="block text-sm font-medium text-muted-foreground mb-2 flex items-center"
+                            >
+                              <CheckCircle
+                                size={16}
+                                className="mr-1 text-lime-deep dark:text-lime"
+                              />
                               Status
                             </label>
                             <select
@@ -635,9 +759,9 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               name="status"
                               value={newPdiItem.status}
                               onChange={handleNewPdiItemChange}
-                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
+                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
                             >
-                              {statusOptions.map(option => (
+                              {statusOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
                                   {option.label}
                                 </option>
@@ -646,8 +770,11 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                           </div>
 
                           <div>
-                            <label htmlFor="observacao" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                              <MessageSquare size={16} className="mr-1 text-gray-500" />
+                            <label
+                              htmlFor="observacao"
+                              className="block text-sm font-medium text-muted-foreground mb-2 flex items-center"
+                            >
+                              <MessageSquare size={16} className="mr-1 text-muted-foreground" />
                               Observação
                             </label>
                             <textarea
@@ -657,7 +784,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               onChange={handleNewPdiItemChange}
                               placeholder="Observações adicionais..."
                               rows={1}
-                              className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 resize-none"
+                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 resize-none"
                             />
                           </div>
                         </div>
@@ -706,43 +833,46 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
           <div className="space-y-4 sm:space-y-6">
             {potentialItems.map((item, index) => {
               const iconMap: { [key: string]: React.ElementType } = {
-                'pot1': Rocket, 'pot2': BookOpen, 'pot3': Award, 'pot4': Target
+                pot1: Rocket,
+                pot2: BookOpen,
+                pot3: Award,
+                pot4: Target,
               };
               const IconComponent = iconMap[item.id] || Target;
 
               const colorMap: { [key: string]: any } = {
-                'pot1': {
-                  gradient: 'from-top-teal to-top-teal-dark',
-                  darkGradient: 'dark:from-top-teal-dark dark:to-top-teal',
-                  bgColor: 'bg-top-teal-light',
-                  darkBgColor: 'dark:bg-top-teal/10',
-                  borderColor: 'border-top-teal/30',
-                  darkBorderColor: 'dark:border-top-teal/40'
+                pot1: {
+                  gradient: '',
+                  darkGradient: '',
+                  bgColor: 'bg-secondary',
+                  darkBgColor: '',
+                  borderColor: 'border-border',
+                  darkBorderColor: '',
                 },
-                'pot2': {
-                  gradient: 'from-top-blue to-top-blue-dark',
-                  darkGradient: 'dark:from-top-blue-dark dark:to-top-blue',
-                  bgColor: 'bg-top-blue-light',
-                  darkBgColor: 'dark:bg-top-blue/10',
-                  borderColor: 'border-top-blue/30',
-                  darkBorderColor: 'dark:border-top-blue/40'
+                pot2: {
+                  gradient: '',
+                  darkGradient: '',
+                  bgColor: 'bg-secondary',
+                  darkBgColor: '',
+                  borderColor: 'border-border',
+                  darkBorderColor: '',
                 },
-                'pot3': {
-                  gradient: 'from-top-gold to-top-gold-dark',
-                  darkGradient: 'dark:from-top-gold-dark dark:to-top-gold',
-                  bgColor: 'bg-top-gold-light',
-                  darkBgColor: 'dark:bg-top-gold/10',
-                  borderColor: 'border-top-gold/30',
-                  darkBorderColor: 'dark:border-top-gold/40'
+                pot3: {
+                  gradient: '',
+                  darkGradient: '',
+                  bgColor: 'bg-secondary',
+                  darkBgColor: '',
+                  borderColor: 'border-border',
+                  darkBorderColor: '',
                 },
-                'pot4': {
-                  gradient: 'from-top-blue to-top-blue-dark',
-                  darkGradient: 'dark:from-top-blue-dark dark:to-top-blue',
-                  bgColor: 'bg-top-blue-light',
-                  darkBgColor: 'dark:bg-top-blue/10',
-                  borderColor: 'border-top-blue/30',
-                  darkBorderColor: 'dark:border-top-blue/40'
-                }
+                pot4: {
+                  gradient: '',
+                  darkGradient: '',
+                  bgColor: 'bg-secondary',
+                  darkBgColor: '',
+                  borderColor: 'border-border',
+                  darkBorderColor: '',
+                },
               };
 
               const colors = colorMap[item.id] || colorMap['pot1'];
@@ -753,25 +883,29 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 + index * 0.1 }}
-                  className="bg-white dark:bg-yt-surface rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border overflow-hidden"
+                  className="bg-card rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-border overflow-hidden"
                 >
-                  <div className={`p-4 sm:p-6 ${colors.bgColor} ${colors.darkBgColor} border-b ${colors.borderColor} ${colors.darkBorderColor}`}>
+                  <div
+                    className={`p-4 sm:p-6 ${colors.bgColor} ${colors.darkBgColor} border-b ${colors.borderColor} ${colors.darkBorderColor}`}
+                  >
                     <div className="flex flex-col sm:flex-row sm:items-start space-y-3 sm:space-y-0 sm:space-x-4">
-                      <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-br ${colors.gradient} ${colors.darkGradient} shadow-md dark:shadow-lg flex-shrink-0 self-start`}>
-                        <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                      <div className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-lime shadow-md dark:shadow-lg flex-shrink-0 self-start">
+                        <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-obsidian" />
                       </div>
                       <div className="flex-1">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                          <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 break-words">
+                          <h3 className="text-lg sm:text-xl font-bold text-foreground break-words">
                             {index + 1}. {item.name}
                           </h3>
                           {item.score && (
-                            <span className={`inline-flex px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getRatingInfo(item.score).color} ${getRatingInfo(item.score).darkColor} text-white self-start sm:self-auto`}>
+                            <span
+                              className={`inline-flex px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getRatingInfo(item.score).color} ${getRatingInfo(item.score).darkColor} text-white self-start sm:self-auto`}
+                            >
                               {getRatingInfo(item.score).label}
                             </span>
                           )}
                         </div>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-2">
+                        <p className="text-sm sm:text-base text-muted-foreground mt-2">
                           {item.description}
                         </p>
                       </div>
@@ -781,12 +915,14 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                   <div className="p-4 sm:p-6">
                     {readOnly && item.score ? (
                       // Visualização estática - apenas mostra a nota
-                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-xl p-6">
+                      <div className="bg-secondary border-2 border-border rounded-xl p-6">
                         <div className="text-center">
-                          <div className={`text-5xl font-bold mb-2 ${getRatingInfo(item.score).color.replace('bg-', 'text-')}`}>
+                          <div
+                            className={`text-5xl font-bold mb-2 ${getRatingInfo(item.score).color.replace('bg-', 'text-')}`}
+                          >
                             {item.score}
                           </div>
-                          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <div className="text-sm font-medium text-muted-foreground">
                             {getRatingInfo(item.score).label}
                           </div>
                         </div>
@@ -795,7 +931,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                       // Modo de edição - botões clicáveis
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                         {[1, 2, 3, 4].map((rating) => {
-                          const ratingInfo = potentialRatingLabels[rating as keyof typeof potentialRatingLabels];
+                          const ratingInfo =
+                            potentialRatingLabels[rating as keyof typeof potentialRatingLabels];
                           return (
                             <button
                               key={rating}
@@ -803,14 +940,12 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               className={`py-3 sm:py-4 px-2 sm:px-4 rounded-xl border-2 transition-all duration-200 ${
                                 item.score === rating
                                   ? `${ratingInfo.color} ${ratingInfo.darkColor} text-white border-transparent shadow-lg transform scale-105`
-                                  : 'border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-yt-surface text-gray-700 dark:text-gray-200'
+                                  : 'border-border hover:border-lime hover:bg-accent bg-card text-muted-foreground'
                               }`}
                             >
                               <div className="text-center">
                                 <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
-                                <div className="text-xs">
-                                  {ratingInfo.label}
-                                </div>
+                                <div className="text-xs">{ratingInfo.label}</div>
                               </div>
                             </button>
                           );
@@ -828,44 +963,53 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-gradient-to-br from-top-teal-light to-top-blue-light dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-top-teal/20 dark:border-yt-border p-4 sm:p-6 lg:p-8"
+            className="bg-card rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-border p-4 sm:p-6 lg:p-8"
           >
-            <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
-              <Star className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-top-teal dark:text-top-teal" />
+            <h3 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6 flex items-center">
+              <Star className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-lime-deep dark:text-lime" />
               Análise de Potencial
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <div className="bg-white dark:bg-yt-surface p-4 sm:p-6 rounded-lg sm:rounded-xl border border-top-blue/30 dark:border-top-blue/40">
-                <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Média Geral</h4>
-                <p className="text-2xl sm:text-3xl font-bold text-top-blue dark:text-top-blue">{calculatePotentialScores().final}</p>
-                <div className="w-full bg-gray-200 dark:bg-yt-elevated rounded-full h-2 mt-3">
+              <div className="bg-card p-4 sm:p-6 rounded-lg sm:rounded-xl border border-border">
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Média Geral</h4>
+                <p className="text-2xl sm:text-3xl font-bold text-foreground">
+                  {calculatePotentialScores().final}
+                </p>
+                <div className="w-full bg-secondary rounded-full h-2 mt-3">
                   <div
-                    className="bg-gradient-to-r from-top-blue to-top-blue-dark dark:from-top-blue-dark dark:to-top-blue h-2 rounded-full transition-all duration-300"
+                    className="bg-lime h-2 rounded-full transition-all duration-300"
                     style={{ width: `${(calculatePotentialScores().final / 4) * 100}%` }}
                   />
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-yt-surface p-4 sm:p-6 rounded-lg sm:rounded-xl border border-top-teal/30 dark:border-top-teal/40">
-                <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Critérios Avaliados</h4>
-                <p className="text-2xl sm:text-3xl font-bold text-top-teal dark:text-top-teal">{potentialItems.filter(c => c.score).length}/{potentialItems.length}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  {potentialItems.filter(c => c.score).length === potentialItems.length ? 'Avaliação completa' : 'Em andamento'}
+              <div className="bg-card p-4 sm:p-6 rounded-lg sm:rounded-xl border border-border">
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                  Critérios Avaliados
+                </h4>
+                <p className="text-2xl sm:text-3xl font-bold text-foreground">
+                  {potentialItems.filter((c) => c.score).length}/{potentialItems.length}
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {potentialItems.filter((c) => c.score).length === potentialItems.length
+                    ? 'Avaliação completa'
+                    : 'Em andamento'}
                 </p>
               </div>
 
-              <div className="bg-gradient-to-br from-top-teal to-top-blue dark:from-top-teal-dark dark:to-top-blue-dark p-4 sm:p-6 rounded-lg sm:rounded-xl text-white sm:col-span-2 lg:col-span-1">
-                <h4 className="text-sm font-medium text-white/80 dark:text-white/80 mb-2">Classificação</h4>
+              <div className="bg-lime text-obsidian p-4 sm:p-6 rounded-lg sm:rounded-xl sm:col-span-2 lg:col-span-1">
+                <h4 className="text-sm font-medium text-obsidian/70 mb-2">Classificação</h4>
                 <p className="text-xl sm:text-2xl font-bold break-words">
-                  {calculatePotentialScores().final >= 3.5 ? 'Alto Potencial' :
-                   calculatePotentialScores().final >= 2.5 ? 'Potencial Médio' :
-                   calculatePotentialScores().final >= 1.5 ? 'Potencial em Desenvolvimento' :
-                   'Necessita Desenvolvimento'}
+                  {calculatePotentialScores().final >= 3.5
+                    ? 'Alto Potencial'
+                    : calculatePotentialScores().final >= 2.5
+                      ? 'Potencial Médio'
+                      : calculatePotentialScores().final >= 1.5
+                        ? 'Potencial em Desenvolvimento'
+                        : 'Necessita Desenvolvimento'}
                 </p>
-                <p className="text-xs text-white/80 dark:text-white/80 mt-2">
-                  Baseado na média das avaliações
-                </p>
+                <p className="text-xs text-obsidian/70 mt-2">Baseado na média das avaliações</p>
               </div>
             </div>
           </motion.div>
@@ -877,17 +1021,17 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
             className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0"
           >
             <div className="flex items-center space-x-2 text-sm">
-              {potentialItems.some(item => item.score === undefined) ? (
+              {potentialItems.some((item) => item.score === undefined) ? (
                 <>
-                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 dark:text-amber-400 flex-shrink-0" />
-                  <span className="text-gray-600 dark:text-gray-400">
+                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-warning flex-shrink-0" />
+                  <span className="text-muted-foreground">
                     Complete todas as avaliações de potencial para prosseguir
                   </span>
                 </>
               ) : (
                 <>
-                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 dark:text-green-400 flex-shrink-0" />
-                  <span className="text-green-600 dark:text-green-400 font-medium">
+                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success flex-shrink-0" />
+                  <span className="text-success font-medium">
                     Avaliação de potencial completa! Prossiga para o PDI.
                   </span>
                 </>
@@ -949,18 +1093,24 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
           className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0"
         >
           <div className="flex items-center space-x-2 text-sm">
-            {(pdiData.curtosPrazos.length === 0 && pdiData.mediosPrazos.length === 0 && pdiData.longosPrazos.length === 0) ? (
+            {pdiData.curtosPrazos.length === 0 &&
+            pdiData.mediosPrazos.length === 0 &&
+            pdiData.longosPrazos.length === 0 ? (
               <>
-                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 dark:text-amber-400 flex-shrink-0" />
-                <span className="text-gray-600 dark:text-gray-400">
+                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-warning flex-shrink-0" />
+                <span className="text-muted-foreground">
                   Adicione pelo menos um item de desenvolvimento para continuar
                 </span>
               </>
             ) : (
               <>
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 dark:text-green-400 flex-shrink-0" />
-                <span className="text-green-600 dark:text-green-400 font-medium">
-                  PDI definido! Total de {pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length} itens adicionados.
+                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success flex-shrink-0" />
+                <span className="text-success font-medium">
+                  PDI definido! Total de{' '}
+                  {pdiData.curtosPrazos.length +
+                    pdiData.mediosPrazos.length +
+                    pdiData.longosPrazos.length}{' '}
+                  itens adicionados.
                 </span>
               </>
             )}
@@ -968,7 +1118,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
           <div className="space-y-4">
             {totalPdiItems === 0 && (
-              <div className="flex items-center justify-center space-x-2 text-amber-600 dark:text-amber-400 text-sm">
+              <div className="flex items-center justify-center space-x-2 text-warning text-sm">
                 <AlertCircle className="h-4 w-4" />
                 <span>Adicione pelo menos um item ao PDI para enviar a avaliação</span>
               </div>
@@ -991,7 +1141,9 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                   size="lg"
                   disabled={totalPdiItems === 0 || isSaving || loading}
                   className="w-full sm:w-auto"
-                  title={totalPdiItems === 0 ? 'Adicione pelo menos um item ao PDI' : 'Enviar avaliação'}
+                  title={
+                    totalPdiItems === 0 ? 'Adicione pelo menos um item ao PDI' : 'Enviar avaliação'
+                  }
                 >
                   {isSaving ? 'Enviando...' : 'Enviar Avaliação'}
                 </Button>

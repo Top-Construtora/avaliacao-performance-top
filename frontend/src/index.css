@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fonte Lemon Milk - Display/Heading */
+/* Fonte Lemon Milk - Display/Heading (marca GIO) */
 @font-face {
   font-family: 'Lemon Milk';
   src: url('./assets/fonts/LemonMilk-Regular.otf') format('opentype');
@@ -11,63 +11,151 @@
   font-display: swap;
 }
 
-/* NAUE Consultoria - Variáveis de Identidade Visual */
-:root {
-  /* Cores Primárias */
-  --primary: #1e2938;
-  --primary-hover: #161f2a;
-  --primary-light: rgba(30, 41, 56, 0.15);
-  
-  /* Cores Neutras */
-  --black: #282C2A;
-  --dark-gray: #2C2C2C;
-  --text-gray: #6b7280;
-  --border-gray: #e5e7eb;
-  --light-gray: #f8f9fa;
-  --white: #FFFFFF;
-  
-  /* Cores de Status */
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --info: #0A8060;
-  
-  /* Espaçamentos */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-2xl: 48px;
-  
-  /* Border Radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
-  
-  /* Transições */
-  --transition-fast: 0.15s ease-in-out;
-  --transition-base: 0.3s ease;
-  
-  /* Sombras */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
-  --shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
+@layer base {
+  /* ============================================================
+     GIO — Design System (tokens shadcn). Espelha seguranca-trabalho.
+     • Sidebar: obsidian #1A1A1A com item ativo LIME (assinatura).
+     • CTAs/accents internos: GRAFITE/CINZA (#3D434F) — sóbrios.
+     • Lime: focus ring, avatar, hover, destaques.
+     • Status: traffic light (verde #22C55E · âmbar #F59E0B · vermelho #DC2626).
+     ============================================================ */
+  :root {
+    /* Tema claro — #FAFAF7 base / superfícies brancas */
+    --background: 60 14% 97%; /* #FAFAF7 */
+    --foreground: 222 45% 7%; /* obsidian #0A0E1A */
+    --card: 0 0% 100%; /* #FFFFFF surface */
+    --card-foreground: 222 45% 7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 45% 7%;
+    --primary: 220 13% 27%; /* grafite #3D434F — CTA interno */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 60 9% 95%; /* surface-2 #F4F4F2 */
+    --secondary-foreground: 222 45% 7%;
+    --muted: 60 9% 95%;
+    --muted-foreground: 240 5% 56%; /* gray #8B8B95 */
+    --accent: 60 9% 95%; /* neutro — hover de menus/selects */
+    --accent-foreground: 222 45% 7%;
+    --destructive: 0 72% 51%; /* #DC2626 */
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 20% 92%;
+    --input: 222 20% 92%;
+    --ring: 68 100% 50%; /* focus ring lime */
+    --radius: 0.625rem; /* 10px — padrão GIO */
+
+    /* Status — traffic light (tema claro) */
+    --status-success: 142 71% 45%; /* #22C55E */
+    --status-warning: 38 92% 50%; /* #F59E0B */
+    --status-critical: 0 72% 51%; /* #DC2626 */
+    --status-neutral: 240 5% 56%; /* gray #8B8B95 */
+    --gio-lime: 68 100% 50%; /* #D2FF00 */
+    --gio-lime-deep: 68 62% 46%; /* #A9BE2E */
+
+    /* --- Variáveis legadas NAUE (preservadas para CSS custom existente) --- */
+    --primary-hover: #161f2a;
+    --primary-light: rgba(30, 41, 56, 0.15);
+    --black: #282c2a;
+    --dark-gray: #2c2c2c;
+    --text-gray: #6b7280;
+    --border-gray: #e5e7eb;
+    --light-gray: #f8f9fa;
+    --white: #ffffff;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #0a8060;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --transition-fast: 0.15s ease-in-out;
+    --transition-base: 0.3s ease;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark {
+    /* Tema escuro — obsidian #1A1A1A (espelha a tela de login) */
+    --background: 0 0% 10%; /* #1A1A1A */
+    --foreground: 0 0% 100%;
+    --card: 240 4% 14%; /* surface #232327 */
+    --card-foreground: 0 0% 100%;
+    --popover: 240 4% 14%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 220 13% 27%; /* grafite #3D434F */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 17%; /* surface-2 #2A2A2E */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 4% 17%;
+    --muted-foreground: 240 5% 56%;
+    --accent: 240 5% 20%; /* surface-3 #32323A — hover */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 4% 22%;
+    --input: 240 4% 17%;
+    --ring: 68 100% 50%;
+
+    --status-success: 142 71% 45%;
+    --status-warning: 38 92% 50%;
+    --status-critical: 0 84% 60%; /* #EF4444 */
+    --status-neutral: 240 5% 56%;
+    --gio-lime: 68 100% 50%;
+    --gio-lime-deep: 68 62% 46%;
+  }
 }
 
 @layer base {
+  * {
+    @apply border-border;
+  }
+
+  /* Seleção de texto — lime sobre obsidian (assinatura GIO) */
+  ::selection {
+    background: #d2ff00;
+    color: #0a0e1a;
+  }
+  ::-moz-selection {
+    background: #d2ff00;
+    color: #0a0e1a;
+  }
+
   html {
-    font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family:
+      'Space Grotesk',
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      'Helvetica Neue',
+      Arial,
+      sans-serif;
     /* Preventing zoom on input focus in iOS */
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
   }
-  
+
   body {
-    font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    @apply bg-background text-foreground;
+    font-family:
+      'Space Grotesk',
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      'Helvetica Neue',
+      Arial,
+      sans-serif;
     /* Smooth scrolling for better UX */
     scroll-behavior: smooth;
     /* Prevent horizontal overflow */
@@ -76,10 +164,10 @@
 
   /* Better touch targets for mobile */
   @media (max-width: 640px) {
-    button, 
-    [role="button"], 
-    input[type="submit"], 
-    input[type="button"] {
+    button,
+    [role='button'],
+    input[type='submit'],
+    input[type='button'] {
       min-height: 44px;
       min-width: 44px;
     }
@@ -243,7 +331,9 @@
   }
 
   /* Adjust form inputs for mobile */
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     font-size: 16px; /* Prevents zoom on iOS */
   }
 
@@ -300,4 +390,3 @@
     color-scheme: dark;
   }
 }
-

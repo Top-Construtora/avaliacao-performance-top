@@ -47,7 +47,7 @@ const PdiManagement: React.FC = () => {
     periodo: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
     curtosPrazos: [],
     mediosPrazos: [],
-    longosPrazos: []
+    longosPrazos: [],
   });
   const [loadingPDI, setLoadingPDI] = useState<boolean>(false);
   const [isSavingPDI, setIsSavingPDI] = useState<boolean>(false);
@@ -63,7 +63,7 @@ const PdiManagement: React.FC = () => {
 
     // Líderes só podem ver seus subordinados
     if (profile.is_leader) {
-      return employees.filter(emp => emp.reports_to === profile.id);
+      return employees.filter((emp) => emp.reports_to === profile.id);
     }
 
     // Outros usuários não veem ninguém
@@ -75,14 +75,15 @@ const PdiManagement: React.FC = () => {
     const fetchPdi = async () => {
       if (selectedEmployeeId) {
         setLoadingPDI(true);
-        const employeeProfile = filteredEmployees.find(emp => emp.id === selectedEmployeeId);
-        
+        const employeeProfile = filteredEmployees.find((emp) => emp.id === selectedEmployeeId);
+
         // Reset PDI data before loading new one
         const initialPdiData = {
           colaboradorId: selectedEmployeeId,
           colaborador: employeeProfile?.name || '',
           cargo: employeeProfile?.position || '',
-          departamento: employeeProfile?.departments?.map(dep => dep.name).join(', ') || 'Não definido',
+          departamento:
+            employeeProfile?.departments?.map((dep) => dep.name).join(', ') || 'Não definido',
           periodo: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
           curtosPrazos: [],
           mediosPrazos: [],
@@ -94,14 +95,17 @@ const PdiManagement: React.FC = () => {
 
         try {
           const loadedPdi = await loadPDI(selectedEmployeeId);
-          
+
           if (loadedPdi) {
             // Mesclar os dados carregados com as informações do colaborador
             const mergedPdiData = {
               ...loadedPdi,
               colaborador: employeeProfile?.name || loadedPdi.colaborador,
               cargo: employeeProfile?.position || loadedPdi.cargo,
-              departamento: employeeProfile?.departments?.map(dep => dep.name).join(', ') || loadedPdi.departamento || 'Não definido',
+              departamento:
+                employeeProfile?.departments?.map((dep) => dep.name).join(', ') ||
+                loadedPdi.departamento ||
+                'Não definido',
             };
             setPdiData(mergedPdiData);
             toast.success('PDI carregado com sucesso!');
@@ -129,23 +133,27 @@ const PdiManagement: React.FC = () => {
     }
 
     const allPdiActionItems = [
-      ...pdiData.curtosPrazos.map(item => ({ ...item, prazo: 'curto' as const })),
-      ...pdiData.mediosPrazos.map(item => ({ ...item, prazo: 'medio' as const })),
-      ...pdiData.longosPrazos.map(item => ({ ...item, prazo: 'longo' as const }))
+      ...pdiData.curtosPrazos.map((item) => ({ ...item, prazo: 'curto' as const })),
+      ...pdiData.mediosPrazos.map((item) => ({ ...item, prazo: 'medio' as const })),
+      ...pdiData.longosPrazos.map((item) => ({ ...item, prazo: 'longo' as const })),
     ];
 
     if (allPdiActionItems.length === 0) {
-      toast.error('Adicione pelo menos um item ao Plano de Desenvolvimento Individual (PDI) antes de salvar.');
+      toast.error(
+        'Adicione pelo menos um item ao Plano de Desenvolvimento Individual (PDI) antes de salvar.',
+      );
       return;
     }
 
     // Criar arrays para o formato antigo (compatibilidade)
-    const pdiGoals = allPdiActionItems.map(item => 
-      `Competência: ${item.competencia || 'N/A'}. Resultados Esperados: ${item.resultadosEsperados || 'N/A'}.`
+    const pdiGoals = allPdiActionItems.map(
+      (item) =>
+        `Competência: ${item.competencia || 'N/A'}. Resultados Esperados: ${item.resultadosEsperados || 'N/A'}.`,
     );
 
-    const pdiActions = allPdiActionItems.map(item => 
-      `Como desenvolver: ${item.comoDesenvolver || 'N/A'} (Prazo: ${item.calendarizacao || 'N/A'}, Status: ${item.status || 'N/A'}, Observação: ${item.observacao || 'N/A'}).`
+    const pdiActions = allPdiActionItems.map(
+      (item) =>
+        `Como desenvolver: ${item.comoDesenvolver || 'N/A'} (Prazo: ${item.calendarizacao || 'N/A'}, Status: ${item.status || 'N/A'}, Observação: ${item.observacao || 'N/A'}).`,
     );
 
     const pdiToSave = {
@@ -161,7 +169,7 @@ const PdiManagement: React.FC = () => {
     try {
       await savePDI(pdiToSave);
       toast.success('PDI salvo/atualizado com sucesso!');
-      
+
       // Recarregar o PDI após salvar para garantir sincronização
       const reloadedPdi = await loadPDI(pdiData.colaboradorId);
       if (reloadedPdi) {
@@ -186,23 +194,25 @@ const PdiManagement: React.FC = () => {
     await handleSavePDI();
   };
 
-  const selectedEmployee = filteredEmployees.find(emp => emp.id === selectedEmployeeId);
+  const selectedEmployee = filteredEmployees.find((emp) => emp.id === selectedEmployeeId);
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-8"
+        className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-primary-900 dark:text-stone-700 mr-3" />
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
+                <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-lime-deep dark:text-lime mr-3" />
                 Gerenciar PDI
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">Visualize e edite Planos de Desenvolvimento Individual</p>
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+                Visualize e edite Planos de Desenvolvimento Individual
+              </p>
             </div>
           </div>
         </div>
@@ -210,30 +220,40 @@ const PdiManagement: React.FC = () => {
         {/* Employee Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="sm:col-span-1">
-            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+            <label className="block text-sm font-medium text-foreground font-medium mb-2">
               <Users className="inline h-4 w-4 mr-1" />
               Selecione o Colaborador
             </label>
             <div className="relative">
               <select
-                className="w-full pl-10 pr-10 rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3 appearance-none cursor-pointer"
+                className="w-full pl-10 pr-10 rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 appearance-none cursor-pointer"
                 value={selectedEmployeeId}
                 onChange={(e) => setSelectedEmployeeId(e.target.value)}
                 disabled={loadingPDI}
               >
                 <option value="">Escolha um colaborador...</option>
                 {filteredEmployees
-                  .filter(employee => !employee.is_admin && !employee.is_director)
+                  .filter((employee) => !employee.is_admin && !employee.is_director)
                   .map((employee) => (
                     <option key={employee.id} value={employee.id}>
                       {employee.name} - {employee.position}
                     </option>
                   ))}
               </select>
-              <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+              <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className="h-5 w-5 text-muted-foreground"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
@@ -241,21 +261,23 @@ const PdiManagement: React.FC = () => {
           {selectedEmployee && (
             <>
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground font-medium mb-2">
                   <BookOpen className="inline h-4 w-4 mr-1" />
                   PDI Período
                 </label>
-                <div className="px-4 py-3 bg-gray-50 dark:bg-yt-elevated rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
+                <div className="px-4 py-3 bg-secondary rounded-xl text-foreground font-medium text-sm">
                   {pdiData.periodo || 'Não definido'}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground font-medium mb-2">
                   <Info className="inline h-4 w-4 mr-1" />
                   Última Atualização
                 </label>
-                <div className="px-4 py-3 bg-gray-50 dark:bg-yt-elevated rounded-xl text-naue-black dark:text-gray-300 font-medium text-sm">
-                  {pdiData.dataAtualizacao ? new Date(pdiData.dataAtualizacao).toLocaleDateString('pt-BR') : 'N/A'}
+                <div className="px-4 py-3 bg-secondary rounded-xl text-foreground font-medium text-sm">
+                  {pdiData.dataAtualizacao
+                    ? new Date(pdiData.dataAtualizacao).toLocaleDateString('pt-BR')
+                    : 'N/A'}
                 </div>
               </div>
             </>
@@ -272,7 +294,7 @@ const PdiManagement: React.FC = () => {
         >
           {loadingPDI ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stone-700 dark:border-stone-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime"></div>
             </div>
           ) : (
             <>
@@ -313,16 +335,16 @@ const PdiManagement: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-16 text-center"
+          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-16 text-center"
         >
           <div className="max-w-md mx-auto">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-stone-100 to-gray-100 dark:from-stone-900/20 dark:to-gray-900/20 mb-6">
-              <Users className="h-8 w-8 sm:h-10 sm:w-10 text-stone-700 dark:text-stone-500" />
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-secondary mb-6">
+              <Users className="h-8 w-8 sm:h-10 sm:w-10 text-lime-deep dark:text-lime" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
               Selecione um colaborador
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
+            <p className="text-muted-foreground text-sm sm:text-base">
               Escolha um colaborador no menu acima para visualizar ou editar o PDI.
             </p>
           </div>

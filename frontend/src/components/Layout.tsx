@@ -59,14 +59,10 @@ export default function Layout() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-yt-bg">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center"
-        >
-          <Loader2 className="h-8 w-8 animate-spin text-primary-500 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Carregando...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-lime-deep dark:text-lime mx-auto mb-4" />
+          <p className="text-muted-foreground">Carregando...</p>
         </motion.div>
       </div>
     );
@@ -78,7 +74,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-yt-bg flex">
+    <div className="min-h-screen bg-[#1A1A1A] flex">
       {/* Overlay para mobile */}
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -93,7 +89,7 @@ export default function Layout() {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <Sidebar 
+      <Sidebar
         isCollapsed={isSidebarCollapsed}
         setIsCollapsed={setIsSidebarCollapsed}
         isMobileMenuOpen={isMobileMenuOpen}
@@ -101,38 +97,37 @@ export default function Layout() {
       />
 
       {/* Main Content */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${
-        isSidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'
-      }`}>
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 overflow-hidden ${
+          isSidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'
+        }`}
+      >
         {/* Header */}
-        <Header 
-          isMobileMenuOpen={isMobileMenuOpen}
-          setIsMobileMenuOpen={setIsMobileMenuOpen}
-        />
+        <Header isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
-        {/* Page Content */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+        {/* Page Content — painel arredondado sobre o obsidian (espelha seguranca-trabalho) */}
+        <main className="flex-1 flex flex-col overflow-auto bg-background md:rounded-tl-3xl md:dark:border-t md:dark:border-l md:dark:border-white/10">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="max-w-7xl mx-auto"
+            className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8"
           >
             <Suspense fallback={null}>
               <Outlet />
             </Suspense>
           </motion.div>
-        </main>
 
-        {/* Footer */}
-        <footer className="bg-white dark:bg-yt-surface border-t border-gray-300 dark:border-yt-border py-4 px-4 sm:px-6">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400 space-y-2 sm:space-y-0">
-            <p>&copy; {new Date().getFullYear()} GIO - Sistema de Gente &amp; Gestão</p>
-            <p>Versão 1.2.0</p>
-          </div>
-        </footer>
+          {/* Footer */}
+          <footer className="border-t border-border py-4 px-4 sm:px-6">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-muted-foreground space-y-2 sm:space-y-0">
+              <p>&copy; {new Date().getFullYear()} GIO - Sistema de Gente &amp; Gestão</p>
+              <p>Versão 1.2.0</p>
+            </div>
+          </footer>
+        </main>
       </div>
 
       {/* Modal de primeiro login - troca de senha obrigatória */}

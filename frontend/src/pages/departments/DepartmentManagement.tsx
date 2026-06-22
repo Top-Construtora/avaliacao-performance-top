@@ -2,21 +2,46 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
-import { 
-  Building, Edit, Trash2, Search, Filter,
-  MoreVertical, Copy, Download, Upload,
-  UserCog, FileText, Plus,
-  Grid3x3, List, FileSpreadsheet, FileDown,
-  Loader2, Database, UsersIcon, UserRound, Calendar
+import {
+  Building,
+  Edit,
+  Trash2,
+  Search,
+  Filter,
+  MoreVertical,
+  Copy,
+  Download,
+  Upload,
+  UserCog,
+  FileText,
+  Plus,
+  Grid3x3,
+  List,
+  FileSpreadsheet,
+  FileDown,
+  Loader2,
+  Database,
+  UsersIcon,
+  UserRound,
+  Calendar,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { useSupabaseData } from '../../hooks/useSupabaseData';
 import type { DepartmentWithDetails } from '../../types/supabase';
-import { usePermissions, useUIPermissions, useOperationValidator } from '../../hooks/usePermissions';
+import {
+  usePermissions,
+  useUIPermissions,
+  useOperationValidator,
+} from '../../hooks/usePermissions';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { PermissionGuard, ActionGuard, UIGuard, OperationWarning } from '../../components/PermissionGuard';
+import {
+  PermissionGuard,
+  ActionGuard,
+  UIGuard,
+  OperationWarning,
+} from '../../components/PermissionGuard';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 declare module 'jspdf' {
@@ -33,7 +58,7 @@ const DepartmentManagement = () => {
   const permissions = usePermissions();
   const uiPermissions = useUIPermissions();
   const operationValidator = useOperationValidator();
-  
+
   const { departments, loading, actions } = useSupabaseData();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,7 +87,7 @@ const DepartmentManagement = () => {
       return;
     }
 
-    const targetData = departments.find(d => d.id === id);
+    const targetData = departments.find((d) => d.id === id);
 
     if (!operationValidator.canExecute('delete_department', targetData)) {
       const errors = operationValidator.getValidationErrors('delete_department', targetData);
@@ -82,7 +107,7 @@ const DepartmentManagement = () => {
           } catch (error) {
             toast.error('Erro ao remover departamento');
           }
-        }
+        },
       });
       setShowWarning(true);
       return;
@@ -117,13 +142,13 @@ const DepartmentManagement = () => {
   };
 
   const exportToExcel = () => {
-    const data = filteredDepartments.map(dept => ({
+    const data = filteredDepartments.map((dept) => ({
       Nome: dept.name,
       Descrição: dept.description || '-',
       Responsável: dept.responsible?.name || '-',
       'Qtd. Times': dept.teams?.length || 0,
       'Qtd. Pessoas': dept.member_count || 0,
-      'Criado em': new Date(dept.created_at).toLocaleDateString('pt-BR')
+      'Criado em': new Date(dept.created_at).toLocaleDateString('pt-BR'),
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
@@ -137,12 +162,12 @@ const DepartmentManagement = () => {
     let markdownContent = `# Lista de Departamentos\n\n`;
     markdownContent += `| Nome | Descrição | Responsável | Times | Pessoas |\n`;
     markdownContent += `|------|-----------|-------------|-------|----------|\n`;
-    
-    filteredDepartments.forEach(dept => {
+
+    filteredDepartments.forEach((dept) => {
       const responsible = dept.responsible?.name || '-';
       const teamCount = dept.teams?.length || 0;
       const userCount = dept.member_count || 0;
-      
+
       markdownContent += `| ${dept.name} | ${dept.description || '-'} | ${responsible} | ${teamCount} | ${userCount} |\n`;
     });
 
@@ -155,7 +180,7 @@ const DepartmentManagement = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     toast.success('Dados exportados em formato Notion!');
   };
 
@@ -163,23 +188,23 @@ const DepartmentManagement = () => {
     const doc = new jsPDF();
     const title = 'Lista de Departamentos';
     const headers = ['Nome', 'Responsável', 'Times', 'Pessoas'];
-    const data = filteredDepartments.map(dept => [
+    const data = filteredDepartments.map((dept) => [
       dept.name,
       dept.responsible?.name || '-',
       (dept.teams?.length || 0).toString(),
-      (dept.member_count || 0).toString()
+      (dept.member_count || 0).toString(),
     ]);
 
     doc.setFontSize(16);
     doc.text(title, 14, 15);
-    
+
     doc.autoTable({
       head: [headers],
       body: data,
       startY: 25,
       theme: 'grid',
       styles: { fontSize: 10 },
-      headStyles: { fillColor: [18, 176, 160] }
+      headStyles: { fillColor: [61, 67, 79] },
     });
 
     doc.save('departamentos.pdf');
@@ -191,7 +216,7 @@ const DepartmentManagement = () => {
       toast.error('Você não tem permissão para exportar dados');
       return;
     }
-    
+
     switch (format) {
       case 'excel':
         exportToExcel();
@@ -208,9 +233,10 @@ const DepartmentManagement = () => {
 
   const filteredDepartments = useMemo(() => {
     return departments
-      .filter(dept => 
-        dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (dept.description && dept.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter(
+        (dept) =>
+          dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (dept.description && dept.description.toLowerCase().includes(searchTerm.toLowerCase())),
       )
       .sort((a, b) => {
         switch (sortBy) {
@@ -226,21 +252,30 @@ const DepartmentManagement = () => {
       });
   }, [departments, searchTerm, sortBy]);
 
-  const stats = useMemo(() => ({
-    totalDepartments: departments.length,
-    totalTeams: departments.reduce((acc, dept) => acc + (dept.teams?.length || 0), 0),
-    totalMembers: departments.reduce((acc, dept) => acc + (dept.member_count || 0), 0),
-    avgTeamsPerDept: departments.length > 0 ? Math.round(departments.reduce((acc, dept) => acc + (dept.teams?.length || 0), 0) / departments.length) : 0
-  }), [departments]);
+  const stats = useMemo(
+    () => ({
+      totalDepartments: departments.length,
+      totalTeams: departments.reduce((acc, dept) => acc + (dept.teams?.length || 0), 0),
+      totalMembers: departments.reduce((acc, dept) => acc + (dept.member_count || 0), 0),
+      avgTeamsPerDept:
+        departments.length > 0
+          ? Math.round(
+              departments.reduce((acc, dept) => acc + (dept.teams?.length || 0), 0) /
+                departments.length,
+            )
+          : 0,
+    }),
+    [departments],
+  );
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
@@ -251,53 +286,55 @@ const DepartmentManagement = () => {
       transition: {
         type: 'spring',
         stiffness: 100,
-      }
-    }
+      },
+    },
   };
 
   const renderDepartmentCard = (department: DepartmentWithDetails) => {
     const deptTeams = department.teams || [];
     const deptUsers = department.member_count || 0;
     const responsible = department.responsible;
-    
+
     return (
       <motion.div
         layout
         variants={itemVariants}
         whileHover={{ y: -4, transition: { duration: 0.2 } }}
-        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border overflow-hidden dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group"
+        className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border overflow-hidden dark:hover:shadow-xl hover:border-lime transition-all duration-300 group"
       >
-        <div className="h-2 bg-gradient-to-r from-stone-700 to-stone-800 dark:from-stone-800 dark:to-stone-900" />
-        
+        <div className="h-1 bg-lime" />
+
         <div className="p-6">
           <div className="flex items-start justify-between gap-2 mb-4">
             <div className="flex items-center space-x-4 flex-shrink-0">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-stone-700 to-stone-800 dark:from-stone-800 dark:to-stone-900 shadow-md dark:shadow-lg">
-                <Building className="h-6 w-6 text-white" />
+              <div className="p-3 rounded-2xl bg-secondary text-foreground group-hover:bg-lime group-hover:text-obsidian shadow-md dark:shadow-lg transition-colors">
+                <Building className="h-6 w-6" />
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate">{department.name}</h3>
+              <h3 className="font-bold text-foreground text-lg truncate">{department.name}</h3>
               {department.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{department.description}</p>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                  {department.description}
+                </p>
               )}
             </div>
-            
+
             <div className="flex flex-col space-y-1 ml-2 flex-shrink-0">
               <ActionGuard can={permissions.canEditDepartment}>
                 <button
                   onClick={() => handleEdit(department)}
-                  className="p-2 rounded-lg transition-all duration-200 hover:bg-stone-100 dark:hover:bg-stone-800/30 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-300 hover:shadow-sm"
+                  className="p-2 rounded-lg transition-all duration-200 hover:bg-accent text-muted-foreground hover:text-foreground hover:shadow-sm"
                   title="Editar"
                 >
                   <Edit className="h-4 w-4" />
                 </button>
               </ActionGuard>
-              
+
               <ActionGuard can={permissions.canDeleteDepartment}>
                 <button
                   onClick={() => handleDelete(department.id)}
-                  className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-stone-500 dark:text-stone-400 hover:text-red-600 dark:hover:text-red-400"
+                  className="p-2 rounded-xl transition-colors hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
                   title="Excluir"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -308,25 +345,31 @@ const DepartmentManagement = () => {
 
           <div className="space-y-3">
             {responsible && (
-              <div className="flex items-center text-sm text-stone-600 dark:text-stone-400 group/item hover:text-stone-800 dark:hover:text-stone-300 transition-colors">
-                <UserCog className="h-4 w-4 mr-3 text-stone-400 dark:text-stone-500 group-hover/item:text-stone-700 dark:group-hover/item:text-stone-400" />
-                <span>Responsável: <span className="font-medium truncate">{responsible.name}</span></span>
+              <div className="flex items-center text-sm text-muted-foreground group/item hover:text-foreground transition-colors">
+                <UserCog className="h-4 w-4 mr-3 text-muted-foreground group-hover/item:text-foreground" />
+                <span>
+                  Responsável: <span className="font-medium truncate">{responsible.name}</span>
+                </span>
               </div>
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center text-sm text-stone-600 dark:text-stone-400">
-                <UsersIcon className="h-4 w-4 mr-2 text-stone-400 dark:text-stone-500" />
-                <span className="font-medium">{deptTeams.length} {deptTeams.length === 1 ? 'time' : 'times'}</span>
+              <div className="flex items-center text-sm text-muted-foreground">
+                <UsersIcon className="h-4 w-4 mr-2 text-muted-foreground" />
+                <span className="font-medium">
+                  {deptTeams.length} {deptTeams.length === 1 ? 'time' : 'times'}
+                </span>
               </div>
-              <div className="flex items-center text-sm text-stone-600 dark:text-stone-400">
-                <UserRound className="h-4 w-4 mr-2 text-stone-400 dark:text-stone-500" />
-                <span className="font-medium">{deptUsers} {deptUsers === 1 ? 'pessoa' : 'pessoas'}</span>
+              <div className="flex items-center text-sm text-muted-foreground">
+                <UserRound className="h-4 w-4 mr-2 text-muted-foreground" />
+                <span className="font-medium">
+                  {deptUsers} {deptUsers === 1 ? 'pessoa' : 'pessoas'}
+                </span>
               </div>
             </div>
 
-            <div className="flex items-center text-sm text-stone-600 dark:text-stone-400">
-              <Calendar className="h-4 w-4 mr-3 text-stone-400 dark:text-stone-500" />
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4 mr-3 text-muted-foreground" />
               <span>Criado em {new Date(department.created_at).toLocaleDateString('pt-BR')}</span>
             </div>
           </div>
@@ -345,16 +388,16 @@ const DepartmentManagement = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-8"
+          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8"
         >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                  <Database className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-stone-600 dark:text-stone-400 mr-2 sm:mr-3 flex-shrink-0" />
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
+                  <Database className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-lime-deep dark:text-lime mr-2 sm:mr-3 flex-shrink-0" />
                   Gerenciamento de Departamentos
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
+                <p className="text-muted-foreground mt-1 text-sm sm:text-base">
                   Visualize e gerencie departamentos da organização
                 </p>
               </div>
@@ -372,52 +415,57 @@ const DepartmentManagement = () => {
             </UIGuard>
           </div>
 
-          <motion.div 
+          <motion.div
             className="grid grid-cols-3 sm:grid-cols-3 gap-4"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
-            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-stone-700 via-stone-800 to-stone-900 dark:from-stone-800 dark:via-stone-900 dark:to-black rounded-xl p-4 text-center shadow-lg">
-              <div className="relative z-10">
-                <p className="text-2xl font-bold text-white">{stats.totalDepartments}</p>
-                <p className="text-sm text-stone-100 font-medium">Departamentos</p>
-              </div>
-              <Building className="absolute -bottom-2 -right-2 h-16 w-16 text-stone-400 dark:text-stone-500 opacity-50" />
-            </motion.div>
-            
-            <motion.div 
-              variants={itemVariants} 
-              className="relative overflow-hidden rounded-xl p-4 text-center shadow-lg"
-              style={{ background: 'linear-gradient(to bottom right, #247B7B, #1B5B5B)' }}
+            <motion.div
+              variants={itemVariants}
+              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
             >
               <div className="relative z-10">
-                <p className="text-2xl font-bold text-white">{stats.totalTeams}</p>
-                <p className="text-sm text-teal-100 font-medium">Times Total</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalDepartments}</p>
+                <p className="text-sm text-muted-foreground font-medium">Departamentos</p>
               </div>
-              <UsersIcon className="absolute -bottom-2 -right-2 h-16 w-16 text-teal-300 opacity-50" />
+              <Building className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
             </motion.div>
-            
-            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-stone-700 via-stone-800 to-stone-900 dark:from-stone-800 dark:via-stone-900 dark:to-black rounded-xl p-4 text-center shadow-lg">
+
+            <motion.div
+              variants={itemVariants}
+              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
+            >
               <div className="relative z-10">
-                <p className="text-2xl font-bold text-white">{stats.totalMembers}</p>
-                <p className="text-sm text-stone-100 font-medium">Pessoas Total</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalTeams}</p>
+                <p className="text-sm text-muted-foreground font-medium">Times Total</p>
               </div>
-              <UserRound className="absolute -bottom-2 -right-2 h-16 w-16 text-stone-400 dark:text-stone-500 opacity-50" />
+              <UsersIcon className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
+            </motion.div>
+
+            <motion.div
+              variants={itemVariants}
+              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
+            >
+              <div className="relative z-10">
+                <p className="text-2xl font-bold text-foreground">{stats.totalMembers}</p>
+                <p className="text-sm text-muted-foreground font-medium">Pessoas Total</p>
+              </div>
+              <UserRound className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
             </motion.div>
           </motion.div>
         </motion.div>
 
-        <div className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-6">
+        <div className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-3">
-              <div className="flex items-center bg-gray-100/80 dark:bg-yt-elevated/50 backdrop-blur-sm rounded-xl p-1.5">
+              <div className="flex items-center bg-secondary backdrop-blur-sm rounded-xl p-1.5">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all ${
                     viewMode === 'grid'
-                      ? 'bg-white dark:bg-stone-700 text-stone-700 dark:text-stone-300 shadow-sm dark:shadow-lg'
-                      : 'text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                   title="Visualização em grade"
                 >
@@ -427,8 +475,8 @@ const DepartmentManagement = () => {
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg transition-all ${
                     viewMode === 'list'
-                      ? 'bg-white dark:bg-stone-700 text-stone-700 dark:text-stone-300 shadow-sm dark:shadow-lg'
-                      : 'text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                   title="Visualização em lista"
                 >
@@ -439,42 +487,42 @@ const DepartmentManagement = () => {
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`p-2.5 rounded-xl transition-all ${
-                  showFilters 
-                    ? 'bg-stone-200 dark:bg-stone-800/50 text-stone-800 dark:text-stone-300' 
-                    : 'bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-600'
+                  showFilters
+                    ? 'bg-accent text-foreground'
+                    : 'bg-secondary text-muted-foreground hover:bg-accent hover:text-foreground'
                 }`}
               >
                 <Filter className="h-4 w-4" />
               </button>
 
               <div className="relative group">
-                <button className="p-2.5 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-600 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                <button className="p-2.5 rounded-lg bg-secondary text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                   <MoreVertical className="h-4 w-4" />
                 </button>
-                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-yt-surface rounded-xl shadow-xl dark:shadow-2xl border border-gray-100 dark:border-yt-border py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                <div className="absolute right-0 mt-2 w-56 bg-popover text-popover-foreground rounded-xl shadow-xl dark:shadow-2xl border border-border py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                   <button
                     onClick={() => handleQuickAction('import')}
-                    className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
+                    className="w-full px-4 py-2.5 text-left text-sm text-foreground font-medium hover:bg-accent flex items-center space-x-3 transition-colors"
                   >
-                    <Upload className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                    <Upload className="h-4 w-4 text-muted-foreground" />
                     <span>Importar dados</span>
                   </button>
                   <UIGuard show="showExportButton">
                     <button
                       onClick={() => handleQuickAction('export')}
-                      className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-foreground font-medium hover:bg-accent flex items-center space-x-3 transition-colors"
                     >
-                      <Download className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                      <Download className="h-4 w-4 text-muted-foreground" />
                       <span>Exportar lista</span>
                     </button>
                   </UIGuard>
-                  <div className="border-t border-gray-100 dark:border-yt-border my-2" />
+                  <div className="border-t border-border my-2" />
                   <UIGuard show="showBulkActionsButton">
                     <button
                       onClick={() => handleQuickAction('bulk')}
-                      className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-foreground font-medium hover:bg-accent flex items-center space-x-3 transition-colors"
                     >
-                      <Copy className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                      <Copy className="h-4 w-4 text-muted-foreground" />
                       <span>Ações em massa</span>
                     </button>
                   </UIGuard>
@@ -485,13 +533,13 @@ const DepartmentManagement = () => {
 
           <div className="space-y-4">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Buscar departamentos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
+                className="w-full pl-12 pr-4 rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
               />
             </div>
 
@@ -503,15 +551,15 @@ const DepartmentManagement = () => {
                   exit={{ opacity: 0, height: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-700/30 dark:to-gray-700/50 rounded-xl border border-gray-200 dark:border-yt-border">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6 bg-secondary rounded-xl border border-border">
                     <div>
-                      <label className="block text-sm font-semibold text-naue-black dark:text-gray-300 font-medium mb-2">
+                      <label className="block text-sm font-semibold text-foreground font-medium mb-2">
                         Ordenar por
                       </label>
                       <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value as any)}
-                        className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
+                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
                       >
                         <option value="name">Nome</option>
                         <option value="teams">Quantidade de times</option>
@@ -532,12 +580,14 @@ const DepartmentManagement = () => {
                 initial="hidden"
                 animate="visible"
                 exit={{ opacity: 0 }}
-                className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}
+                className={
+                  viewMode === 'grid'
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
+                    : 'space-y-4'
+                }
               >
-                {filteredDepartments.map(dept => (
-                  <div key={dept.id}>
-                    {renderDepartmentCard(dept)}
-                  </div>
+                {filteredDepartments.map((dept) => (
+                  <div key={dept.id}>{renderDepartmentCard(dept)}</div>
                 ))}
               </motion.div>
             </AnimatePresence>
@@ -549,11 +599,15 @@ const DepartmentManagement = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-12"
             >
-              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 mb-6">
-                <Building className="h-10 w-10 text-stone-400 dark:text-stone-500" />
+              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-secondary mb-6">
+                <Building className="h-10 w-10 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Nenhum departamento encontrado</h3>
-              <p className="text-stone-500 dark:text-stone-400 mb-6">Crie o primeiro departamento da organização</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Nenhum departamento encontrado
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Crie o primeiro departamento da organização
+              </p>
               <UIGuard show="showCreateDepartmentButton">
                 <Button
                   variant="primary"
@@ -573,59 +627,59 @@ const DepartmentManagement = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
               onClick={() => setShowExportMenu(false)}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-naue-white dark:bg-yt-surface rounded-2xl p-6 max-w-sm w-full mx-4 shadow-md hover:shadow-lg border border-naue-border-gray dark:border-yt-border"
+                className="bg-popover text-popover-foreground rounded-2xl p-6 max-w-sm w-full mx-4 shadow-md hover:shadow-lg border border-border"
                 onClick={(e) => e.stopPropagation()}
               >
-                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-                  <Download className="h-5 w-5 mr-2 text-stone-600 dark:text-stone-400" />
+                <h2 className="text-xl font-bold text-foreground mb-6 flex items-center">
+                  <Download className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
                   Exportar Dados
                 </h2>
-                
+
                 <div className="space-y-3">
                   <button
                     onClick={() => handleExport('excel')}
-                    className="w-full p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 hover:from-green-100 hover:to-green-200 dark:hover:from-green-800/30 dark:hover:to-green-700/30 rounded-xl border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 font-medium text-left flex items-center space-x-3 transition-all"
+                    className="w-full p-4 bg-success/10 hover:bg-success/20 rounded-xl border border-success/30 text-success font-medium text-left flex items-center space-x-3 transition-all"
                   >
                     <FileSpreadsheet className="h-5 w-5" />
                     <div className="flex-1">
                       <p className="font-semibold">Excel</p>
-                      <p className="text-xs text-green-600 dark:text-green-400">Arquivo .xlsx para análises</p>
+                      <p className="text-xs text-muted-foreground">Arquivo .xlsx para análises</p>
                     </div>
                   </button>
 
                   <button
                     onClick={() => handleExport('notion')}
-                    className="w-full p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/20 dark:to-gray-600/20 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600/30 dark:hover:to-gray-500/30 rounded-xl border border-gray-200 dark:border-yt-border text-naue-black dark:text-gray-300 font-medium font-medium text-left flex items-center space-x-3 transition-all"
+                    className="w-full p-4 bg-secondary hover:bg-accent rounded-xl border border-border text-foreground font-medium text-left flex items-center space-x-3 transition-all"
                   >
                     <FileText className="h-5 w-5" />
                     <div className="flex-1">
                       <p className="font-semibold">Notion</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Markdown para importar</p>
+                      <p className="text-xs text-muted-foreground">Markdown para importar</p>
                     </div>
                   </button>
 
                   <button
                     onClick={() => handleExport('pdf')}
-                    className="w-full p-4 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 hover:from-red-100 hover:to-red-200 dark:hover:from-red-800/30 dark:hover:to-red-700/30 rounded-xl border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 font-medium text-left flex items-center space-x-3 transition-all"
+                    className="w-full p-4 bg-destructive/10 hover:bg-destructive/20 rounded-xl border border-destructive/30 text-destructive font-medium text-left flex items-center space-x-3 transition-all"
                   >
                     <FileDown className="h-5 w-5" />
                     <div className="flex-1">
                       <p className="font-semibold">PDF</p>
-                      <p className="text-xs text-red-600 dark:text-red-400">Documento para impressão</p>
+                      <p className="text-xs text-muted-foreground">Documento para impressão</p>
                     </div>
                   </button>
                 </div>
 
                 <button
                   onClick={() => setShowExportMenu(false)}
-                  className="w-full mt-4 p-3 rounded-xl border border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="w-full mt-4 p-3 rounded-xl border border-border text-muted-foreground font-medium hover:bg-accent transition-colors"
                 >
                   Cancelar
                 </button>

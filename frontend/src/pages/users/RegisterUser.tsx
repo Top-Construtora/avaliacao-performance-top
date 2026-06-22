@@ -2,19 +2,47 @@ import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { useSupabaseUsers, useSupabaseTeams, useSupabaseDepartments } from '../../hooks/useSupabaseData';
+import {
+  useSupabaseUsers,
+  useSupabaseTeams,
+  useSupabaseDepartments,
+} from '../../hooks/useSupabaseData';
 import { userService } from '../../services/user.service';
 import { supabase } from '../../lib/supabase';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import {
-  Users, Shield, Mail, Calendar,
-  X, Check, AlertCircle, Briefcase, UserCheck,
-  Sparkles, Crown, User, Phone, CalendarDays, Upload,
-  Eye, EyeOff, Save, Loader2, Lock,
-  CheckCircle2, ChevronDown, UserPlus, Building2,
-  FileText, UserCog, GitBranch,
-  Route, Layers, TrendingUp, MessageSquare
+  Users,
+  Shield,
+  Mail,
+  Calendar,
+  X,
+  Check,
+  AlertCircle,
+  Briefcase,
+  UserCheck,
+  Sparkles,
+  Crown,
+  User,
+  Phone,
+  CalendarDays,
+  Upload,
+  Eye,
+  EyeOff,
+  Save,
+  Loader2,
+  Lock,
+  CheckCircle2,
+  ChevronDown,
+  UserPlus,
+  Building2,
+  FileText,
+  UserCog,
+  GitBranch,
+  Route,
+  Layers,
+  TrendingUp,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -66,7 +94,9 @@ const RegisterUser = () => {
   const [positionsLoading, setPositionsLoading] = useState(false);
 
   // Estados para níveis salariais
-  const [salaryLevels, setSalaryLevels] = useState<Array<{ id: string; name: string; percentage: number; order_index: number }>>([]);
+  const [salaryLevels, setSalaryLevels] = useState<
+    Array<{ id: string; name: string; percentage: number; order_index: number }>
+  >([]);
   const [calculatedSalary, setCalculatedSalary] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
@@ -99,11 +129,8 @@ const RegisterUser = () => {
     const loadTracks = async () => {
       setTracksLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('career_tracks')
-          .select('*')
-          .order('name');
-        
+        const { data, error } = await supabase.from('career_tracks').select('*').order('name');
+
         if (error) throw error;
         setTracks(data || []);
       } catch (error) {
@@ -126,25 +153,28 @@ const RegisterUser = () => {
           .from('track_positions')
           .select('*')
           .order('order_index');
-        
+
         if (trackError) throw trackError;
 
         if (trackPositions && trackPositions.length > 0) {
-          const positionIds = trackPositions.map(tp => tp.position_id);
+          const positionIds = trackPositions.map((tp) => tp.position_id);
           const { data: positionsData, error: positionsError } = await supabase
             .from('job_positions')
             .select('id, name, code, description')
             .in('id', positionIds);
 
           if (!positionsError && positionsData) {
-            const positionsMap = positionsData.reduce((acc, pos) => {
-              acc[pos.id] = pos;
-              return acc;
-            }, {} as Record<string, any>);
+            const positionsMap = positionsData.reduce(
+              (acc, pos) => {
+                acc[pos.id] = pos;
+                return acc;
+              },
+              {} as Record<string, any>,
+            );
 
-            const enrichedPositions = trackPositions.map(tp => ({
+            const enrichedPositions = trackPositions.map((tp) => ({
               ...tp,
-              position: positionsMap[tp.position_id] || null
+              position: positionsMap[tp.position_id] || null,
             }));
 
             setPositions(enrichedPositions);
@@ -187,13 +217,13 @@ const RegisterUser = () => {
   // Calcular salário automaticamente quando mudar cargo ou internível (nível salarial)
   useEffect(() => {
     if (formData.positionId && formData.internLevel) {
-      const selectedPosition = positions.find(p => p.id === formData.positionId);
-      const selectedLevel = salaryLevels.find(l => l.name === formData.internLevel);
+      const selectedPosition = positions.find((p) => p.id === formData.positionId);
+      const selectedLevel = salaryLevels.find((l) => l.name === formData.internLevel);
 
       if (selectedPosition && selectedLevel) {
         const baseSalary = selectedPosition.base_salary;
         const percentage = selectedLevel.percentage / 100;
-        const calculatedValue = baseSalary + (baseSalary * percentage);
+        const calculatedValue = baseSalary + baseSalary * percentage;
         setCalculatedSalary(calculatedValue);
       } else {
         setCalculatedSalary(null);
@@ -206,40 +236,40 @@ const RegisterUser = () => {
   // Filtrar trilhas por departamento
   useEffect(() => {
     if (formData.departmentId) {
-      const filtered = tracks.filter(track => track.department_id === formData.departmentId);
+      const filtered = tracks.filter((track) => track.department_id === formData.departmentId);
       setFilteredTracks(filtered);
-      if (!filtered.find(t => t.id === formData.trackId)) {
-        setFormData(prev => ({ ...prev, trackId: '', positionId: '', internLevel: 'A' }));
+      if (!filtered.find((t) => t.id === formData.trackId)) {
+        setFormData((prev) => ({ ...prev, trackId: '', positionId: '', internLevel: 'A' }));
       }
     } else {
       setFilteredTracks([]);
-      setFormData(prev => ({ ...prev, trackId: '', positionId: '', internLevel: 'A' }));
+      setFormData((prev) => ({ ...prev, trackId: '', positionId: '', internLevel: 'A' }));
     }
   }, [formData.departmentId, tracks]);
 
   // Filtrar cargos por trilha
   useEffect(() => {
     if (formData.trackId) {
-      const filtered = positions.filter(pos => pos.track_id === formData.trackId);
+      const filtered = positions.filter((pos) => pos.track_id === formData.trackId);
       setFilteredPositions(filtered);
-      if (!filtered.find(p => p.id === formData.positionId)) {
-        setFormData(prev => ({ ...prev, positionId: '', internLevel: 'A' }));
+      if (!filtered.find((p) => p.id === formData.positionId)) {
+        setFormData((prev) => ({ ...prev, positionId: '', internLevel: 'A' }));
       }
     } else {
       setFilteredPositions([]);
-      setFormData(prev => ({ ...prev, positionId: '', internLevel: 'A' }));
+      setFormData((prev) => ({ ...prev, positionId: '', internLevel: 'A' }));
     }
   }, [formData.trackId, positions]);
 
   // Atualizar position quando positionId mudar
   useEffect(() => {
     if (formData.positionId) {
-      const selectedPosition = positions.find(p => p.id === formData.positionId);
+      const selectedPosition = positions.find((p) => p.id === formData.positionId);
       if (selectedPosition) {
         const positionName = selectedPosition.position?.name || selectedPosition.position_id;
-        setFormData(prev => ({ 
-          ...prev, 
-          position: positionName
+        setFormData((prev) => ({
+          ...prev,
+          position: positionName,
         }));
       }
     }
@@ -250,9 +280,9 @@ const RegisterUser = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
@@ -263,15 +293,15 @@ const RegisterUser = () => {
       transition: {
         type: 'spring',
         stiffness: 100,
-      }
-    }
+      },
+    },
   };
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     // Limita a 11 dígitos
     const limitedNumbers = numbers.slice(0, 11);
-    
+
     // Aplica a formatação com a máscara
     return limitedNumbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
   };
@@ -281,11 +311,11 @@ const RegisterUser = () => {
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
       age--;
     }
-    
+
     return age;
   };
 
@@ -296,7 +326,7 @@ const RegisterUser = () => {
         toast.error('A imagem deve ter no máximo 5MB');
         return;
       }
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({ ...formData, profileImage: reader.result as string });
@@ -306,12 +336,12 @@ const RegisterUser = () => {
   };
 
   const handleProfileFieldChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) errors.name = 'Nome é obrigatório';
     if (!formData.email.trim()) errors.email = 'Email é obrigatório';
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -333,28 +363,28 @@ const RegisterUser = () => {
       if (age < 16) errors.birthDate = 'Idade mínima: 16 anos';
       if (age > 100) errors.birthDate = 'Data de nascimento inválida';
     }
-    
+
     if (!formData.joinDate) {
       errors.joinDate = 'Data de admissão é obrigatória';
     } else {
       const joinDate = new Date(formData.joinDate);
       const today = new Date();
-      
+
       if (joinDate > today) {
         errors.joinDate = 'Data de admissão não pode ser futura';
       }
-      
+
       if (formData.birthDate) {
         const birthDate = new Date(formData.birthDate);
         const minWorkAge = new Date(birthDate);
         minWorkAge.setFullYear(minWorkAge.getFullYear() + 16);
-        
+
         if (joinDate < minWorkAge) {
           errors.joinDate = 'Data de admissão inválida (avaliado teria menos de 16 anos)';
         }
       }
     }
-    
+
     if (formData.teamIds.length === 0 && formData.profileType !== 'director') {
       errors.teams = 'Selecione pelo menos um time';
     }
@@ -364,7 +394,7 @@ const RegisterUser = () => {
     if (formData.profileType === 'leader' && !formData.reportsTo) {
       errors.reportsTo = 'Selecione quem este avaliador reporta';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -376,7 +406,7 @@ const RegisterUser = () => {
 
     try {
       // Buscar o salary_level_id baseado no internLevel
-      const selectedSalaryLevel = salaryLevels.find(l => l.name === formData.internLevel);
+      const selectedSalaryLevel = salaryLevels.find((l) => l.name === formData.internLevel);
 
       // Usar a nova API que não cria sessão
       const user = await userService.createUserWithAuth({
@@ -399,26 +429,22 @@ const RegisterUser = () => {
         intern_level: formData.internLevel || 'A',
         contract_type: formData.contractType || 'CLT',
         observations: formData.observations || null,
-        ...(isAdmin
-          ? { position_is_confidential: formData.positionIsConfidential }
-          : {}),
+        ...(isAdmin ? { position_is_confidential: formData.positionIsConfidential } : {}),
       } as any);
 
       // Adicionar usuário aos times, se especificado
       if (formData.teamIds && formData.teamIds.length > 0 && formData.profileType !== 'director') {
-        const teamMembers = formData.teamIds.map(teamId => ({
+        const teamMembers = formData.teamIds.map((teamId) => ({
           team_id: teamId,
           user_id: user.id,
         }));
 
-        await supabase
-          .from('team_members')
-          .insert(teamMembers);
+        await supabase.from('team_members').insert(teamMembers);
       }
 
       await reloadUsers();
       toast.success('Usuário criado com sucesso!');
-      
+
       setTimeout(() => {
         navigate('/users');
       }, 1500);
@@ -440,15 +466,15 @@ const RegisterUser = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-4 sm:p-8"
+        className="bg-card rounded-2xl shadow-sm dark:shadow-lg border border-border p-4 sm:p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
-          <div>            
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-              <UserPlus className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-900 dark:text-primary-400 mr-2 sm:mr-3 flex-shrink-0" />
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
+              <UserPlus className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-lime-deep dark:text-lime mr-2 sm:mr-3 flex-shrink-0" />
               Cadastrar Usuário
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
               Adicione novos avaliados ao sistema
             </p>
           </div>
@@ -456,16 +482,19 @@ const RegisterUser = () => {
       </motion.div>
 
       {/* Form Content */}
-      <motion.div 
+      <motion.div
         className="space-y-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {/* Profile Type Selection */}
-        <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <Shield className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
+        <motion.div
+          variants={itemVariants}
+          className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+        >
+          <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+            <Shield className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
             Tipo de Perfil
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -475,38 +504,38 @@ const RegisterUser = () => {
                 label: 'Avaliado',
                 description: 'Membro da equipe com acesso padrão',
                 icon: UserCheck,
-                gradient: 'from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700',
-                selectedBg: 'bg-gray-50 dark:bg-yt-bg/20',
-                selectedBorder: 'border-gray-500 dark:border-gray-400',
-                selectedText: 'text-gray-700 dark:text-gray-300'
+                gradient: 'bg-secondary',
+                selectedBg: 'bg-card ring-2 ring-lime/60',
+                selectedBorder: 'border-lime',
+                selectedText: 'text-lime-deep dark:text-lime',
               },
               {
                 value: 'leader',
                 label: 'Avaliador',
                 description: 'Gerencia equipes e avaliações',
                 icon: Crown,
-                gradient: 'from-primary-900 to-primary-800 dark:from-primary-900 dark:to-primary-800',
-                selectedBg: 'bg-primary-50 dark:bg-primary-900/20',
-                selectedBorder: 'border-primary-900 dark:border-primary-800',
-                selectedText: 'text-primary-900 dark:text-primary-300'
+                gradient: 'bg-secondary',
+                selectedBg: 'bg-card ring-2 ring-lime/60',
+                selectedBorder: 'border-lime',
+                selectedText: 'text-lime-deep dark:text-lime',
               },
               {
                 value: 'director',
                 label: 'Diretor',
                 description: 'Acesso completo ao sistema',
                 icon: Sparkles,
-                gradient: 'from-stone-800 to-stone-900 dark:from-stone-800 dark:to-stone-900',
-                selectedBg: 'bg-stone-50 dark:bg-stone-900/20',
-                selectedBorder: 'border-stone-800 dark:border-stone-700',
-                selectedText: 'text-stone-800 dark:text-stone-300 font-medium'
-              }
+                gradient: 'bg-secondary',
+                selectedBg: 'bg-card ring-2 ring-lime/60',
+                selectedBorder: 'border-lime',
+                selectedText: 'text-lime-deep dark:text-lime font-medium',
+              },
             ].map((type) => (
-              <label 
+              <label
                 key={type.value}
                 className={`relative flex flex-col p-6 rounded-lg border cursor-pointer transition-all transform hover:scale-[1.02] ${
-                  formData.profileType === type.value 
+                  formData.profileType === type.value
                     ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
-                    : 'bg-gray-50/50 dark:bg-yt-elevated/20 border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500'
+                    : 'bg-secondary border-border hover:border-lime'
                 }`}
               >
                 <input
@@ -514,37 +543,52 @@ const RegisterUser = () => {
                   name="profileType"
                   value={type.value}
                   checked={formData.profileType === type.value}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    profileType: e.target.value as any,
-                    isLeader: e.target.value !== 'regular',
-                    isDirector: e.target.value === 'director'
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      profileType: e.target.value as any,
+                      isLeader: e.target.value !== 'regular',
+                      isDirector: e.target.value === 'director',
+                    })
+                  }
                   className="sr-only"
                 />
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`p-3 rounded-xl bg-gradient-to-br ${type.gradient} shadow-md`}>
-                    <type.icon className="h-6 w-6 text-white" />
+                  <div
+                    className={`p-3 rounded-xl shadow-md transition-colors ${
+                      formData.profileType === type.value
+                        ? 'bg-lime text-obsidian'
+                        : `${type.gradient} text-foreground`
+                    }`}
+                  >
+                    <type.icon className="h-6 w-6" />
                   </div>
                   {formData.profileType === type.value && (
-                    <div className="bg-white dark:bg-yt-elevated rounded-full p-1.5 shadow-md">
-                      <Check className="h-4 w-4 text-primary-900 dark:text-primary-400" />
+                    <div className="rounded-full bg-lime p-1.5 shadow-md">
+                      <Check className="h-4 w-4 text-obsidian" />
                     </div>
                   )}
                 </div>
-                <h4 className={`font-bold text-base mb-1 ${
-                  formData.profileType === type.value ? type.selectedText : 'text-gray-900 dark:text-gray-100'
-                }`}>{type.label}</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{type.description}</p>
+                <h4
+                  className={`font-bold text-base mb-1 ${
+                    formData.profileType === type.value ? type.selectedText : 'text-foreground'
+                  }`}
+                >
+                  {type.label}
+                </h4>
+                <p className="text-sm text-muted-foreground">{type.description}</p>
               </label>
             ))}
           </div>
         </motion.div>
 
         {/* Contract Type Selection */}
-        <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <FileText className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
+        <motion.div
+          variants={itemVariants}
+          className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+        >
+          <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+            <FileText className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
             Tipo de Contrato
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -554,28 +598,28 @@ const RegisterUser = () => {
                 label: 'CLT',
                 description: 'Contrato de trabalho com carteira assinada',
                 icon: Shield,
-                gradient: 'from-primary-900 to-primary-800 dark:from-primary-900 dark:to-primary-800',
-                selectedBg: 'bg-primary-50 dark:bg-primary-900/20',
-                selectedBorder: 'border-primary-900 dark:border-primary-800',
-                selectedText: 'text-primary-900 dark:text-primary-300'
+                gradient: 'bg-secondary',
+                selectedBg: 'bg-card ring-2 ring-lime/60',
+                selectedBorder: 'border-lime',
+                selectedText: 'text-lime-deep dark:text-lime',
               },
               {
                 value: 'PJ',
                 label: 'PJ',
                 description: 'Pessoa Jurídica - Prestador de serviços',
                 icon: Briefcase,
-                gradient: 'from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700',
-                selectedBg: 'bg-gray-50 dark:bg-yt-bg/20',
-                selectedBorder: 'border-gray-500 dark:border-gray-400',
-                selectedText: 'text-gray-700 dark:text-gray-300'
-              }
+                gradient: 'bg-secondary',
+                selectedBg: 'bg-card ring-2 ring-lime/60',
+                selectedBorder: 'border-lime',
+                selectedText: 'text-lime-deep dark:text-lime',
+              },
             ].map((type) => (
-              <label 
+              <label
                 key={type.value}
                 className={`relative flex flex-col p-6 rounded-lg border cursor-pointer transition-all transform hover:scale-[1.02] ${
-                  formData.contractType === type.value 
+                  formData.contractType === type.value
                     ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
-                    : 'bg-gray-50/50 dark:bg-yt-elevated/20 border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500'
+                    : 'bg-secondary border-border hover:border-lime'
                 }`}
               >
                 <input
@@ -583,55 +627,74 @@ const RegisterUser = () => {
                   name="contractType"
                   value={type.value}
                   checked={formData.contractType === type.value}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    contractType: e.target.value as 'CLT' | 'PJ'
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      contractType: e.target.value as 'CLT' | 'PJ',
+                    })
+                  }
                   className="sr-only"
                 />
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`p-3 rounded-xl bg-gradient-to-br ${type.gradient} shadow-md`}>
-                    <type.icon className="h-6 w-6 text-white" />
+                  <div
+                    className={`p-3 rounded-xl shadow-md transition-colors ${
+                      formData.contractType === type.value
+                        ? 'bg-lime text-obsidian'
+                        : `${type.gradient} text-foreground`
+                    }`}
+                  >
+                    <type.icon className="h-6 w-6" />
                   </div>
                   {formData.contractType === type.value && (
-                    <div className="bg-white dark:bg-yt-elevated rounded-full p-1.5 shadow-md">
-                      <Check className="h-4 w-4 text-primary-900 dark:text-primary-400" />
+                    <div className="rounded-full bg-lime p-1.5 shadow-md">
+                      <Check className="h-4 w-4 text-obsidian" />
                     </div>
                   )}
                 </div>
-                <h4 className={`font-bold text-base mb-1 ${
-                  formData.contractType === type.value ? type.selectedText : 'text-gray-900 dark:text-gray-100'
-                }`}>{type.label}</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{type.description}</p>
+                <h4
+                  className={`font-bold text-base mb-1 ${
+                    formData.contractType === type.value ? type.selectedText : 'text-foreground'
+                  }`}
+                >
+                  {type.label}
+                </h4>
+                <p className="text-sm text-muted-foreground">{type.description}</p>
               </label>
             ))}
           </div>
         </motion.div>
 
         {/* Basic Information */}
-        <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <User className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
+        <motion.div
+          variants={itemVariants}
+          className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+        >
+          <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+            <User className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
             Informações Básicas
           </h3>
-          
+
           {/* Profile Image */}
-          <div className="mb-6 pb-6 border-b border-gray-100 dark:border-yt-border">
-            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-4">
+          <div className="mb-6 pb-6 border-b border-border">
+            <label className="block text-sm font-medium text-foreground font-medium mb-4">
               Foto do Perfil
             </label>
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <div 
-                  className="h-24 w-24 rounded-2xl bg-gray-100 dark:bg-yt-elevated flex items-center justify-center overflow-hidden cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group border-2 border-dashed border-gray-300 dark:border-yt-border"
+                <div
+                  className="h-24 w-24 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden cursor-pointer hover:bg-accent transition-colors group border-2 border-dashed border-border"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {formData.profileImage ? (
-                    <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                    <img
+                      src={formData.profileImage}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="text-center">
-                      <Upload className="h-8 w-8 text-gray-400 dark:text-gray-500 mx-auto mb-1 group-hover:text-gray-600 dark:group-hover:text-gray-400" />
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Upload</span>
+                      <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
+                      <span className="text-xs text-muted-foreground">Upload</span>
                     </div>
                   )}
                 </div>
@@ -642,7 +705,7 @@ const RegisterUser = () => {
                       e.stopPropagation();
                       setFormData({ ...formData, profileImage: null });
                     }}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-colors"
+                    className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:bg-destructive/90 transition-colors"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -655,7 +718,7 @@ const RegisterUser = () => {
                   className="hidden"
                 />
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-muted-foreground">
                 <p>Clique para fazer upload</p>
                 <p className="text-xs mt-1">JPG, PNG ou GIF (máx. 5MB)</p>
               </div>
@@ -664,22 +727,22 @@ const RegisterUser = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-foreground font-medium mb-2">
                 Nome completo *
               </label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
-                  formErrors.name 
-                    ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                    : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                className={`w-full px-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
+                  formErrors.name
+                    ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                    : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                 }`}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Digite o nome completo"
               />
               {formErrors.name && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <p className="text-sm text-destructive mt-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {formErrors.name}
                 </p>
@@ -687,17 +750,17 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-foreground font-medium mb-2">
                 Email corporativo *
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
                   type="email"
-                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
-                    formErrors.email 
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                      : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
+                    formErrors.email
+                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                   }`}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -705,7 +768,7 @@ const RegisterUser = () => {
                 />
               </div>
               {formErrors.email && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <p className="text-sm text-destructive mt-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {formErrors.email}
                 </p>
@@ -713,16 +776,16 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-foreground font-medium mb-2">
                 Senha temporária *
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  className={`w-full px-4 py-3 pr-12 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
-                    formErrors.password 
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                      : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                  className={`w-full px-4 py-3 pr-12 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
+                    formErrors.password
+                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                   }`}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -730,14 +793,14 @@ const RegisterUser = () => {
                 />
                 <button
                   type="button"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
               {formErrors.password && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <p className="text-sm text-destructive mt-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {formErrors.password}
                 </p>
@@ -745,17 +808,17 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-foreground font-medium mb-2">
                 Telefone
               </label>
               <div className="relative">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
                   type="tel"
-                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 ${
-                    formErrors.phone 
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                      : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
+                    formErrors.phone
+                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                   }`}
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
@@ -763,7 +826,7 @@ const RegisterUser = () => {
                 />
               </div>
               {formErrors.phone && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <p className="text-sm text-destructive mt-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {formErrors.phone}
                 </p>
@@ -771,24 +834,24 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-foreground font-medium mb-2">
                 Data de nascimento
               </label>
               <div className="relative">
-                <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
                   type="date"
-                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                    formErrors.birthDate 
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                      : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground ${
+                    formErrors.birthDate
+                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                   }`}
                   value={formData.birthDate}
                   onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
                 />
               </div>
               {formErrors.birthDate && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <p className="text-sm text-destructive mt-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {formErrors.birthDate}
                 </p>
@@ -796,17 +859,17 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-foreground font-medium mb-2">
                 Data de Admissão *
               </label>
               <div className="relative">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
                   type="date"
-                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                    formErrors.joinDate 
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                      : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground ${
+                    formErrors.joinDate
+                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                   }`}
                   value={formData.joinDate}
                   onChange={(e) => setFormData({ ...formData, joinDate: e.target.value })}
@@ -814,7 +877,7 @@ const RegisterUser = () => {
                 />
               </div>
               {formErrors.joinDate && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <p className="text-sm text-destructive mt-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {formErrors.joinDate}
                 </p>
@@ -824,38 +887,43 @@ const RegisterUser = () => {
         </motion.div>
 
         {/* Career Information */}
-        <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <TrendingUp className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
+        <motion.div
+          variants={itemVariants}
+          className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+        >
+          <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+            <TrendingUp className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
             Informações de Carreira
           </h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-foreground font-medium mb-2">
                 Departamento *
               </label>
               <div className="relative">
-                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                    formErrors.departmentId 
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                      : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                    formErrors.departmentId
+                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                   }`}
                   value={formData.departmentId}
                   onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
                   disabled={depsLoading}
                 >
                   <option value="">Selecione um departamento</option>
-                  {departments.map(dept => (
-                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
                   ))}
                 </select>
               </div>
               {formErrors.departmentId && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <p className="text-sm text-destructive mt-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {formErrors.departmentId}
                 </p>
@@ -863,32 +931,36 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-foreground font-medium mb-2">
                 Trilha *
               </label>
               <div className="relative">
-                <Route className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                <Route className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                    formErrors.trackId 
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                      : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                    formErrors.trackId
+                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                   }`}
                   value={formData.trackId}
                   onChange={(e) => setFormData({ ...formData, trackId: e.target.value })}
                   disabled={!formData.departmentId || tracksLoading}
                 >
                   <option value="">
-                    {!formData.departmentId ? 'Selecione um departamento primeiro' : 'Selecione uma trilha'}
+                    {!formData.departmentId
+                      ? 'Selecione um departamento primeiro'
+                      : 'Selecione uma trilha'}
                   </option>
-                  {filteredTracks.map(track => (
-                    <option key={track.id} value={track.id}>{track.name}</option>
+                  {filteredTracks.map((track) => (
+                    <option key={track.id} value={track.id}>
+                      {track.name}
+                    </option>
                   ))}
                 </select>
               </div>
               {formErrors.trackId && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <p className="text-sm text-destructive mt-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {formErrors.trackId}
                 </p>
@@ -896,17 +968,17 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-foreground font-medium mb-2">
                 Cargo *
               </label>
               <div className="relative">
-                <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                    formErrors.positionId 
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                      : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                    formErrors.positionId
+                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                   }`}
                   value={formData.positionId}
                   onChange={(e) => setFormData({ ...formData, positionId: e.target.value })}
@@ -915,7 +987,7 @@ const RegisterUser = () => {
                   <option value="">
                     {!formData.trackId ? 'Selecione uma trilha primeiro' : 'Selecione um cargo'}
                   </option>
-                  {filteredPositions.map(position => {
+                  {filteredPositions.map((position) => {
                     const positionName = position.position?.name || position.position_id;
                     return (
                       <option key={position.id} value={position.id}>
@@ -926,7 +998,7 @@ const RegisterUser = () => {
                 </select>
               </div>
               {formErrors.positionId && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <p className="text-sm text-destructive mt-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {formErrors.positionId}
                 </p>
@@ -934,20 +1006,25 @@ const RegisterUser = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-foreground font-medium mb-2">
                 Internível *
               </label>
               <div className="relative">
-                <Layers className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                <Layers className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                    formErrors.internLevel 
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                      : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                    formErrors.internLevel
+                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                   }`}
                   value={formData.internLevel}
-                  onChange={(e) => setFormData({ ...formData, internLevel: e.target.value as 'A' | 'B' | 'C' | 'D' | 'E' })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      internLevel: e.target.value as 'A' | 'B' | 'C' | 'D' | 'E',
+                    })
+                  }
                   disabled={!formData.positionId}
                 >
                   <option value="A">A</option>
@@ -958,12 +1035,12 @@ const RegisterUser = () => {
                 </select>
               </div>
               {formErrors.internLevel && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <p className="text-sm text-destructive mt-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {formErrors.internLevel}
                 </p>
               )}
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Selecione o nível de senioridade dentro do cargo
               </p>
             </div>
@@ -972,46 +1049,55 @@ const RegisterUser = () => {
 
         {/* Team Allocation */}
         {formData.profileType !== 'director' && (
-          <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <Users className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
+          <motion.div
+            variants={itemVariants}
+            className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          >
+            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+              <Users className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
               Alocação em Times *
             </h3>
             <div className="max-h-64 overflow-y-auto pr-2 space-y-2">
-              {teams.map(team => (
-                <label key={team.id} className={`flex items-center p-4 rounded-xl cursor-pointer transition-all group ${
-                  formData.teamIds.includes(team.id)
-                    ? 'bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-500 dark:border-primary-400'
-                    : 'bg-gray-50 dark:bg-yt-elevated/30 border-2 border-gray-200 dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500'
-                }`}>
+              {teams.map((team) => (
+                <label
+                  key={team.id}
+                  className={`flex items-center p-4 rounded-xl cursor-pointer transition-all group ${
+                    formData.teamIds.includes(team.id)
+                      ? 'bg-secondary border-2 border-lime ring-1 ring-lime/40'
+                      : 'bg-secondary border-2 border-border hover:border-lime'
+                  }`}
+                >
                   <input
                     type="checkbox"
-                    className="w-5 h-5 rounded border-gray-300 dark:border-yt-border text-primary-900 dark:text-primary-300 focus:ring-primary-900 dark:focus:ring-primary-400"
+                    className="w-5 h-5 rounded border-border text-lime focus:ring-[#D2FF00]/20"
                     checked={formData.teamIds.includes(team.id)}
                     onChange={(e) => {
                       if (e.target.checked) {
                         setFormData({ ...formData, teamIds: [...formData.teamIds, team.id] });
                       } else {
-                        setFormData({ ...formData, teamIds: formData.teamIds.filter(id => id !== team.id) });
+                        setFormData({
+                          ...formData,
+                          teamIds: formData.teamIds.filter((id) => id !== team.id),
+                        });
                       }
                     }}
                   />
                   <div className="ml-4 flex-1">
-                    <span className="font-medium text-gray-900 dark:text-gray-100 block">{team.name}</span>
+                    <span className="font-medium text-foreground block">{team.name}</span>
                     {team.department && (
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                      <span className="text-sm text-muted-foreground">
                         Depto: {team.department.name}
                       </span>
                     )}
                   </div>
                   {formData.teamIds.includes(team.id) && (
-                    <CheckCircle2 className="h-5 w-5 text-primary-900 dark:text-primary-400 ml-2" />
+                    <CheckCircle2 className="h-5 w-5 text-lime-deep dark:text-lime ml-2" />
                   )}
                 </label>
               ))}
             </div>
             {formErrors.teams && (
-              <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+              <p className="text-sm text-destructive mt-2 flex items-center">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 {formErrors.teams}
               </p>
@@ -1021,32 +1107,37 @@ const RegisterUser = () => {
 
         {/* Hierarchy */}
         {(formData.profileType === 'regular' || formData.profileType === 'leader') && (
-          <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <GitBranch className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
+          <motion.div
+            variants={itemVariants}
+            className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          >
+            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+              <GitBranch className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
               Hierarquia
             </h3>
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+              <label className="block text-sm font-medium text-foreground font-medium mb-2">
                 Reporta para *
               </label>
               <div className="relative">
-                <UserCog className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                <UserCog className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                 <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-white dark:bg-yt-elevated text-gray-900 dark:text-gray-100 ${
-                    formErrors.reportsTo 
-                      ? 'border-status-danger dark:border-red-600 focus:border-status-danger focus:ring-2 focus:ring-status-danger' 
-                      : 'border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400'
+                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                    formErrors.reportsTo
+                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
                   }`}
                   value={formData.reportsTo}
                   onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
                 >
                   <option value="">
-                    {formData.profileType === 'regular' ? 'Selecione um avaliador' : 'Selecione quem este avaliador reporta'}
+                    {formData.profileType === 'regular'
+                      ? 'Selecione um avaliador'
+                      : 'Selecione quem este avaliador reporta'}
                   </option>
                   {users
-                    .filter(u => {
+                    .filter((u) => {
                       // Não mostrar admins na lista
                       if (u.is_admin) return false;
 
@@ -1056,7 +1147,7 @@ const RegisterUser = () => {
                       // Para líderes, podem reportar para outros líderes ou diretores
                       return u.is_leader || u.is_director;
                     })
-                    .map(superior => (
+                    .map((superior) => (
                       <option key={superior.id} value={superior.id}>
                         {superior.name} - {superior.position}
                         {superior.is_director && ' (Diretor)'}
@@ -1066,13 +1157,13 @@ const RegisterUser = () => {
                 </select>
               </div>
               {formErrors.reportsTo && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 flex items-center">
+                <p className="text-sm text-destructive mt-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {formErrors.reportsTo}
                 </p>
               )}
               {formData.profileType === 'leader' && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                <p className="text-xs text-muted-foreground mt-2">
                   Avaliadores podem reportar para outros avaliadores ou diretores
                 </p>
               )}
@@ -1081,23 +1172,26 @@ const RegisterUser = () => {
         )}
 
         {/* Observations */}
-        <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <MessageSquare className="h-5 w-5 mr-2 text-primary-900 dark:text-primary-400" />
+        <motion.div
+          variants={itemVariants}
+          className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+        >
+          <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+            <MessageSquare className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
             Observações / Anotações
           </h3>
           <div>
-            <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-2">
+            <label className="block text-sm font-medium text-foreground font-medium mb-2">
               Observações sobre o colaborador
             </label>
             <textarea
-              className="w-full px-4 py-3 rounded-lg border transition-all bg-white dark:bg-yt-elevated text-naue-black dark:text-gray-100 placeholder-naue-text-gray dark:placeholder-gray-500 border-naue-border-gray dark:border-yt-border hover:border-gray-300 dark:hover:border-gray-500 focus:border-primary dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-400 resize-none"
+              className="w-full px-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 resize-none"
               rows={4}
               value={formData.observations}
               onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
               placeholder="Adicione observações, anotações ou informações relevantes sobre este colaborador..."
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               Este campo é opcional e será exibido no Comitê de Gente
             </p>
           </div>
@@ -1105,25 +1199,33 @@ const RegisterUser = () => {
 
         {/* Cargo Sigiloso (admin only) */}
         {isAdmin && (
-          <motion.div variants={itemVariants} className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-              <Lock className="h-5 w-5 mr-2 text-amber-500" />
+          <motion.div
+            variants={itemVariants}
+            className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          >
+            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+              <Lock className="h-5 w-5 mr-2 text-warning" />
               Confidencialidade do Cargo
             </h3>
-            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-yt-elevated/50 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
               <div className="pr-4">
-                <h4 className="font-medium text-gray-900 dark:text-gray-100">Cargo sigiloso</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Quando ativado, o cargo real fica visível apenas para o próprio
-                  colaborador, administradores, diretores e o líder direto. Demais
-                  usuários veem uma versão genérica no formato &quot;Cargo de Time&quot;.
+                <h4 className="font-medium text-foreground">Cargo sigiloso</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Quando ativado, o cargo real fica visível apenas para o próprio colaborador,
+                  administradores, diretores e o líder direto. Demais usuários veem uma versão
+                  genérica no formato &quot;Cargo de Time&quot;.
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, positionIsConfidential: !formData.positionIsConfidential })}
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    positionIsConfidential: !formData.positionIsConfidential,
+                  })
+                }
                 className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                  formData.positionIsConfidential ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'
+                  formData.positionIsConfidential ? 'bg-warning' : 'bg-secondary'
                 }`}
                 aria-pressed={formData.positionIsConfidential}
                 aria-label="Marcar cargo como sigiloso"
@@ -1140,8 +1242,8 @@ const RegisterUser = () => {
       </motion.div>
 
       {/* Action Buttons */}
-      <motion.div 
-        className="bg-white dark:bg-yt-surface rounded-2xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-yt-border p-4 sm:p-6"
+      <motion.div
+        className="bg-card rounded-2xl shadow-sm dark:shadow-lg border border-border p-4 sm:p-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
@@ -1162,7 +1264,13 @@ const RegisterUser = () => {
             disabled={isLoading}
             size="lg"
             className="w-full sm:w-auto"
-            icon={isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+            icon={
+              isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Save className="h-5 w-5" />
+              )
+            }
           >
             {isLoading ? 'Salvando...' : 'Salvar Usuário'}
           </Button>

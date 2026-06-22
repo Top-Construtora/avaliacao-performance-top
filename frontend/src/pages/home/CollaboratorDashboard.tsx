@@ -12,7 +12,7 @@ import {
   Users,
   Crown,
   BarChart2,
-  Calendar
+  Calendar,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { evaluationService } from '../../services/evaluation.service';
@@ -30,7 +30,7 @@ const CollaboratorDashboard = () => {
     ppiDefined: false,
     selfScore: null as number | null,
     leaderScore: null as number | null,
-    consensusScore: null as number | null
+    consensusScore: null as number | null,
   });
   const [loading, setLoading] = useState(true);
 
@@ -54,8 +54,10 @@ const CollaboratorDashboard = () => {
           const normalizeStatus = (status: string | null | undefined): string => {
             if (!status) return 'pending';
             // Aceitar variações de "completed"
-            if (status === 'completed' || status === 'Completed' || status === 'COMPLETED') return 'completed';
-            if (status === 'in-progress' || status === 'in_progress' || status === 'InProgress') return 'in-progress';
+            if (status === 'completed' || status === 'Completed' || status === 'COMPLETED')
+              return 'completed';
+            if (status === 'in-progress' || status === 'in_progress' || status === 'InProgress')
+              return 'in-progress';
             if (status === 'n/a' || status === 'N/A') return 'n/a';
             return status;
           };
@@ -67,7 +69,7 @@ const CollaboratorDashboard = () => {
             ppiDefined: !!myData.ninebox_position || myData.consensus_status === 'completed',
             selfScore: myData.self_evaluation_score ?? myData.self_score ?? null,
             leaderScore: myData.leader_evaluation_score ?? myData.leader_score ?? null,
-            consensusScore: myData.consensus_score ?? myData.consensus_performance_score ?? null
+            consensusScore: myData.consensus_score ?? myData.consensus_performance_score ?? null,
           });
         }
       }
@@ -82,8 +84,8 @@ const CollaboratorDashboard = () => {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+      transition: { staggerChildren: 0.1 },
+    },
   };
 
   const itemVariants = {
@@ -91,10 +93,9 @@ const CollaboratorDashboard = () => {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { type: 'spring', stiffness: 100 }
-    }
+      transition: { type: 'spring', stiffness: 100 },
+    },
   };
-
 
   const quickActions = [
     {
@@ -120,27 +121,26 @@ const CollaboratorDashboard = () => {
     },
   ];
 
-
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Welcome Section */}
+      {/* Welcome Section — obsidian + assinatura lime (gio) */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl p-8 text-white shadow-md hover:shadow-lg transition-shadow duration-300"
-        style={{ background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)' }}
+        className="relative overflow-hidden rounded-2xl bg-[#1A1A1A] p-8 text-white shadow-md hover:shadow-lg transition-shadow duration-300"
       >
+        <div className="absolute inset-y-0 left-0 w-1 bg-[#D2FF00]" />
         <div className="flex items-center justify-between">
-          <div>
+          <div className="pl-1">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2 font-lemon-milk tracking-wide">
               Olá, {firstName}!
             </h1>
-            <p className="text-white/90 text-base sm:text-lg">
+            <p className="text-white/60 text-base sm:text-lg">
               Acompanhe seu ciclo de avaliação e desenvolvimento
             </p>
           </div>
-          <div className="hidden md:flex items-center space-x-2 bg-white/10 rounded-lg px-4 py-2">
-            <User className="h-5 w-5" />
+          <div className="hidden md:flex items-center space-x-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2">
+            <User className="h-5 w-5 text-[#D2FF00]" />
             <span className="font-medium">Colaborador</span>
           </div>
         </div>
@@ -153,13 +153,13 @@ const CollaboratorDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-yt-border"
+          className="bg-card rounded-2xl p-6 shadow-sm border border-border"
         >
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <Calendar className="mr-2 text-primary-500" size={20} />
+          <h2 className="text-lg font-semibold text-foreground mb-6 flex items-center">
+            <Calendar className="mr-2 text-lime-deep dark:text-lime" size={20} />
             Meu Progresso
             {currentCycle && (
-              <span className="ml-auto text-sm font-normal text-gray-500 dark:text-gray-400">
+              <span className="ml-auto text-sm font-normal text-muted-foreground">
                 {currentCycle.title}
               </span>
             )}
@@ -177,7 +177,7 @@ const CollaboratorDashboard = () => {
                     stroke="currentColor"
                     strokeWidth="6"
                     fill="none"
-                    className="text-gray-200 dark:text-gray-700"
+                    className="text-secondary"
                   />
                   <circle
                     cx="50%"
@@ -186,41 +186,49 @@ const CollaboratorDashboard = () => {
                     stroke="currentColor"
                     strokeWidth="6"
                     fill="none"
-                    strokeDasharray={myStatus.selfEvaluation === 'completed' ? undefined : `${myStatus.selfEvaluation === 'in-progress' ? 50 : 0} 100`}
+                    strokeDasharray={
+                      myStatus.selfEvaluation === 'completed'
+                        ? undefined
+                        : `${myStatus.selfEvaluation === 'in-progress' ? 50 : 0} 100`
+                    }
                     strokeLinecap="round"
                     className={
                       myStatus.selfEvaluation === 'completed'
-                        ? 'text-emerald-600'
+                        ? 'text-success'
                         : myStatus.selfEvaluation === 'in-progress'
-                        ? 'text-blue-500'
-                        : 'text-gray-300'
+                          ? 'text-lime-deep dark:text-lime'
+                          : 'text-muted-foreground'
                     }
                     style={{ transition: 'stroke-dasharray 1s ease' }}
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   {myStatus.selfEvaluation === 'completed' ? (
-                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
+                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-success" />
                   ) : myStatus.selfEvaluation === 'in-progress' ? (
-                    <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-blue-500" />
+                    <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-lime-deep dark:text-lime" />
                   ) : (
-                    <User className="w-6 h-6 sm:w-7 sm:h-7 text-gray-400" />
+                    <User className="w-6 h-6 sm:w-7 sm:h-7 text-muted-foreground" />
                   )}
                 </div>
               </div>
-              <span className="mt-2 text-xs sm:text-sm text-center font-medium text-gray-700 dark:text-gray-300">
+              <span className="mt-2 text-xs sm:text-sm text-center font-medium text-foreground/80">
                 Autoavaliação
               </span>
-              <span className={`text-xs ${
-                myStatus.selfEvaluation === 'completed'
-                  ? 'text-emerald-600'
-                  : myStatus.selfEvaluation === 'in-progress'
-                  ? 'text-blue-500'
-                  : 'text-gray-400'
-              }`}>
+              <span
+                className={`text-xs ${
+                  myStatus.selfEvaluation === 'completed'
+                    ? 'text-success'
+                    : myStatus.selfEvaluation === 'in-progress'
+                      ? 'text-lime-deep dark:text-lime'
+                      : 'text-muted-foreground'
+                }`}
+              >
                 {myStatus.selfEvaluation === 'completed'
                   ? 'Feito'
-                  : myStatus.selfEvaluation === 'in-progress' ? 'Fazendo' : 'Pendente'}
+                  : myStatus.selfEvaluation === 'in-progress'
+                    ? 'Fazendo'
+                    : 'Pendente'}
               </span>
             </div>
 
@@ -235,7 +243,7 @@ const CollaboratorDashboard = () => {
                     stroke="currentColor"
                     strokeWidth="6"
                     fill="none"
-                    className="text-gray-200 dark:text-gray-700"
+                    className="text-secondary"
                   />
                   <circle
                     cx="50%"
@@ -244,41 +252,49 @@ const CollaboratorDashboard = () => {
                     stroke="currentColor"
                     strokeWidth="6"
                     fill="none"
-                    strokeDasharray={myStatus.leaderEvaluation === 'completed' ? undefined : `${myStatus.leaderEvaluation === 'in-progress' ? 50 : 0} 100`}
+                    strokeDasharray={
+                      myStatus.leaderEvaluation === 'completed'
+                        ? undefined
+                        : `${myStatus.leaderEvaluation === 'in-progress' ? 50 : 0} 100`
+                    }
                     strokeLinecap="round"
                     className={
                       myStatus.leaderEvaluation === 'completed'
-                        ? 'text-emerald-600'
+                        ? 'text-success'
                         : myStatus.leaderEvaluation === 'in-progress'
-                        ? 'text-blue-500'
-                        : 'text-gray-300'
+                          ? 'text-lime-deep dark:text-lime'
+                          : 'text-muted-foreground'
                     }
                     style={{ transition: 'stroke-dasharray 1s ease' }}
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   {myStatus.leaderEvaluation === 'completed' ? (
-                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
+                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-success" />
                   ) : myStatus.leaderEvaluation === 'in-progress' ? (
-                    <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-blue-500" />
+                    <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-lime-deep dark:text-lime" />
                   ) : (
-                    <Crown className="w-6 h-6 sm:w-7 sm:h-7 text-gray-400" />
+                    <Crown className="w-6 h-6 sm:w-7 sm:h-7 text-muted-foreground" />
                   )}
                 </div>
               </div>
-              <span className="mt-2 text-xs sm:text-sm text-center font-medium text-gray-700 dark:text-gray-300">
+              <span className="mt-2 text-xs sm:text-sm text-center font-medium text-foreground/80">
                 Líder
               </span>
-              <span className={`text-xs ${
-                myStatus.leaderEvaluation === 'completed'
-                  ? 'text-emerald-600'
-                  : myStatus.leaderEvaluation === 'in-progress'
-                  ? 'text-blue-500'
-                  : 'text-gray-400'
-              }`}>
+              <span
+                className={`text-xs ${
+                  myStatus.leaderEvaluation === 'completed'
+                    ? 'text-success'
+                    : myStatus.leaderEvaluation === 'in-progress'
+                      ? 'text-lime-deep dark:text-lime'
+                      : 'text-muted-foreground'
+                }`}
+              >
                 {myStatus.leaderEvaluation === 'completed'
                   ? 'Feito'
-                  : myStatus.leaderEvaluation === 'in-progress' ? 'Fazendo' : 'Pendente'}
+                  : myStatus.leaderEvaluation === 'in-progress'
+                    ? 'Fazendo'
+                    : 'Pendente'}
               </span>
             </div>
 
@@ -293,7 +309,7 @@ const CollaboratorDashboard = () => {
                     stroke="currentColor"
                     strokeWidth="6"
                     fill="none"
-                    className="text-gray-200 dark:text-gray-700"
+                    className="text-secondary"
                   />
                   <circle
                     cx="50%"
@@ -302,41 +318,49 @@ const CollaboratorDashboard = () => {
                     stroke="currentColor"
                     strokeWidth="6"
                     fill="none"
-                    strokeDasharray={myStatus.consensus === 'completed' ? undefined : `${myStatus.consensus === 'in-progress' ? 50 : 0} 100`}
+                    strokeDasharray={
+                      myStatus.consensus === 'completed'
+                        ? undefined
+                        : `${myStatus.consensus === 'in-progress' ? 50 : 0} 100`
+                    }
                     strokeLinecap="round"
                     className={
                       myStatus.consensus === 'completed'
-                        ? 'text-emerald-600'
+                        ? 'text-success'
                         : myStatus.consensus === 'in-progress'
-                        ? 'text-blue-500'
-                        : 'text-gray-300'
+                          ? 'text-lime-deep dark:text-lime'
+                          : 'text-muted-foreground'
                     }
                     style={{ transition: 'stroke-dasharray 1s ease' }}
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   {myStatus.consensus === 'completed' ? (
-                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
+                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-success" />
                   ) : myStatus.consensus === 'in-progress' ? (
-                    <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-blue-500" />
+                    <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-lime-deep dark:text-lime" />
                   ) : (
-                    <Users className="w-6 h-6 sm:w-7 sm:h-7 text-gray-400" />
+                    <Users className="w-6 h-6 sm:w-7 sm:h-7 text-muted-foreground" />
                   )}
                 </div>
               </div>
-              <span className="mt-2 text-xs sm:text-sm text-center font-medium text-gray-700 dark:text-gray-300">
+              <span className="mt-2 text-xs sm:text-sm text-center font-medium text-foreground/80">
                 Consenso
               </span>
-              <span className={`text-xs ${
-                myStatus.consensus === 'completed'
-                  ? 'text-emerald-600'
-                  : myStatus.consensus === 'in-progress'
-                  ? 'text-blue-500'
-                  : 'text-gray-400'
-              }`}>
+              <span
+                className={`text-xs ${
+                  myStatus.consensus === 'completed'
+                    ? 'text-success'
+                    : myStatus.consensus === 'in-progress'
+                      ? 'text-lime-deep dark:text-lime'
+                      : 'text-muted-foreground'
+                }`}
+              >
                 {myStatus.consensus === 'completed'
                   ? 'Feito'
-                  : myStatus.consensus === 'in-progress' ? 'Fazendo' : 'Pendente'}
+                  : myStatus.consensus === 'in-progress'
+                    ? 'Fazendo'
+                    : 'Pendente'}
               </span>
             </div>
 
@@ -354,7 +378,7 @@ const CollaboratorDashboard = () => {
                     stroke="currentColor"
                     strokeWidth="6"
                     fill="none"
-                    className="text-gray-200 dark:text-gray-700"
+                    className="text-secondary"
                   />
                   <circle
                     cx="50%"
@@ -363,45 +387,50 @@ const CollaboratorDashboard = () => {
                     stroke="currentColor"
                     strokeWidth="6"
                     fill="none"
-                    strokeDasharray={myStatus.ppiDefined ? undefined : "0 100"}
+                    strokeDasharray={myStatus.ppiDefined ? undefined : '0 100'}
                     strokeLinecap="round"
-                    className={myStatus.ppiDefined ? 'text-emerald-600' : 'text-gray-300'}
+                    className={myStatus.ppiDefined ? 'text-success' : 'text-muted-foreground'}
                     style={{ transition: 'stroke-dasharray 1s ease' }}
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   {myStatus.ppiDefined ? (
-                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
+                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-success" />
                   ) : (
-                    <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-gray-400" />
+                    <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-muted-foreground" />
                   )}
                 </div>
               </div>
-              <span className="mt-2 text-xs sm:text-sm text-center font-medium text-gray-700 dark:text-gray-300">
+              <span className="mt-2 text-xs sm:text-sm text-center font-medium text-foreground/80">
                 PDI
               </span>
-              <span className={`text-xs ${myStatus.ppiDefined ? 'text-emerald-600' : 'text-gray-400'}`}>
+              <span
+                className={`text-xs ${myStatus.ppiDefined ? 'text-success' : 'text-muted-foreground'}`}
+              >
                 {myStatus.ppiDefined ? 'Feito' : 'Pendente'}
               </span>
             </div>
           </div>
 
           {/* Progress Summary */}
-          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-yt-border">
+          <div className="mt-6 pt-4 border-t border-border">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Progresso geral</span>
-              <span className="text-lg font-bold text-primary-500">
+              <span className="text-sm text-muted-foreground">Progresso geral</span>
+              <span className="text-lg font-bold text-lime-deep dark:text-lime">
                 {Math.round(
                   ([
                     myStatus.selfEvaluation === 'completed',
                     myStatus.leaderEvaluation === 'completed',
                     myStatus.consensus === 'completed',
-                    myStatus.ppiDefined
-                  ].filter(Boolean).length / 4) * 100
-                )}%
+                    myStatus.ppiDefined,
+                  ].filter(Boolean).length /
+                    4) *
+                    100,
+                )}
+                %
               </span>
             </div>
-            <div className="mt-2 w-full bg-gray-200 dark:bg-yt-elevated rounded-full h-2">
+            <div className="mt-2 w-full bg-secondary rounded-full h-2">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{
@@ -410,16 +439,17 @@ const CollaboratorDashboard = () => {
                       myStatus.selfEvaluation === 'completed',
                       myStatus.leaderEvaluation === 'completed',
                       myStatus.consensus === 'completed',
-                      myStatus.ppiDefined
-                    ].filter(Boolean).length / 4) * 100
-                  )}%`
+                      myStatus.ppiDefined,
+                    ].filter(Boolean).length /
+                      4) *
+                      100,
+                  )}%`,
                 }}
                 transition={{ duration: 1, delay: 0.5 }}
-                className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full"
+                className="bg-lime h-2 rounded-full"
               />
             </div>
           </div>
-
         </motion.div>
 
         {/* Minhas Notas Card */}
@@ -427,79 +457,83 @@ const CollaboratorDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-yt-border"
+          className="bg-card rounded-2xl p-6 shadow-sm border border-border"
         >
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-            <BarChart2 className="mr-2 text-primary-500" size={20} />
+          <h2 className="text-lg font-semibold text-foreground mb-6 flex items-center">
+            <BarChart2 className="mr-2 text-lime-deep dark:text-lime" size={20} />
             Minhas Notas
           </h2>
 
           <div className="grid grid-cols-2 gap-4">
             {/* Nota Autoavaliação */}
-            <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4">
+            <div className="bg-secondary rounded-xl p-4">
               <div className="flex items-center mb-2">
-                <User className="h-4 w-4 text-primary-500 mr-2" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Autoavaliação</span>
+                <User className="h-4 w-4 text-lime-deep dark:text-lime mr-2" />
+                <span className="text-sm font-medium text-muted-foreground">Autoavaliação</span>
               </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <div className="text-2xl font-bold text-foreground">
                 {myStatus.selfEvaluation === 'completed' && myStatus.selfScore !== null
                   ? myStatus.selfScore.toFixed(2)
                   : '-'}
               </div>
-              <span className={`text-xs ${myStatus.selfEvaluation === 'completed' ? 'text-emerald-600' : 'text-gray-400'}`}>
+              <span
+                className={`text-xs ${myStatus.selfEvaluation === 'completed' ? 'text-success' : 'text-muted-foreground'}`}
+              >
                 {myStatus.selfEvaluation === 'completed' ? 'Concluída' : 'Pendente'}
               </span>
             </div>
 
             {/* Nota Líder */}
-            <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4">
+            <div className="bg-secondary rounded-xl p-4">
               <div className="flex items-center mb-2">
-                <Crown className="h-4 w-4 text-primary-500 mr-2" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Líder</span>
+                <Crown className="h-4 w-4 text-lime-deep dark:text-lime mr-2" />
+                <span className="text-sm font-medium text-muted-foreground">Líder</span>
               </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <div className="text-2xl font-bold text-foreground">
                 {myStatus.leaderEvaluation === 'completed' && myStatus.leaderScore !== null
                   ? myStatus.leaderScore.toFixed(2)
                   : '-'}
               </div>
-              <span className={`text-xs ${myStatus.leaderEvaluation === 'completed' ? 'text-emerald-600' : 'text-gray-400'}`}>
+              <span
+                className={`text-xs ${myStatus.leaderEvaluation === 'completed' ? 'text-success' : 'text-muted-foreground'}`}
+              >
                 {myStatus.leaderEvaluation === 'completed' ? 'Concluída' : 'Pendente'}
               </span>
             </div>
 
             {/* Nota Consenso */}
-            <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4">
+            <div className="bg-secondary rounded-xl p-4">
               <div className="flex items-center mb-2">
-                <Users className="h-4 w-4 text-primary-500 mr-2" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Consenso</span>
+                <Users className="h-4 w-4 text-lime-deep dark:text-lime mr-2" />
+                <span className="text-sm font-medium text-muted-foreground">Consenso</span>
               </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <div className="text-2xl font-bold text-foreground">
                 {myStatus.consensus === 'completed' && myStatus.consensusScore !== null
                   ? myStatus.consensusScore.toFixed(2)
                   : '-'}
               </div>
-              <span className={`text-xs ${myStatus.consensus === 'completed' ? 'text-emerald-600' : 'text-gray-400'}`}>
+              <span
+                className={`text-xs ${myStatus.consensus === 'completed' ? 'text-success' : 'text-muted-foreground'}`}
+              >
                 {myStatus.consensus === 'completed' ? 'Concluído' : 'Pendente'}
               </span>
             </div>
 
             {/* PDI */}
             <div
-              className={`bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4 ${myStatus.ppiDefined ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors' : ''}`}
+              className={`bg-secondary rounded-xl p-4 ${myStatus.ppiDefined ? 'cursor-pointer hover:bg-accent transition-colors' : ''}`}
               onClick={() => myStatus.ppiDefined && navigate('/my-pdi')}
             >
               <div className="flex items-center mb-2">
-                <FileText className="h-4 w-4 text-primary-500 mr-2" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">PDI</span>
+                <FileText className="h-4 w-4 text-lime-deep dark:text-lime mr-2" />
+                <span className="text-sm font-medium text-muted-foreground">PDI</span>
               </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {myStatus.ppiDefined ? (
-                  <CheckCircle className="h-7 w-7 text-emerald-600" />
-                ) : (
-                  '-'
-                )}
+              <div className="text-2xl font-bold text-foreground">
+                {myStatus.ppiDefined ? <CheckCircle className="h-7 w-7 text-success" /> : '-'}
               </div>
-              <span className={`text-xs ${myStatus.ppiDefined ? 'text-emerald-600' : 'text-gray-400'}`}>
+              <span
+                className={`text-xs ${myStatus.ppiDefined ? 'text-success' : 'text-muted-foreground'}`}
+              >
                 {myStatus.ppiDefined ? 'Definido' : 'Pendente'}
               </span>
             </div>
@@ -521,48 +555,27 @@ const CollaboratorDashboard = () => {
               key={index}
               variants={itemVariants}
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              className="relative bg-white dark:bg-yt-surface rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden border border-gray-300 dark:border-yt-border"
+              className="relative bg-card rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-lime/40 transition-all duration-300 cursor-pointer group overflow-hidden border border-border"
               onClick={action.onClick}
             >
-              {/* Background Gradient Decoration */}
-              <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-5 dark:group-hover:opacity-10 transition-opacity duration-300"
-                style={{ background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)' }}
-              />
-
               <div className="relative z-10">
-                <div
-                  className="inline-flex p-2 sm:p-3 rounded-xl shadow-md dark:shadow-lg mb-3 sm:mb-4"
-                  style={{ background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)' }}
-                >
-                  <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                <div className="inline-flex p-2 sm:p-3 rounded-xl mb-3 sm:mb-4 bg-secondary text-foreground transition-colors group-hover:bg-lime group-hover:text-obsidian">
+                  <IconComponent className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
 
-                <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 font-lemon-milk tracking-wide">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 font-lemon-milk tracking-wide">
                   {action.title}
                 </h3>
 
-                <p className="text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base min-h-[40px] sm:min-h-[48px]">
+                <p className="text-muted-foreground mb-3 sm:mb-4 text-sm sm:text-base min-h-[40px] sm:min-h-[48px]">
                   {action.description}
                 </p>
 
-                <div className="inline-flex items-center text-sm font-semibold group-hover:gap-2 sm:group-hover:gap-3 transition-all duration-300" style={{ color: '#12b0a0' }}>
-                  <span className="dark:text-[#12b0a0]">{action.action}</span>
-                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1 dark:text-[#12b0a0]" />
+                <div className="inline-flex items-center text-sm font-semibold group-hover:gap-2 sm:group-hover:gap-3 transition-all duration-300 text-lime-deep dark:text-lime">
+                  {action.action}
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
-
-              {/* Hover Effect Border */}
-              <div
-                className="absolute inset-0 rounded-lg border border-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{
-                  padding: '2px',
-                  background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)',
-                  WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                  WebkitMaskComposite: 'exclude',
-                  maskComposite: 'exclude'
-                }}
-              />
             </motion.div>
           );
         })}

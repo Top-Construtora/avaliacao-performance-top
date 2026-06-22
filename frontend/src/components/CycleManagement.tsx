@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Calendar, Plus, Play, Lock, Edit, Clock, 
-  CheckCircle, AlertCircle, Users, BarChart3, FileText,
-  Info, X, Save
+import {
+  Calendar,
+  Plus,
+  Play,
+  Lock,
+  Edit,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Users,
+  BarChart3,
+  FileText,
+  Info,
+  X,
+  Save,
 } from 'lucide-react';
 // Date utilities
 const formatDate = (dateString: string): string => {
@@ -31,7 +42,7 @@ const CycleManagement: React.FC = () => {
     title: '',
     description: '',
     start_date: '',
-    end_date: ''
+    end_date: '',
   });
 
   const handleCreateCycle = async () => {
@@ -49,7 +60,7 @@ const CycleManagement: React.FC = () => {
       ...formData,
       status: 'draft',
       is_editable: true,
-      created_by: '' // Will be filled by the service
+      created_by: '', // Will be filled by the service
     });
 
     setShowCreateModal(false);
@@ -62,18 +73,38 @@ const CycleManagement: React.FC = () => {
     const end = new Date(cycle.end_date);
 
     if (cycle.status === 'closed') {
-      return { color: 'bg-status-info/10 text-status-info border border-status-info/20', icon: Lock, text: 'Encerrado' };
+      return {
+        color: 'bg-status-info/10 text-status-info border border-status-info/20',
+        icon: Lock,
+        text: 'Encerrado',
+      };
     }
     if (cycle.status === 'draft') {
-      return { color: 'bg-status-warning/10 text-status-warning border border-status-warning/20', icon: Edit, text: 'Rascunho' };
+      return {
+        color: 'bg-status-warning/10 text-status-warning border border-status-warning/20',
+        icon: Edit,
+        text: 'Rascunho',
+      };
     }
     if (isBefore(now, start)) {
-      return { color: 'bg-status-info/10 text-status-info border border-status-info/20', icon: Clock, text: 'Agendado' };
+      return {
+        color: 'bg-status-info/10 text-status-info border border-status-info/20',
+        icon: Clock,
+        text: 'Agendado',
+      };
     }
     if (isAfter(now, end)) {
-      return { color: 'bg-status-danger/10 text-status-danger border border-status-danger/20', icon: AlertCircle, text: 'Expirado' };
+      return {
+        color: 'bg-status-danger/10 text-status-danger border border-status-danger/20',
+        icon: AlertCircle,
+        text: 'Expirado',
+      };
     }
-    return { color: 'bg-status-success/10 text-status-success border border-status-success/20', icon: CheckCircle, text: 'Ativo' };
+    return {
+      color: 'bg-status-success/10 text-status-success border border-status-success/20',
+      icon: CheckCircle,
+      text: 'Ativo',
+    };
   };
 
   return (
@@ -86,11 +117,9 @@ const CycleManagement: React.FC = () => {
               <Calendar className="h-7 w-7 text-primary-500 mr-3" />
               Ciclos de Avaliação
             </h1>
-            <p className="text-gray-600 mt-1">
-              Gerencie os ciclos de avaliação de performance
-            </p>
+            <p className="text-gray-600 mt-1">Gerencie os ciclos de avaliação de performance</p>
           </div>
-          
+
           {isDirector && (
             <button
               onClick={() => setShowCreateModal(true)}
@@ -107,15 +136,15 @@ const CycleManagement: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6"
+            className="bg-lime/10 border border-lime/30 rounded-lg p-4 mb-6"
           >
             <div className="flex items-start">
-              <Info className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+              <Info className="h-5 w-5 text-lime-deep dark:text-lime mt-0.5 mr-3 flex-shrink-0" />
               <div className="flex-1">
-                <h3 className="font-medium text-blue-900">Ciclo Ativo</h3>
-                <p className="text-sm text-blue-700 mt-1">
-                  O ciclo "{currentCycle.title}" está atualmente ativo. 
-                  Período: {formatDate(currentCycle.start_date)} até {formatDate(currentCycle.end_date)}
+                <h3 className="font-medium text-foreground">Ciclo Ativo</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  O ciclo "{currentCycle.title}" está atualmente ativo. Período:{' '}
+                  {formatDate(currentCycle.start_date)} até {formatDate(currentCycle.end_date)}
                 </p>
               </div>
             </div>
@@ -138,7 +167,7 @@ const CycleManagement: React.FC = () => {
             cycles.map((cycle) => {
               const status = getCycleStatus(cycle);
               const StatusIcon = status.icon;
-              
+
               return (
                 <motion.div
                   key={cycle.id}
@@ -149,19 +178,19 @@ const CycleManagement: React.FC = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
-                        <h3 className="text-lg font-semibold text-gray-800">
-                          {cycle.title}
-                        </h3>
-                        <span className={`ml-3 px-3 py-1 rounded-md text-xs font-medium flex items-center ${status.color}`}>
+                        <h3 className="text-lg font-semibold text-gray-800">{cycle.title}</h3>
+                        <span
+                          className={`ml-3 px-3 py-1 rounded-md text-xs font-medium flex items-center ${status.color}`}
+                        >
                           <StatusIcon className="h-3 w-3 mr-1" />
                           {status.text}
                         </span>
                       </div>
-                      
+
                       {cycle.description && (
                         <p className="text-gray-600 text-sm mb-3">{cycle.description}</p>
                       )}
-                      
+
                       <div className="flex items-center text-sm text-gray-500 space-x-4">
                         <span className="flex items-center">
                           <Clock className="h-4 w-4 mr-1" />
@@ -185,11 +214,13 @@ const CycleManagement: React.FC = () => {
                             <Play className="h-5 w-5" />
                           </button>
                         )}
-                        
+
                         {cycle.status === 'open' && (
                           <>
                             <button
-                              onClick={() => window.location.href = `/evaluation-dashboard/${cycle.id}`}
+                              onClick={() =>
+                                (window.location.href = `/evaluation-dashboard/${cycle.id}`)
+                              }
                               className="p-2 bg-primary-50 text-primary rounded-lg hover:bg-primary-100 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                               title="Ver dashboard"
                             >
@@ -262,9 +293,7 @@ const CycleManagement: React.FC = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Título *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
                   <input
                     type="text"
                     value={formData.title}
@@ -275,9 +304,7 @@ const CycleManagement: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Descrição
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}

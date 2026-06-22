@@ -18,8 +18,8 @@ const LoadingSpinner = ({
   return (
     <div className={`flex items-center justify-center ${minHeight}`}>
       <div className="text-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary-900 dark:text-primary-300 mx-auto mb-4" />
-        <p className="text-gray-600 dark:text-gray-400">{text}</p>
+        <Loader2 className="h-12 w-12 animate-spin text-lime-deep dark:text-lime mx-auto mb-4" />
+        <p className="text-muted-foreground">{text}</p>
       </div>
     </div>
   );

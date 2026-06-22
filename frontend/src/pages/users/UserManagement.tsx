@@ -4,24 +4,61 @@ import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import UserSalaryAssignment from '../../components/UserSalaryAssignment';
 import {
-  Users, Edit, Search, Filter,
-  Shield, Mail, Calendar, UserCheck, MoreVertical, Crown,
-  Copy, Download, Phone, CalendarDays, Upload, FileText, GitBranch,
-  Network, UserX, Plus, Grid3x3, List, FileSpreadsheet,
-  FileDown, DollarSign, Loader2, Database, UsersIcon, UserPlus, Eye,
-  Clock, AlertTriangle, ChevronDown, ChevronUp
+  Users,
+  Edit,
+  Search,
+  Filter,
+  Shield,
+  Mail,
+  Calendar,
+  UserCheck,
+  MoreVertical,
+  Crown,
+  Copy,
+  Download,
+  Phone,
+  CalendarDays,
+  Upload,
+  FileText,
+  GitBranch,
+  Network,
+  UserX,
+  Plus,
+  Grid3x3,
+  List,
+  FileSpreadsheet,
+  FileDown,
+  DollarSign,
+  Loader2,
+  Database,
+  UsersIcon,
+  UserPlus,
+  Eye,
+  Clock,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import XLSX from 'xlsx-js-style';
 import { useSupabaseData } from '../../hooks/useSupabaseData';
 import type { UserWithDetails } from '../../types/supabase';
 import { RoleGuard } from '../../components/RoleGuard';
-import { usePermissions, useUIPermissions, useOperationValidator } from '../../hooks/usePermissions';
+import {
+  usePermissions,
+  useUIPermissions,
+  useOperationValidator,
+} from '../../hooks/usePermissions';
 import { useAuth } from '../../context/AuthContext';
 import type { User } from '../../types/supabase';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { PermissionGuard, ActionGuard, UIGuard, OperationWarning } from '../../components/PermissionGuard';
+import {
+  PermissionGuard,
+  ActionGuard,
+  UIGuard,
+  OperationWarning,
+} from '../../components/PermissionGuard';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 declare module 'jspdf' {
@@ -68,7 +105,7 @@ const UserManagement = () => {
   // === OTIMIZAÇÃO: Criar Map de subordinados para lookup O(1) ===
   const subordinatesMap = useMemo(() => {
     const map = new Map<string, UserWithDetails[]>();
-    users.forEach(u => {
+    users.forEach((u) => {
       if (u.reports_to) {
         if (!map.has(u.reports_to)) {
           map.set(u.reports_to, []);
@@ -108,9 +145,10 @@ const UserManagement = () => {
       const newValue = !user.can_view_subordinate_ninebox;
       // Usar atualização otimista para não perder a posição do scroll
       await actions.users.updateOptimistic(user.id, { can_view_subordinate_ninebox: newValue });
-      toast.success(newValue
-        ? 'Permissão para visualizar Nine Box habilitada'
-        : 'Permissão para visualizar Nine Box removida'
+      toast.success(
+        newValue
+          ? 'Permissão para visualizar Nine Box habilitada'
+          : 'Permissão para visualizar Nine Box removida',
       );
     } catch (error) {
       console.error('Erro ao atualizar permissão:', error);
@@ -124,7 +162,7 @@ const UserManagement = () => {
       return;
     }
 
-    const targetData = users.find(u => u.id === id);
+    const targetData = users.find((u) => u.id === id);
 
     if (!operationValidator.canExecute('deactivate_user', targetData)) {
       const errors = operationValidator.getValidationErrors('deactivate_user', targetData);
@@ -149,7 +187,7 @@ const UserManagement = () => {
           } catch (error) {
             toast.error(isActive ? 'Erro ao desativar usuário' : 'Erro ao excluir usuário');
           }
-        }
+        },
       });
       setShowWarning(true);
       return;
@@ -216,22 +254,29 @@ const UserManagement = () => {
 
   const exportToExcel = () => {
     // Preparar dados
-    const data = filteredUsers.map(user => ({
+    const data = filteredUsers.map((user) => ({
       'Nome Completo': user.name,
       'E-mail': user.email,
-      'Cargo': user.position,
-      'Função': user.is_director ? 'Diretor' : user.is_leader ? 'Avaliador' : 'Colaborador',
-      'Departamento': user.departments?.map(d => d.name).join(', ') || '-',
-      'Time': user.teams?.map(t => t.name).join(', ') || '-',
-      'Trilha': user.track_position?.track?.name || '-',
-      'Classe Salarial': user.track_position?.class?.name || user.track_position?.class?.code || '-',
+      Cargo: user.position,
+      Função: user.is_director ? 'Diretor' : user.is_leader ? 'Avaliador' : 'Colaborador',
+      Departamento: user.departments?.map((d) => d.name).join(', ') || '-',
+      Time: user.teams?.map((t) => t.name).join(', ') || '-',
+      Trilha: user.track_position?.track?.name || '-',
+      'Classe Salarial':
+        user.track_position?.class?.name || user.track_position?.class?.code || '-',
       'Nível Salarial': user.salary_level?.name || '-',
-      'Salário': user.current_salary ? `R$ ${user.current_salary.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-',
-      'Data de Admissão': user.join_date ? new Date(user.join_date).toLocaleDateString('pt-BR') : '-',
-      'Telefone': uiPermissions.showFullContactInfo ? (user.phone || '-') : '***',
-      'Data de Nascimento': user.birth_date ? new Date(user.birth_date).toLocaleDateString('pt-BR') : '-',
-      'Idade': user.birth_date ? calculateAge(user.birth_date) : '-',
-      'Status': user.active !== false ? 'Ativo' : 'Inativo'
+      Salário: user.current_salary
+        ? `R$ ${user.current_salary.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+        : '-',
+      'Data de Admissão': user.join_date
+        ? new Date(user.join_date).toLocaleDateString('pt-BR')
+        : '-',
+      Telefone: uiPermissions.showFullContactInfo ? user.phone || '-' : '***',
+      'Data de Nascimento': user.birth_date
+        ? new Date(user.birth_date).toLocaleDateString('pt-BR')
+        : '-',
+      Idade: user.birth_date ? calculateAge(user.birth_date) : '-',
+      Status: user.active !== false ? 'Ativo' : 'Inativo',
     }));
 
     // Criar planilha
@@ -239,15 +284,15 @@ const UserManagement = () => {
 
     // Estilo do cabeçalho (cor primária com texto branco)
     const headerStyle = {
-      fill: { fgColor: { rgb: '1E6076' } }, // Cor primária
+      fill: { fgColor: { rgb: '3D434F' } }, // Grafite GIO
       font: { color: { rgb: 'FFFFFF' }, bold: true, sz: 11 },
       alignment: { horizontal: 'center', vertical: 'center' },
       border: {
         top: { style: 'thin', color: { rgb: '164E5F' } },
         bottom: { style: 'thin', color: { rgb: '164E5F' } },
         left: { style: 'thin', color: { rgb: '164E5F' } },
-        right: { style: 'thin', color: { rgb: '164E5F' } }
-      }
+        right: { style: 'thin', color: { rgb: '164E5F' } },
+      },
     };
 
     // Estilo das células de dados
@@ -257,27 +302,27 @@ const UserManagement = () => {
         top: { style: 'thin', color: { rgb: 'E5E7EB' } },
         bottom: { style: 'thin', color: { rgb: 'E5E7EB' } },
         left: { style: 'thin', color: { rgb: 'E5E7EB' } },
-        right: { style: 'thin', color: { rgb: 'E5E7EB' } }
-      }
+        right: { style: 'thin', color: { rgb: 'E5E7EB' } },
+      },
     };
 
     // Definir larguras das colunas
     const colWidths = [
-      { wch: 30 },  // Nome Completo
-      { wch: 35 },  // E-mail
-      { wch: 25 },  // Cargo
-      { wch: 12 },  // Função
-      { wch: 20 },  // Departamento
-      { wch: 20 },  // Time
-      { wch: 18 },  // Trilha
-      { wch: 15 },  // Classe Salarial
-      { wch: 15 },  // Nível Salarial
-      { wch: 15 },  // Salário
-      { wch: 18 },  // Data de Admissão
-      { wch: 15 },  // Telefone
-      { wch: 18 },  // Data de Nascimento
-      { wch: 8 },   // Idade
-      { wch: 10 },  // Status
+      { wch: 30 }, // Nome Completo
+      { wch: 35 }, // E-mail
+      { wch: 25 }, // Cargo
+      { wch: 12 }, // Função
+      { wch: 20 }, // Departamento
+      { wch: 20 }, // Time
+      { wch: 18 }, // Trilha
+      { wch: 15 }, // Classe Salarial
+      { wch: 15 }, // Nível Salarial
+      { wch: 15 }, // Salário
+      { wch: 18 }, // Data de Admissão
+      { wch: 15 }, // Telefone
+      { wch: 18 }, // Data de Nascimento
+      { wch: 8 }, // Idade
+      { wch: 10 }, // Status
     ];
     ws['!cols'] = colWidths;
 
@@ -308,12 +353,12 @@ const UserManagement = () => {
 
     // Adicionar aba de resumo
     const resumoData = [
-      { 'Indicador': 'Total de Colaboradores', 'Quantidade': stats.totalUsers },
-      { 'Indicador': 'Diretores', 'Quantidade': stats.totalDirectors },
-      { 'Indicador': 'Avaliadores (Líderes)', 'Quantidade': stats.totalLeaders },
-      { 'Indicador': 'Colaboradores', 'Quantidade': stats.totalCollaborators },
-      { 'Indicador': '', 'Quantidade': '' },
-      { 'Indicador': 'Data de Exportação', 'Quantidade': new Date().toLocaleString('pt-BR') },
+      { Indicador: 'Total de Colaboradores', Quantidade: stats.totalUsers },
+      { Indicador: 'Diretores', Quantidade: stats.totalDirectors },
+      { Indicador: 'Avaliadores (Líderes)', Quantidade: stats.totalLeaders },
+      { Indicador: 'Colaboradores', Quantidade: stats.totalCollaborators },
+      { Indicador: '', Quantidade: '' },
+      { Indicador: 'Data de Exportação', Quantidade: new Date().toLocaleString('pt-BR') },
     ];
     const wsResumo = XLSX.utils.json_to_sheet(resumoData);
     wsResumo['!cols'] = [{ wch: 25 }, { wch: 20 }];
@@ -340,12 +385,12 @@ const UserManagement = () => {
     let markdownContent = `# Lista de Usuários\n\n`;
     markdownContent += `| Nome | Email | Cargo | Tipo | Departamento | Time |\n`;
     markdownContent += `|------|-------|-------|------|--------------|------|\n`;
-    
-    filteredUsers.forEach(user => {
-      const userDepts = user.departments?.map(d => d.name).join(', ') || '-';
-      const userTeams = user.teams?.map(t => t.name).join(', ') || '-';
+
+    filteredUsers.forEach((user) => {
+      const userDepts = user.departments?.map((d) => d.name).join(', ') || '-';
+      const userTeams = user.teams?.map((t) => t.name).join(', ') || '-';
       const type = user.is_director ? 'Diretor' : user.is_leader ? 'Avaliador' : 'Avaliado';
-      
+
       markdownContent += `| ${user.name} | ${user.email} | ${user.position} | ${type} | ${userDepts} | ${userTeams} |\n`;
     });
 
@@ -358,7 +403,7 @@ const UserManagement = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     toast.success('Dados exportados em formato Notion!');
   };
 
@@ -366,24 +411,24 @@ const UserManagement = () => {
     const doc = new jsPDF();
     const title = 'Lista de Usuários';
     const headers = ['Nome', 'Email', 'Cargo', 'Tipo', 'Data de Entrada'];
-    const data = filteredUsers.map(user => [
+    const data = filteredUsers.map((user) => [
       user.name,
       user.email,
       user.position,
       user.is_director ? 'Diretor' : user.is_leader ? 'Avaliador' : 'Avaliado',
-      new Date(user.join_date).toLocaleDateString('pt-BR')
+      new Date(user.join_date).toLocaleDateString('pt-BR'),
     ]);
 
     doc.setFontSize(16);
     doc.text(title, 14, 15);
-    
+
     doc.autoTable({
       head: [headers],
       body: data,
       startY: 25,
       theme: 'grid',
       styles: { fontSize: 10 },
-      headStyles: { fillColor: [18, 176, 160] }
+      headStyles: { fillColor: [61, 67, 79] },
     });
 
     doc.save('usuarios.pdf');
@@ -395,7 +440,7 @@ const UserManagement = () => {
       toast.error('Você não tem permissão para exportar dados');
       return;
     }
-    
+
     switch (format) {
       case 'excel':
         exportToExcel();
@@ -412,12 +457,16 @@ const UserManagement = () => {
 
   const filteredUsers = useMemo(() => {
     return users
-      .filter(user => {
+      .filter((user) => {
         // Excluir usuários admin
         if (user.is_admin) return false;
 
         // Excluir usuários de teste
-        if (user.name?.toLowerCase().includes('teste') || user.email?.toLowerCase().includes('teste')) return false;
+        if (
+          user.name?.toLowerCase().includes('teste') ||
+          user.email?.toLowerCase().includes('teste')
+        )
+          return false;
 
         // Filtrar por status ativo/inativo
         if (statusFilter === 'active') {
@@ -427,15 +476,14 @@ const UserManagement = () => {
         }
         // statusFilter === 'all' mostra todos
 
-        const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                             user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                             user.position.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch =
+          user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.position.toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesDepartment = !selectedDepartment ||
-          user.department_id === selectedDepartment;
+        const matchesDepartment = !selectedDepartment || user.department_id === selectedDepartment;
 
-        const matchesTeam = !selectedTeam ||
-          user.teams?.some(t => t.id === selectedTeam);
+        const matchesTeam = !selectedTeam || user.teams?.some((t) => t.id === selectedTeam);
 
         // Filtro por tipo de usuário
         let matchesUserType = true;
@@ -467,17 +515,18 @@ const UserManagement = () => {
 
   const stats = useMemo(() => {
     // Contar apenas usuários ativos (excluindo admins e usuários de teste)
-    const activeNonAdminUsers = users.filter(u =>
-      !u.is_admin &&
-      u.active !== false &&
-      !u.name?.toLowerCase().includes('teste') &&
-      !u.email?.toLowerCase().includes('teste')
+    const activeNonAdminUsers = users.filter(
+      (u) =>
+        !u.is_admin &&
+        u.active !== false &&
+        !u.name?.toLowerCase().includes('teste') &&
+        !u.email?.toLowerCase().includes('teste'),
     );
     return {
       totalUsers: activeNonAdminUsers.length,
-      totalLeaders: activeNonAdminUsers.filter(u => u.is_leader && !u.is_director).length,
-      totalDirectors: activeNonAdminUsers.filter(u => u.is_director).length,
-      totalCollaborators: activeNonAdminUsers.filter(u => !u.is_leader && !u.is_director).length,
+      totalLeaders: activeNonAdminUsers.filter((u) => u.is_leader && !u.is_director).length,
+      totalDirectors: activeNonAdminUsers.filter((u) => u.is_director).length,
+      totalCollaborators: activeNonAdminUsers.filter((u) => !u.is_leader && !u.is_director).length,
     };
   }, [users]);
 
@@ -487,26 +536,31 @@ const UserManagement = () => {
     today.setHours(0, 0, 0, 0);
 
     return users
-      .filter(u => {
+      .filter((u) => {
         if (u.is_admin || u.active === false) return false;
-        if (u.name?.toLowerCase().includes('teste') || u.email?.toLowerCase().includes('teste')) return false;
+        if (u.name?.toLowerCase().includes('teste') || u.email?.toLowerCase().includes('teste'))
+          return false;
 
         const admissionDate = u.admission_date || u.join_date;
         if (!admissionDate) return false;
 
         const admission = new Date(admissionDate);
         admission.setHours(0, 0, 0, 0);
-        const diffDays = Math.floor((today.getTime() - admission.getTime()) / (1000 * 60 * 60 * 24));
+        const diffDays = Math.floor(
+          (today.getTime() - admission.getTime()) / (1000 * 60 * 60 * 24),
+        );
 
         return diffDays >= 75 && diffDays <= 105;
       })
-      .map(u => {
+      .map((u) => {
         const admissionDate = u.admission_date || u.join_date;
         const admission = new Date(admissionDate!);
         admission.setHours(0, 0, 0, 0);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const diffDays = Math.floor((today.getTime() - admission.getTime()) / (1000 * 60 * 60 * 24));
+        const diffDays = Math.floor(
+          (today.getTime() - admission.getTime()) / (1000 * 60 * 60 * 24),
+        );
         const daysTo90 = 90 - diffDays;
         return { ...u, daysTo90, diffDays };
       })
@@ -520,9 +574,9 @@ const UserManagement = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
@@ -533,8 +587,8 @@ const UserManagement = () => {
       transition: {
         type: 'spring',
         stiffness: 100,
-      }
-    }
+      },
+    },
   };
 
   const renderUserCard = (user: UserWithDetails) => {
@@ -542,74 +596,75 @@ const UserManagement = () => {
     const subordinates = getSubordinates(user.id);
     const leader = user.manager;
     const age = user.birth_date ? calculateAge(user.birth_date) : null;
-    
+
     return (
-      <div
-        className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border overflow-hidden dark:hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300 group hover:-translate-y-1"
-      >
-        <div className={`h-2 bg-gradient-to-r ${
-          user.is_director 
-            ? 'from-stone-800 to-stone-900 dark:from-stone-800 dark:to-stone-900' 
-            : user.is_leader 
-              ? 'from-primary-900 to-primary-800 dark:from-primary-900 dark:to-primary-800' 
-              : 'from-gray-600 to-gray-700 dark:from-gray-600 dark:to-gray-700'
-        }`} />
-        
+      <div className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border overflow-hidden dark:hover:shadow-xl hover:border-lime transition-all duration-300 group hover:-translate-y-1">
+        <div
+          className={`h-2 bg-gradient-to-r ${
+            user.is_director
+              ? 'from-obsidian to-obsidian'
+              : user.is_leader
+                ? 'from-lime to-lime'
+                : 'from-secondary to-secondary'
+          }`}
+        />
+
         <div className="p-6">
           <div className="flex items-start justify-between gap-2 mb-4">
             <div className="flex items-center space-x-4 flex-shrink-0">
               <div className="relative">
                 {user.profile_image ? (
-                  <img 
-                    src={user.profile_image} 
+                  <img
+                    src={user.profile_image}
                     alt={user.name}
                     className="h-14 w-14 rounded-2xl object-cover shadow-md dark:shadow-lg"
                   />
                 ) : (
-                  <div className={`h-14 w-14 rounded-2xl flex items-center justify-center text-white font-bold shadow-md dark:shadow-lg bg-gradient-to-br ${
-                    user.is_director 
-                      ? 'from-stone-800 to-stone-900' 
-                      : user.is_leader 
-                        ? 'from-primary-900 to-primary-800' 
-                        : 'from-gray-600 to-gray-700'
-                  }`}>
-                    {user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+                  <div className="h-14 w-14 rounded-2xl flex items-center justify-center font-bold shadow-md dark:shadow-lg bg-lime text-obsidian">
+                    {user.name
+                      .split(' ')
+                      .map((n: string) => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)}
                   </div>
                 )}
                 {user.is_director && (
-                  <div className="absolute -bottom-1 -right-1 bg-white dark:bg-yt-elevated rounded-full p-1.5 shadow-lg">
-                    <Shield className="h-3.5 w-3.5 text-naue-black dark:text-gray-300 font-medium" />
+                  <div className="absolute -bottom-1 -right-1 bg-card rounded-full p-1.5 shadow-lg">
+                    <Shield className="h-3.5 w-3.5 text-foreground font-medium" />
                   </div>
                 )}
                 {user.is_leader && !user.is_director && (
-                  <div className="absolute -bottom-1 -right-1 bg-white dark:bg-yt-elevated rounded-full p-1.5 shadow-lg">
-                    <Crown className="h-3.5 w-3.5 text-stone-800 dark:text-stone-700" />
+                  <div className="absolute -bottom-1 -right-1 bg-card rounded-full p-1.5 shadow-lg">
+                    <Crown className="h-3.5 w-3.5 text-lime-deep dark:text-lime" />
                   </div>
                 )}
               </div>
             </div>
-            
+
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate">{user.name}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{user.position}</p>
+              <h3 className="font-bold text-foreground text-lg truncate">{user.name}</h3>
+              <p className="text-sm text-muted-foreground truncate">{user.position}</p>
               {(user.is_director || user.is_leader) && (
                 <div className="mt-2">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                    user.is_director
-                      ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-yt-border'
-                      : 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 text-primary-800 dark:text-primary-300 border border-primary-200 dark:border-primary-700'
-                  }`}>
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                      user.is_director
+                        ? 'bg-secondary text-foreground border border-border'
+                        : 'bg-lime/20 text-lime-deep dark:text-lime border border-lime/30'
+                    }`}
+                  >
                     {user.is_director ? 'Diretor' : 'Avaliador'}
                   </span>
                 </div>
               )}
             </div>
-            
+
             <div className="flex flex-col space-y-1 ml-2 flex-shrink-0">
               <ActionGuard can={() => permissions.canEditUser(user.id)}>
                 <button
                   onClick={() => handleEdit(user)}
-                  className="p-2 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary-900 dark:hover:text-primary-700"
+                  className="p-2 rounded-xl transition-colors hover:bg-accent text-muted-foreground hover:text-lime-deep dark:hover:text-lime"
                   title="Editar"
                 >
                   <Edit className="h-4 w-4" />
@@ -620,7 +675,7 @@ const UserManagement = () => {
                 <RoleGuard allowedRoles={['director', 'leader']}>
                   <button
                     onClick={() => handleOpenSalaryModal(user)}
-                    className="p-2 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400"
+                    className="p-2 rounded-xl transition-colors hover:bg-accent text-muted-foreground hover:text-success"
                     title="Gestão Salarial"
                   >
                     <DollarSign className="h-4 w-4" />
@@ -633,7 +688,7 @@ const UserManagement = () => {
                 <ActionGuard can={permissions.canDeactivateUser}>
                   <button
                     onClick={() => handleReactivate(user.id)}
-                    className="p-2 rounded-xl transition-colors hover:bg-green-100 dark:hover:bg-green-900/20 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400"
+                    className="p-2 rounded-xl transition-colors hover:bg-success/10 text-muted-foreground hover:text-success"
                     title="Reativar usuário"
                   >
                     <UserPlus className="h-4 w-4" />
@@ -644,8 +699,8 @@ const UserManagement = () => {
               <ActionGuard can={permissions.canDeactivateUser}>
                 <button
                   onClick={() => handleDelete(user.id)}
-                  className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                  title={user.active === false ? "Excluir permanentemente" : "Desativar usuário"}
+                  className="p-2 rounded-xl transition-colors hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                  title={user.active === false ? 'Excluir permanentemente' : 'Desativar usuário'}
                 >
                   <UserX className="h-4 w-4" />
                 </button>
@@ -654,63 +709,71 @@ const UserManagement = () => {
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center text-gray-600 dark:text-gray-400 group/item hover:text-primary-900 dark:hover:text-primary-700 transition-colors">
-              <Mail className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500 group-hover/item:text-primary-900 dark:group-hover/item:text-primary-700" />
+            <div className="flex items-center text-muted-foreground group/item hover:text-foreground transition-colors">
+              <Mail className="h-4 w-4 mr-3 text-muted-foreground group-hover/item:text-foreground" />
               <span className="text-sm truncate">{user.email}</span>
             </div>
-            
+
             <UIGuard show="showFullContactInfo">
               {user.phone && (
-                <div className="flex items-center text-gray-600 dark:text-gray-400 group/item hover:text-primary-900 dark:hover:text-primary-700 transition-colors">
-                  <Phone className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500 group-hover/item:text-primary-900 dark:group-hover/item:text-primary-700" />
+                <div className="flex items-center text-muted-foreground group/item hover:text-foreground transition-colors">
+                  <Phone className="h-4 w-4 mr-3 text-muted-foreground group-hover/item:text-foreground" />
                   <span className="text-sm">{user.phone}</span>
                 </div>
               )}
             </UIGuard>
-            
-            <div className="flex items-center text-gray-600 dark:text-gray-400">
-              <Calendar className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
+
+            <div className="flex items-center text-muted-foreground">
+              <Calendar className="h-4 w-4 mr-3 text-muted-foreground" />
               <span className="text-sm">
-                Desde {new Date(user.join_date).toLocaleDateString('pt-BR', { 
-                  month: 'short', 
-                  year: 'numeric' 
+                Desde{' '}
+                {new Date(user.join_date).toLocaleDateString('pt-BR', {
+                  month: 'short',
+                  year: 'numeric',
                 })}
               </span>
             </div>
-            
+
             {age && (
-              <div className="flex items-center text-gray-600 dark:text-gray-400">
-                <CalendarDays className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
+              <div className="flex items-center text-muted-foreground">
+                <CalendarDays className="h-4 w-4 mr-3 text-muted-foreground" />
                 <span className="text-sm">{age} anos</span>
               </div>
             )}
           </div>
 
           {(leader || subordinates.length > 0) && (
-            <div className="pt-4 mt-4 border-t border-gray-100 dark:border-yt-border">
+            <div className="pt-4 mt-4 border-t border-border">
               {leader && (
-                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-2 group/item hover:text-primary-900 dark:hover:text-primary-700 transition-colors">
-                  <GitBranch className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500 group-hover/item:text-primary-900 dark:group-hover/item:text-primary-700" />
+                <div className="flex items-center text-sm text-muted-foreground mb-2 group/item hover:text-foreground transition-colors">
+                  <GitBranch className="h-4 w-4 mr-3 text-muted-foreground group-hover/item:text-foreground" />
                   <span>Reporta para: </span>
-                  <span className="font-semibold text-gray-800 dark:text-gray-200 ml-1 group-hover/item:text-primary-900 dark:group-hover/item:text-primary-700">{leader.name}</span>
+                  <span className="font-semibold text-foreground ml-1 group-hover/item:text-foreground">
+                    {leader.name}
+                  </span>
                 </div>
               )}
               {subordinates.length > 0 && (
-                <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <div className="flex items-center">
-                    <Network className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
-                    <span className="font-medium">{subordinates.length} subordinado{subordinates.length > 1 ? 's' : ''}</span>
+                    <Network className="h-4 w-4 mr-3 text-muted-foreground" />
+                    <span className="font-medium">
+                      {subordinates.length} subordinado{subordinates.length > 1 ? 's' : ''}
+                    </span>
                   </div>
                   {/* Comitê de Gente Permission Toggle - Only for Leaders */}
                   {user.is_leader && !user.is_director && (
-                    <label className="flex items-center gap-1.5 cursor-pointer group ml-3" onClick={(e) => e.stopPropagation()}>
+                    <label
+                      className="flex items-center gap-1.5 cursor-pointer group ml-3"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <input
                         type="checkbox"
                         checked={user.can_view_subordinate_ninebox || false}
                         onChange={() => handleToggleNineboxPermission(user)}
-                        className="w-3.5 h-3.5 rounded border-gray-300 dark:border-yt-border text-primary-600 dark:text-primary-300 focus:ring-primary-500 dark:focus:ring-primary-400 cursor-pointer"
+                        className="w-3.5 h-3.5 rounded border-border text-lime focus:ring-[#D2FF00]/20 cursor-pointer"
                       />
-                      <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground group-hover:text-foreground flex items-center gap-1">
                         <Eye className="h-3 w-3" />
                         Comitê de Gente
                       </span>
@@ -722,12 +785,12 @@ const UserManagement = () => {
           )}
 
           {userTeams.length > 0 && (
-            <div className="pt-4 mt-4 border-t border-gray-100 dark:border-yt-border">
+            <div className="pt-4 mt-4 border-t border-border">
               <div className="flex flex-wrap gap-2">
                 {userTeams.map((team) => (
                   <span
                     key={team.id}
-                    className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-yt-border"
+                    className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-foreground border border-border"
                   >
                     <UsersIcon className="h-3 w-3 mr-1.5" />
                     {team.name}
@@ -745,9 +808,7 @@ const UserManagement = () => {
     const leader = user.manager;
 
     return (
-      <div
-        className="bg-naue-white dark:bg-yt-surface rounded-xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border overflow-hidden hover:border-primary-200 dark:hover:border-primary-600 transition-all duration-300"
-      >
+      <div className="bg-card rounded-xl shadow-sm hover:shadow-md dark:shadow-lg border border-border overflow-hidden hover:border-lime transition-all duration-300">
         <div className="flex items-center p-4 gap-4">
           {/* Avatar */}
           <div className="flex-shrink-0">
@@ -758,14 +819,13 @@ const UserManagement = () => {
                 className="h-10 w-10 rounded-full object-cover"
               />
             ) : (
-              <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm bg-gradient-to-br ${
-                user.is_director
-                  ? 'from-stone-800 to-stone-900'
-                  : user.is_leader
-                    ? 'from-primary-900 to-primary-800'
-                    : 'from-gray-600 to-gray-700'
-              }`}>
-                {user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+              <div className="h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm bg-secondary text-foreground">
+                {user.name
+                  .split(' ')
+                  .map((n: string) => n[0])
+                  .join('')
+                  .toUpperCase()
+                  .slice(0, 2)}
               </div>
             )}
           </div>
@@ -773,43 +833,46 @@ const UserManagement = () => {
           {/* Nome e Cargo */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{user.name}</h3>
+              <h3 className="font-semibold text-foreground truncate">{user.name}</h3>
               {user.is_director && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-yt-elevated text-gray-700 dark:text-gray-300">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary text-foreground">
                   Diretor
                 </span>
               )}
               {user.is_leader && !user.is_director && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-lime/20 text-lime-deep dark:text-lime">
                   Avaliador
                 </span>
               )}
               {user.active === false && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-destructive/15 text-destructive">
                   Inativo
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user.position}</p>
+            <p className="text-sm text-muted-foreground truncate">{user.position}</p>
           </div>
 
           {/* Email */}
-          <div className="hidden md:flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 min-w-[200px]">
-            <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
+          <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground min-w-[200px]">
+            <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <span className="truncate">{user.email}</span>
           </div>
 
           {/* Comitê de Gente Permission Toggle - Only for Leaders in List View */}
           {user.is_leader && !user.is_director && (
             <div className="hidden md:flex items-center min-w-[120px]">
-              <label className="flex items-center gap-1.5 cursor-pointer group" onClick={(e) => e.stopPropagation()}>
+              <label
+                className="flex items-center gap-1.5 cursor-pointer group"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <input
                   type="checkbox"
                   checked={user.can_view_subordinate_ninebox || false}
                   onChange={() => handleToggleNineboxPermission(user)}
-                  className="w-3.5 h-3.5 rounded border-gray-300 dark:border-yt-border text-primary-600 dark:text-primary-300 focus:ring-primary-500 dark:focus:ring-primary-400 cursor-pointer"
+                  className="w-3.5 h-3.5 rounded border-border text-lime focus:ring-[#D2FF00]/20 cursor-pointer"
                 />
-                <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 flex items-center gap-1">
+                <span className="text-xs text-muted-foreground group-hover:text-foreground flex items-center gap-1">
                   <Eye className="h-3 w-3" />
                   Comitê de Gente
                 </span>
@@ -818,14 +881,14 @@ const UserManagement = () => {
           )}
 
           {/* Líder */}
-          <div className="hidden lg:flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 min-w-[150px]">
+          <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground min-w-[150px]">
             {leader ? (
               <>
-                <GitBranch className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <GitBranch className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="truncate">{leader.name}</span>
               </>
             ) : (
-              <span className="text-gray-400">-</span>
+              <span className="text-muted-foreground">-</span>
             )}
           </div>
 
@@ -834,7 +897,7 @@ const UserManagement = () => {
             <ActionGuard can={() => permissions.canEditUser(user.id)}>
               <button
                 onClick={() => handleEdit(user)}
-                className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary-600"
+                className="p-2 rounded-lg transition-colors hover:bg-accent text-muted-foreground hover:text-lime-deep dark:hover:text-lime"
                 title="Editar"
               >
                 <Edit className="h-4 w-4" />
@@ -845,7 +908,7 @@ const UserManagement = () => {
               <RoleGuard allowedRoles={['director', 'leader']}>
                 <button
                   onClick={() => handleOpenSalaryModal(user)}
-                  className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-green-600"
+                  className="p-2 rounded-lg transition-colors hover:bg-accent text-muted-foreground hover:text-success"
                   title="Gestão Salarial"
                 >
                   <DollarSign className="h-4 w-4" />
@@ -857,7 +920,7 @@ const UserManagement = () => {
               <ActionGuard can={permissions.canDeactivateUser}>
                 <button
                   onClick={() => handleReactivate(user.id)}
-                  className="p-2 rounded-lg transition-colors hover:bg-green-100 dark:hover:bg-green-900/20 text-gray-500 dark:text-gray-400 hover:text-green-600"
+                  className="p-2 rounded-lg transition-colors hover:bg-success/10 text-muted-foreground hover:text-success"
                   title="Reativar usuário"
                 >
                   <UserPlus className="h-4 w-4" />
@@ -868,8 +931,8 @@ const UserManagement = () => {
             <ActionGuard can={permissions.canDeactivateUser}>
               <button
                 onClick={() => handleDelete(user.id)}
-                className="p-2 rounded-lg transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-600"
-                title={user.active === false ? "Excluir permanentemente" : "Desativar usuário"}
+                className="p-2 rounded-lg transition-colors hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                title={user.active === false ? 'Excluir permanentemente' : 'Desativar usuário'}
               >
                 <UserX className="h-4 w-4" />
               </button>
@@ -890,16 +953,16 @@ const UserManagement = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-8"
+          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8"
         >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-                  <Database className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary-900 dark:text-primary-200 mr-2 sm:mr-3 flex-shrink-0" />
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
+                  <Database className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-lime-deep dark:text-lime mr-2 sm:mr-3 flex-shrink-0" />
                   Gerenciamento de Usuários
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
+                <p className="text-muted-foreground mt-1 text-sm sm:text-base">
                   Visualize e gerencie usuários do sistema
                 </p>
               </div>
@@ -923,44 +986,59 @@ const UserManagement = () => {
             initial="hidden"
             animate="visible"
           >
-            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 dark:from-gray-700 dark:via-gray-800 dark:to-gray-900 rounded-xl p-4 text-center shadow-lg">
+            <motion.div
+              variants={itemVariants}
+              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
+            >
               <div className="relative z-10">
-                <p className="text-2xl font-bold text-white">{stats.totalUsers}</p>
-                <p className="text-sm text-gray-300 font-medium">Total</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalUsers}</p>
+                <p className="text-sm text-muted-foreground font-medium">Total</p>
               </div>
-              <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-500 dark:text-gray-600 opacity-50" />
+              <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
             </motion.div>
 
-            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-stone-800 via-stone-800 to-stone-900 dark:from-stone-800 dark:via-stone-800 dark:to-stone-900 rounded-xl p-4 text-center shadow-lg">
+            <motion.div
+              variants={itemVariants}
+              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
+            >
               <div className="relative z-10">
-                <p className="text-2xl font-bold text-white">{stats.totalDirectors}</p>
-                <p className="text-sm text-stone-100 font-medium">Diretores</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalDirectors}</p>
+                <p className="text-sm text-muted-foreground font-medium">Diretores</p>
               </div>
-              <Shield className="absolute -bottom-2 -right-2 h-16 w-16 text-stone-700 dark:text-stone-600 opacity-50" />
+              <Shield className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
             </motion.div>
 
-            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 dark:from-primary-900 dark:via-primary-800 dark:to-primary-700 rounded-xl p-4 text-center shadow-lg">
+            <motion.div
+              variants={itemVariants}
+              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
+            >
               <div className="relative z-10">
-                <p className="text-2xl font-bold text-white">{stats.totalLeaders}</p>
-                <p className="text-sm text-primary-100 font-medium">Avaliadores</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalLeaders}</p>
+                <p className="text-sm text-muted-foreground font-medium">Avaliadores</p>
               </div>
-              <Crown className="absolute -bottom-2 -right-2 h-16 w-16 text-stone-800 dark:text-stone-700 opacity-50" />
+              <Crown className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
             </motion.div>
 
-            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 dark:from-gray-600 dark:via-gray-700 dark:to-gray-800 rounded-xl p-4 text-center shadow-lg">
+            <motion.div
+              variants={itemVariants}
+              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
+            >
               <div className="relative z-10">
-                <p className="text-2xl font-bold text-white">{stats.totalCollaborators}</p>
-                <p className="text-sm text-gray-200 font-medium">Avaliados</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalCollaborators}</p>
+                <p className="text-sm text-muted-foreground font-medium">Avaliados</p>
               </div>
-              <UserCheck className="absolute -bottom-2 -right-2 h-16 w-16 text-gray-500 dark:text-gray-400 opacity-50" />
+              <UserCheck className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
             </motion.div>
 
-            <motion.div variants={itemVariants} className="relative overflow-hidden bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 dark:from-amber-600 dark:via-amber-700 dark:to-amber-800 rounded-xl p-4 text-center shadow-lg">
+            <motion.div
+              variants={itemVariants}
+              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
+            >
               <div className="relative z-10">
-                <p className="text-2xl font-bold text-white">{usersNearing90Days.length}</p>
-                <p className="text-sm text-amber-100 font-medium">90 dias</p>
+                <p className="text-2xl font-bold text-foreground">{usersNearing90Days.length}</p>
+                <p className="text-sm text-muted-foreground font-medium">90 dias</p>
               </div>
-              <Clock className="absolute -bottom-2 -right-2 h-16 w-16 text-amber-400 dark:text-amber-500 opacity-50" />
+              <Clock className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
             </motion.div>
           </motion.div>
         </motion.div>
@@ -970,29 +1048,30 @@ const UserManagement = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm border border-amber-200 dark:border-amber-700/50 overflow-hidden"
+            className="bg-card rounded-2xl shadow-sm border border-warning/30 overflow-hidden"
           >
             <button
               onClick={() => setShow90DaysSection(!show90DaysSection)}
-              className="w-full flex items-center justify-between px-6 py-4 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-colors"
+              className="w-full flex items-center justify-between px-6 py-4 hover:bg-warning/10 transition-colors"
             >
               <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/30">
-                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                <div className="p-2 rounded-xl bg-warning/15">
+                  <AlertTriangle className="h-5 w-5 text-warning" />
                 </div>
                 <div className="text-left">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  <h3 className="text-sm font-semibold text-foreground">
                     Colaboradores completando 90 dias
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {usersNearing90Days.length} colaborador{usersNearing90Days.length > 1 ? 'es' : ''} no periodo de experiencia
+                  <p className="text-xs text-muted-foreground">
+                    {usersNearing90Days.length} colaborador
+                    {usersNearing90Days.length > 1 ? 'es' : ''} no periodo de experiencia
                   </p>
                 </div>
               </div>
               {show90DaysSection ? (
-                <ChevronUp className="h-5 w-5 text-gray-400" />
+                <ChevronUp className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <ChevronDown className="h-5 w-5 text-gray-400" />
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
               )}
             </button>
 
@@ -1006,49 +1085,52 @@ const UserManagement = () => {
                   className="overflow-hidden"
                 >
                   <div className="px-6 pb-4 space-y-2">
-                    {usersNearing90Days.map(user => (
+                    {usersNearing90Days.map((user) => (
                       <div
                         key={user.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-yt-elevated/50 border border-gray-100 dark:border-yt-border hover:border-amber-200 dark:hover:border-amber-700 transition-colors"
+                        className="flex items-center justify-between p-3 rounded-xl bg-secondary border border-border hover:border-warning/30 transition-colors"
                       >
                         <div className="flex items-center space-x-3">
-                          <div className={`h-9 w-9 rounded-lg flex items-center justify-center text-white font-bold text-xs bg-gradient-to-br ${
-                            user.is_director
-                              ? 'from-stone-800 to-stone-900'
-                              : user.is_leader
-                                ? 'from-primary-900 to-primary-800'
-                                : 'from-gray-600 to-gray-700'
-                          }`}>
-                            {user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+                          <div className="h-9 w-9 rounded-lg flex items-center justify-center font-bold text-xs bg-secondary text-foreground">
+                            {user.name
+                              .split(' ')
+                              .map((n: string) => n[0])
+                              .join('')
+                              .toUpperCase()
+                              .slice(0, 2)}
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{user.name}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{user.position}</p>
+                            <p className="text-sm font-semibold text-foreground">{user.name}</p>
+                            <p className="text-xs text-muted-foreground">{user.position}</p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-3">
                           <div className="text-right">
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              Admissão: {new Date(user.admission_date || user.join_date!).toLocaleDateString('pt-BR')}
+                            <p className="text-xs text-muted-foreground">
+                              Admissão:{' '}
+                              {new Date(user.admission_date || user.join_date!).toLocaleDateString(
+                                'pt-BR',
+                              )}
                             </p>
-                            <p className={`text-xs font-semibold ${
-                              user.daysTo90 <= 0
-                                ? 'text-red-600 dark:text-red-400'
-                                : user.daysTo90 <= 7
-                                  ? 'text-amber-600 dark:text-amber-400'
-                                  : 'text-gray-600 dark:text-gray-400'
-                            }`}>
+                            <p
+                              className={`text-xs font-semibold ${
+                                user.daysTo90 <= 0
+                                  ? 'text-destructive'
+                                  : user.daysTo90 <= 7
+                                    ? 'text-warning'
+                                    : 'text-muted-foreground'
+                              }`}
+                            >
                               {user.daysTo90 > 0
                                 ? `${user.daysTo90} dia${user.daysTo90 > 1 ? 's' : ''} para completar 90 dias`
                                 : user.daysTo90 === 0
                                   ? 'Completa 90 dias hoje!'
-                                  : `Completou 90 dias há ${Math.abs(user.daysTo90)} dia${Math.abs(user.daysTo90) > 1 ? 's' : ''}`
-                              }
+                                  : `Completou 90 dias há ${Math.abs(user.daysTo90)} dia${Math.abs(user.daysTo90) > 1 ? 's' : ''}`}
                             </p>
                           </div>
                           <button
                             onClick={() => navigate(`/users/edit/${user.id}`)}
-                            className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                            className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-lime-deep dark:hover:text-lime transition-colors"
                             title="Ver perfil"
                           >
                             <Eye className="h-4 w-4" />
@@ -1063,17 +1145,17 @@ const UserManagement = () => {
           </motion.div>
         )}
 
-        <div className="bg-naue-white dark:bg-yt-surface rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-naue-border-gray dark:border-yt-border p-6">
+        <div className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-3">
               {/* Tabs de status */}
-              <div className="flex items-center bg-gray-100/80 dark:bg-yt-elevated/50 backdrop-blur-sm rounded-xl p-1.5">
+              <div className="flex items-center bg-secondary backdrop-blur-sm rounded-xl p-1.5">
                 <button
                   onClick={() => setStatusFilter('active')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     statusFilter === 'active'
-                      ? 'bg-white dark:bg-yt-elevated text-primary-600 dark:text-primary-400 shadow-sm dark:shadow-lg'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      ? 'bg-card text-lime-deep dark:text-lime shadow-sm dark:shadow-lg'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   Ativos
@@ -1082,8 +1164,8 @@ const UserManagement = () => {
                   onClick={() => setStatusFilter('inactive')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     statusFilter === 'inactive'
-                      ? 'bg-white dark:bg-yt-elevated text-red-600 dark:text-red-400 shadow-sm dark:shadow-lg'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      ? 'bg-card text-destructive shadow-sm dark:shadow-lg'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   Inativos
@@ -1092,8 +1174,8 @@ const UserManagement = () => {
                   onClick={() => setStatusFilter('all')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     statusFilter === 'all'
-                      ? 'bg-white dark:bg-yt-elevated text-primary-600 dark:text-primary-400 shadow-sm dark:shadow-lg'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      ? 'bg-card text-lime-deep dark:text-lime shadow-sm dark:shadow-lg'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   Todos
@@ -1101,13 +1183,13 @@ const UserManagement = () => {
               </div>
 
               {/* Modo de visualização */}
-              <div className="flex items-center bg-gray-100/80 dark:bg-yt-elevated/50 backdrop-blur-sm rounded-xl p-1.5">
+              <div className="flex items-center bg-secondary backdrop-blur-sm rounded-xl p-1.5">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all ${
                     viewMode === 'grid'
-                      ? 'bg-white dark:bg-yt-elevated text-primary-600 dark:text-primary-400 shadow-sm dark:shadow-lg'
-                      : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                      ? 'bg-card text-lime-deep dark:text-lime shadow-sm dark:shadow-lg'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                   title="Visualização em grade"
                 >
@@ -1117,8 +1199,8 @@ const UserManagement = () => {
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg transition-all ${
                     viewMode === 'list'
-                      ? 'bg-white dark:bg-yt-elevated text-primary-600 dark:text-primary-400 shadow-sm dark:shadow-lg'
-                      : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                      ? 'bg-card text-lime-deep dark:text-lime shadow-sm dark:shadow-lg'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                   title="Visualização em lista"
                 >
@@ -1129,25 +1211,25 @@ const UserManagement = () => {
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`p-2.5 rounded-xl transition-all ${
-                  showFilters 
-                    ? 'bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' 
-                    : 'bg-gray-100 dark:bg-yt-elevated text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  showFilters
+                    ? 'bg-lime/20 text-lime-deep dark:text-lime'
+                    : 'bg-secondary text-muted-foreground hover:bg-accent'
                 }`}
               >
                 <Filter className="h-4 w-4" />
               </button>
 
               <div className="relative group">
-                <button className="p-2.5 rounded-lg bg-naue-light-gray dark:bg-yt-elevated text-naue-text-gray dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                <button className="p-2.5 rounded-lg bg-secondary text-muted-foreground hover:bg-accent transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                   <MoreVertical className="h-4 w-4" />
                 </button>
-                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-yt-surface rounded-xl shadow-xl dark:shadow-2xl border border-gray-100 dark:border-yt-border py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                <div className="absolute right-0 mt-2 w-56 bg-popover text-popover-foreground rounded-xl shadow-xl dark:shadow-2xl border border-border py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                   <UIGuard show="showExportButton">
                     <button
                       onClick={() => handleQuickAction('export')}
-                      className="w-full px-4 py-2.5 text-left text-sm text-naue-black dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-foreground font-medium hover:bg-accent flex items-center space-x-3 transition-colors"
                     >
-                      <Download className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                      <Download className="h-4 w-4 text-muted-foreground" />
                       <span>Exportar lista</span>
                     </button>
                   </UIGuard>
@@ -1158,13 +1240,13 @@ const UserManagement = () => {
 
           <div className="space-y-4">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Buscar usuários..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
+                className="w-full pl-12 pr-4 rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
               />
             </div>
 
@@ -1176,47 +1258,51 @@ const UserManagement = () => {
                   exit={{ opacity: 0, height: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-700/30 dark:to-gray-700/50 rounded-xl border border-gray-200 dark:border-yt-border">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-secondary rounded-xl border border-border">
                     <div>
-                      <label className="block text-sm font-semibold text-naue-black dark:text-gray-300 font-medium mb-2">
+                      <label className="block text-sm font-semibold text-foreground font-medium mb-2">
                         Departamento
                       </label>
                       <select
                         value={selectedDepartment}
                         onChange={(e) => setSelectedDepartment(e.target.value)}
-                        className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
+                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
                       >
                         <option value="">Todos</option>
-                        {departments.map(dept => (
-                          <option key={dept.id} value={dept.id}>{dept.name}</option>
+                        {departments.map((dept) => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.name}
+                          </option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-naue-black dark:text-gray-300 font-medium mb-2">
+                      <label className="block text-sm font-semibold text-foreground font-medium mb-2">
                         Time
                       </label>
                       <select
                         value={selectedTeam}
                         onChange={(e) => setSelectedTeam(e.target.value)}
-                        className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
+                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
                       >
                         <option value="">Todos</option>
-                        {teams.map(team => (
-                          <option key={team.id} value={team.id}>{team.name}</option>
+                        {teams.map((team) => (
+                          <option key={team.id} value={team.id}>
+                            {team.name}
+                          </option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-naue-black dark:text-gray-300 font-medium mb-2">
+                      <label className="block text-sm font-semibold text-foreground font-medium mb-2">
                         Ordenar por
                       </label>
                       <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value as any)}
-                        className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
+                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
                       >
                         <option value="name">Nome</option>
                         <option value="date">Data de entrada</option>
@@ -1225,13 +1311,13 @@ const UserManagement = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-naue-black dark:text-gray-300 font-medium mb-2">
+                      <label className="block text-sm font-semibold text-foreground font-medium mb-2">
                         Tipo de Usuário
                       </label>
                       <select
                         value={userTypeFilter}
                         onChange={(e) => setUserTypeFilter(e.target.value as UserTypeFilter)}
-                        className="w-full rounded-xl border border-gray-200 dark:border-yt-border bg-gray-50 dark:bg-yt-elevated text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-600 transition-colors py-2.5 px-3"
+                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
                       >
                         <option value="all">Todos</option>
                         <option value="collaborator">Colaboradores</option>
@@ -1246,8 +1332,14 @@ const UserManagement = () => {
           </div>
 
           <div className="mt-6">
-            <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-2'}>
-              {filteredUsers.map(user => (
+            <div
+              className={
+                viewMode === 'grid'
+                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
+                  : 'space-y-2'
+              }
+            >
+              {filteredUsers.map((user) => (
                 <div key={user.id}>
                   {viewMode === 'grid' ? renderUserCard(user) : renderUserListItem(user)}
                 </div>
@@ -1261,11 +1353,15 @@ const UserManagement = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-12"
             >
-              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 mb-6">
-                <UserX className="h-10 w-10 text-gray-400 dark:text-gray-500" />
+              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-secondary mb-6">
+                <UserX className="h-10 w-10 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Nenhum usuário encontrado</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">Tente ajustar os filtros ou realizar uma nova busca</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Nenhum usuário encontrado
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Tente ajustar os filtros ou realizar uma nova busca
+              </p>
               <UIGuard show="showCreateUserButton">
                 <Button
                   variant="primary"
@@ -1285,37 +1381,37 @@ const UserManagement = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
               onClick={() => setShowExportMenu(false)}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-naue-white dark:bg-yt-surface rounded-2xl p-6 max-w-sm w-full mx-4 shadow-md hover:shadow-lg border border-naue-border-gray dark:border-yt-border"
+                className="bg-popover text-popover-foreground rounded-2xl p-6 max-w-sm w-full mx-4 shadow-md hover:shadow-lg border border-border"
                 onClick={(e) => e.stopPropagation()}
               >
-                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
-                  <Download className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+                <h2 className="text-xl font-bold text-foreground mb-6 flex items-center">
+                  <Download className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
                   Exportar Dados
                 </h2>
-                
+
                 <div className="space-y-3">
                   <button
                     onClick={() => handleExport('excel')}
-                    className="w-full p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 hover:from-green-100 hover:to-green-200 dark:hover:from-green-800/30 dark:hover:to-green-700/30 rounded-xl border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 font-medium text-left flex items-center space-x-3 transition-all"
+                    className="w-full p-4 bg-success/10 hover:bg-success/20 rounded-xl border border-success/30 text-success font-medium text-left flex items-center space-x-3 transition-all"
                   >
                     <FileSpreadsheet className="h-5 w-5" />
                     <div className="flex-1">
                       <p className="font-semibold">Excel</p>
-                      <p className="text-xs text-green-600 dark:text-green-400">Arquivo .xlsx para análises</p>
+                      <p className="text-xs text-success">Arquivo .xlsx para análises</p>
                     </div>
                   </button>
                 </div>
 
                 <button
                   onClick={() => setShowExportMenu(false)}
-                  className="w-full mt-4 p-3 rounded-xl border border-gray-200 dark:border-yt-border text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="w-full mt-4 p-3 rounded-xl border border-border text-muted-foreground font-medium hover:bg-accent transition-colors"
                 >
                   Cancelar
                 </button>

@@ -1,10 +1,36 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Lock, Eye, EyeOff, CheckCircle, AlertCircle, Mail, ArrowLeft } from 'lucide-react';
-import logo from '../../../assets/images/logo.png';
+import {
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  AlertCircle,
+  Mail,
+  ArrowLeft,
+  Loader2,
+} from 'lucide-react';
+import gioWordmark from '@/assets/images/gio-wordmark.png';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
+
+// gio — Identidade v4.0: fundo obsidian + grade blueprint + card com vidro e barra lime.
+const INVERT_TO_WHITE = 'invert(1) brightness(1.1)';
+
+const blueprintBackground = {
+  backgroundImage: `linear-gradient(rgba(210,255,0,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(210,255,0,.05) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px)`,
+  backgroundSize: '90px 90px, 90px 90px, 22.5px 22.5px, 22.5px 22.5px',
+  maskImage: 'radial-gradient(ellipse 100% 100% at 50% 45%, black 30%, transparent 100%)',
+  WebkitMaskImage: 'radial-gradient(ellipse 100% 100% at 50% 45%, black 30%, transparent 100%)',
+} as const;
+
+// Estilo compartilhado dos inputs (vidro sobre obsidian, focus lime)
+const inputClass =
+  'h-12 w-full rounded-[10px] border border-white/10 bg-white/[0.06] pl-10 pr-12 text-[14.5px] text-white outline-none transition placeholder:text-[#8B8B95] placeholder:opacity-55 hover:border-white/[0.14] focus:border-[#D2FF00] focus:shadow-[0_0_0_3px_rgba(210,255,0,0.18)]';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -72,14 +98,14 @@ export default function ResetPassword() {
   ];
 
   const checkPasswordStrength = () => {
-    return passwordRequirements.map(req => ({
+    return passwordRequirements.map((req) => ({
       ...req,
-      met: req.regex.test(newPassword)
+      met: req.regex.test(newPassword),
     }));
   };
 
   const isPasswordValid = () => {
-    return passwordRequirements.every(req => req.regex.test(newPassword));
+    return passwordRequirements.every((req) => req.regex.test(newPassword));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,7 +160,9 @@ export default function ResetPassword() {
         }
 
         if (!accessToken) {
-          throw new Error('Token de acesso não encontrado na URL. Por favor, solicite um novo link de recuperação.');
+          throw new Error(
+            'Token de acesso não encontrado na URL. Por favor, solicite um novo link de recuperação.',
+          );
         }
 
         // Usa a API REST do Supabase diretamente
@@ -143,12 +171,12 @@ export default function ResetPassword() {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+            Authorization: `Bearer ${accessToken}`,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
           },
           body: JSON.stringify({
-            password: newPassword
-          })
+            password: newPassword,
+          }),
         });
 
         if (!response.ok) {
@@ -180,7 +208,7 @@ export default function ResetPassword() {
 
         // Se a senha atual estiver correta, atualiza para a nova
         const { error: updateError } = await supabase.auth.updateUser({
-          password: newPassword
+          password: newPassword,
         });
 
         if (updateError) {
@@ -215,294 +243,308 @@ export default function ResetPassword() {
   // Tela de erro quando o token expirou ou é inválido
   if (hasTokenError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1e6076] via-[#12b0a0] to-[#0e8c80] flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
-        >
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-8 space-y-6 border border-gray-200">
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
-                <AlertCircle className="h-10 w-10 text-red-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Link Expirado
-              </h2>
-              <p className="text-gray-600 mb-6">
-                {tokenErrorMessage}
-              </p>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-left">
-                <p className="text-sm text-yellow-800 mb-2">
-                  Por segurança, os links de recuperação expiram após um tempo.
-                </p>
-                <p className="text-xs text-yellow-600">
-                  Solicite um novo link de recuperação para redefinir sua senha.
-                </p>
-              </div>
-              <div className="space-y-3">
-                <button
-                  onClick={() => navigate('/forgot-password')}
-                  className="w-full py-3 px-6 rounded-lg font-medium text-white transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-md"
-                  style={{background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)'}}
-                >
-                  Solicitar Novo Link
-                </button>
-                <button
-                  onClick={() => navigate('/login')}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Voltar para Login
-                </button>
+      <div className="relative min-h-screen w-full overflow-hidden bg-[#1A1A1A] text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 z-0"
+          style={blueprintBackground}
+        />
+        <main className="relative z-10 flex min-h-screen items-center justify-center p-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-[430px] max-w-[calc(100%-48px)] sm:max-w-[calc(100%-80px)]"
+          >
+            <div
+              className="relative rounded-[20px] border border-white/10 bg-[rgba(0,0,0,0.18)] px-10 pb-10 pt-11 shadow-[0_32px_64px_rgba(0,0,0,0.35)]"
+              style={{
+                backdropFilter: 'blur(28px) saturate(1.4)',
+                WebkitBackdropFilter: 'blur(28px) saturate(1.4)',
+              }}
+            >
+              <div className="absolute -top-px left-10 right-10 h-0.5 rounded-b-[4px] bg-[#D2FF00] opacity-90" />
+              <div className="text-center">
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-[rgba(255,80,80,0.3)] bg-[rgba(255,80,80,0.12)]">
+                  <AlertCircle className="h-9 w-9 text-[#ff9090]" />
+                </div>
+                <h2 className="mb-1.5 text-[22px] font-semibold tracking-[-0.03em] text-white">
+                  Link expirado
+                </h2>
+                <p className="mb-5 text-[14px] text-[#8B8B95]">{tokenErrorMessage}</p>
+                <div className="mb-7 rounded-[10px] border border-white/10 bg-white/[0.04] px-4 py-3.5 text-left">
+                  <p className="mb-1.5 text-[13px] text-white/80">
+                    Por segurança, os links de recuperação expiram após um tempo.
+                  </p>
+                  <p className="text-[12px] text-[#8B8B95]">
+                    Solicite um novo link de recuperação para redefinir sua senha.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => navigate('/forgot-password')}
+                    className="flex h-[50px] w-full items-center justify-center rounded-[10px] bg-[#D2FF00] text-[15px] font-bold tracking-[0.02em] text-[#1A1A1A] shadow-[0_4px_16px_rgba(0,0,0,0.25)] transition hover:-translate-y-px hover:bg-[#C2EE00] hover:shadow-[0_6px_20px_rgba(0,0,0,0.3)] active:translate-y-0"
+                  >
+                    Solicitar novo link
+                  </button>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="flex h-[50px] w-full items-center justify-center gap-2 rounded-[10px] border border-white/10 bg-white/[0.06] text-[14.5px] font-semibold text-white transition hover:border-white/[0.18] hover:bg-white/[0.1]"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Voltar para o login
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1e6076] via-[#12b0a0] to-[#0e8c80] flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-8 space-y-6 border border-gray-200">
-          {/* Cabeçalho */}
-          <div className="text-center space-y-2">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="inline-flex items-center justify-center w-16 h-16 rounded-xl shadow-lg"
-              style={{background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)'}}
-            >
-              <img src={logo} alt="Logo" />
-            </motion.div>
-            <h1 className="text-3xl font-bold text-gray-900 font-lemon-milk tracking-wide">
-              {isRecoveryMode ? 'Criar Nova Senha' : 'Redefinir Senha'}
-            </h1>
-            <p className="text-gray-600">
-              {isRecoveryMode
-                ? 'Escolha uma nova senha segura para sua conta'
-                : 'Escolha uma nova senha segura para sua conta'}
-            </p>
-          </div>
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#1A1A1A] text-white">
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-0"
+        style={blueprintBackground}
+      />
+      <main className="relative z-10 flex min-h-screen items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-[430px] max-w-[calc(100%-48px)] sm:max-w-[calc(100%-80px)]"
+        >
+          <div
+            className="relative rounded-[20px] border border-white/10 bg-[rgba(0,0,0,0.18)] px-10 pb-10 pt-11 shadow-[0_32px_64px_rgba(0,0,0,0.35)]"
+            style={{
+              backdropFilter: 'blur(28px) saturate(1.4)',
+              WebkitBackdropFilter: 'blur(28px) saturate(1.4)',
+            }}
+          >
+            <div className="absolute -top-px left-10 right-10 h-0.5 rounded-b-[4px] bg-[#D2FF00] opacity-90" />
 
-          {/* Formulário */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email - Apenas no modo normal (não recovery) */}
-            {!isRecoveryMode && (
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                      error ? 'border-red-500' : 'border-gray-300'
-                    } focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all bg-white`}
-                    placeholder="seu@email.com"
-                    disabled={isLoading}
-                  />
+            {/* Cabeçalho */}
+            <div className="mb-7 flex flex-col items-center gap-2.5 text-center">
+              <img
+                src={gioWordmark}
+                alt="gio"
+                className="block h-[40px] w-auto"
+                style={{ filter: INVERT_TO_WHITE, imageRendering: 'auto' }}
+              />
+              <h1 className="text-[22px] font-semibold tracking-[-0.03em] text-white">
+                {isRecoveryMode ? 'Criar nova senha' : 'Redefinir senha'}
+              </h1>
+              <p className="text-[14px] text-[#8B8B95]">
+                Escolha uma nova senha segura para sua conta.
+              </p>
+            </div>
+
+            <div className="mb-[26px] h-px w-full bg-white/[0.09]" />
+
+            {/* Formulário */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Email - Apenas no modo normal (não recovery) */}
+              {!isRecoveryMode && (
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="mb-1.5 block text-[11.5px] font-semibold uppercase tracking-[0.07em] text-[#8B8B95]"
+                  >
+                    E-mail
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#8B8B95]" />
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={inputClass}
+                      placeholder="seu@email.com.br"
+                      disabled={isLoading}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Senha Atual - Apenas no modo normal (não recovery) */}
-            {!isRecoveryMode && (
+              {/* Senha Atual - Apenas no modo normal (não recovery) */}
+              {!isRecoveryMode && (
+                <div>
+                  <label
+                    htmlFor="currentPassword"
+                    className="mb-1.5 block text-[11.5px] font-semibold uppercase tracking-[0.07em] text-[#8B8B95]"
+                  >
+                    Senha atual
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#8B8B95]" />
+                    <input
+                      id="currentPassword"
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className={inputClass}
+                      placeholder="••••••••"
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#8B8B95] opacity-70 transition hover:opacity-100"
+                      tabIndex={-1}
+                    >
+                      {showCurrentPassword ? (
+                        <EyeOff className="h-[18px] w-[18px]" />
+                      ) : (
+                        <Eye className="h-[18px] w-[18px]" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Nova Senha */}
               <div>
-                <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                  Senha Atual
+                <label
+                  htmlFor="newPassword"
+                  className="mb-1.5 block text-[11.5px] font-semibold uppercase tracking-[0.07em] text-[#8B8B95]"
+                >
+                  Nova senha
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#8B8B95]" />
                   <input
-                    id="currentPassword"
-                    type={showCurrentPassword ? 'text' : 'password'}
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    className={`w-full pl-10 pr-12 py-3 rounded-lg border ${
-                      error ? 'border-red-500' : 'border-gray-300'
-                    } focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all bg-white`}
+                    id="newPassword"
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className={inputClass}
                     placeholder="••••••••"
                     disabled={isLoading}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-all duration-200"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#8B8B95] opacity-70 transition hover:opacity-100"
                     tabIndex={-1}
                   >
-                    {showCurrentPassword ? (
-                      <EyeOff className="h-5 w-5" />
+                    {showNewPassword ? (
+                      <EyeOff className="h-[18px] w-[18px]" />
                     ) : (
-                      <Eye className="h-5 w-5" />
+                      <Eye className="h-[18px] w-[18px]" />
                     )}
                   </button>
                 </div>
               </div>
-            )}
 
-            {/* Nova Senha */}
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                Nova Senha
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  id="newPassword"
-                  type={showNewPassword ? 'text' : 'password'}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className={`w-full pl-10 pr-12 py-3 rounded-lg border ${
-                    error ? 'border-red-500' : 'border-gray-300'
-                  } focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all bg-white`}
-                  placeholder="••••••••"
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-all duration-200"
-                  tabIndex={-1}
+              {/* Requisitos da Senha */}
+              {newPassword && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="space-y-2 rounded-[10px] border border-white/10 bg-white/[0.04] p-4"
                 >
-                  {showNewPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Requisitos da Senha */}
-            {newPassword && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="space-y-2 p-4 bg-gray-50 rounded-xl"
-              >
-                <p className="text-sm font-medium text-gray-700 mb-2">
-                  Requisitos da senha:
-                </p>
-                {requirements.map((req, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    className={`flex items-center gap-2 text-sm ${
-                      req.met ? 'text-green-600' : 'text-gray-500'
-                    }`}
-                  >
-                    <CheckCircle className={`h-4 w-4 ${
-                      req.met ? 'text-green-600' : 'text-gray-300'
-                    }`} />
-                    <span>{req.text}</span>
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-
-            {/* Confirmar Senha */}
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                Confirmar Nova Senha
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`w-full pl-10 pr-12 py-3 rounded-lg border ${
-                    error && confirmPassword ? 'border-red-500' : 'border-gray-300'
-                  } focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all bg-white`}
-                  placeholder="••••••••"
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  tabIndex={-1}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-              {confirmPassword && newPassword !== confirmPassword && (
-                <p className="text-xs text-red-600 mt-1 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  As senhas não coincidem
-                </p>
+                  <p className="mb-2 text-[13px] font-medium text-white/80">Requisitos da senha:</p>
+                  {requirements.map((req, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      className={`flex items-center gap-2 text-[13px] ${
+                        req.met ? 'text-success' : 'text-[#8B8B95]'
+                      }`}
+                    >
+                      <CheckCircle
+                        className={`h-4 w-4 ${req.met ? 'text-success' : 'text-white/20'}`}
+                      />
+                      <span>{req.text}</span>
+                    </motion.div>
+                  ))}
+                </motion.div>
               )}
-            </div>
 
-            {/* Mensagem de Erro */}
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg"
-              >
-                <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                <span>{error}</span>
-              </motion.div>
-            )}
-
-            {/* Botões */}
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => navigate('/login')}
-                className="flex-1 py-3 px-6 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2"
-              >
-                <ArrowLeft className="h-5 w-5" />
-                <span>Voltar</span>
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading || !isPasswordValid() || newPassword !== confirmPassword}
-                className={`flex-1 py-3 px-6 rounded-lg font-medium text-white transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-md ${
-                  isLoading || !isPasswordValid() || newPassword !== confirmPassword
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'hover:opacity-90 focus:ring-2 focus:ring-primary-500/20 active:scale-[0.98]'
-                }`}
-                style={!(isLoading || !isPasswordValid() || newPassword !== confirmPassword) ? {background: 'linear-gradient(135deg, #1e6076 0%, #12b0a0 100%)'} : {}}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
-                    <span>Alterando...</span>
-                  </>
-                ) : (
-                  <>
-                    <Lock className="h-5 w-5" />
-                    <span>Alterar Senha</span>
-                  </>
+              {/* Confirmar Senha */}
+              <div>
+                <label
+                  htmlFor="confirmPassword"
+                  className="mb-1.5 block text-[11.5px] font-semibold uppercase tracking-[0.07em] text-[#8B8B95]"
+                >
+                  Confirmar nova senha
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#8B8B95]" />
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={inputClass}
+                    placeholder="••••••••"
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#8B8B95] opacity-70 transition hover:opacity-100"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-[18px] w-[18px]" />
+                    ) : (
+                      <Eye className="h-[18px] w-[18px]" />
+                    )}
+                  </button>
+                </div>
+                {confirmPassword && newPassword !== confirmPassword && (
+                  <p className="mt-1 flex items-center text-[12px] text-[#ff9090]">
+                    <AlertCircle className="mr-1 h-3 w-3" />
+                    As senhas não coincidem
+                  </p>
                 )}
-              </button>
-            </div>
-          </form>
-        </div>
-      </motion.div>
+              </div>
+
+              {/* Mensagem de Erro */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 rounded-[9px] border border-[rgba(255,80,80,0.22)] bg-[rgba(255,80,80,0.1)] px-3.5 py-[11px] text-[13px] text-[#ff9090]"
+                >
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <span>{error}</span>
+                </motion.div>
+              )}
+
+              {/* Botões */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="flex h-[50px] flex-1 items-center justify-center gap-2 rounded-[10px] border border-white/10 bg-white/[0.06] text-[14.5px] font-semibold text-white transition hover:border-white/[0.18] hover:bg-white/[0.1]"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                  <span>Voltar</span>
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading || !isPasswordValid() || newPassword !== confirmPassword}
+                  className="flex h-[50px] flex-1 items-center justify-center gap-2 rounded-[10px] bg-[#D2FF00] text-[15px] font-bold tracking-[0.02em] text-[#1A1A1A] shadow-[0_4px_16px_rgba(0,0,0,0.25)] transition hover:-translate-y-px hover:bg-[#C2EE00] hover:shadow-[0_6px_20px_rgba(0,0,0,0.3)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <span>Alterar senha</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </motion.div>
+      </main>
     </div>
   );
 }

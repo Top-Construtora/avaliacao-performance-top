@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from './Button';
+import { DollarSign, GitBranch, TrendingUp, Save, X, Clock, Star, BarChart3 } from 'lucide-react';
 import {
-  DollarSign, GitBranch, TrendingUp,
-  Save, X, Clock, Star, BarChart3
-} from 'lucide-react';
-import { salaryService, CareerTrack, TrackPosition, SalaryLevel, UserSalaryInfo } from '../services/salary.service';
+  salaryService,
+  CareerTrack,
+  TrackPosition,
+  SalaryLevel,
+  UserSalaryInfo,
+} from '../services/salary.service';
 import { evaluationService } from '../services/evaluation.service';
 import { EvaluationHistory } from '../types/evaluation.types';
 import { User } from '../types/supabase';
@@ -64,7 +67,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
       const [salaryInfo, history, evalHistory] = await Promise.all([
         salaryService.getUserSalaryInfo(user.id),
         salaryService.getUserProgressionHistory(user.id),
-        evaluationService.getEmployeeEvaluationHistory(user.id)
+        evaluationService.getEmployeeEvaluationHistory(user.id),
       ]);
 
       setCurrentSalaryInfo(salaryInfo);
@@ -73,7 +76,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
 
       // Se o usuário já tem um nível, pré-selecionar
       if (salaryInfo.salary_level) {
-        const level = salaryLevels.find(l => l.name === salaryInfo.salary_level);
+        const level = salaryLevels.find((l) => l.name === salaryInfo.salary_level);
         if (level) setSelectedLevel(level.id);
       }
     } catch (error) {
@@ -85,9 +88,9 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
     try {
       const [tracksData, levelsData] = await Promise.all([
         salaryService.getTracks(),
-        salaryService.getLevels()
+        salaryService.getLevels(),
       ]);
-      setTracks(tracksData.filter(t => t.active));
+      setTracks(tracksData.filter((t) => t.active));
       setSalaryLevels(levelsData.sort((a, b) => a.order_index - b.order_index));
     } catch (error) {
       toast.error('Erro ao carregar dados');
@@ -141,7 +144,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
+      currency: 'BRL',
     }).format(value);
   };
 
@@ -152,20 +155,20 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white dark:bg-yt-surface rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-popover text-popover-foreground border border-border rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <DollarSign className="h-6 w-6 text-primary-500" />
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <DollarSign className="h-6 w-6 text-lime-deep dark:text-lime" />
               Gestão Salarial - {user.name}
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {user.position} • {user.contract_type || 'CLT'}
             </p>
           </div>
@@ -176,30 +179,30 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
 
         {/* Info atual */}
         {currentSalaryInfo && (
-          <div className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4 mb-6">
+          <div className="bg-secondary rounded-xl p-4 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Cargo Atual</p>
-                <p className="font-medium text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-muted-foreground">Cargo Atual</p>
+                <p className="font-medium text-foreground">
                   {currentSalaryInfo.position_name || user.position || 'Não definido'}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Classe/Nível</p>
-                <p className="font-medium text-gray-900 dark:text-gray-100">
-                  {currentSalaryInfo.class_code && currentSalaryInfo.salary_level ?
-                    `Classe ${currentSalaryInfo.class_code} - Nível ${currentSalaryInfo.salary_level}` :
-                    currentSalaryInfo.salary_level ?
-                    `Nível ${currentSalaryInfo.salary_level}` :
-                    'Não atribuído à trilha'}
+                <p className="text-sm text-muted-foreground">Classe/Nível</p>
+                <p className="font-medium text-foreground">
+                  {currentSalaryInfo.class_code && currentSalaryInfo.salary_level
+                    ? `Classe ${currentSalaryInfo.class_code} - Nível ${currentSalaryInfo.salary_level}`
+                    : currentSalaryInfo.salary_level
+                      ? `Nível ${currentSalaryInfo.salary_level}`
+                      : 'Não atribuído à trilha'}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Salário Atual</p>
-                <p className="font-medium text-gray-900 dark:text-gray-100">
-                  {currentSalaryInfo.current_salary ? 
-                    formatCurrency(currentSalaryInfo.current_salary) : 
-                    'Não definido'}
+                <p className="text-sm text-muted-foreground">Salário Atual</p>
+                <p className="font-medium text-foreground">
+                  {currentSalaryInfo.current_salary
+                    ? formatCurrency(currentSalaryInfo.current_salary)
+                    : 'Não definido'}
                 </p>
               </div>
             </div>
@@ -207,19 +210,19 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
         )}
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-yt-border mb-6">
+        <div className="flex border-b border-border mb-6">
           {[
             { id: 'assign', label: 'Atribuir Trilha', icon: GitBranch },
             { id: 'progress', label: 'Progressões', icon: TrendingUp },
-            { id: 'history', label: 'Histórico', icon: Clock }
+            { id: 'history', label: 'Histórico', icon: Clock },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900'
+                  ? 'border-lime text-lime-deep dark:text-lime'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
               <tab.icon className="h-4 w-4" />
@@ -232,16 +235,16 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
         {activeTab === 'assign' && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+              <label className="block text-sm font-medium text-foreground font-medium mb-1">
                 Trilha de Carreira
               </label>
               <select
                 value={selectedTrack}
                 onChange={(e) => setSelectedTrack(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated"
+                className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background rounded-lg"
               >
                 <option value="">Selecione uma trilha</option>
-                {tracks.map(track => (
+                {tracks.map((track) => (
                   <option key={track.id} value={track.id}>
                     {track.name} {track.department?.name && `(${track.department.name})`}
                   </option>
@@ -251,18 +254,19 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
 
             {trackPositions.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+                <label className="block text-sm font-medium text-foreground font-medium mb-1">
                   Cargo na Trilha
                 </label>
                 <select
                   value={selectedPosition}
                   onChange={(e) => setSelectedPosition(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-yt-border rounded-lg dark:bg-yt-elevated"
+                  className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background rounded-lg"
                 >
                   <option value="">Selecione um cargo</option>
-                  {trackPositions.map(pos => (
+                  {trackPositions.map((pos) => (
                     <option key={pos.id} value={pos.id}>
-                      {pos.position?.name} - Classe {pos.class?.code} ({formatCurrency(pos.base_salary)})
+                      {pos.position?.name} - Classe {pos.class?.code} (
+                      {formatCurrency(pos.base_salary)})
                     </option>
                   ))}
                 </select>
@@ -270,15 +274,19 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
             )}
 
             <div>
-              <label className="block text-sm font-medium text-naue-black dark:text-gray-300 font-medium mb-1">
+              <label className="block text-sm font-medium text-foreground font-medium mb-1">
                 Internível
               </label>
               <div className="grid grid-cols-5 gap-2">
-                {salaryLevels.map(level => {
+                {salaryLevels.map((level) => {
                   // Buscar porcentagem customizada do cargo selecionado
-                  const selectedTrackPosition = trackPositions.find(p => p.id === selectedPosition);
-                  const customPercentage = selectedTrackPosition?.custom_level_percentages?.[level.id];
-                  const displayPercentage = customPercentage !== undefined ? customPercentage : level.percentage;
+                  const selectedTrackPosition = trackPositions.find(
+                    (p) => p.id === selectedPosition,
+                  );
+                  const customPercentage =
+                    selectedTrackPosition?.custom_level_percentages?.[level.id];
+                  const displayPercentage =
+                    customPercentage !== undefined ? customPercentage : level.percentage;
 
                   return (
                     <button
@@ -286,14 +294,12 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
                       onClick={() => setSelectedLevel(level.id)}
                       className={`p-3 rounded-lg border-2 transition-all ${
                         selectedLevel === level.id
-                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                          : 'border-gray-300 dark:border-yt-border hover:border-gray-400'
+                          ? 'border-lime bg-lime/10'
+                          : 'border-border hover:border-lime'
                       }`}
                     >
-                      <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                        {level.name}
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                      <div className="text-lg font-bold text-foreground">{level.name}</div>
+                      <div className="text-xs text-muted-foreground">
                         +{displayPercentage.toFixed(2).replace(/\.?0+$/, '')}%
                       </div>
                     </button>
@@ -303,26 +309,24 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
             </div>
 
             {calculatedSalary && (
-              <div className="bg-primary-50 dark:bg-primary-900/20 rounded-xl p-4">
+              <div className="bg-lime/10 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-primary-700 dark:text-primary-300">
-                      Novo Salário Calculado
-                    </p>
-                    <p className="text-2xl font-bold text-primary-900 dark:text-primary-100">
+                    <p className="text-sm text-lime-deep dark:text-lime">Novo Salário Calculado</p>
+                    <p className="text-2xl font-bold text-foreground">
                       {formatCurrency(calculatedSalary)}
                     </p>
                   </div>
                   {currentSalaryInfo?.current_salary && (
                     <div className="text-right">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Diferença
-                      </p>
-                      <p className={`font-medium ${
-                        calculatedSalary > currentSalaryInfo.current_salary
-                          ? 'text-green-600 dark:text-green-400'
-                          : 'text-red-600 dark:text-red-400'
-                      }`}>
+                      <p className="text-sm text-muted-foreground">Diferença</p>
+                      <p
+                        className={`font-medium ${
+                          calculatedSalary > currentSalaryInfo.current_salary
+                            ? 'text-success'
+                            : 'text-destructive'
+                        }`}
+                      >
                         {calculatedSalary > currentSalaryInfo.current_salary ? '+' : ''}
                         {formatCurrency(calculatedSalary - currentSalaryInfo.current_salary)}
                       </p>
@@ -342,11 +346,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
                 <Save className="h-4 w-4 mr-2" />
                 Salvar Atribuição
               </Button>
-              <Button
-                variant="outline"
-                onClick={onClose}
-                className="flex-1"
-              >
+              <Button variant="outline" onClick={onClose} className="flex-1">
                 Cancelar
               </Button>
             </div>
@@ -357,47 +357,42 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
           <div className="space-y-4">
             {progressionHistory.length > 0 ? (
               progressionHistory.map((hist) => (
-                <div
-                  key={hist.id}
-                  className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4 border border-gray-200 dark:border-yt-border"
-                >
+                <div key={hist.id} className="bg-secondary rounded-xl p-4 border border-border">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                        {hist.from_position?.position?.name || 'Sem cargo anterior'} → {hist.to_position?.position?.name || 'Cargo'}
+                      <h4 className="font-medium text-foreground">
+                        {hist.from_position?.position?.name || 'Sem cargo anterior'} →{' '}
+                        {hist.to_position?.position?.name || 'Cargo'}
                       </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         Nível {hist.from_level?.name || '—'} → Nível {hist.to_level?.name || '—'}
                       </p>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                        <span>{new Date(hist.progression_date).toLocaleDateString('pt-BR')}</span>
                         <span>
-                          {new Date(hist.progression_date).toLocaleDateString('pt-BR')}
+                          {hist.from_salary ? formatCurrency(hist.from_salary) : 'N/A'} →{' '}
+                          {hist.to_salary ? formatCurrency(hist.to_salary) : 'N/A'}
                         </span>
-                        <span>
-                          {hist.from_salary ? formatCurrency(hist.from_salary) : 'N/A'} → {hist.to_salary ? formatCurrency(hist.to_salary) : 'N/A'}
-                        </span>
-                        {hist.approver && (
-                          <span>por {hist.approver.name}</span>
-                        )}
+                        {hist.approver && <span>por {hist.approver.name}</span>}
                       </div>
                       {hist.reason && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 italic">
-                          {hist.reason}
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-1 italic">{hist.reason}</p>
                       )}
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      hist.progression_type === 'vertical'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-green-100 text-green-700'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        hist.progression_type === 'vertical'
+                          ? 'bg-lime/10 text-lime-deep dark:text-lime'
+                          : 'bg-success/10 text-success'
+                      }`}
+                    >
                       {hist.progression_type === 'vertical' ? 'Vertical' : 'Horizontal'}
                     </span>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-8 text-muted-foreground">
                 <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Nenhum histórico de progressão encontrado.</p>
               </div>
@@ -414,52 +409,54 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-gray-50 dark:bg-yt-elevated/50 rounded-xl p-4 border border-gray-200 dark:border-yt-border"
+                  className="bg-secondary rounded-xl p-4 border border-border"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                        {evalHist.cycle_title}
-                      </h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <h4 className="font-medium text-foreground">{evalHist.cycle_title}</h4>
+                      <p className="text-xs text-muted-foreground">
                         {formatDate(evalHist.start_date)} - {formatDate(evalHist.end_date)}
                       </p>
                     </div>
                     {evalHist.nine_box_position && (
-                      <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 flex items-center gap-1">
+                      <span className="px-2 py-1 rounded-full text-xs bg-warning/10 text-warning flex items-center gap-1">
                         <Star className="h-3 w-3" />
                         {evalHist.nine_box_position}
                       </span>
                     )}
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    <div className="text-center p-2 bg-white dark:bg-yt-surface rounded-lg">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Autoavaliação</p>
-                      <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    <div className="text-center p-2 bg-card rounded-lg">
+                      <p className="text-xs text-muted-foreground">Autoavaliação</p>
+                      <p className="text-lg font-bold text-foreground">
                         {evalHist.self_score != null ? evalHist.self_score.toFixed(2) : '-'}
                       </p>
                     </div>
-                    <div className="text-center p-2 bg-white dark:bg-yt-surface rounded-lg">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Líder</p>
-                      <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    <div className="text-center p-2 bg-card rounded-lg">
+                      <p className="text-xs text-muted-foreground">Líder</p>
+                      <p className="text-lg font-bold text-foreground">
                         {evalHist.leader_score != null ? evalHist.leader_score.toFixed(2) : '-'}
                       </p>
                     </div>
-                    <div className="text-center p-2 bg-white dark:bg-yt-surface rounded-lg">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Consenso</p>
-                      <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                        {evalHist.consensus_score != null ? evalHist.consensus_score.toFixed(2) : '-'}
+                    <div className="text-center p-2 bg-card rounded-lg">
+                      <p className="text-xs text-muted-foreground">Consenso</p>
+                      <p className="text-lg font-bold text-foreground">
+                        {evalHist.consensus_score != null
+                          ? evalHist.consensus_score.toFixed(2)
+                          : '-'}
                       </p>
                     </div>
-                    <div className="text-center p-2 bg-white dark:bg-yt-surface rounded-lg">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Potencial</p>
-                      <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                        {evalHist.potential_score != null ? evalHist.potential_score.toFixed(2) : '-'}
+                    <div className="text-center p-2 bg-card rounded-lg">
+                      <p className="text-xs text-muted-foreground">Potencial</p>
+                      <p className="text-lg font-bold text-foreground">
+                        {evalHist.potential_score != null
+                          ? evalHist.potential_score.toFixed(2)
+                          : '-'}
                       </p>
                     </div>
-                    <div className="text-center p-2 bg-white dark:bg-yt-surface rounded-lg">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Nine Box</p>
-                      <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                    <div className="text-center p-2 bg-card rounded-lg">
+                      <p className="text-xs text-muted-foreground">Nine Box</p>
+                      <p className="text-sm font-bold text-foreground">
                         {evalHist.nine_box_position || '-'}
                       </p>
                     </div>
@@ -467,7 +464,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
                 </motion.div>
               ))
             ) : (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-8 text-muted-foreground">
                 <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Nenhum histórico de avaliação encontrado.</p>
               </div>
