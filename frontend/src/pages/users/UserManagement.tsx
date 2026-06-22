@@ -498,10 +498,11 @@ const UserManagement = () => {
             return a.name.localeCompare(b.name);
           case 'date':
             return new Date(b.join_date).getTime() - new Date(a.join_date).getTime();
-          case 'department':
+          case 'department': {
             const deptA = a.departments?.[0]?.name || '';
             const deptB = b.departments?.[0]?.name || '';
             return deptA.localeCompare(deptB);
+          }
           default:
             return 0;
         }
