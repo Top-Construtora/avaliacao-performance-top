@@ -58,15 +58,19 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 export function hasPermission(
   userRole: UserRole,
   resource: string,
-  action: 'create' | 'read' | 'update' | 'delete'
+  action: 'create' | 'read' | 'update' | 'delete',
 ): boolean {
   const permissions = ROLE_PERMISSIONS[userRole];
-  const resourcePermission = permissions.find(p => p.resource === resource);
+  const resourcePermission = permissions.find((p) => p.resource === resource);
   return resourcePermission ? resourcePermission.actions.includes(action) : false;
 }
 
 // Helper para determinar role baseado nos booleans
-export function getUserRole(user: { is_admin: boolean; is_director: boolean; is_leader: boolean }): UserRole {
+export function getUserRole(user: {
+  is_admin: boolean;
+  is_director: boolean;
+  is_leader: boolean;
+}): UserRole {
   if (user.is_admin) return 'admin';
   if (user.is_director) return 'director';
   if (user.is_leader) return 'leader';
@@ -89,71 +93,71 @@ export const ROUTE_ACCESS: Record<string, AccessControl> = {
   '/self-evaluation': {
     requireAuth: true,
     requireRoles: ['admin', 'employee', 'leader', 'director'],
-    requireActive: true
+    requireActive: true,
   },
   '/leader-evaluation': {
     requireAuth: true,
     requireRoles: ['admin', 'leader', 'director'],
-    requireActive: true
+    requireActive: true,
   },
   '/potential-evaluation': {
     requireAuth: true,
     requireRoles: ['admin', 'leader', 'director'],
-    requireActive: true
+    requireActive: true,
   },
   '/consensus': {
     requireAuth: true,
     requireRoles: ['admin', 'director'],
-    requireActive: true
+    requireActive: true,
   },
   '/nine-box': {
     requireAuth: true,
     requireRoles: ['admin', 'director'],
-    requireActive: true
+    requireActive: true,
   },
   '/pdi': {
     requireAuth: true,
     requireRoles: ['admin', 'director'],
-    requireActive: true
+    requireActive: true,
   },
   '/reports': {
     requireAuth: true,
     requireRoles: ['admin', 'director'],
-    requireActive: true
+    requireActive: true,
   },
   '/users': {
     requireAuth: true,
     requireRoles: ['admin', 'director'],
-    requireActive: true
+    requireActive: true,
   },
   '/users/new': {
     requireAuth: true,
     requireRoles: ['admin', 'director'],
-    requireActive: true
+    requireActive: true,
   },
   '/notifications': {
     requireAuth: true,
-    requireActive: true
+    requireActive: true,
   },
   '/settings': {
     requireAuth: true,
-    requireActive: true
+    requireActive: true,
   },
   '/salary': {
     requireAuth: true,
     requireRoles: ['admin', 'director'],
-    requireActive: true
+    requireActive: true,
   },
   '/salary/tracks': {
     requireAuth: true,
     requireRoles: ['admin', 'director'],
-    requireActive: true
+    requireActive: true,
   },
   '/salary/progressions': {
     requireAuth: true,
     requireRoles: ['admin', 'director', 'leader'],
-    requireActive: true
-  }
+    requireActive: true,
+  },
 };
 
 // Tipos para validação de segurança
@@ -167,7 +171,7 @@ export interface SecurityValidation {
 export function validateSecurityOperation(
   operation: string,
   userRole: UserRole,
-  targetData?: any
+  targetData?: any,
 ): SecurityValidation {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -184,19 +188,18 @@ export function validateSecurityOperation(
   // Validações específicas por operação
   switch (operation) {
     case 'promote_to_admin':
-      if (userRole !== 'admin') {
-        errors.push('Apenas administradores podem promover outros usuários a admin');
-      }
+      // admin já retornou acima com acesso total; qualquer não-admin é barrado
+      errors.push('Apenas administradores podem promover outros usuários a admin');
       break;
 
     case 'promote_to_director':
-      if (userRole !== 'admin' && userRole !== 'director') {
+      if (userRole !== 'director') {
         errors.push('Apenas administradores e diretores podem promover outros usuários a diretor');
       }
       break;
 
     case 'deactivate_user':
-      if (userRole !== 'admin' && userRole !== 'director') {
+      if (userRole !== 'director') {
         errors.push('Apenas administradores e diretores podem desativar usuários');
       }
       if (targetData?.is_admin) {
@@ -208,7 +211,7 @@ export function validateSecurityOperation(
       break;
 
     case 'delete_department':
-      if (userRole !== 'admin' && userRole !== 'director') {
+      if (userRole !== 'director') {
         errors.push('Apenas administradores e diretores podem excluir departamentos');
       }
       if (targetData?.teams_count > 0) {
@@ -217,19 +220,21 @@ export function validateSecurityOperation(
       break;
 
     case 'change_team_leader':
-      if (userRole !== 'admin' && userRole !== 'director' && userRole !== 'leader') {
-        errors.push('Apenas administradores, diretores e líderes podem alterar responsáveis de times');
+      if (userRole !== 'director' && userRole !== 'leader') {
+        errors.push(
+          'Apenas administradores, diretores e líderes podem alterar responsáveis de times',
+        );
       }
       break;
 
     case 'modify_salary':
-      if (userRole !== 'admin' && userRole !== 'director') {
+      if (userRole !== 'director') {
         errors.push('Apenas administradores e diretores podem modificar salários');
       }
       break;
 
     case 'approve_progression':
-      if (userRole !== 'admin' && userRole !== 'director') {
+      if (userRole !== 'director') {
         errors.push('Apenas administradores e diretores podem aprovar progressões');
       }
       break;
@@ -268,26 +273,13 @@ export function createAuthContext(user: any): AuthContext {
       is_admin: user.is_admin,
       is_director: user.is_director,
       is_leader: user.is_leader,
-      active: user.active
+      active: user.active,
     },
     role,
-    permissions: ROLE_PERMISSIONS[role]
+    permissions: ROLE_PERMISSIONS[role],
   };
 }
 
-// Middleware types
-export interface AuthRequest extends Express.Request {
-  auth?: AuthContext;
-}
-
-// Token payload
-export interface TokenPayload {
-  sub: string; // user id
-  email: string;
-  name: string;
-  is_admin: boolean;
-  is_director: boolean;
-  is_leader: boolean;
-  iat?: number;
-  exp?: number;
-}
+// NOTA: AuthRequest/TokenPayload viviam aqui, mas são tipos de BACKEND
+// (dependem de Express) e não eram usados no frontend. Removidos —
+// pertencem a backend/src/middleware/auth.ts.
