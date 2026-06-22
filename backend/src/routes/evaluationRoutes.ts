@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { evaluationController } from '../controllers/evaluationController';
 import { authenticateToken } from '../middleware/auth';
+import { validate } from '../middleware/validate';
+import { createCycleSchema } from '../validators/cycle.validator';
 
 const router = Router();
 
@@ -12,7 +14,7 @@ router.use(authenticateToken as any);
 // ====================================
 router.get('/cycles', evaluationController.getCycles);
 router.get('/cycles/current', evaluationController.getCurrentCycle);
-router.post('/cycles', evaluationController.createCycle);
+router.post('/cycles', validate({ body: createCycleSchema }), evaluationController.createCycle);
 router.put('/cycles/:id/open', evaluationController.openCycle);
 router.put('/cycles/:id/close', evaluationController.closeCycle);
 
@@ -27,7 +29,10 @@ router.get('/cycles/:cycleId/nine-box', evaluationController.getNineBoxData);
 // ====================================
 
 // Histórico de avaliações por ciclo
-router.get('/employee/:employeeId/evaluation-history', evaluationController.getEmployeeEvaluationHistory);
+router.get(
+  '/employee/:employeeId/evaluation-history',
+  evaluationController.getEmployeeEvaluationHistory,
+);
 
 // Rotas unificadas (usando a view)
 router.get('/employee/:employeeId', evaluationController.getEmployeeEvaluations);
@@ -58,6 +63,9 @@ router.put('/consensus/:consensusId/promote', evaluationController.promoteNineBo
 // ====================================
 // ROTAS DE DELIBERAÇÕES DO COMITÊ
 // ====================================
-router.put('/consensus/:consensusId/deliberations', evaluationController.saveCommitteeDeliberations);
+router.put(
+  '/consensus/:consensusId/deliberations',
+  evaluationController.saveCommitteeDeliberations,
+);
 
 export default router;
