@@ -279,7 +279,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('refresh_token');
         try {
           await supabase.auth.signOut();
-        } catch {}
+        } catch {
+          // signOut local pode falhar; a sessão já está sendo limpa acima
+        }
       }
     } catch (error) {
       console.error('❌ Falha no checkAuth:', error);
@@ -419,7 +421,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updateData = { ...updates };
 
       // Remover campos que não existem na tabela
-      // @ts-ignore
+      // @ts-expect-error — campo não existe no tipo da tabela
       delete updateData.children_age_ranges;
 
       // Atualiza usando a API

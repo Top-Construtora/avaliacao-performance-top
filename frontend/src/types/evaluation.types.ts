@@ -21,9 +21,8 @@ export interface BaseEvaluation {
 }
 
 // Autoavaliação
-export interface SelfEvaluation extends BaseEvaluation {
-  // Autoavaliação não tem campos adicionais específicos
-}
+// Autoavaliação não tem campos adicionais específicos
+export type SelfEvaluation = BaseEvaluation;
 
 // Avaliação de Líder
 export interface LeaderEvaluation extends BaseEvaluation {

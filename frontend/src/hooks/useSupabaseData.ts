@@ -43,45 +43,51 @@ export function useSupabaseDepartments() {
   }, []);
 
   // Criar departamento
-  const createDepartment = useCallback(async (department: Omit<Department, 'id' | 'created_at' | 'updated_at'>) => {
-
-    try {
-      const newDept = await departmentsService.create(department);
-      await loadDepartments(); // Recarregar lista
-      toast.success('Departamento criado com sucesso!');
-      return newDept;
-    } catch (err) {
-      toast.error('Erro ao criar departamento');
-      throw err;
-    }
-  }, [loadDepartments]);
+  const createDepartment = useCallback(
+    async (department: Omit<Department, 'id' | 'created_at' | 'updated_at'>) => {
+      try {
+        const newDept = await departmentsService.create(department);
+        await loadDepartments(); // Recarregar lista
+        toast.success('Departamento criado com sucesso!');
+        return newDept;
+      } catch (err) {
+        toast.error('Erro ao criar departamento');
+        throw err;
+      }
+    },
+    [loadDepartments],
+  );
 
   // Atualizar departamento
-  const updateDepartment = useCallback(async (id: string, updates: Partial<Department>) => {
-
-    try {
-      const updated = await departmentsService.update(id, updates);
-      await loadDepartments(); // Recarregar lista
-      toast.success('Departamento atualizado com sucesso!');
-      return updated;
-    } catch (err) {
-      toast.error('Erro ao atualizar departamento');
-      throw err;
-    }
-  }, [loadDepartments]);
+  const updateDepartment = useCallback(
+    async (id: string, updates: Partial<Department>) => {
+      try {
+        const updated = await departmentsService.update(id, updates);
+        await loadDepartments(); // Recarregar lista
+        toast.success('Departamento atualizado com sucesso!');
+        return updated;
+      } catch (err) {
+        toast.error('Erro ao atualizar departamento');
+        throw err;
+      }
+    },
+    [loadDepartments],
+  );
 
   // Deletar departamento
-  const deleteDepartment = useCallback(async (id: string) => {
-
-    try {
-      await departmentsService.delete(id);
-      await loadDepartments(); // Recarregar lista
-      toast.success('Departamento removido com sucesso!');
-    } catch (err) {
-      toast.error('Erro ao remover departamento');
-      throw err;
-    }
-  }, [loadDepartments]);
+  const deleteDepartment = useCallback(
+    async (id: string) => {
+      try {
+        await departmentsService.delete(id);
+        await loadDepartments(); // Recarregar lista
+        toast.success('Departamento removido com sucesso!');
+      } catch (err) {
+        toast.error('Erro ao remover departamento');
+        throw err;
+      }
+    },
+    [loadDepartments],
+  );
 
   // Carregar ao montar
   useEffect(() => {
@@ -126,69 +132,65 @@ export function useSupabaseUsers() {
   }, []);
 
   // Atualizar usuário
-  const updateUser = useCallback(async (id: string, updates: Partial<User>) => {
-    try {
+  const updateUser = useCallback(
+    async (id: string, updates: Partial<User>) => {
       const updated = await usersService.update(id, updates);
       await loadUsers(); // Recarregar lista
       return updated;
-    } catch (err) {
-      throw err;
-    }
-  }, [loadUsers]);
+    },
+    [loadUsers],
+  );
 
   // Atualizar usuário de forma otimista (sem recarregar toda a lista)
-  const updateUserOptimistic = useCallback(async (id: string, updates: Partial<User>) => {
-    // Salvar estado anterior para rollback em caso de erro
-    const previousUsers = users;
+  const updateUserOptimistic = useCallback(
+    async (id: string, updates: Partial<User>) => {
+      // Salvar estado anterior para rollback em caso de erro
+      const previousUsers = users;
 
-    // Atualização otimista local imediata
-    setUsers(currentUsers =>
-      currentUsers.map(user =>
-        user.id === id ? { ...user, ...updates } : user
-      )
-    );
+      // Atualização otimista local imediata
+      setUsers((currentUsers) =>
+        currentUsers.map((user) => (user.id === id ? { ...user, ...updates } : user)),
+      );
 
-    try {
-      const updated = await usersService.update(id, updates);
-      return updated;
-    } catch (err) {
-      // Rollback em caso de erro
-      setUsers(previousUsers);
-      throw err;
-    }
-  }, [users]);
+      try {
+        const updated = await usersService.update(id, updates);
+        return updated;
+      } catch (err) {
+        // Rollback em caso de erro
+        setUsers(previousUsers);
+        throw err;
+      }
+    },
+    [users],
+  );
 
   // Desativar usuário
-  const deactivateUser = useCallback(async (id: string) => {
-    try {
+  const deactivateUser = useCallback(
+    async (id: string) => {
       await usersService.deactivate(id);
       await loadUsers(); // Recarregar lista
-    } catch (err) {
-      throw err;
-    }
-  }, [loadUsers]);
+    },
+    [loadUsers],
+  );
 
   // Ativar usuário
-  const activateUser = useCallback(async (id: string) => {
-    try {
+  const activateUser = useCallback(
+    async (id: string) => {
       await usersService.activate(id);
       await loadUsers(); // Recarregar lista
-    } catch (err) {
-      throw err;
-    }
-  }, [loadUsers]);
+    },
+    [loadUsers],
+  );
 
   // Deletar usuário
-  const deleteUser = useCallback(async (id: string) => {
-    try {
+  const deleteUser = useCallback(
+    async (id: string) => {
       await usersService.delete(id);
       await loadUsers(); // Recarregar lista
       // Toast removido - será exibido no componente que chama esta função
-    } catch (err) {
-      // Não exibir toast aqui para evitar duplicação
-      throw err;
-    }
-  }, [loadUsers]);
+    },
+    [loadUsers],
+  );
 
   // Carregar ao montar
   useEffect(() => {
@@ -235,57 +237,66 @@ export function useSupabaseTeams() {
   }, []);
 
   // Criar time
-  const createTeam = useCallback(async (team: Omit<Team, 'id' | 'created_at' | 'updated_at'>) => {
-
-    try {
-      const newTeam = await teamsService.create(team);
-      await loadTeams(); // Recarregar lista
-      toast.success('Time criado com sucesso!');
-      return newTeam;
-    } catch (err) {
-      toast.error('Erro ao criar time');
-      throw err;
-    }
-  }, [loadTeams]);
+  const createTeam = useCallback(
+    async (team: Omit<Team, 'id' | 'created_at' | 'updated_at'>) => {
+      try {
+        const newTeam = await teamsService.create(team);
+        await loadTeams(); // Recarregar lista
+        toast.success('Time criado com sucesso!');
+        return newTeam;
+      } catch (err) {
+        toast.error('Erro ao criar time');
+        throw err;
+      }
+    },
+    [loadTeams],
+  );
 
   // Atualizar time
-  const updateTeam = useCallback(async (id: string, updates: Partial<Team>) => {
-    try {
-      const updated = await teamsService.update(id, updates);
-      await loadTeams(); // Recarregar lista
-      toast.success('Time atualizado com sucesso!');
-      return updated;
-    } catch (err) {
-      toast.error('Erro ao atualizar time');
-      throw err;
-    }
-  }, [loadTeams]);
+  const updateTeam = useCallback(
+    async (id: string, updates: Partial<Team>) => {
+      try {
+        const updated = await teamsService.update(id, updates);
+        await loadTeams(); // Recarregar lista
+        toast.success('Time atualizado com sucesso!');
+        return updated;
+      } catch (err) {
+        toast.error('Erro ao atualizar time');
+        throw err;
+      }
+    },
+    [loadTeams],
+  );
 
   // Deletar time
-  const deleteTeam = useCallback(async (id: string) => {
-
-    try {
-      await teamsService.delete(id);
-      await loadTeams(); // Recarregar lista
-      toast.success('Time removido com sucesso!');
-    } catch (err) {
-      toast.error('Erro ao remover time');
-      throw err;
-    }
-  }, [loadTeams]);
+  const deleteTeam = useCallback(
+    async (id: string) => {
+      try {
+        await teamsService.delete(id);
+        await loadTeams(); // Recarregar lista
+        toast.success('Time removido com sucesso!');
+      } catch (err) {
+        toast.error('Erro ao remover time');
+        throw err;
+      }
+    },
+    [loadTeams],
+  );
 
   // Gerenciar membros
-  const updateTeamMembers = useCallback(async (teamId: string, userIds: string[]) => {
-
-    try {
-      await teamsService.replaceMembers(teamId, userIds);
-      await loadTeams(); // Recarregar lista
-      toast.success('Membros do time atualizados!');
-    } catch (err) {
-      toast.error('Erro ao atualizar membros do time');
-      throw err;
-    }
-  }, [loadTeams]);
+  const updateTeamMembers = useCallback(
+    async (teamId: string, userIds: string[]) => {
+      try {
+        await teamsService.replaceMembers(teamId, userIds);
+        await loadTeams(); // Recarregar lista
+        toast.success('Membros do time atualizados!');
+      } catch (err) {
+        toast.error('Erro ao atualizar membros do time');
+        throw err;
+      }
+    },
+    [loadTeams],
+  );
 
   // Carregar ao montar
   useEffect(() => {
