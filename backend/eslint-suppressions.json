@@ -1,0 +1,22 @@
+{
+  "src/controllers/authController.ts": {
+    "@typescript-eslint/no-empty-object-type": {
+      "count": 2
+    }
+  },
+  "src/controllers/evaluationController.ts": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 2
+    }
+  },
+  "src/services/salaryService.ts": {
+    "no-case-declarations": {
+      "count": 3
+    }
+  },
+  "src/types/index.ts": {
+    "@typescript-eslint/no-empty-object-type": {
+      "count": 2
+    }
+  }
+}
