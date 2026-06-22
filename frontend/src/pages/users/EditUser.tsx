@@ -26,34 +26,28 @@ import {
   User,
   Phone,
   CalendarDays,
-  Camera,
   Upload,
-  ArrowLeft,
   Save,
   Loader2,
   CheckCircle2,
   ChevronDown,
-  UserPlus,
   Edit2,
   X,
   Check,
   Info,
   Building2,
   Lock,
-  Unlock,
   TrendingUp,
   Route,
   Layers,
   FileText,
   UserCog,
   GitBranch,
-  Network,
   MessageSquare,
 } from 'lucide-react';
 import { PermissionGuard } from '../../components/PermissionGuard';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useAuth } from '../../context/AuthContext';
-import UserProfileFields from '../../components/UserProfileFields';
 
 interface Track {
   id: string;

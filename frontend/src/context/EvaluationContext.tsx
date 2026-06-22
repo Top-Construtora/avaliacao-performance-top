@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Employee, Evaluation, Status, EvaluationStats, Criterion } from '../types';
-import { mapCycleFromDB } from '../utils/fieldMapping';
-import { api } from '../config/api'; 
+import { api } from '../config/api';
 import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -129,7 +128,7 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
           description: comp.description,
           criterion_description: comp.description,
           category: 'deliveries' as const,
-          position: comp.position
+          position: comp.position,
         }));
         setDeliveriesCriteria(mappedDeliveries);
       }
@@ -166,7 +165,7 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
           .from('users_safe' as any)
           .select('*')
           .eq('active', true);
-        
+
         if (usersData) {
           const mappedEmployees = usersData.map((user: any) => ({
             id: user.id,
@@ -174,22 +173,18 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
             position: user.position,
             department: user.department || '',
             joinDate: user.join_date,
-            reportsTo: user.reports_to
+            reportsTo: user.reports_to,
           }));
           setEmployees(mappedEmployees);
         }
 
         // Carregar avaliações das novas tabelas
-        const { data: selfEvals } = await supabase
-          .from('self_evaluations')
-          .select(`
+        const { data: selfEvals } = await supabase.from('self_evaluations').select(`
             *,
             evaluation_competencies!self_evaluation_id(*)
           `);
 
-        const { data: leaderEvals } = await supabase
-          .from('leader_evaluations')
-          .select(`
+        const { data: leaderEvals } = await supabase.from('leader_evaluations').select(`
             *,
             evaluation_competencies!leader_evaluation_id(*)
           `);
@@ -205,17 +200,18 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
             evaluatorId: evaluation.employee_id, // Autoavaliação
             date: evaluation.evaluation_date || evaluation.created_at,
             status: evaluation.status || 'pending',
-            criteria: evaluation.evaluation_competencies?.map((ec: any) => ({
-              id: ec.id,
-              name: ec.criterion_name,
-              description: ec.criterion_description || '',
-              category: ec.category,
-              score: ec.score || 0
-            })) || [],
+            criteria:
+              evaluation.evaluation_competencies?.map((ec: any) => ({
+                id: ec.id,
+                name: ec.criterion_name,
+                description: ec.criterion_description || '',
+                category: ec.category,
+                score: ec.score || 0,
+              })) || [],
             feedback: {
               strengths_internal: evaluation.strengths_internal || '',
               improvements: evaluation.improvements || '',
-              observations: evaluation.observations || ''
+              observations: evaluation.observations || '',
             },
             technicalScore: evaluation.technical_score || 0,
             behavioralScore: evaluation.behavioral_score || 0,
@@ -223,7 +219,7 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
             finalScore: evaluation.final_score || 0,
             lastUpdated: evaluation.updated_at,
             isDraft: evaluation.status === 'draft',
-            type: 'self' as const
+            type: 'self' as const,
           }));
           allEvaluations.push(...selfEvaluationsMapped);
         }
@@ -236,17 +232,18 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
             evaluatorId: evaluation.evaluator_id,
             date: evaluation.evaluation_date || evaluation.created_at,
             status: evaluation.status || 'pending',
-            criteria: evaluation.evaluation_competencies?.map((ec: any) => ({
-              id: ec.id,
-              name: ec.criterion_name,
-              description: ec.criterion_description || '',
-              category: ec.category,
-              score: ec.score || 0
-            })) || [],
+            criteria:
+              evaluation.evaluation_competencies?.map((ec: any) => ({
+                id: ec.id,
+                name: ec.criterion_name,
+                description: ec.criterion_description || '',
+                category: ec.category,
+                score: ec.score || 0,
+              })) || [],
             feedback: {
               strengths_internal: evaluation.strengths_internal || '',
               improvements: evaluation.improvements || '',
-              observations: evaluation.observations || ''
+              observations: evaluation.observations || '',
             },
             technicalScore: evaluation.technical_score || 0,
             behavioralScore: evaluation.behavioral_score || 0,
@@ -255,7 +252,7 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
             potentialScore: evaluation.potential_score,
             lastUpdated: evaluation.updated_at,
             isDraft: evaluation.status === 'draft',
-            type: 'leader' as const
+            type: 'leader' as const,
           }));
           allEvaluations.push(...leaderEvaluationsMapped);
         }
@@ -271,9 +268,11 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
 
   // Update stats whenever evaluations change
   useEffect(() => {
-    const pending = evaluations.filter(evaluation => evaluation.status === 'pending').length;
-    const inProgress = evaluations.filter(evaluation => evaluation.status === 'in-progress').length;
-    const completed = evaluations.filter(evaluation => evaluation.status === 'completed').length;
+    const pending = evaluations.filter((evaluation) => evaluation.status === 'pending').length;
+    const inProgress = evaluations.filter(
+      (evaluation) => evaluation.status === 'in-progress',
+    ).length;
+    const completed = evaluations.filter((evaluation) => evaluation.status === 'completed').length;
 
     setStats({
       pending,
@@ -295,27 +294,27 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
 
   // Get employee by ID
   const getEmployeeById = (id: string) => {
-    return employees.find(emp => emp.id === id);
+    return employees.find((emp) => emp.id === id);
   };
 
   // Get evaluation by ID
   const getEvaluationById = (id: string) => {
-    return evaluations.find(evaluation => evaluation.id === id);
+    return evaluations.find((evaluation) => evaluation.id === id);
   };
 
   // Get evaluations by employee ID
   const getEvaluationsByEmployeeId = (employeeId: string) => {
-    return evaluations.filter(evaluation => evaluation.employeeId === employeeId);
+    return evaluations.filter((evaluation) => evaluation.employeeId === employeeId);
   };
 
   // Get evaluations by status
   const getEvaluationsByStatus = (status: Status) => {
-    return evaluations.filter(evaluation => evaluation.status === status);
+    return evaluations.filter((evaluation) => evaluation.status === status);
   };
 
   // Save or update an evaluation
   const saveEvaluation = (evaluation: Evaluation) => {
-    const index = evaluations.findIndex(e => e.id === evaluation.id);
+    const index = evaluations.findIndex((e) => e.id === evaluation.id);
 
     if (index !== -1) {
       // Update existing evaluation
@@ -339,71 +338,81 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Calculate final score
-  const calculateFinalScore = (technical: number, behavioral: number, deliveries: number): number => {
-    const weightedScore = (technical * 0.4) + (behavioral * 0.3) + (deliveries * 0.3);
+  const calculateFinalScore = (
+    technical: number,
+    behavioral: number,
+    deliveries: number,
+  ): number => {
+    const weightedScore = technical * 0.4 + behavioral * 0.3 + deliveries * 0.3;
     return parseFloat(weightedScore.toFixed(2));
   };
 
   // Funções para PDI
   const savePDI = (pdi: ActionPlanData) => {
-    setPdis(prev => {
-      const existingIndex = prev.findIndex(p => p.id === pdi.id);
+    setPdis((prev) => {
+      const existingIndex = prev.findIndex((p) => p.id === pdi.id);
       if (existingIndex >= 0) {
         const updated = [...prev];
         updated[existingIndex] = {
           ...pdi,
-          dataAtualizacao: new Date().toISOString()
+          dataAtualizacao: new Date().toISOString(),
         };
         return updated;
       } else {
-        return [...prev, {
-          ...pdi,
-          id: pdi.id || Date.now().toString(),
-          dataCriacao: new Date().toISOString(),
-          dataAtualizacao: new Date().toISOString()
-        }];
+        return [
+          ...prev,
+          {
+            ...pdi,
+            id: pdi.id || Date.now().toString(),
+            dataCriacao: new Date().toISOString(),
+            dataAtualizacao: new Date().toISOString(),
+          },
+        ];
       }
     });
   };
 
   const updatePDI = (pdiId: string, pdi: ActionPlanData) => {
-    setPdis(prev => prev.map(p =>
-      p.id === pdiId
-        ? { ...pdi, id: pdiId, dataAtualizacao: new Date().toISOString() }
-        : p
-    ));
+    setPdis((prev) =>
+      prev.map((p) =>
+        p.id === pdiId ? { ...pdi, id: pdiId, dataAtualizacao: new Date().toISOString() } : p,
+      ),
+    );
   };
 
   const deletePDI = (pdiId: string) => {
-    setPdis(prev => prev.filter(p => p.id !== pdiId));
+    setPdis((prev) => prev.filter((p) => p.id !== pdiId));
   };
 
   const getPDIById = (pdiId: string) => {
-    return pdis.find(p => p.id === pdiId);
+    return pdis.find((p) => p.id === pdiId);
   };
 
   // Funções para Nine Box
   const saveNineBoxResult = (result: NineBoxResult) => {
-    setNineBoxResults(prev => {
-      const existingIndex = prev.findIndex(r => r.employeeId === result.employeeId);
+    setNineBoxResults((prev) => {
+      const existingIndex = prev.findIndex((r) => r.employeeId === result.employeeId);
       if (existingIndex >= 0) {
         const updated = [...prev];
         updated[existingIndex] = {
           ...result,
-          date: new Date().toISOString()
+          date: new Date().toISOString(),
         };
         return updated;
       } else {
-        return [...prev, {
-          ...result,
-          date: new Date().toISOString()
-        }];
+        return [
+          ...prev,
+          {
+            ...result,
+            date: new Date().toISOString(),
+          },
+        ];
       }
     });
   };
 
   const getNineBoxByEmployeeId = (employeeId: string) => {
-    return nineBoxResults.find(r => r.employeeId === employeeId);
+    return nineBoxResults.find((r) => r.employeeId === employeeId);
   };
 
   // Funções API
@@ -485,11 +494,7 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     loading,
   };
 
-  return (
-    <EvaluationContext.Provider value={value}>
-      {children}
-    </EvaluationContext.Provider>
-  );
+  return <EvaluationContext.Provider value={value}>{children}</EvaluationContext.Provider>;
 };
 
 // Hook para usar o contexto

@@ -4,15 +4,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import {
-  ArrowLeft,
-  Save,
-  UserCheck,
-  UserMinus,
-  Star,
-  CheckCircle,
-  MessageSquare,
-} from 'lucide-react';
+import { ArrowLeft, Save, UserCheck, UserMinus, CheckCircle, MessageSquare } from 'lucide-react';
 import {
   interviewService,
   Interview,

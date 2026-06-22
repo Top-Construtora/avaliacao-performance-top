@@ -9,16 +9,7 @@ import { evaluationService } from '../../services/evaluation.service';
 import LeaderEvaluationHeader from '../../components/LeaderEvaluationHeader';
 import EvaluationSection from '../../components/EvaluationSection';
 import PotentialAndPDI from '../../components/PotentialAndPDI';
-import {
-  AlertCircle,
-  CheckCircle,
-  Save,
-  ArrowRight,
-  BookOpen,
-  Target,
-  Award,
-  Info,
-} from 'lucide-react';
+import { AlertCircle, CheckCircle, ArrowRight, BookOpen, Target, Award, Info } from 'lucide-react';
 import Button from '../../components/Button';
 import { motion } from 'framer-motion';
 import LoadingSpinner from '../../components/LoadingSpinner';

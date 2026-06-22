@@ -20,10 +20,7 @@ import {
   Save,
   Loader2,
   Edit2,
-  X,
-  Info,
 } from 'lucide-react';
-import { TeamWithDetails } from '../../types/supabase';
 
 const EditTeam = () => {
   const navigate = useNavigate();

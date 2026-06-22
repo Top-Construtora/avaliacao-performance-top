@@ -4,12 +4,8 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { ArrowLeft, Send, Star, MessageSquare, ToggleLeft, CheckCircle } from 'lucide-react';
-import {
-  satisfactionService,
-  SatisfactionSurvey,
-  SatisfactionQuestion,
-} from '../../services/satisfaction.service';
+import { ArrowLeft, Send, CheckCircle } from 'lucide-react';
+import { satisfactionService, SatisfactionSurvey } from '../../services/satisfaction.service';
 
 const SatisfactionRespond = () => {
   const navigate = useNavigate();

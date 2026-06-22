@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -13,18 +13,13 @@ import {
   Target,
   FileCheck,
   Clock,
-  Grid3X3,
   MessageSquare,
   ChevronDown,
-  X,
-  Check,
   Trash2,
   Archive,
-  Mail,
   CheckSquare,
   Square,
   Eye,
-  EyeOff,
   RefreshCw,
   AlertCircle,
   Award,
@@ -33,8 +28,6 @@ import {
   MoreVertical,
   ChevronRight,
   Sparkles,
-  Zap,
-  Undo2,
   ClipboardList,
   UserPlus,
   LogOut as LogOutIcon,

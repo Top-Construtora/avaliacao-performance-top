@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { Users, BookOpen, Info, Save, Send } from 'lucide-react';
+import { Users, BookOpen, Info, Save } from 'lucide-react';
 import Button from '../../components/Button';
 import PotentialAndPDI from '../../components/PotentialAndPDI';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
-import type { UserWithDetails } from '../../types/supabase';
 
 // Define ActionItem and PdiData interfaces here to ensure consistency
 interface ActionItem {

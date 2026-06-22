@@ -6,19 +6,7 @@ import { useAuth, useUserRole } from '../../context/AuthContext';
 import { competencyService } from '../../services/competency.service';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import {
-  Award,
-  Plus,
-  Edit2,
-  Trash2,
-  Save,
-  X,
-  AlertCircle,
-  CheckCircle,
-  GripVertical,
-  Eye,
-  EyeOff,
-} from 'lucide-react';
+import { Award, Plus, Edit2, Trash2, Save, X, AlertCircle } from 'lucide-react';
 
 interface OrganizationalCompetency {
   id: string;

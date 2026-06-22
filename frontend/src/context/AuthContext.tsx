@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { api } from '../config/api';
 import { User } from '../types/user';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
@@ -40,7 +39,7 @@ export interface UserRole {
 
 export const useUserRole = (): UserRole => {
   const { profile } = useAuth();
-  
+
   if (!profile) {
     return {
       isAdmin: false,
@@ -48,7 +47,7 @@ export const useUserRole = (): UserRole => {
       isDirector: false,
       isEmployee: true,
       isActive: true,
-      role: 'collaborator'
+      role: 'collaborator',
     };
   }
 
@@ -68,7 +67,7 @@ export const useUserRole = (): UserRole => {
     isDirector: profile.is_director || false,
     isEmployee: !profile.is_admin && !profile.is_leader && !profile.is_director,
     isActive: profile.active !== false,
-    role
+    role,
   };
 };
 
@@ -97,84 +96,86 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuth();
 
     // Configurar listener para renovação automática de token
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'TOKEN_REFRESHED' && session) {
-          console.log('✅ Token renovado automaticamente');
-          // Atualizar token no localStorage quando o Supabase renovar automaticamente
-          localStorage.setItem('access_token', session.access_token);
-        } else if (event === 'SIGNED_OUT') {
-          console.log('👋 Usuário deslogado');
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          setUser(null);
-          setProfile(null);
-          setIsAuthenticated(false);
-          isFetchingProfileRef.current = false;
-          hasInitializedRef.current = false;
-          isCheckingAuthRef.current = false;
-        } else if (event === 'SIGNED_IN' && session) {
-          console.log('👤 Evento SIGNED_IN detectado');
-          localStorage.setItem('access_token', session.access_token);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'TOKEN_REFRESHED' && session) {
+        console.log('✅ Token renovado automaticamente');
+        // Atualizar token no localStorage quando o Supabase renovar automaticamente
+        localStorage.setItem('access_token', session.access_token);
+      } else if (event === 'SIGNED_OUT') {
+        console.log('👋 Usuário deslogado');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        setUser(null);
+        setProfile(null);
+        setIsAuthenticated(false);
+        isFetchingProfileRef.current = false;
+        hasInitializedRef.current = false;
+        isCheckingAuthRef.current = false;
+      } else if (event === 'SIGNED_IN' && session) {
+        console.log('👤 Evento SIGNED_IN detectado');
+        localStorage.setItem('access_token', session.access_token);
 
-          // Ignorar durante checkAuth inicial
-          if (isCheckingAuthRef.current) {
-            console.log('⏭️ checkAuth em andamento, ignorando evento SIGNED_IN');
-            return;
-          }
+        // Ignorar durante checkAuth inicial
+        if (isCheckingAuthRef.current) {
+          console.log('⏭️ checkAuth em andamento, ignorando evento SIGNED_IN');
+          return;
+        }
 
-          // IMPORTANTE: Durante signIn manual, isFetchingProfileRef estará true
-          // Isso significa que o perfil já está sendo buscado pela função signIn
-          // e devemos ignorar este evento para evitar duplicação
-          if (isFetchingProfileRef.current) {
-            console.log('⏭️ Login manual em andamento, ignorando evento SIGNED_IN');
-            return;
-          }
+        // IMPORTANTE: Durante signIn manual, isFetchingProfileRef estará true
+        // Isso significa que o perfil já está sendo buscado pela função signIn
+        // e devemos ignorar este evento para evitar duplicação
+        if (isFetchingProfileRef.current) {
+          console.log('⏭️ Login manual em andamento, ignorando evento SIGNED_IN');
+          return;
+        }
 
-          // Se já temos um perfil carregado do mesmo usuário, ignorar
-          // Isso evita buscas duplicadas no carregamento inicial da página
-          if (profileRef.current && profileRef.current.id === session.user.id) {
-            console.log('✅ Perfil já carregado, ignorando evento SIGNED_IN');
-            return;
-          }
+        // Se já temos um perfil carregado do mesmo usuário, ignorar
+        // Isso evita buscas duplicadas no carregamento inicial da página
+        if (profileRef.current && profileRef.current.id === session.user.id) {
+          console.log('✅ Perfil já carregado, ignorando evento SIGNED_IN');
+          return;
+        }
 
-          // Este ponto só deve ser alcançado para:
-          // 1. Login OAuth (Microsoft)
-          // 2. Refresh de sessão sem perfil carregado
-          console.log('🔄 Buscando perfil do usuário via evento SIGNED_IN');
+        // Este ponto só deve ser alcançado para:
+        // 1. Login OAuth (Microsoft)
+        // 2. Refresh de sessão sem perfil carregado
+        console.log('🔄 Buscando perfil do usuário via evento SIGNED_IN');
 
-          const fetchProfile = async () => {
-            try {
-              const profileData = await userService.getUserById(session.user.id);
+        const fetchProfile = async () => {
+          try {
+            const profileData = await userService.getUserById(session.user.id);
 
-              if (profileData) {
-                // Verifica se o usuário está ativo
-                if (!profileData.active) {
-                  await supabase.auth.signOut();
-                  toast.error('Usuário inativo. Entre em contato com o administrador.');
-                  return;
-                }
-
-                setUser(profileData);
-                setProfile(profileData);
-                setIsAuthenticated(true);
-                toast.success('Login realizado com sucesso!');
-              } else {
-                console.error('Perfil não encontrado');
-                toast.error('Usuário não encontrado no sistema. Entre em contato com o administrador.');
+            if (profileData) {
+              // Verifica se o usuário está ativo
+              if (!profileData.active) {
                 await supabase.auth.signOut();
+                toast.error('Usuário inativo. Entre em contato com o administrador.');
+                return;
               }
-            } catch (err) {
-              console.error('Erro ao processar perfil:', err);
-              toast.error('Erro ao buscar perfil. Entre em contato com o administrador.');
+
+              setUser(profileData);
+              setProfile(profileData);
+              setIsAuthenticated(true);
+              toast.success('Login realizado com sucesso!');
+            } else {
+              console.error('Perfil não encontrado');
+              toast.error(
+                'Usuário não encontrado no sistema. Entre em contato com o administrador.',
+              );
               await supabase.auth.signOut();
             }
-          };
+          } catch (err) {
+            console.error('Erro ao processar perfil:', err);
+            toast.error('Erro ao buscar perfil. Entre em contato com o administrador.');
+            await supabase.auth.signOut();
+          }
+        };
 
-          fetchProfile();
-        }
+        fetchProfile();
       }
-    );
+    });
 
     // Cleanup: remover listener quando componente desmontar
     return () => {
@@ -188,12 +189,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Timeout de 5 segundos para não deixar o usuário preso no loading
     const timeoutPromise = new Promise<'timeout'>((resolve) =>
-      setTimeout(() => resolve('timeout'), 5000)
+      setTimeout(() => resolve('timeout'), 5000),
     );
 
     const authCheckPromise = (async () => {
       // Primeiro verifica se há sessão cached no localStorage
-      const { data: { session: cachedSession } } = await supabase.auth.getSession();
+      const {
+        data: { session: cachedSession },
+      } = await supabase.auth.getSession();
 
       if (!cachedSession) {
         console.log('❌ Nenhuma sessão encontrada');
@@ -204,13 +207,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Validar token com o servidor do Supabase (getUser faz refresh automático se expirado)
       let validSession = cachedSession;
-      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user: validatedUser },
+        error: userError,
+      } = await supabase.auth.getUser();
 
       if (userError || !validatedUser) {
         console.warn('⚠️ Token expirado ou inválido, tentando refresh explícito...');
 
         // Tentar refresh explícito como fallback
-        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+        const {
+          data: { session: refreshedSession },
+          error: refreshError,
+        } = await supabase.auth.refreshSession();
 
         if (refreshError || !refreshedSession) {
           console.error('❌ Refresh falhou, sessão expirada:', refreshError?.message);
@@ -223,7 +232,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         validSession = refreshedSession;
       } else {
         // getUser validou com sucesso, pegar sessão atualizada
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const {
+          data: { session: currentSession },
+        } = await supabase.auth.getSession();
         if (currentSession) {
           validSession = currentSession;
         }
@@ -266,7 +277,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSessionExpired(true);
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        try { await supabase.auth.signOut(); } catch {}
+        try {
+          await supabase.auth.signOut();
+        } catch {}
       }
     } catch (error) {
       console.error('❌ Falha no checkAuth:', error);
@@ -292,7 +305,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Faz login via Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
 
       if (error) {
@@ -310,7 +323,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('✅ Login bem-sucedido, buscando perfil...');
 
       // Aguardar um pouco para garantir que o evento SIGNED_IN foi disparado e ignorado
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Busca o perfil do usuário usando a API
       let profileData: User | null = null;
@@ -368,8 +381,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         provider: 'azure',
         options: {
           scopes: 'email User.Read offline_access',
-          redirectTo: `${window.location.origin}/`
-        }
+          redirectTo: `${window.location.origin}/`,
+        },
       });
 
       if (error) {
@@ -431,7 +444,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updatePassword = async (newPassword: string) => {
     try {
       const { error } = await supabase.auth.updateUser({
-        password: newPassword
+        password: newPassword,
       });
 
       if (error) {
@@ -463,7 +476,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       toast.success(
         'Email de recuperação enviado! Verifique sua caixa de entrada e pasta de spam.',
-        { duration: 6000 }
+        { duration: 6000 },
       );
     } catch (error: any) {
       console.error('Reset password error:', error);
@@ -483,12 +496,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     updateProfile,
     updatePassword,
-    resetPassword
+    resetPassword,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

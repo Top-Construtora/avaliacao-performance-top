@@ -1,6 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Users, Baby, AlertCircle } from 'lucide-react';
+import { Users, Baby } from 'lucide-react';
 
 interface UserProfileFieldsProps {
   formData: {

@@ -10,7 +10,6 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Users,
   BarChart3,
   Info,
   X,

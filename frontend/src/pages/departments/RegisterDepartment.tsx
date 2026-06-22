@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSupabaseUsers, useSupabaseDepartments } from '../../hooks/useSupabaseData';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { Building, Sparkles, AlertCircle, ChevronDown, Save, Loader2, Target } from 'lucide-react';
+import { Building, Sparkles, AlertCircle, ChevronDown, Save, Loader2 } from 'lucide-react';
 
 const RegisterDepartment = () => {
   const navigate = useNavigate();

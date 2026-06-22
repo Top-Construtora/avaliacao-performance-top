@@ -1,0 +1,8 @@
+-- Seed de desenvolvimento — roda automaticamente no `npm run db:reset`.
+-- Use SOMENTE dados fictícios de dev/teste. Nunca dados reais de produção
+-- (este arquivo é versionado no git).
+--
+-- Exemplo:
+-- insert into public.departments (id, name)
+-- values ('00000000-0000-0000-0000-000000000001', 'Tecnologia')
+-- on conflict (id) do nothing;
