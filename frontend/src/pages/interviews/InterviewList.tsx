@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -9,16 +9,12 @@ import {
   Plus,
   Search,
   Calendar,
-  User,
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle,
-  ChevronDown,
   Edit,
   Trash2,
   Eye,
-  Filter,
   UserMinus,
   UserCheck,
 } from 'lucide-react';

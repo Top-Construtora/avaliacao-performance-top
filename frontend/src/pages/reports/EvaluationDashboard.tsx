@@ -7,20 +7,14 @@ import {
   Target,
   CheckCircle,
   Clock,
-  AlertCircle,
   AlertTriangle,
-  TrendingUp,
   Grid3x3,
-  Calendar,
   Filter,
   Download,
   Search,
-  ChevronRight,
-  Info,
   Award,
 } from 'lucide-react';
 import { useEvaluation } from '../../hooks/useEvaluation';
-import { useUserRole } from '../../context/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usersService, departmentsService } from '../../services/supabase.service';
 import type { CycleDashboard } from '../../types/evaluation.types';

@@ -12,9 +12,7 @@ import PotentialAndPDI from '../../components/PotentialAndPDI';
 import PDIViewer from '../../components/PDIViewer';
 import { UserWithDetails } from '../../types/supabase';
 import {
-  ArrowLeft,
   Save,
-  BookOpen,
   Users,
   Award,
   CheckCircle,

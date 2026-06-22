@@ -22,8 +22,10 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    // Código não usado é responsabilidade do ESLint (eslint-plugin-unused-imports:
+    // auto-remove imports mortos e avisa sobre vars). tsc foca em tipos.
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src", "src/main.tsx", "vite-env.d.ts"]

@@ -8,25 +8,17 @@ import {
   SmilePlus,
   Plus,
   Search,
-  Calendar,
-  Eye,
-  Edit,
   Trash2,
   BarChart3,
   Users,
-  CheckCircle,
-  Clock,
   FileText,
   PlayCircle,
   StopCircle,
   Send,
   X,
-  Star,
-  MessageSquare,
-  ToggleLeft,
 } from 'lucide-react';
 import { satisfactionService, SatisfactionSurvey } from '../../services/satisfaction.service';
-import { useAuth, useUserRole } from '../../context/AuthContext';
+import { useUserRole } from '../../context/AuthContext';
 
 const statusConfig = {
   draft: { label: 'Rascunho', color: 'bg-warning/15 text-warning', icon: FileText },

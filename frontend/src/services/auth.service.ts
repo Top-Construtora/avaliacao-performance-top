@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabase';
 import { userService } from './user.service';
-import { teamService } from './team.service';
 import { User } from '../types/user';
 
 export interface CreateUserData {
@@ -24,7 +23,6 @@ export interface CreateUserData {
   position_start_date?: string;
 
   // Novos campos de perfil pessoal
-
 }
 
 export const authService = {
@@ -44,9 +42,9 @@ export const authService = {
         options: {
           data: {
             name: userData.name,
-            position: userData.position
-          }
-        }
+            position: userData.position,
+          },
+        },
       });
 
       if (authError) {
@@ -61,7 +59,7 @@ export const authService = {
       const userId = authData.user.id;
 
       // Aguardar um momento para garantir que o usuário foi criado no Auth
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Verificar se o perfil já foi criado automaticamente pelo trigger - usando a API
       const existingProfile = await userService.getUserById(userId);
@@ -155,5 +153,5 @@ export const authService = {
     } catch (error) {
       console.error('Erro ao limpar usuários órfãos:', error);
     }
-  }
+  },
 };

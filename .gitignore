@@ -56,5 +56,11 @@ frontend/.vite/
 # OS files
 Thumbs.db
 
-# Misc 
+# Misc
 profile-images
+.playwright-mcp/
+login-gio-desktop.png
+
+# Permitir migrações/seed do Supabase apesar do "*.sql" acima
+!supabase/migrations/*.sql
+!supabase/seed.sql

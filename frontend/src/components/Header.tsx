@@ -18,8 +18,6 @@ import {
   Crown,
   Briefcase,
   Menu,
-  UserCheck,
-  FileText,
   Target,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';

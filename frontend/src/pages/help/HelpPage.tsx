@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   HelpCircle,
-  ChevronRight,
   Building2,
   Users,
   GitBranch,
@@ -18,7 +17,6 @@ import {
   Settings,
   UserPlus,
   FileText,
-  TrendingUp,
   Award,
   AlertCircle,
   ChevronDown,

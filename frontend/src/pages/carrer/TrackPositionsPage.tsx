@@ -12,20 +12,14 @@ import {
   DollarSign,
   Briefcase,
   Layers,
-  Hash,
-  Move,
   ChevronUp,
   ChevronDown,
   Info,
-  Settings,
   GitBranch,
   Building,
-  Target,
   Percent,
-  TrendingUp,
 } from 'lucide-react';
 import Button from '../../components/Button';
-import { useAuth } from '../../context/AuthContext';
 import { RoleGuard } from '../../components/RoleGuard';
 import {
   salaryService,

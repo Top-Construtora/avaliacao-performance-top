@@ -64,9 +64,9 @@ const MyPdi: React.FC = () => {
 
           // Transformar items do backend para o formato do frontend
           // O backend retorna um array 'items', precisamos separar por prazo
-          let curtosPrazos: ActionItem[] = [];
-          let mediosPrazos: ActionItem[] = [];
-          let longosPrazos: ActionItem[] = [];
+          const curtosPrazos: ActionItem[] = [];
+          const mediosPrazos: ActionItem[] = [];
+          const longosPrazos: ActionItem[] = [];
 
           if (pdi.items && Array.isArray(pdi.items)) {
             pdi.items.forEach((item: any) => {

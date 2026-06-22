@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   User,
   BarChart3,
@@ -14,7 +14,6 @@ import {
   MessageSquare,
   ArrowUp,
   CheckCircle,
-  AlertCircle,
   Lock,
   Loader2,
   FileText,
