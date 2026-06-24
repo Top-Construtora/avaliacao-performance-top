@@ -210,59 +210,8 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
           </button>
         </div>
 
-        {/* Centro - Título */}
+        {/* Centro - Data/Hora (o título migrou para a sidebar) */}
         <div className="flex-1 flex flex-col items-center justify-center text-center">
-          <h1 className="text-base sm:text-lg md:text-xl font-semibold text-white font-lemon-milk tracking-wider flex items-center justify-center whitespace-nowrap">
-            <span className="hidden sm:inline-flex items-center">
-              <span>S</span>
-              <motion.span
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 'auto', opacity: 1 }}
-                transition={{ duration: 0.7, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                className="overflow-hidden inline-block whitespace-nowrap"
-              >
-                istema&nbsp;de&nbsp;
-              </motion.span>
-              <span>G</span>
-              <motion.span
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 'auto', opacity: 1 }}
-                transition={{ duration: 0.7, delay: 0.75, ease: [0.22, 1, 0.36, 1] }}
-                className="overflow-hidden inline-block whitespace-nowrap"
-              >
-                ente&nbsp;&amp;&nbsp;
-              </motion.span>
-              <span>G</span>
-              <motion.span
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 'auto', opacity: 1 }}
-                transition={{ duration: 0.7, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                className="overflow-hidden inline-block whitespace-nowrap"
-              >
-                estão
-              </motion.span>
-            </span>
-            <span className="sm:hidden inline-flex items-center">
-              <span>G</span>
-              <motion.span
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 'auto', opacity: 1 }}
-                transition={{ duration: 0.7, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                className="overflow-hidden inline-block whitespace-nowrap"
-              >
-                ente&nbsp;&amp;&nbsp;
-              </motion.span>
-              <span>G</span>
-              <motion.span
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 'auto', opacity: 1 }}
-                transition={{ duration: 0.7, delay: 0.75, ease: [0.22, 1, 0.36, 1] }}
-                className="overflow-hidden inline-block whitespace-nowrap"
-              >
-                estão
-              </motion.span>
-            </span>
-          </h1>
           <p className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-[0.12em]">
             <span className="font-medium text-gray-400">
               {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
