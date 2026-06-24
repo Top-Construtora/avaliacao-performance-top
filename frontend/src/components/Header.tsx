@@ -197,7 +197,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
 
   return (
     <header className="bg-[#1A1A1A] sticky top-0 z-20">
-      <div className="flex items-center justify-between h-[77px] px-3 sm:px-4 md:px-6">
+      <div className="relative flex items-center justify-between h-[77px] px-3 sm:px-4 md:px-6">
         {/* Lado esquerdo - Menu mobile */}
         <div className="flex items-center flex-shrink-0">
           {/* Botão menu mobile */}
@@ -211,8 +211,10 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
         </div>
 
         {/* Centro - Data/Hora (o título migrou para a sidebar) */}
-        <div className="flex-1 flex flex-col items-center justify-center text-center">
-          <p className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-[0.12em]">
+        {/* Posicionado absolutamente para centralizar na área de conteúdo,
+            independente da largura da sidebar (retraída ou expandida) e dos lados do header. */}
+        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center">
+          <p className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-[0.12em] whitespace-nowrap">
             <span className="font-medium text-gray-400">
               {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
             </span>
