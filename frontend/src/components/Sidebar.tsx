@@ -374,27 +374,49 @@ export default function Sidebar({
 
   const sidebarContent = (isMobile: boolean = false) => (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Logo */}
+      {/* Logo + nome do sistema */}
       <div
-        className={`h-[77px] flex items-center ${isCollapsed && !isMobile ? 'justify-center px-2' : 'justify-between px-4'}`}
+        className={`h-[77px] flex items-center ${isCollapsed && !isMobile ? 'flex-col justify-center gap-1 px-2' : 'justify-between px-4'}`}
       >
-        <div className={`flex items-center ${isCollapsed && !isMobile ? 'justify-center' : ''}`}>
-          <img
-            src={logo}
-            alt="gio"
-            className={`object-contain ${isCollapsed && !isMobile ? 'h-8 w-auto' : 'h-9 w-auto'}`}
-            style={{ filter: INVERT_TO_WHITE }}
-          />
-        </div>
-        {/* Botão de toggle - só aparece no modo expandido */}
-        {!isMobile && !isCollapsed && (
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors duration-200"
-            title="Retrair sidebar"
-          >
-            <ChevronLeft className="h-5 w-5 text-white/80" />
-          </button>
+        {isCollapsed && !isMobile ? (
+          /* Retraído: logo + "GG" embaixo */
+          <>
+            <img
+              src={logo}
+              alt="gio"
+              className="h-7 w-auto object-contain"
+              style={{ filter: INVERT_TO_WHITE }}
+            />
+            <span className="text-[11px] font-semibold tracking-[0.08em] text-white whitespace-nowrap leading-none">
+              GG
+            </span>
+          </>
+        ) : (
+          /* Expandido: logo + "Gente & Gestão" ao lado (2 linhas) */
+          <>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <img
+                src={logo}
+                alt="gio"
+                className="h-8 w-auto shrink-0 object-contain"
+                style={{ filter: INVERT_TO_WHITE }}
+              />
+              <span className="h-7 w-px shrink-0 bg-white/15" />
+              <div className="flex flex-col text-[10.5px] font-semibold uppercase leading-[1.3] tracking-[0.05em] text-white whitespace-nowrap">
+                <span>Gente</span>
+                <span>&amp; Gest&atilde;o</span>
+              </div>
+            </div>
+            {!isMobile && (
+              <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="p-1.5 rounded-lg hover:bg-white/10 transition-colors duration-200 shrink-0"
+                title="Retrair sidebar"
+              >
+                <ChevronLeft className="h-5 w-5 text-white/80" />
+              </button>
+            )}
+          </>
         )}
       </div>
 
