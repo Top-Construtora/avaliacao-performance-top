@@ -11,11 +11,13 @@ export const interviewController = {
 
       let query = supabaseAdmin
         .from('interviews')
-        .select(`
+        .select(
+          `
           *,
           employee:users!interviews_employee_id_fkey(id, name, email, position, join_date, profile_image, department_id),
           interviewer:users!interviews_interviewer_id_fkey(id, name, email)
-        `)
+        `,
+        )
         .order('scheduled_date', { ascending: false });
 
       if (type) query = query.eq('type', type);
@@ -38,11 +40,13 @@ export const interviewController = {
 
       const { data: interview, error } = await supabaseAdmin
         .from('interviews')
-        .select(`
+        .select(
+          `
           *,
           employee:users!interviews_employee_id_fkey(id, name, email, position, join_date, profile_image, department_id),
           interviewer:users!interviews_interviewer_id_fkey(id, name, email)
-        `)
+        `,
+        )
         .eq('id', id)
         .single();
 
@@ -89,42 +93,46 @@ export const interviewController = {
 
       const { data, error } = await supabaseAdmin
         .from('interviews')
-        .insert([{
-          type,
-          employee_id,
-          interviewer_id,
-          scheduled_date,
-          created_by: req.user?.id,
-          status: 'scheduled',
-        }])
-        .select(`
+        .insert([
+          {
+            type,
+            employee_id,
+            interviewer_id,
+            scheduled_date,
+            created_by: req.user?.id,
+            status: 'scheduled',
+          },
+        ])
+        .select(
+          `
           *,
           employee:users!interviews_employee_id_fkey(id, name, email, position),
           interviewer:users!interviews_interviewer_id_fkey(id, name, email)
-        `)
+        `,
+        )
         .single();
 
       if (error) throw error;
 
-      // Notificar colaborador e entrevistador
+      // Notificar apenas o entrevistador (o colaborador entrevistado NÃO é notificado)
       const notifType = type === 'exit' ? 'interview_exit_scheduled' : 'interview_90day_scheduled';
-      const notifTitle = type === 'exit' ? 'Entrevista de desligamento agendada' : 'Entrevista de 90 dias agendada';
+      const notifTitle =
+        type === 'exit' ? 'Entrevista de desligamento agendada' : 'Entrevista de 90 dias agendada';
       const dateStr = scheduled_date ? new Date(scheduled_date).toLocaleDateString('pt-BR') : '';
 
-      notificationService.send(supabaseAdmin, {
-        type: notifType,
-        title: notifTitle,
-        message: `Uma entrevista foi agendada${dateStr ? ` para ${dateStr}` : ''}.`,
-        targets: [
-          { type: 'user', user_id: employee_id },
-          { type: 'user', user_id: interviewer_id },
-        ],
-        actor_id: req.user?.id,
-        priority: type === 'exit' ? 'high' : 'medium',
-        action_url: `/interviews/${data?.id}`,
-        entity_type: 'interview',
-        entity_id: data?.id,
-      }).catch(err => console.error('Notification error:', err));
+      notificationService
+        .send(supabaseAdmin, {
+          type: notifType,
+          title: notifTitle,
+          message: `Uma entrevista foi agendada${dateStr ? ` para ${dateStr}` : ''}.`,
+          targets: [{ type: 'user', user_id: interviewer_id }],
+          actor_id: req.user?.id,
+          priority: type === 'exit' ? 'high' : 'medium',
+          action_url: `/interviews/${data?.id}`,
+          entity_type: 'interview',
+          entity_id: data?.id,
+        })
+        .catch((err) => console.error('Notification error:', err));
 
       res.status(201).json({ success: true, data });
     } catch (error) {
@@ -160,20 +168,20 @@ export const interviewController = {
         return res.status(404).json({ success: false, error: 'Entrevista não encontrada' });
       }
 
-      // Notificar quando entrevista é concluída
-      if (status === 'completed' && data.employee_id) {
-        notificationService.send(supabaseAdmin, {
-          type: 'interview_completed',
-          title: 'Entrevista concluída',
-          message: `A entrevista ${data.type === 'exit' ? 'de desligamento' : 'de 90 dias'} foi concluída.`,
-          targets: [
-            { type: 'user', user_id: data.employee_id },
-          ],
-          actor_id: req.user?.id,
-          action_url: `/interviews/${data.id}`,
-          entity_type: 'interview',
-          entity_id: data.id,
-        }).catch(err => console.error('Notification error:', err));
+      // Notificar apenas o entrevistador quando a entrevista é concluída
+      if (status === 'completed' && data.interviewer_id) {
+        notificationService
+          .send(supabaseAdmin, {
+            type: 'interview_completed',
+            title: 'Entrevista concluída',
+            message: `A entrevista ${data.type === 'exit' ? 'de desligamento' : 'de 90 dias'} foi concluída.`,
+            targets: [{ type: 'user', user_id: data.interviewer_id }],
+            actor_id: req.user?.id,
+            action_url: `/interviews/${data.id}`,
+            entity_type: 'interview',
+            entity_id: data.id,
+          })
+          .catch((err) => console.error('Notification error:', err));
       }
 
       res.json({ success: true, data });
@@ -263,7 +271,9 @@ export const interviewController = {
       }
 
       if (interview.type !== 'exit') {
-        return res.status(400).json({ success: false, error: 'Entrevista não é do tipo desligamento' });
+        return res
+          .status(400)
+          .json({ success: false, error: 'Entrevista não é do tipo desligamento' });
       }
 
       // Verificar se já existem respostas
@@ -311,10 +321,7 @@ export const interviewController = {
     try {
       const { id } = req.params;
 
-      const { error } = await supabaseAdmin
-        .from('interviews')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabaseAdmin.from('interviews').delete().eq('id', id);
 
       if (error) throw error;
 
@@ -336,14 +343,20 @@ export const interviewController = {
       const stats = {
         total: interviews?.length || 0,
         ninety_days: {
-          total: interviews?.filter(i => i.type === 'ninety_days').length || 0,
-          scheduled: interviews?.filter(i => i.type === 'ninety_days' && i.status === 'scheduled').length || 0,
-          completed: interviews?.filter(i => i.type === 'ninety_days' && i.status === 'completed').length || 0,
+          total: interviews?.filter((i) => i.type === 'ninety_days').length || 0,
+          scheduled:
+            interviews?.filter((i) => i.type === 'ninety_days' && i.status === 'scheduled')
+              .length || 0,
+          completed:
+            interviews?.filter((i) => i.type === 'ninety_days' && i.status === 'completed')
+              .length || 0,
         },
         exit: {
-          total: interviews?.filter(i => i.type === 'exit').length || 0,
-          scheduled: interviews?.filter(i => i.type === 'exit' && i.status === 'scheduled').length || 0,
-          completed: interviews?.filter(i => i.type === 'exit' && i.status === 'completed').length || 0,
+          total: interviews?.filter((i) => i.type === 'exit').length || 0,
+          scheduled:
+            interviews?.filter((i) => i.type === 'exit' && i.status === 'scheduled').length || 0,
+          completed:
+            interviews?.filter((i) => i.type === 'exit' && i.status === 'completed').length || 0,
         },
       };
 
