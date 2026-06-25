@@ -1,8 +1,8 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
 import { useAuthNavigation } from '../hooks/useAuthNavigation';
+import { GioLoading } from './GioLoading';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -22,14 +22,7 @@ export default function ProtectedRoute({
 
   // Mostrar loading enquanto verifica autenticação
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary-500 mx-auto mb-4" />
-          <p className="text-gray-600">Carregando...</p>
-        </motion.div>
-      </div>
-    );
+    return <GioLoading fullScreen />;
   }
 
   // Redirecionar para login se não autenticado
@@ -39,14 +32,7 @@ export default function ProtectedRoute({
 
   // Aguardar carregamento do perfil
   if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary-500 mx-auto mb-4" />
-          <p className="text-gray-600">Carregando perfil...</p>
-        </motion.div>
-      </div>
-    );
+    return <GioLoading fullScreen />;
   }
 
   // Verificar se o usuário está ativo
