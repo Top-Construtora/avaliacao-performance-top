@@ -9,17 +9,7 @@ import {
 } from '../../hooks/useSupabaseData';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import {
-  Users,
-  Building2,
-  Crown,
-  AlertCircle,
-  UserCheck,
-  CheckCircle2,
-  ChevronDown,
-  Save,
-  Loader2,
-} from 'lucide-react';
+import { Users, Building2, Crown, AlertCircle, ChevronDown, Save, Loader2 } from 'lucide-react';
 
 const RegisterTeam = () => {
   const navigate = useNavigate();
@@ -35,7 +25,6 @@ const RegisterTeam = () => {
     teamName: '',
     teamDepartmentId: '',
     teamResponsibleId: '',
-    teamMemberIds: [] as string[],
     teamDescription: '',
   });
 
@@ -79,14 +68,6 @@ const RegisterTeam = () => {
     setIsLoading(true);
 
     try {
-      // Se tem responsável, adicionar aos membros se não estiver
-      if (
-        formData.teamResponsibleId &&
-        !formData.teamMemberIds.includes(formData.teamResponsibleId)
-      ) {
-        formData.teamMemberIds.push(formData.teamResponsibleId);
-      }
-
       await createTeam({
         name: formData.teamName.trim(),
         department_id: formData.teamDepartmentId,
@@ -101,7 +82,6 @@ const RegisterTeam = () => {
         teamName: '',
         teamDepartmentId: '',
         teamResponsibleId: '',
-        teamMemberIds: [],
         teamDescription: '',
       });
 
@@ -226,7 +206,9 @@ const RegisterTeam = () => {
                 >
                   <option value="">Sem responsável</option>
                   {users
-                    .filter((u) => !u.is_admin && (u.is_leader || u.is_director))
+                    .filter(
+                      (u) => u.active !== false && !u.is_admin && (u.is_leader || u.is_director),
+                    )
                     .map((user) => (
                       <option key={user.id} value={user.id}>
                         {user.name} - {user.position}
@@ -248,59 +230,6 @@ const RegisterTeam = () => {
                 placeholder="Descreva os objetivos e responsabilidades do time..."
               />
             </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          variants={itemVariants}
-          className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
-        >
-          <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
-            <UserCheck className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
-            Membros do Time (Opcional)
-          </h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Você pode adicionar membros agora ou depois de criar o time
-          </p>
-          <div className="max-h-64 overflow-y-auto pr-2 space-y-2">
-            {users
-              .filter((u) => !u.is_admin)
-              .map((user) => (
-                <label
-                  key={user.id}
-                  className={`flex items-center p-4 rounded-xl cursor-pointer transition-all group ${
-                    formData.teamMemberIds.includes(user.id)
-                      ? 'bg-lime/10 border-2 border-lime'
-                      : 'bg-secondary border-2 border-border hover:border-border'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 rounded border-border text-foreground focus:ring-[#D2FF00]/20"
-                    checked={formData.teamMemberIds.includes(user.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setFormData({
-                          ...formData,
-                          teamMemberIds: [...formData.teamMemberIds, user.id],
-                        });
-                      } else {
-                        setFormData({
-                          ...formData,
-                          teamMemberIds: formData.teamMemberIds.filter((id) => id !== user.id),
-                        });
-                      }
-                    }}
-                  />
-                  <div className="ml-4 flex-1">
-                    <span className="font-medium text-foreground block">{user.name}</span>
-                    <span className="text-sm text-muted-foreground">{user.position}</span>
-                  </div>
-                  {formData.teamMemberIds.includes(user.id) && (
-                    <CheckCircle2 className="h-5 w-5 text-lime-deep dark:text-lime ml-2" />
-                  )}
-                </label>
-              ))}
           </div>
         </motion.div>
       </motion.div>

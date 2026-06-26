@@ -280,7 +280,9 @@ const EditTeam = () => {
                 >
                   <option value="">Sem responsável</option>
                   {users
-                    .filter((u) => !u.is_admin && (u.is_leader || u.is_director))
+                    .filter(
+                      (u) => u.active !== false && !u.is_admin && (u.is_leader || u.is_director),
+                    )
                     .map((user) => (
                       <option key={user.id} value={user.id}>
                         {user.name} - {user.position}
