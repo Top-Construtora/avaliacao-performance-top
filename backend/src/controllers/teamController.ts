@@ -5,10 +5,7 @@ import { notificationService } from '../services/notificationService';
 export const teamController = {
   async getTeams(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { data, error } = await req.supabase
-        .from('teams')
-        .select('*')
-        .order('name');
+      const { data, error } = await req.supabase.from('teams').select('*').order('name');
 
       if (error) throw error;
 
@@ -22,18 +19,14 @@ export const teamController = {
     try {
       const { id } = req.params;
 
-      const { data, error } = await req.supabase
-        .from('teams')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data, error } = await req.supabase.from('teams').select('*').eq('id', id).single();
 
       if (error) throw error;
 
       if (!data) {
         return res.status(404).json({
           success: false,
-          error: 'Time não encontrado'
+          error: 'Time não encontrado',
         });
       }
 
@@ -50,7 +43,7 @@ export const teamController = {
       if (!name) {
         return res.status(400).json({
           success: false,
-          error: 'Nome é obrigatório'
+          error: 'Nome é obrigatório',
         });
       }
 
@@ -85,7 +78,7 @@ export const teamController = {
       if (!data) {
         return res.status(404).json({
           success: false,
-          error: 'Time não encontrado'
+          error: 'Time não encontrado',
         });
       }
 
@@ -108,10 +101,7 @@ export const teamController = {
       if (membersError) throw membersError;
 
       // Depois deleta o time
-      const { error } = await req.supabase
-        .from('teams')
-        .delete()
-        .eq('id', id);
+      const { error } = await req.supabase.from('teams').delete().eq('id', id);
 
       if (error) throw error;
 
@@ -139,10 +129,10 @@ export const teamController = {
         return res.json({ success: true, data: [] });
       }
 
-      // Buscar dados dos usuários
+      // Buscar dados dos usuários (inclui `active` para exibição no frontend)
       const { data: users, error: usersError } = await req.supabase
         .from('users')
-        .select('id, name, email, position, profile_image')
+        .select('id, name, email, position, profile_image, active')
         .in('id', userIds);
 
       if (usersError) throw usersError;
@@ -161,7 +151,7 @@ export const teamController = {
       if (!user_id) {
         return res.status(400).json({
           success: false,
-          error: 'user_id é obrigatório'
+          error: 'user_id é obrigatório',
         });
       }
 
@@ -173,22 +163,20 @@ export const teamController = {
       if (error) throw error;
 
       // Notificar o novo membro
-      const { data: team } = await req.supabase
-        .from('teams')
-        .select('name')
-        .eq('id', id)
-        .single();
+      const { data: team } = await req.supabase.from('teams').select('name').eq('id', id).single();
 
-      notificationService.send(req.supabase, {
-        type: 'team_member_added',
-        title: 'Adicionado a uma equipe',
-        message: `Você foi adicionado à equipe "${team?.name || 'Nova equipe'}".`,
-        targets: [{ type: 'user', user_id }],
-        actor_id: req.user?.id,
-        action_url: '/teams',
-        entity_type: 'team',
-        entity_id: id,
-      }).catch(err => console.error('Notification error:', err));
+      notificationService
+        .send(req.supabase, {
+          type: 'team_member_added',
+          title: 'Adicionado a uma equipe',
+          message: `Você foi adicionado à equipe "${team?.name || 'Nova equipe'}".`,
+          targets: [{ type: 'user', user_id }],
+          actor_id: req.user?.id,
+          action_url: '/teams',
+          entity_type: 'team',
+          entity_id: id,
+        })
+        .catch((err) => console.error('Notification error:', err));
 
       res.status(201).json({ success: true, data });
     } catch (error) {
@@ -222,7 +210,7 @@ export const teamController = {
       if (!Array.isArray(user_ids)) {
         return res.status(400).json({
           success: false,
-          error: 'user_ids deve ser um array'
+          error: 'user_ids deve ser um array',
         });
       }
 
@@ -236,14 +224,12 @@ export const teamController = {
 
       // Adiciona os novos membros
       if (user_ids.length > 0) {
-        const members = user_ids.map(userId => ({
+        const members = user_ids.map((userId) => ({
           team_id: id,
           user_id: userId,
         }));
 
-        const { error: insertError } = await req.supabase
-          .from('team_members')
-          .insert(members);
+        const { error: insertError } = await req.supabase.from('team_members').insert(members);
 
         if (insertError) throw insertError;
       }
@@ -301,12 +287,14 @@ export const teamController = {
         return res.json({ success: true, data: [] });
       }
 
-      // Buscar dados dos usuários únicos
+      // Buscar dados dos usuários únicos.
+      // Inclui o campo `active` para que o frontend possa ocultar membros
+      // inativos na exibição sem removê-los da membership (evita perda de dados na edição).
       const userIds = [...new Set(teamMembers.map((tm: any) => tm.user_id))];
 
       const { data: users, error: usersError } = await req.supabase
         .from('users')
-        .select('id, name, email, position, profile_image')
+        .select('id, name, email, position, profile_image, active')
         .in('id', userIds);
 
       if (usersError) throw usersError;
@@ -315,14 +303,16 @@ export const teamController = {
       const usersMap = new Map((users || []).map((u: any) => [u.id, u]));
 
       // Retornar dados agrupados por team_id
-      const result = teamMembers.map((tm: any) => ({
-        team_id: tm.team_id,
-        user: usersMap.get(tm.user_id) || null
-      })).filter((item: any) => item.user !== null);
+      const result = teamMembers
+        .map((tm: any) => ({
+          team_id: tm.team_id,
+          user: usersMap.get(tm.user_id) || null,
+        }))
+        .filter((item: any) => item.user !== null);
 
       res.json({ success: true, data: result });
     } catch (error) {
       next(error);
     }
-  }
+  },
 };

@@ -292,7 +292,9 @@ const TeamManagement = () => {
   const renderTeamCard = (team: TeamWithDetails) => {
     const department = team.department;
     const responsible = team.responsible;
-    const members = team.members || [];
+    // Oculta membros inativos da exibição (avatares e contagem).
+    // A membership em si é preservada — apenas não exibimos quem está desativado.
+    const members = (team.members || []).filter((m) => m.active !== false);
 
     return (
       <motion.div
