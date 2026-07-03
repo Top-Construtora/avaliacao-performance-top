@@ -1,12 +1,11 @@
 import { useRef, useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from './ThemeToggle';
 import {
   Bell,
-  ChevronDown,
   ChevronRight,
   LogOut,
   Settings,
@@ -15,11 +14,8 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
-  Users,
-  Crown,
-  Briefcase,
-  Menu,
   Target,
+  Menu as MenuIcon,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -30,19 +26,48 @@ interface HeaderProps {
   setIsMobileMenuOpen?: (value: boolean) => void;
 }
 
+// Mapa de rota → título da página (espelha o pageTitle do shell GIO).
+const PAGE_TITLES: Array<{ match: (p: string) => boolean; title: string }> = [
+  { match: (p) => p === '/', title: 'Página Inicial' },
+  { match: (p) => p.startsWith('/register/user'), title: 'Cadastrar Usuário' },
+  { match: (p) => p.startsWith('/register/team'), title: 'Cadastrar Time' },
+  { match: (p) => p.startsWith('/register/department'), title: 'Cadastrar Departamento' },
+  { match: (p) => p.startsWith('/users'), title: 'Gerenciar Usuários' },
+  { match: (p) => p.startsWith('/teams'), title: 'Gerenciar Times' },
+  { match: (p) => p.startsWith('/departments'), title: 'Gerenciar Departamentos' },
+  { match: (p) => p.startsWith('/salary'), title: 'Cargos e Salários' },
+  { match: (p) => p.startsWith('/cycle'), title: 'Gerenciar Ciclos' },
+  { match: (p) => p.startsWith('/codigo-cultural'), title: 'Código Cultural' },
+  { match: (p) => p.startsWith('/self-evaluation'), title: 'Autoavaliação' },
+  { match: (p) => p.startsWith('/leader-evaluation'), title: 'Avaliação do Líder' },
+  { match: (p) => p.startsWith('/consensus'), title: 'Consenso' },
+  { match: (p) => p.startsWith('/nine-box-guide'), title: 'Guia NineBox' },
+  { match: (p) => p.startsWith('/nine-box'), title: 'Comitê de Gente' },
+  { match: (p) => p.startsWith('/my-pdi'), title: 'Meu PDI' },
+  { match: (p) => p.startsWith('/pdi-calendar'), title: 'Calendário PDI' },
+  { match: (p) => p.startsWith('/pdi'), title: 'Gerenciar PDI' },
+  { match: (p) => p.startsWith('/reports'), title: 'Relatórios' },
+  { match: (p) => p.startsWith('/recruitment'), title: 'Recrutamento' },
+  { match: (p) => p.startsWith('/interviews'), title: 'Onboard e Offboard' },
+  { match: (p) => p.startsWith('/satisfaction'), title: 'Pesquisas' },
+  { match: (p) => p.startsWith('/notifications'), title: 'Notificações' },
+  { match: (p) => p.startsWith('/settings'), title: 'Configurações' },
+  { match: (p) => p.startsWith('/help'), title: 'Ajuda' },
+];
+
 export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: HeaderProps) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { user, profile, signOut } = useAuth();
   const { isDirector, isLeader, isAdmin } = useUserRole();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [expandedNotifications, setExpandedNotifications] = useState<{ [key: string]: boolean }>(
-    {},
-  );
   const notificationsRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const pageTitle = PAGE_TITLES.find((t) => t.match(pathname))?.title || 'GIO';
 
   // Configuração dos tipos de notificação com a paleta de cores NAUE
   const notificationTypeConfig = {
@@ -150,32 +175,11 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
     }
   };
 
-  const getRoleIcon = () => {
-    if (isAdmin) return <Crown className="h-3 w-3 sm:h-4 sm:w-4" />;
-    if (isDirector) return <Crown className="h-3 w-3 sm:h-4 sm:w-4" />;
-    if (isLeader) return <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />;
-    return <Users className="h-3 w-3 sm:h-4 sm:w-4" />;
-  };
-
   const getRoleLabel = () => {
     if (isAdmin) return 'Admin';
     if (isDirector) return 'Diretor';
     if (isLeader) return 'Líder';
     return 'Colaborador';
-  };
-
-  const getRoleBadgeColor = () => {
-    // Admin destacado em lime (assinatura gio); demais neutro adaptável (bar obsidian + dropdown claro/escuro).
-    if (isAdmin)
-      return 'bg-[#D2FF00]/20 text-lime-deep dark:text-lime border-[#D2FF00]/40 shadow-sm';
-    return 'bg-secondary text-secondary-foreground border-border';
-  };
-
-  const toggleNotificationExpanded = (id: string) => {
-    setExpandedNotifications((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
   };
 
   const handleNotificationClick = (notification: NotificationType) => {
@@ -195,319 +199,300 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
     );
   };
 
+  const inicial = (profile?.name || user?.email || 'U').charAt(0).toUpperCase();
+  const dataFmt = format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR }).toUpperCase();
+  const horaFmt = format(currentTime, 'HH:mm');
+
+  // Botão-ícone padrão do header GIO: 36×36, rounded-6, bone → white no hover.
+  const iconBtn =
+    'w-9 h-9 rounded-[6px] grid place-items-center text-[#ECECEE] hover:bg-[#32323A] hover:text-white transition-colors relative';
+
   return (
-    <header className="bg-[#1A1A1A] sticky top-0 z-20">
-      <div className="relative flex items-center justify-between h-[77px] px-3 sm:px-4 md:px-6">
-        {/* Lado esquerdo - Menu mobile */}
-        <div className="flex items-center flex-shrink-0">
-          {/* Botão menu mobile */}
+    <header className="h-[60px] flex-shrink-0 flex items-center gap-2 px-4 md:px-[28px] relative z-20 bg-[#1A1A1A] border-b border-white/[0.08] font-gio">
+      {/* Esquerda: hambúrguer (mobile) + título/subtítulo */}
+      <button
+        aria-label="abrir menu"
+        onClick={() => setIsMobileMenuOpen?.(!isMobileMenuOpen)}
+        className={`${iconBtn} md:hidden`}
+      >
+        <MenuIcon size={18} />
+      </button>
+      <div className="min-w-0 flex-none">
+        <h1 className="text-[15.5px] font-semibold tracking-[-0.015em] leading-[1.2] text-white truncate">
+          {pageTitle}
+        </h1>
+        <p className="text-[10.5px] font-medium tracking-[0.1em] uppercase text-[#8B8B95] truncate">
+          GIO · Sistema de Gente &amp; Gestão
+        </p>
+      </div>
+
+      {/* Centro: relógio (escondido abaixo de lg) */}
+      <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-[10px] pointer-events-none whitespace-nowrap">
+        <span className="text-[11px] font-semibold tracking-[0.14em] text-[#8B8B95]">
+          {dataFmt}
+        </span>
+        <span className="text-[13px] font-semibold text-white/[0.14]">·</span>
+        <span
+          className="text-[13px] font-semibold tracking-[0.04em] text-white"
+          style={{ fontFeatureSettings: '"tnum","zero"' }}
+        >
+          {horaFmt}
+        </span>
+      </div>
+
+      {/* Direita: ações */}
+      <div className="ml-auto flex items-center gap-[6px]">
+        {/* Notificações */}
+        <div className="static sm:relative" ref={notificationsRef}>
           <button
-            onClick={() => setIsMobileMenuOpen?.(!isMobileMenuOpen)}
-            className="md:hidden p-1.5 sm:p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md flex-shrink-0"
-            aria-label="Menu"
+            onClick={() => setShowNotifications(!showNotifications)}
+            className={iconBtn}
+            aria-label="Notificações"
           >
-            <Menu className="h-5 w-5" />
+            <Bell size={18} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 min-w-[16px] bg-[#D2FF00] text-obsidian text-[10px] rounded-full flex items-center justify-center font-bold px-1">
+                {unreadCount}
+              </span>
+            )}
           </button>
-        </div>
 
-        {/* Centro - Data/Hora (o título migrou para a sidebar) */}
-        {/* Posicionado absolutamente para centralizar na área de conteúdo,
-            independente da largura da sidebar (retraída ou expandida) e dos lados do header. */}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center">
-          <p className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-[0.12em] whitespace-nowrap">
-            <span className="font-medium text-gray-400">
-              {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
-            </span>
-            <span className="text-gray-600">·</span>
-            <span className="text-sm font-bold tracking-normal text-white">
-              {format(currentTime, 'HH:mm')}
-            </span>
-          </p>
-        </div>
+          {/* Dropdown de notificações */}
+          <AnimatePresence>
+            {showNotifications && (
+              <>
+                {/* Overlay apenas em mobile */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="sm:hidden fixed inset-0 bg-black/20 z-40"
+                  onClick={() => setShowNotifications(false)}
+                />
 
-        {/* Lado direito - Notificações e usuário */}
-        <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-shrink-0">
-          {/* Container de Notificações com posicionamento estático em mobile */}
-          <div className="static sm:relative" ref={notificationsRef}>
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-1.5 sm:p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
-              aria-label="Notificações"
-            >
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-4 w-4 sm:h-5 sm:w-5 bg-[#D2FF00] text-obsidian text-[10px] sm:text-xs rounded-full flex items-center justify-center font-bold shadow-sm">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Dropdown de notificações */}
-            <AnimatePresence>
-              {showNotifications && (
-                <>
-                  {/* Overlay apenas em mobile */}
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="sm:hidden fixed inset-0 bg-black/20 z-40"
-                    onClick={() => setShowNotifications(false)}
-                  />
-
-                  {/* Dropdown */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                    className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[72px] sm:top-auto sm:mt-2 w-auto sm:w-80 md:w-96 bg-popover text-popover-foreground rounded-2xl shadow-md border border-border overflow-hidden z-50"
-                    style={{
-                      maxHeight: 'calc(100vh - 88px)',
-                    }}
-                  >
-                    {/* Header do dropdown */}
-                    <div className="px-3 sm:px-4 py-2 sm:py-3 bg-secondary border-b border-border flex items-center justify-between sticky top-0 z-10">
-                      <div className="flex items-center space-x-2">
-                        <Bell className="h-4 w-4 text-lime-deep dark:text-lime" />
-                        <h3 className="text-sm font-semibold text-foreground">Notificações</h3>
-                        {unreadCount > 0 && (
-                          <span className="text-xs px-2 py-0.5 bg-lime/20 text-lime-deep dark:text-lime rounded-full font-medium">
-                            {unreadCount} nova{unreadCount > 1 ? 's' : ''}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {unreadCount > 0 && (
-                          <button
-                            onClick={markAllAsRead}
-                            className="text-[11px] sm:text-xs text-lime-deep dark:text-lime hover:underline font-medium"
-                          >
-                            Marcar todas como lidas
-                          </button>
-                        )}
-                        <button
-                          onClick={() => setShowNotifications(false)}
-                          className="text-muted-foreground hover:text-foreground hover:bg-accent rounded p-0.5 transition-all duration-200"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Lista de notificações */}
-                    <div className="max-h-[calc(100vh-200px)] sm:max-h-96 overflow-y-auto custom-scrollbar">
-                      {recentNotifications.length === 0 ? (
-                        <div className="px-4 py-12 text-center">
-                          <div className="inline-flex p-4 rounded-full bg-secondary mb-3">
-                            <Bell className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                          <p className="text-sm text-muted-foreground font-medium">
-                            Nenhuma notificação
-                          </p>
-                          <p className="text-xs text-muted-foreground/70 mt-1">
-                            Você está em dia com tudo!
-                          </p>
-                        </div>
-                      ) : (
-                        recentNotifications.map((notification) => {
-                          const config = getNotificationConfig(notification.displayCategory);
-                          const IconComponent = getNotificationIcon(notification.displayCategory);
-                          return (
-                            <div
-                              key={notification.id}
-                              onClick={() => handleNotificationClick(notification)}
-                              className={`relative transition-all duration-200 cursor-pointer ${
-                                !notification.read ? config.bgColor : 'hover:bg-accent'
-                              }`}
-                            >
-                              {!notification.read && (
-                                <div
-                                  className={`absolute left-0 top-0 bottom-0 w-1 ${config.dotColor}`}
-                                />
-                              )}
-
-                              <div className="px-3 sm:px-4 py-3 sm:py-4 border-b border-border last:border-0">
-                                <div className="flex items-start space-x-2 sm:space-x-3">
-                                  <div
-                                    className={`p-2 rounded-lg ${config.iconBg} flex-shrink-0 shadow-sm`}
-                                  >
-                                    <IconComponent className={`h-4 w-4 ${config.iconColor}`} />
-                                  </div>
-
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between gap-2">
-                                      <div className="flex-1">
-                                        <p className="text-sm font-semibold text-foreground mb-0.5">
-                                          {notification.title}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-                                          {notification.message}
-                                        </p>
-                                        <p className="text-[10px] text-muted-foreground/70 mt-1.5 flex items-center">
-                                          <Clock className="h-3 w-3 mr-0.5" />
-                                          {formatRelativeTime(notification.created_at)}
-                                        </p>
-                                      </div>
-
-                                      {!notification.read && (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            markAsRead([notification.id]);
-                                          }}
-                                          className="text-[11px] text-lime-deep dark:text-lime hover:underline font-medium whitespace-nowrap"
-                                        >
-                                          Marcar lida
-                                        </button>
-                                      )}
-                                    </div>
-
-                                    {notification.action_url && (
-                                      <div className="mt-2">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleNotificationClick(notification);
-                                          }}
-                                          className="text-xs px-3 py-1.5 bg-[#D2FF00] text-obsidian rounded-lg hover:bg-[#C2EE00] transition-all duration-200 shadow-sm hover:shadow font-semibold"
-                                        >
-                                          Ver detalhes
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-
-                    {/* Footer do dropdown */}
-                    {recentNotifications.length > 0 && (
-                      <div className="px-3 sm:px-4 py-2 sm:py-3 bg-secondary border-t border-border sticky bottom-0">
-                        <button
-                          onClick={() => {
-                            setShowNotifications(false);
-                            navigate('/notifications');
-                          }}
-                          className="text-xs sm:text-sm text-lime-deep dark:text-lime hover:underline font-medium flex items-center justify-center w-full py-1.5"
-                        >
-                          Ver histórico completo
-                          <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
-                        </button>
-                      </div>
-                    )}
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Theme Toggle - ADICIONADO AQUI */}
-          <ThemeToggle />
-
-          <div className="h-5 sm:h-6 w-px bg-white/10 hidden xs:block"></div>
-
-          {/* Menu do usuário */}
-          <div className="relative" ref={userMenuRef}>
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-1.5 sm:space-x-2 md:space-x-3 p-1 sm:p-1.5 md:p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
-              aria-label="Menu do usuário"
-            >
-              <div className="text-right hidden lg:block">
-                <p className="text-sm font-medium text-white truncate max-w-[150px]">
-                  {profile?.name || user?.email}
-                </p>
-                <div className="flex items-center justify-end space-x-1">
-                  <span
-                    className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full border ${getRoleBadgeColor()} flex items-center font-medium`}
-                  >
-                    {getRoleIcon()}
-                    <span className="ml-1">{getRoleLabel()}</span>
-                  </span>
-                </div>
-              </div>
-              <div className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-full flex items-center justify-center bg-[#D2FF00] text-obsidian font-bold text-xs sm:text-sm flex-shrink-0 shadow-md">
-                {profile?.name
-                  ? profile.name
-                      .split(' ')
-                      .map((n: string) => n[0])
-                      .join('')
-                      .toUpperCase()
-                      .slice(0, 2)
-                  : 'U'}
-              </div>
-              <ChevronDown
-                className={`h-3 w-3 sm:h-4 sm:w-4 text-white/70 transition-transform hidden sm:block ${showUserMenu ? 'rotate-180' : ''}`}
-              />
-            </button>
-
-            {/* Dropdown do menu do usuário */}
-            <AnimatePresence>
-              {showUserMenu && (
+                {/* Dropdown */}
                 <motion.div
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute right-0 mt-2 w-56 bg-popover text-popover-foreground rounded-2xl shadow-md border border-border overflow-hidden"
+                  className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[60px] sm:top-auto sm:mt-2 w-auto sm:w-80 md:w-96 bg-popover text-popover-foreground rounded-2xl shadow-md border border-border overflow-hidden z-50"
+                  style={{ maxHeight: 'calc(100vh - 76px)' }}
                 >
-                  {/* Mobile/Tablet: Mostrar informações do usuário */}
-                  <div className="lg:hidden px-4 py-3 bg-secondary border-b border-border">
-                    <p className="text-sm font-semibold text-foreground truncate">
-                      {profile?.name || user?.email}
-                    </p>
-                    <div className="flex items-center mt-1.5 space-x-1">
-                      <span
-                        className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full border ${getRoleBadgeColor()} flex items-center font-medium`}
+                  {/* Header do dropdown */}
+                  <div className="px-3 sm:px-4 py-2 sm:py-3 bg-secondary border-b border-border flex items-center justify-between sticky top-0 z-10">
+                    <div className="flex items-center space-x-2">
+                      <Bell className="h-4 w-4 text-lime-deep dark:text-lime" />
+                      <h3 className="text-sm font-semibold text-foreground">Notificações</h3>
+                      {unreadCount > 0 && (
+                        <span className="text-xs px-2 py-0.5 bg-lime/20 text-lime-deep dark:text-lime rounded-full font-medium">
+                          {unreadCount} nova{unreadCount > 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={markAllAsRead}
+                          className="text-[11px] sm:text-xs text-lime-deep dark:text-lime hover:underline font-medium"
+                        >
+                          Marcar todas como lidas
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setShowNotifications(false)}
+                        className="text-muted-foreground hover:text-foreground hover:bg-accent rounded p-0.5 transition-all duration-200"
                       >
-                        {getRoleIcon()}
-                        <span className="ml-0.5 sm:ml-1">{getRoleLabel()}</span>
-                      </span>
+                        <X className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="py-1">
-                    <button
-                      onClick={() => {
-                        navigate('/settings');
-                        setShowUserMenu(false);
-                      }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-foreground font-medium hover:bg-accent flex items-center space-x-3 transition-all duration-200"
-                    >
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span>Meu Perfil</span>
-                    </button>
+                  {/* Lista de notificações */}
+                  <div className="max-h-[calc(100vh-200px)] sm:max-h-96 overflow-y-auto custom-scrollbar">
+                    {recentNotifications.length === 0 ? (
+                      <div className="px-4 py-12 text-center">
+                        <div className="inline-flex p-4 rounded-full bg-secondary mb-3">
+                          <Bell className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <p className="text-sm text-muted-foreground font-medium">
+                          Nenhuma notificação
+                        </p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">
+                          Você está em dia com tudo!
+                        </p>
+                      </div>
+                    ) : (
+                      recentNotifications.map((notification) => {
+                        const config = getNotificationConfig(notification.displayCategory);
+                        const IconComponent = getNotificationIcon(notification.displayCategory);
+                        return (
+                          <div
+                            key={notification.id}
+                            onClick={() => handleNotificationClick(notification)}
+                            className={`relative transition-all duration-200 cursor-pointer ${
+                              !notification.read ? config.bgColor : 'hover:bg-accent'
+                            }`}
+                          >
+                            {!notification.read && (
+                              <div
+                                className={`absolute left-0 top-0 bottom-0 w-1 ${config.dotColor}`}
+                              />
+                            )}
 
-                    <button
-                      onClick={() => {
-                        navigate('/settings');
-                        setShowUserMenu(false);
-                      }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-foreground font-medium hover:bg-accent flex items-center space-x-3 transition-all duration-200"
-                    >
-                      <Settings className="h-4 w-4 text-muted-foreground" />
-                      <span>Configurações</span>
-                    </button>
+                            <div className="px-3 sm:px-4 py-3 sm:py-4 border-b border-border last:border-0">
+                              <div className="flex items-start space-x-2 sm:space-x-3">
+                                <div
+                                  className={`p-2 rounded-lg ${config.iconBg} flex-shrink-0 shadow-sm`}
+                                >
+                                  <IconComponent className={`h-4 w-4 ${config.iconColor}`} />
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1">
+                                      <p className="text-sm font-semibold text-foreground mb-0.5">
+                                        {notification.title}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                                        {notification.message}
+                                      </p>
+                                      <p className="text-[10px] text-muted-foreground/70 mt-1.5 flex items-center">
+                                        <Clock className="h-3 w-3 mr-0.5" />
+                                        {formatRelativeTime(notification.created_at)}
+                                      </p>
+                                    </div>
+
+                                    {!notification.read && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          markAsRead([notification.id]);
+                                        }}
+                                        className="text-[11px] text-lime-deep dark:text-lime hover:underline font-medium whitespace-nowrap"
+                                      >
+                                        Marcar lida
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  {notification.action_url && (
+                                    <div className="mt-2">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleNotificationClick(notification);
+                                        }}
+                                        className="text-xs px-3 py-1.5 bg-[#D2FF00] text-obsidian rounded-lg hover:bg-[#C2EE00] transition-all duration-200 shadow-sm hover:shadow font-semibold"
+                                      >
+                                        Ver detalhes
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
 
-                  <div className="border-t border-border py-1">
-                    <button
-                      onClick={handleLogout}
-                      className="w-full px-4 py-2.5 text-left text-sm text-destructive hover:bg-destructive/10 flex items-center space-x-3 transition-all duration-200"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span className="font-medium">Sair</span>
-                    </button>
-                  </div>
+                  {/* Footer do dropdown */}
+                  {recentNotifications.length > 0 && (
+                    <div className="px-3 sm:px-4 py-2 sm:py-3 bg-secondary border-t border-border sticky bottom-0">
+                      <button
+                        onClick={() => {
+                          setShowNotifications(false);
+                          navigate('/notifications');
+                        }}
+                        className="text-xs sm:text-sm text-lime-deep dark:text-lime hover:underline font-medium flex items-center justify-center w-full py-1.5"
+                      >
+                        Ver histórico completo
+                        <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Toggle claro/escuro */}
+        <ThemeToggle />
+
+        {/* Avatar / menu do usuário */}
+        <div className="relative" ref={userMenuRef}>
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            aria-label="Perfil do Usuário"
+            title="Perfil do Usuário"
+            className="w-[34px] h-[34px] rounded-full grid place-items-center bg-gradient-to-br from-[#A9BE2E] to-[#D2FF00] text-obsidian font-bold text-[13px] transition-all ml-0.5 hover:scale-105 hover:shadow-[0_0_0_3px_rgba(210,255,0,.22)]"
+          >
+            {inicial}
+          </button>
+
+          {/* Dropdown do menu do usuário */}
+          <AnimatePresence>
+            {showUserMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="absolute right-0 mt-[10px] min-w-[240px] bg-[#232327] text-white rounded-[10px] border border-white/[0.14] overflow-hidden font-gio"
+                style={{ boxShadow: '0 32px 64px rgba(0,0,0,.6)' }}
+              >
+                {/* Cabeçalho do usuário */}
+                <div className="px-3 py-[10px] flex items-center gap-[10px]">
+                  <div className="w-[38px] h-[38px] rounded-full grid place-items-center bg-gradient-to-br from-[#A9BE2E] to-[#D2FF00] text-obsidian font-bold text-[14px]">
+                    {inicial}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[13.5px] font-semibold text-white truncate">
+                      {profile?.name || user?.email}
+                    </p>
+                    <p className="text-[10.5px] font-semibold tracking-[0.1em] uppercase text-[#8B8B95] truncate">
+                      {getRoleLabel()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t border-white/[0.08] my-[6px]" />
+
+                <button
+                  onClick={() => {
+                    navigate('/settings');
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full mx-0 px-3 py-2 text-left flex items-center gap-2 text-white hover:bg-[#2A2A2E] transition-colors"
+                >
+                  <User size={16} className="text-[#ECECEE]" />
+                  <span className="text-[13px]">Meu Perfil</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigate('/settings');
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full px-3 py-2 text-left flex items-center gap-2 text-white hover:bg-[#2A2A2E] transition-colors"
+                >
+                  <Settings size={16} className="text-[#ECECEE]" />
+                  <span className="text-[13px]">Configurações</span>
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full px-3 py-2 text-left flex items-center gap-2 text-[#DC2626] hover:bg-[#DC2626]/10 transition-colors"
+                >
+                  <LogOut size={16} className="text-[#DC2626]" />
+                  <span className="text-[13px]">Sair</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </header>

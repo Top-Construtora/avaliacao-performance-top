@@ -89,8 +89,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        // Body padrão GIO: Space Grotesk continua como fallback de marca local
+        // Body padrão: DM Sans (identidade GIO v4.0); Space Grotesk como fallback
         sans: [
+          '"DM Sans"',
           'Space Grotesk',
           'system-ui',
           '-apple-system',
@@ -102,6 +103,15 @@ export default {
           'sans-serif',
         ],
         space: ['Space Grotesk', 'sans-serif'],
+        // Fonte do shell (Sidebar/Header) — espelha a identidade GIO v4.0 (DM Sans)
+        gio: [
+          '"DM Sans"',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'sans-serif',
+        ],
         'lemon-milk': ['"Lemon Milk"', 'sans-serif'],
         // Marca GIO (assinatura) — usado em títulos
         brand: ['"Lemon Milk"', 'sans-serif'],

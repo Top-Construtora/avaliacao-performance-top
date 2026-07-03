@@ -1,0 +1,92 @@
+/* Réplica estrita do loader do GIO (identidade v4.0): fundo obsidian com grid
+   lime mascarado, anel cinza + arco lime girando/pulsando e "Carregando…". */
+.gio-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+.gio-loader::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(210, 255, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(210, 255, 0, 0.05) 1px, transparent 1px);
+  background-size: 90px 90px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  pointer-events: none;
+}
+.gio-loader-ring {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gio-loader-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  animation: gioRingRotate 2s linear infinite;
+}
+.gio-loader-ring .track {
+  fill: none;
+  stroke: rgba(139, 139, 149, 0.18);
+  stroke-width: 5;
+}
+.gio-loader-ring .progress {
+  fill: none;
+  stroke: #d2ff00;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 270.2;
+  stroke-dashoffset: 200;
+  animation: gioRingDash 1.5s ease-in-out infinite;
+}
+/* Logo central: mesma wordmark da sidebar, invertida para branco */
+.gio-loader-logo {
+  width: 42px;
+  height: auto;
+  filter: invert(1);
+}
+.gio-loader-text {
+  position: relative;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12.5px;
+  color: #8b8b95;
+  letter-spacing: 0.03em;
+}
+@keyframes gioRingRotate {
+  to {
+    transform: rotate(270deg);
+  }
+}
+@keyframes gioRingDash {
+  0% {
+    stroke-dashoffset: 250;
+  }
+  50% {
+    stroke-dashoffset: 70;
+  }
+  100% {
+    stroke-dashoffset: 250;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gio-loader-ring svg {
+    animation-duration: 4s;
+  }
+  .gio-loader-ring .progress {
+    animation-duration: 3s;
+  }
+}

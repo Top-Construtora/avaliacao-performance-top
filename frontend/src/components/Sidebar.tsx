@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
@@ -18,8 +18,8 @@ import {
   BookOpen,
   Plus,
   ChevronDown,
-  ChevronLeft,
   ChevronRight,
+  ChevronLeft,
   Building,
   User,
   HelpCircle,
@@ -31,11 +31,9 @@ import {
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import { usePeopleCommitteePermission } from '../hooks/usePeopleCommittee';
-import logo from '@/assets/images/gio-wordmark.png';
+import gioWordmark from '@/assets/images/gioWordmark.png';
+import gioMark from '@/assets/images/gioMark.png';
 import { toast } from 'react-hot-toast';
-
-// gio v4.0: wordmark preto sobre transparente → invertido p/ branco na sidebar obsidian
-const INVERT_TO_WHITE = 'invert(1) brightness(1.1)';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -69,7 +67,9 @@ export default function Sidebar({
   setIsMobileMenuOpen,
 }: SidebarProps) {
   const navigate = useNavigate();
-  const { user, profile, signOut } = useAuth();
+  const location = useLocation();
+  const { signOut } = useAuth();
+  const { profile } = useAuth();
   const { isDirector, isLeader, isAdmin, role } = useUserRole();
   const { canViewPeopleCommittee } = usePeopleCommitteePermission();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -99,7 +99,7 @@ export default function Sidebar({
   // Definir seções de navegação com permissões
   const navSections: NavSection[] = [
     {
-      title: '',
+      title: 'Workspace',
       items: [
         {
           label: 'Página Inicial',
@@ -118,21 +118,9 @@ export default function Sidebar({
           hasDropdown: true,
           allowedRoles: ['admin', 'director'],
           subItems: [
-            {
-              label: 'Cadastrar Usuário',
-              icon: UserPlus,
-              path: '/register/user',
-            },
-            {
-              label: 'Cadastrar Time',
-              icon: Users,
-              path: '/register/team',
-            },
-            {
-              label: 'Cadastrar Departamento',
-              icon: Building,
-              path: '/register/department',
-            },
+            { label: 'Cadastrar Usuário', icon: UserPlus, path: '/register/user' },
+            { label: 'Cadastrar Time', icon: Users, path: '/register/team' },
+            { label: 'Cadastrar Departamento', icon: Building, path: '/register/department' },
           ],
         },
         {
@@ -141,21 +129,9 @@ export default function Sidebar({
           hasDropdown: true,
           allowedRoles: ['admin', 'director'],
           subItems: [
-            {
-              label: 'Gerenciar Usuários',
-              icon: User,
-              path: '/users',
-            },
-            {
-              label: 'Gerenciar Times',
-              icon: Users,
-              path: '/teams',
-            },
-            {
-              label: 'Gerenciar Departamentos',
-              icon: Building,
-              path: '/departments',
-            },
+            { label: 'Gerenciar Usuários', icon: User, path: '/users' },
+            { label: 'Gerenciar Times', icon: Users, path: '/teams' },
+            { label: 'Gerenciar Departamentos', icon: Building, path: '/departments' },
           ],
         },
         {
@@ -338,25 +314,39 @@ export default function Sidebar({
   };
 
   // Filtrar seções e itens baseado no papel do usuário
-  const filteredSections = navSections
-    .map((section) => ({
-      ...section,
-      items: section.items
-        .filter(filterItem)
-        .map((item) =>
-          item.subItems ? { ...item, subItems: item.subItems.filter(filterItem) } : item,
-        )
-        .filter((item) => !item.hasDropdown || (item.subItems && item.subItems.length > 0)),
-    }))
-    .filter((section) => {
-      // Remover seções vazias
-      if (section.items.length === 0) return false;
-      // Verificar permissão da seção
-      if (section.allowedRoles && !isAdmin && !section.allowedRoles.includes(role as RoleType)) {
-        return false;
+  const filteredSections = useMemo(() => {
+    return navSections
+      .map((section) => ({
+        ...section,
+        items: section.items
+          .filter(filterItem)
+          .map((item) =>
+            item.subItems ? { ...item, subItems: item.subItems.filter(filterItem) } : item,
+          )
+          .filter((item) => !item.hasDropdown || (item.subItems && item.subItems.length > 0)),
+      }))
+      .filter((section) => {
+        if (section.items.length === 0) return false;
+        if (section.allowedRoles && !isAdmin && !section.allowedRoles.includes(role as RoleType)) {
+          return false;
+        }
+        return true;
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, isAdmin, isLeader, isDirector, role, canViewPeopleCommittee]);
+
+  // Abre automaticamente o dropdown do item ativo
+  useEffect(() => {
+    for (const section of filteredSections) {
+      for (const item of section.items) {
+        if (item.subItems?.some((s) => s.path && location.pathname.startsWith(s.path))) {
+          setOpenDropdown(item.label);
+          return;
+        }
       }
-      return true;
-    });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     try {
@@ -372,301 +362,329 @@ export default function Sidebar({
     setOpenDropdown(openDropdown === label ? null : label);
   };
 
-  const sidebarContent = (isMobile: boolean = false) => (
-    <div className="flex flex-col h-full overflow-hidden">
-      {/* Logo + nome do sistema */}
-      <div
-        className={`h-[77px] flex items-center ${isCollapsed && !isMobile ? 'flex-col justify-center gap-1 px-2' : 'justify-between px-4'}`}
-      >
-        {isCollapsed && !isMobile ? (
-          /* Retraído: logo + "GG" embaixo */
-          <>
-            <img
-              src={logo}
+  const isModuleActive = (item: NavItem) =>
+    !!item.subItems?.some((s) => s.path && location.pathname.startsWith(s.path));
+
+  // Inicial do avatar do rodapé
+  const inicial = (profile?.name || profile?.email || 'U').charAt(0).toUpperCase();
+
+  // ---- Classes base (espelham os tokens do gioBrand via Tailwind) ----
+  // leaf/módulo: py-[9px] px-[11px] rounded-[6px]
+  const leafBase =
+    'relative w-full flex items-center rounded-[6px] mb-[2px] py-[9px] px-[11px] transition-colors duration-150';
+  const leafInactive = 'text-white/55 hover:bg-white/[0.06] hover:text-white';
+  const leafActive = 'bg-[#D2FF00]/[0.14] text-[#D2FF00]';
+  const leafText = 'text-[13.5px] font-medium tracking-[-0.005em]';
+  const subText = 'text-[12.5px] font-medium';
+
+  const sidebarContent = (isMobile: boolean = false) => {
+    const collapsed = isCollapsed && !isMobile;
+    return (
+      <div className="flex flex-col h-full bg-[#1A1A1A] text-white font-gio overflow-hidden">
+        {/* Marca + toggle */}
+        <div
+          className={`min-h-[60px] flex items-center justify-center flex-shrink-0 ${
+            collapsed ? 'flex-col gap-[10px] px-1 py-[10px]' : 'flex-row px-2'
+          }`}
+        >
+          {/* Espaçador (largura da seta) p/ centralizar a logo no expandido */}
+          {!collapsed && <div className="w-8 flex-shrink-0" />}
+
+          <div className={`${collapsed ? 'flex-none' : 'flex-1'} h-[30px] grid place-items-center`}>
+            {/* Wordmark + mark sobrepostos (grid 1/1): crossfade simultâneo */}
+            <motion.img
+              src={gioWordmark}
               alt="gio"
-              className="h-7 w-auto object-contain"
-              style={{ filter: INVERT_TO_WHITE }}
+              initial={false}
+              animate={
+                collapsed ? { opacity: 0, x: -28, scaleX: 0.35 } : { opacity: 1, x: 0, scaleX: 1 }
+              }
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                gridArea: '1 / 1',
+                height: 30,
+                filter: 'invert(1)',
+                transformOrigin: 'left center',
+                zIndex: collapsed ? 1 : 2,
+              }}
             />
-            <span className="text-[11px] font-semibold tracking-[0.08em] text-white whitespace-nowrap leading-none">
-              GG
-            </span>
-          </>
-        ) : (
-          /* Expandido: logo + "Gente & Gestão" ao lado (2 linhas) */
-          <>
-            <div className="flex items-center gap-2.5 min-w-0">
-              <img
-                src={logo}
-                alt="gio"
-                className="h-8 w-auto shrink-0 object-contain"
-                style={{ filter: INVERT_TO_WHITE }}
-              />
-              <span className="h-7 w-px shrink-0 bg-white/15" />
-              <div className="flex flex-col text-[10.5px] font-semibold uppercase leading-[1.3] tracking-[0.05em] text-white whitespace-nowrap">
-                <span>Gente</span>
-                <span>&amp; Gest&atilde;o</span>
-              </div>
-            </div>
-            {!isMobile && (
+            <motion.img
+              src={gioMark}
+              alt=""
+              aria-hidden="true"
+              initial={false}
+              animate={collapsed ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.6 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                gridArea: '1 / 1',
+                height: 30,
+                filter: 'invert(1)',
+                zIndex: collapsed ? 2 : 1,
+              }}
+            />
+          </div>
+
+          {!isMobile && (
+            <motion.div
+              layout
+              transition={{ type: 'spring', stiffness: 240, damping: 28 }}
+              className="flex-shrink-0"
+            >
               <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="p-1.5 rounded-lg hover:bg-white/10 transition-colors duration-200 shrink-0"
-                title="Retrair sidebar"
+                aria-label={collapsed ? 'expandir menu lateral' : 'recolher menu lateral'}
+                title={collapsed ? 'Expandir menu' : 'Recolher menu'}
+                className="w-8 h-8 rounded-[8px] grid place-items-center text-[#ECECEE] hover:bg-white/[0.06] hover:text-white transition-colors"
               >
-                <ChevronLeft className="h-5 w-5 text-white/80" />
+                <ChevronLeft
+                  size={20}
+                  style={{
+                    transition: 'transform .55s cubic-bezier(.22,1,.36,1)',
+                    transform: collapsed ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}
+                />
               </button>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Botão de toggle - aparece entre logo e menu quando retraído */}
-      {!isMobile && isCollapsed && (
-        <div className="px-2 py-3 border-b border-white/10">
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-white/10 transition-colors duration-200"
-            title="Expandir sidebar"
-          >
-            <ChevronRight className="h-5 w-5 text-white/80" />
-          </button>
+            </motion.div>
+          )}
         </div>
-      )}
 
-      {/* Menu de navegação */}
-      <nav
-        className={`flex-1 py-4 overflow-y-auto overflow-x-hidden ${isCollapsed && !isMobile ? 'px-2' : 'px-3'}`}
-      >
-        <div className="space-y-1">
+        {/* Navegação agrupada */}
+        <nav className="flex-grow px-1.5 py-0.5 overflow-y-auto overflow-x-hidden gio-sidebar-scroll">
           {filteredSections.map((section) => (
-            <div key={section.title || 'home'} className="mb-5">
+            <div key={section.title || 'home'} className={collapsed ? 'mb-1.5' : 'mb-[20px]'}>
               {/* Título da seção */}
               {section.title &&
-                (isCollapsed && !isMobile ? (
-                  <div className="my-3 mx-1 border-t border-white/10" />
+                (collapsed ? (
+                  <div className="my-3 mx-1 border-t border-white/[0.08]" />
                 ) : (
-                  <div className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+                  <div className="px-1 pt-0.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35 whitespace-nowrap">
                     {section.title}
                   </div>
                 ))}
 
-              {/* Itens da seção */}
-              <div className="space-y-1">
-                {section.items.map((item) => (
-                  <div key={item.label} className="relative group">
-                    {item.hasDropdown ? (
-                      <>
-                        {isCollapsed && !isMobile ? (
-                          // Modo colapsado com dropdown — portal renderiza o menu fora do overflow
-                          <button
-                            onClick={(e) => handleCollapsedDropdown(e, item)}
-                            className={`
-                            w-full flex items-center justify-center p-3 rounded-lg transition-all duration-200
-                            ${
-                              collapsedDropdown?.label === item.label
-                                ? 'bg-white/10 text-white'
-                                : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                            }
-                          `}
-                            title={item.label}
-                          >
-                            <item.icon className="h-5 w-5 flex-shrink-0" />
-                          </button>
-                        ) : (
-                          // Modo expandido com dropdown
-                          <>
-                            <button
-                              onClick={() => handleDropdownToggle(item.label)}
-                              className={`
-                              w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
-                              ${
-                                openDropdown === item.label
-                                  ? 'bg-white/10 text-white'
-                                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                              }
-                            `}
-                            >
-                              <div className="flex items-center">
-                                <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
-                                <span>{item.label}</span>
-                              </div>
-                              <ChevronDown
-                                className={`h-4 w-4 transition-transform duration-200 ${
-                                  openDropdown === item.label ? 'rotate-180' : ''
-                                }`}
-                              />
-                            </button>
+              {/* Itens */}
+              {section.items.map((item) => {
+                // ----- Item com dropdown -----
+                if (item.hasDropdown && item.subItems) {
+                  const active = isModuleActive(item);
 
-                            <AnimatePresence>
-                              {openDropdown === item.label && item.subItems && (
-                                <motion.div
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: 'auto', opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  transition={{ duration: 0.2 }}
-                                  className="overflow-hidden"
-                                >
-                                  <div className="ml-5 mt-1 space-y-1 border-l border-white/10 pl-3">
-                                    {item.subItems.map((subItem) => (
-                                      <NavLink
-                                        key={subItem.path}
-                                        to={subItem.path!}
-                                        className={({ isActive }) => `
-                                        flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200
-                                        ${
-                                          isActive
-                                            ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20'
-                                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                        }
-                                      `}
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                      >
-                                        <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
-                                        <span>{subItem.label}</span>
-                                      </NavLink>
-                                    ))}
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </>
-                        )}
-                      </>
-                    ) : isCollapsed && !isMobile ? (
-                      // Item simples em modo colapsado
-                      <NavLink
-                        to={item.path!}
-                        className={({ isActive }) => `
-                        flex items-center justify-center p-3 rounded-lg transition-all duration-200
-                        ${
-                          isActive
-                            ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20'
-                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                        }
-                      `}
-                        onClick={() => setIsMobileMenuOpen(false)}
+                  // Colapsado: dropdown via portal (fora do overflow)
+                  if (collapsed) {
+                    return (
+                      <button
+                        key={item.label}
+                        onClick={(e) => handleCollapsedDropdown(e, item)}
                         title={item.label}
+                        className={`${leafBase} justify-center ${
+                          collapsedDropdown?.label === item.label
+                            ? 'bg-white/[0.06] text-white'
+                            : active
+                              ? leafActive
+                              : leafInactive
+                        }`}
                       >
-                        <item.icon className="h-5 w-5 flex-shrink-0" />
-                      </NavLink>
-                    ) : (
-                      // Item simples em modo expandido
-                      <NavLink
-                        to={item.path!}
-                        className={({ isActive }) => `
-                        flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
-                        ${
-                          isActive
-                            ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20'
-                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                        }
-                      `}
-                        onClick={() => setIsMobileMenuOpen(false)}
+                        <item.icon
+                          size={20}
+                          className={active ? 'text-[#D2FF00] flex-shrink-0' : 'flex-shrink-0'}
+                        />
+                      </button>
+                    );
+                  }
+
+                  // Expandido
+                  const aberto = openDropdown === item.label;
+                  return (
+                    <React.Fragment key={item.label}>
+                      <button
+                        onClick={() => handleDropdownToggle(item.label)}
+                        className={`${leafBase} justify-between ${active ? leafActive : leafInactive}`}
                       >
-                        <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
-                        <span>{item.label}</span>
-                      </NavLink>
+                        {active && (
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]" />
+                        )}
+                        <span className="flex items-center min-w-0">
+                          <item.icon
+                            size={20}
+                            className={`mr-1.5 flex-shrink-0 ${active ? 'text-[#D2FF00]' : ''}`}
+                          />
+                          <span className={`${leafText} truncate`}>{item.label}</span>
+                        </span>
+                        {aberto ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                      </button>
+
+                      <AnimatePresence initial={false}>
+                        {aberto && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mb-0.5">
+                              {item.subItems.map((sub) => (
+                                <NavLink
+                                  key={sub.path}
+                                  to={sub.path!}
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  className={({ isActive }) =>
+                                    `flex items-center rounded-[6px] mb-[1px] pl-[36px] pr-[11px] py-[6px] transition-colors duration-150 ${
+                                      isActive
+                                        ? 'bg-[#D2FF00]/[0.14] text-[#D2FF00]'
+                                        : 'text-white/35 hover:bg-white/[0.06] hover:text-white'
+                                    }`
+                                  }
+                                >
+                                  <sub.icon size={16} className="mr-1.5 flex-shrink-0" />
+                                  <span className={`${subText} truncate`}>{sub.label}</span>
+                                </NavLink>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </React.Fragment>
+                  );
+                }
+
+                // ----- Item simples (leaf) -----
+                if (collapsed) {
+                  return (
+                    <NavLink
+                      key={item.label}
+                      to={item.path!}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      title={item.label}
+                      className={({ isActive }) =>
+                        `${leafBase} justify-center ${isActive ? leafActive : leafInactive}`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <item.icon
+                          size={20}
+                          className={isActive ? 'text-[#D2FF00] flex-shrink-0' : 'flex-shrink-0'}
+                        />
+                      )}
+                    </NavLink>
+                  );
+                }
+
+                return (
+                  <NavLink
+                    key={item.label}
+                    to={item.path!}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `${leafBase} justify-start ${isActive ? leafActive : leafInactive}`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        {isActive && (
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]" />
+                        )}
+                        <item.icon
+                          size={20}
+                          className={`mr-1.5 flex-shrink-0 ${isActive ? 'text-[#D2FF00]' : ''}`}
+                        />
+                        <span className={`${leafText} truncate`}>{item.label}</span>
+                      </>
                     )}
-                  </div>
-                ))}
-              </div>
+                  </NavLink>
+                );
+              })}
             </div>
           ))}
-        </div>
-      </nav>
+        </nav>
 
-      {/* Separador e opções inferiores */}
-      <div
-        className={`py-4 border-t border-white/10 ${isCollapsed && !isMobile ? 'px-2' : 'px-3'}`}
-      >
-        <div className="space-y-1">
-          {isCollapsed && !isMobile ? (
-            // Modo colapsado
-            <>
-              <NavLink
-                to="/settings"
-                className={({ isActive }) => `
-                  flex items-center justify-center p-3 rounded-lg transition-all duration-200
-                  ${isActive ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}
-                `}
-                onClick={() => setIsMobileMenuOpen(false)}
-                title="Configurações"
-              >
-                <Settings className="h-5 w-5 flex-shrink-0" />
-              </NavLink>
+        {/* Rodapé: usuário + config/ajuda/sair */}
+        <div className="border-t border-white/[0.08] p-1.5 flex-shrink-0">
+          {/* Usuário */}
+          <div
+            className={`flex items-center gap-[10px] py-1 ${
+              collapsed ? 'px-0 justify-center' : 'px-1 justify-start'
+            }`}
+          >
+            <div className="w-8 h-8 rounded-[6px] grid place-items-center bg-gradient-to-br from-[#A9BE2E] to-[#D2FF00] text-[#0A0E1A] text-[13px] font-bold flex-shrink-0">
+              {inicial}
+            </div>
+            {!collapsed && (
+              <div className="overflow-hidden flex-1">
+                <p className="text-[13px] font-semibold text-white tracking-[-0.005em] truncate">
+                  {profile?.name}
+                </p>
+              </div>
+            )}
+          </div>
 
-              <NavLink
-                to="/help"
-                className={({ isActive }) => `
-                  flex items-center justify-center p-3 rounded-lg transition-all duration-200
-                  ${isActive ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}
-                `}
-                onClick={() => setIsMobileMenuOpen(false)}
-                title="Ajuda"
-              >
-                <HelpCircle className="h-5 w-5 flex-shrink-0" />
-              </NavLink>
+          {/* Configurações / Ajuda */}
+          <NavLink
+            to="/settings"
+            onClick={() => setIsMobileMenuOpen(false)}
+            title="Configurações"
+            className={({ isActive }) =>
+              `${leafBase} ${collapsed ? 'justify-center' : 'justify-start'} ${
+                isActive ? leafActive : leafInactive
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                {isActive && !collapsed && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]" />
+                )}
+                <Settings
+                  size={18}
+                  className={`${collapsed ? '' : 'mr-1.5'} flex-shrink-0 ${isActive ? 'text-[#D2FF00]' : ''}`}
+                />
+                {!collapsed && <span className={leafText}>Configurações</span>}
+              </>
+            )}
+          </NavLink>
 
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center p-3 rounded-lg text-[#F87171] hover:bg-[#F87171]/10 hover:text-[#F87171] transition-all duration-200"
-                title="Sair"
-              >
-                <LogOut className="h-5 w-5 flex-shrink-0" />
-              </button>
-            </>
-          ) : (
-            // Modo expandido
-            <>
-              <NavLink
-                to="/settings"
-                className={({ isActive }) => `
-                  flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
-                  ${
-                    isActive
-                      ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20'
-                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                  }
-                `}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <Settings className="h-5 w-5 mr-3 flex-shrink-0" />
-                <span>Configurações</span>
-              </NavLink>
+          <NavLink
+            to="/help"
+            onClick={() => setIsMobileMenuOpen(false)}
+            title="Ajuda"
+            className={({ isActive }) =>
+              `${leafBase} ${collapsed ? 'justify-center' : 'justify-start'} ${
+                isActive ? leafActive : leafInactive
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                {isActive && !collapsed && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]" />
+                )}
+                <HelpCircle
+                  size={18}
+                  className={`${collapsed ? '' : 'mr-1.5'} flex-shrink-0 ${isActive ? 'text-[#D2FF00]' : ''}`}
+                />
+                {!collapsed && <span className={leafText}>Ajuda</span>}
+              </>
+            )}
+          </NavLink>
 
-              <NavLink
-                to="/help"
-                className={({ isActive }) => `
-                  flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
-                  ${
-                    isActive
-                      ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20'
-                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                  }
-                `}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <HelpCircle className="h-5 w-5 mr-3 flex-shrink-0" />
-                <span>Ajuda</span>
-              </NavLink>
-
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-[#F87171] hover:bg-[#F87171]/10 hover:text-[#F87171] transition-all duration-200"
-              >
-                <LogOut className="h-5 w-5 mr-3 flex-shrink-0" />
-                <span>Sair</span>
-              </button>
-            </>
-          )}
+          {/* Sair */}
+          <button
+            onClick={handleLogout}
+            title="Sair do Sistema"
+            className={`${leafBase} ${
+              collapsed ? 'justify-center' : 'justify-start'
+            } text-[#FF9090] hover:bg-[#DC2626]/10`}
+          >
+            <LogOut size={18} className={`${collapsed ? '' : 'mr-1.5'} flex-shrink-0`} />
+            {!collapsed && <span className={leafText}>Sair do Sistema</span>}
+          </button>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <>
-      {/* Portal: dropdown do modo colapsado — renderizado fora do overflow */}
+      {/* Portal: dropdown do modo colapsado — fora do overflow */}
       {collapsedDropdown &&
         isCollapsed &&
         createPortal(
@@ -677,24 +695,27 @@ export default function Sidebar({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
-              style={{ position: 'fixed', left: 80, top: collapsedDropdown.top, zIndex: 9999 }}
-              className="bg-[#232327] border border-white/10 rounded-lg shadow-lg py-2 min-w-[200px]"
+              style={{ position: 'fixed', left: 72, top: collapsedDropdown.top, zIndex: 9999 }}
+              className="bg-[#232327] border border-white/[0.08] rounded-[8px] shadow-lg py-2 min-w-[200px] font-gio"
               onClick={(e) => e.stopPropagation()}
             >
               {collapsedDropdown.subItems.map((subItem) => (
                 <NavLink
                   key={subItem.path}
                   to={subItem.path!}
-                  className={({ isActive }) => `
-                  flex items-center px-3 py-2 text-sm font-medium transition-all duration-200
-                  ${isActive ? 'bg-[#D2FF00] text-obsidian font-semibold shadow-sm shadow-[#D2FF00]/20' : 'text-white/80 hover:bg-white/10 hover:text-white'}
-                `}
+                  className={({ isActive }) =>
+                    `flex items-center px-3 py-2 text-[12.5px] font-medium transition-colors duration-150 ${
+                      isActive
+                        ? 'bg-[#D2FF00]/[0.14] text-[#D2FF00]'
+                        : 'text-white/80 hover:bg-white/[0.06] hover:text-white'
+                    }`
+                  }
                   onClick={() => {
                     setCollapsedDropdown(null);
                     setIsMobileMenuOpen(false);
                   }}
                 >
-                  <subItem.icon className="h-4 w-4 mr-3 flex-shrink-0" />
+                  <subItem.icon size={16} className="mr-1.5 flex-shrink-0" />
                   <span>{subItem.label}</span>
                 </NavLink>
               ))}
@@ -706,9 +727,9 @@ export default function Sidebar({
       {/* Sidebar Desktop */}
       <motion.aside
         initial={false}
-        animate={{ width: isCollapsed ? 72 : 256 }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="hidden md:flex flex-col fixed h-full z-30 bg-[#1A1A1A]"
+        animate={{ width: isCollapsed ? 64 : 248 }}
+        transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+        className="hidden md:flex flex-col fixed h-full z-30 bg-[#1A1A1A] border-r border-white/[0.08]"
       >
         {sidebarContent(false)}
       </motion.aside>
@@ -717,7 +738,6 @@ export default function Sidebar({
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
-            {/* Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -725,14 +745,12 @@ export default function Sidebar({
               onClick={() => setIsMobileMenuOpen(false)}
               className="md:hidden fixed inset-0 bg-black/50 z-40"
             />
-
-            {/* Sidebar */}
             <motion.aside
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.3 }}
-              className="md:hidden flex flex-col fixed h-full w-64 z-50 bg-[#1A1A1A]"
+              className="md:hidden flex flex-col fixed h-full w-[248px] z-50 bg-[#1A1A1A]"
             >
               {sidebarContent(true)}
             </motion.aside>

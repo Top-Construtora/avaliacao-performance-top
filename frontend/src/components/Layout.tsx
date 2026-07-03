@@ -96,11 +96,12 @@ export default function Layout() {
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
-      {/* Main Content */}
+      {/* Main Content — margem espelha a largura da sidebar GIO (248/64) */}
       <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 overflow-hidden ${
-          isSidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'
+        className={`flex-1 flex flex-col min-w-0 overflow-hidden ${
+          isSidebarCollapsed ? 'md:ml-[64px]' : 'md:ml-[248px]'
         }`}
+        style={{ transition: 'margin-left .6s cubic-bezier(.4,0,.2,1)' }}
       >
         {/* Header */}
         <Header isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
