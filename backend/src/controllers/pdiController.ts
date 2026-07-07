@@ -3,6 +3,7 @@ import { pdiService } from '../services/pdiService';
 import { AuthRequest } from '../middleware/auth';
 import { PDIUtils } from '../utils/pdiUtils';
 import { notificationService } from '../services/notificationService';
+import { assertCanAccessEmployeeData } from '../utils/accessControl';
 
 export const pdiController = {
   // Salvar PDI
@@ -14,9 +15,11 @@ export const pdiController = {
       if (!employeeId) {
         return res.status(400).json({
           success: false,
-          error: 'Campo obrigatório: employeeId'
+          error: 'Campo obrigatório: employeeId',
         });
       }
+
+      await assertCanAccessEmployeeData(authReq.supabase, authReq.user, employeeId);
 
       // Processar os dados do PDI vindos do frontend
       let processedItems;
@@ -29,7 +32,7 @@ export const pdiController = {
       if (!processedItems || processedItems.length === 0) {
         return res.status(400).json({
           success: false,
-          error: 'O PDI deve conter pelo menos um item'
+          error: 'O PDI deve conter pelo menos um item',
         });
       }
 
@@ -37,7 +40,7 @@ export const pdiController = {
       if (!pdiService.validatePDIItems(processedItems)) {
         return res.status(400).json({
           success: false,
-          error: 'Estrutura dos itens do PDI inválida'
+          error: 'Estrutura dos itens do PDI inválida',
         });
       }
 
@@ -48,29 +51,31 @@ export const pdiController = {
         leaderEvaluationId,
         periodo,
         status: 'active',
-        createdBy: authReq.user?.id
+        createdBy: authReq.user?.id,
       });
 
       // Notificar o colaborador sobre PDI (se não for ele mesmo salvando)
       if (employeeId && employeeId !== authReq.user?.id) {
-        notificationService.send(authReq.supabase, {
-          type: 'pdi_created',
-          title: 'PDI atualizado',
-          message: `${authReq.user!.name} atualizou seu Plano de Desenvolvimento Individual.`,
-          targets: [{ type: 'user', user_id: employeeId }],
-          actor_id: authReq.user!.id,
-          action_url: '/my-pdi',
-          entity_type: 'development_plan',
-          entity_id: pdi.id,
-          group_key: `pdi_${employeeId}`,
-          anti_spam: 'cooldown',
-          cooldown_minutes: 30,
-        }).catch(err => console.error('Notification error:', err));
+        notificationService
+          .send(authReq.supabase, {
+            type: 'pdi_created',
+            title: 'PDI atualizado',
+            message: `${authReq.user!.name} atualizou seu Plano de Desenvolvimento Individual.`,
+            targets: [{ type: 'user', user_id: employeeId }],
+            actor_id: authReq.user!.id,
+            action_url: '/my-pdi',
+            entity_type: 'development_plan',
+            entity_id: pdi.id,
+            group_key: `pdi_${employeeId}`,
+            anti_spam: 'cooldown',
+            cooldown_minutes: 30,
+          })
+          .catch((err) => console.error('Notification error:', err));
       }
 
       res.json({
         success: true,
-        data: pdi
+        data: pdi,
       });
     } catch (error) {
       console.error('Erro ao salvar PDI:', error);
@@ -84,11 +89,13 @@ export const pdiController = {
       const authReq = req as AuthRequest;
       const { employeeId } = req.params;
 
+      await assertCanAccessEmployeeData(authReq.supabase, authReq.user, employeeId);
+
       const pdi = await pdiService.getPDI(authReq.supabase, employeeId);
 
       res.json({
         success: true,
-        data: pdi
+        data: pdi,
       });
     } catch (error) {
       console.error('Erro ao buscar PDI:', error);
@@ -103,7 +110,8 @@ export const pdiController = {
 
       const { data, error } = await authReq.supabase
         .from('development_plans')
-        .select(`
+        .select(
+          `
           id,
           employee_id,
           status,
@@ -113,7 +121,8 @@ export const pdiController = {
           created_at,
           updated_at,
           employee:users!development_plans_employee_id_fkey(id, name, email, position, department_id)
-        `)
+        `,
+        )
         .eq('status', 'active')
         .order('updated_at', { ascending: false });
 
@@ -136,11 +145,11 @@ export const pdiController = {
 
       res.json({
         success: true,
-        data: pdis
+        data: pdis,
       });
     } catch (error) {
       console.error('Erro ao buscar PDIs por ciclo:', error);
       next(error);
     }
-  }
+  },
 };

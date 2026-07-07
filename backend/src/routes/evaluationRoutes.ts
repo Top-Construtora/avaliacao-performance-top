@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { evaluationController } from '../controllers/evaluationController';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 import { createCycleSchema } from '../validators/cycle.validator';
 
@@ -9,14 +9,24 @@ const router = Router();
 // Todas as rotas de avaliação requerem autenticação
 router.use(authenticateToken as any);
 
+// Gestão do ciclo de avaliação e decisões de comitê são privilégio de diretor
+// (admin passa pelo bypass). As leituras/escritas por colaborador são
+// controladas por ownership dentro do controller.
+const requireDirector = authorizeRoles(['director']) as any;
+
 // ====================================
 // ROTAS DE CICLOS
 // ====================================
 router.get('/cycles', evaluationController.getCycles);
 router.get('/cycles/current', evaluationController.getCurrentCycle);
-router.post('/cycles', validate({ body: createCycleSchema }), evaluationController.createCycle);
-router.put('/cycles/:id/open', evaluationController.openCycle);
-router.put('/cycles/:id/close', evaluationController.closeCycle);
+router.post(
+  '/cycles',
+  requireDirector,
+  validate({ body: createCycleSchema }),
+  evaluationController.createCycle,
+);
+router.put('/cycles/:id/open', requireDirector, evaluationController.openCycle);
+router.put('/cycles/:id/close', requireDirector, evaluationController.closeCycle);
 
 // ====================================
 // ROTAS DE DASHBOARD E RELATÓRIOS
@@ -58,13 +68,18 @@ router.put('/pdi/:pdiId', evaluationController.updatePDI);
 // ====================================
 // ROTAS DE PROMOÇÃO NINE BOX
 // ====================================
-router.put('/consensus/:consensusId/promote', evaluationController.promoteNineBoxQuadrant);
+router.put(
+  '/consensus/:consensusId/promote',
+  requireDirector,
+  evaluationController.promoteNineBoxQuadrant,
+);
 
 // ====================================
 // ROTAS DE DELIBERAÇÕES DO COMITÊ
 // ====================================
 router.put(
   '/consensus/:consensusId/deliberations',
+  requireDirector,
   evaluationController.saveCommitteeDeliberations,
 );
 

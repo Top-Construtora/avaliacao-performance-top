@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler';
 import { requestId } from './middleware/requestId';
+import { apiLimiter } from './middleware/rateLimit';
 import { AppError } from './errors/AppError';
 import { logger } from './lib/logger';
 import { initSentry } from './lib/sentry';
@@ -99,7 +100,7 @@ app.use((req, res, next) => {
     "default-src 'self'; " +
       "font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com data:; " +
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+      "script-src 'self' 'unsafe-inline'; " +
       "img-src 'self' data: https: blob:; " +
       "connect-src 'self' https: wss: ws:; " +
       "frame-ancestors 'none'; " +
@@ -177,13 +178,14 @@ app.get('/health', (req, res) => {
 // /api é alias transitório p/ o frontend atual (legado). Ver docs/adr/0001.
 app.use(
   '/api/v1',
+  apiLimiter,
   (req, res, next) => {
     res.locals.apiVersion = 'v1';
     next();
   },
   routes,
 );
-app.use('/api', routes);
+app.use('/api', apiLimiter, routes);
 
 // Handler para rotas não encontradas (404) — flui pelo errorHandler
 // para respeitar o contrato da versão (v1 estruturado / legado string).

@@ -9,6 +9,73 @@ import {
   ViewerContext,
 } from '../utils/positionMaskingUtils';
 
+// Colunas que a API de gestão pode gravar na tabela `users`.
+// Propositalmente NÃO inclui:
+//   - `is_admin`  → papel de super-usuário, concedido apenas fora da aplicação
+//                   (impede um diretor de se auto-promover a admin);
+//   - `id`/`created_at`/`updated_at` → gerenciados pelo banco/serviço.
+// Como as rotas de mutação agora exigem papel de diretor, os campos de gestão
+// legítimos (is_leader, is_director, active, reports_to, salário, etc.) seguem
+// disponíveis — mas o corpo cru nunca mais é espalhado direto no banco.
+const ASSIGNABLE_USER_FIELDS = [
+  'name',
+  'email',
+  'position',
+  'is_leader',
+  'is_director',
+  'phone',
+  'birth_date',
+  'join_date',
+  'active',
+  'reports_to',
+  'profile_image',
+  'contract_type',
+  'current_track_position_id',
+  'current_salary_level_id',
+  'current_salary',
+  'position_start_date',
+  'department_id',
+  'track_id',
+  'position_id',
+  'intern_level',
+  'position_is_confidential',
+] as const;
+
+// Validação de profile_image (achado M5). Aceita apenas:
+//   - data URL de imagem raster segura (png/jpeg/webp) — SVG é rejeitado
+//     (pode conter <script>), assim como text/html e outros schemes;
+//   - URL https (ex.: Supabase Storage);
+//   - vazio/null (limpar a foto).
+// Também limita o tamanho para evitar bloat/DoS de armazenamento no banco.
+const MAX_PROFILE_IMAGE_LENGTH = 3_000_000; // ~2,2 MB em base64
+const SAFE_DATA_IMAGE_RE = /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/;
+
+function validateProfileImage(value: unknown): void {
+  if (value === null || value === undefined || value === '') return;
+  if (typeof value !== 'string') {
+    throw new ApiError(400, 'profile_image inválido');
+  }
+  if (value.length > MAX_PROFILE_IMAGE_LENGTH) {
+    throw new ApiError(400, 'Imagem de perfil excede o tamanho máximo permitido');
+  }
+  const isHttpsUrl = /^https:\/\//i.test(value);
+  const isSafeDataImage = SAFE_DATA_IMAGE_RE.test(value);
+  if (!isHttpsUrl && !isSafeDataImage) {
+    throw new ApiError(400, 'Formato de imagem de perfil não permitido (use PNG, JPEG ou WEBP)');
+  }
+}
+
+function pickAssignableUserFields(input: Record<string, any> = {}): Record<string, any> {
+  const out: Record<string, any> = {};
+  for (const key of ASSIGNABLE_USER_FIELDS) {
+    if (input[key] !== undefined) out[key] = input[key];
+  }
+  if (out.profile_image !== undefined) {
+    validateProfileImage(out.profile_image);
+  }
+  return out;
+}
+
 export const userService = {
   async getUsers(filters?: {
     active?: boolean;
@@ -69,11 +136,7 @@ export const userService = {
   },
 
   async getUserById(id: string, viewer?: ViewerContext) {
-    const { data, error } = await supabaseAdmin
-      .from('users')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabaseAdmin.from('users').select('*').eq('id', id).single();
 
     if (error) {
       throw new ApiError(404, 'User not found');
@@ -83,10 +146,8 @@ export const userService = {
   },
 
   async createUser(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>) {
-    // Validar e preparar os dados
-    const userToInsert = {
-      ...userData,
-    };
+    // Whitelist de campos — nunca espalhar o corpo cru (anti mass-assignment)
+    const userToInsert = pickAssignableUserFields(userData as Record<string, any>);
 
     const { data, error } = await supabaseAdmin
       .from('users')
@@ -102,18 +163,12 @@ export const userService = {
   },
 
   async updateUser(id: string, updates: Partial<User>) {
-    // Preparar atualizações incluindo novos campos
+    // Whitelist de campos — nunca espalhar o corpo cru (anti mass-assignment).
+    // `is_admin` e `id` ficam de fora de propósito (ver ASSIGNABLE_USER_FIELDS).
     const updateData: any = {
-      ...updates,
-      updated_at: new Date().toISOString()
+      ...pickAssignableUserFields(updates as Record<string, any>),
+      updated_at: new Date().toISOString(),
     };
-
-    // Remover campos undefined
-    Object.keys(updateData).forEach(key => {
-      if (updateData[key] === undefined) {
-        delete updateData[key];
-      }
-    });
 
     const { data, error } = await supabaseAdmin
       .from('users')
@@ -159,18 +214,27 @@ export const userService = {
 
       // 4. Remover como responsável de times/departamentos
       await supabaseAdmin.from('teams').update({ responsible_id: null }).eq('responsible_id', id);
-      await supabaseAdmin.from('departments').update({ responsible_id: null }).eq('responsible_id', id);
+      await supabaseAdmin
+        .from('departments')
+        .update({ responsible_id: null })
+        .eq('responsible_id', id);
 
       // 5. Remover reports_to de subordinados
       await supabaseAdmin.from('users').update({ reports_to: null }).eq('reports_to', id);
 
       // 6. Deletar competências de avaliação
-      const { data: selfEvals } = await supabaseAdmin.from('self_evaluations').select('id').eq('employee_id', id);
-      const { data: leaderEvals } = await supabaseAdmin.from('leader_evaluations').select('id').eq('employee_id', id);
+      const { data: selfEvals } = await supabaseAdmin
+        .from('self_evaluations')
+        .select('id')
+        .eq('employee_id', id);
+      const { data: leaderEvals } = await supabaseAdmin
+        .from('leader_evaluations')
+        .select('id')
+        .eq('employee_id', id);
 
       const evalIds = [
-        ...(selfEvals?.map(e => e.id) || []),
-        ...(leaderEvals?.map(e => e.id) || [])
+        ...(selfEvals?.map((e) => e.id) || []),
+        ...(leaderEvals?.map((e) => e.id) || []),
       ];
 
       if (evalIds.length > 0) {
@@ -178,10 +242,7 @@ export const userService = {
       }
 
       // 7. Finalmente, deletar o usuário
-      const { error: deleteError } = await supabaseAdmin
-        .from('users')
-        .delete()
-        .eq('id', id);
+      const { error: deleteError } = await supabaseAdmin.from('users').delete().eq('id', id);
 
       if (deleteError) {
         throw new ApiError(500, 'Failed to permanently delete user');
@@ -195,7 +256,7 @@ export const userService = {
         .from('users')
         .update({
           active: false,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id);
 
@@ -205,8 +266,14 @@ export const userService = {
     }
   },
 
-  async createUserWithAuth(email: string, password: string, userData: Omit<User, 'id' | 'created_at' | 'updated_at' | 'email'>) {
+  async createUserWithAuth(
+    email: string,
+    password: string,
+    userData: Omit<User, 'id' | 'created_at' | 'updated_at' | 'email'>,
+  ) {
     try {
+      // Whitelist de campos do perfil (anti mass-assignment / escalonamento).
+      const safeUserData = pickAssignableUserFields(userData as Record<string, any>);
       // Verificar se o email já existe na tabela users
       const { data: existingUser } = await supabaseAdmin
         .from('users')
@@ -227,22 +294,22 @@ export const userService = {
       if (existingAuthUsers && existingAuthUsers.users.length > 0) {
         // Procurar o usuário com o email específico
         existingAuthUser = existingAuthUsers.users.find(
-          user => user.email?.toLowerCase() === email.toLowerCase()
+          (user) => user.email?.toLowerCase() === email.toLowerCase(),
         );
       }
 
       if (existingAuthUser) {
         // Se o usuário já existe no Auth, usar o ID existente
         authUserId = existingAuthUser.id;
-        
+
         // Atualizar a senha se necessário
         await supabaseAdmin.auth.admin.updateUserById(authUserId, {
           password: password,
           email_confirm: true,
           user_metadata: {
             name: userData.name,
-            position: userData.position
-          }
+            position: userData.position,
+          },
         });
       } else {
         // Criar usuário no Auth usando Admin API (não cria sessão)
@@ -252,12 +319,15 @@ export const userService = {
           email_confirm: true, // Confirma o email automaticamente
           user_metadata: {
             name: userData.name,
-            position: userData.position
-          }
+            position: userData.position,
+          },
         });
 
         if (authError || !authData.user) {
-          throw new ApiError(500, authError?.message || 'Erro ao criar usuário no sistema de autenticação');
+          throw new ApiError(
+            500,
+            authError?.message || 'Erro ao criar usuário no sistema de autenticação',
+          );
         }
 
         authUserId = authData.user.id;
@@ -273,14 +343,17 @@ export const userService = {
       if (existingUserById) {
         // Se já existe um usuário com este ID mas com email diferente, há uma inconsistência
         if (existingUserById.email !== email.toLowerCase()) {
-          throw new ApiError(500, 'Inconsistência detectada: ID de usuário já existe com email diferente');
+          throw new ApiError(
+            500,
+            'Inconsistência detectada: ID de usuário já existe com email diferente',
+          );
         }
         // Se é o mesmo email, atualizar os dados e retornar
         const { data: updatedUser, error: updateError } = await supabaseAdmin
           .from('users')
           .update({
-            ...userData,
-            updated_at: new Date().toISOString()
+            ...safeUserData,
+            updated_at: new Date().toISOString(),
           })
           .eq('id', authUserId)
           .select()
@@ -297,9 +370,9 @@ export const userService = {
       const userToInsert = {
         id: authUserId,
         email: email.toLowerCase(),
-        ...userData,
+        ...safeUserData,
         active: true,
-        join_date: userData.join_date || new Date().toISOString().split('T')[0]
+        join_date: safeUserData.join_date || new Date().toISOString().split('T')[0],
       };
 
       // Criar perfil do usuário
@@ -352,12 +425,12 @@ export const userService = {
     try {
       const { data, error } = await supabaseAdmin.from('users').select('id', { count: 'exact' });
 
-      if(error) {
+      if (error) {
         throw new ApiError(500, 'Failed to fetch user statistics');
       }
 
       return {
-        totalUsers: data.length
+        totalUsers: data.length,
       };
     } catch (error) {
       throw new ApiError(500, 'Failed to fetch user statistics');
@@ -367,10 +440,9 @@ export const userService = {
   async resetUserPassword(userId: string, newPassword: string) {
     try {
       // Usa a API Admin do Supabase para atualizar senha (requer SERVICE_KEY)
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(
-        userId,
-        { password: newPassword }
-      );
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        password: newPassword,
+      });
 
       if (error) {
         throw new ApiError(500, 'Erro ao atualizar senha: ' + error.message);
@@ -413,14 +485,12 @@ export const userService = {
         return;
       }
 
-      const teamMembers = teamIds.map(teamId => ({
+      const teamMembers = teamIds.map((teamId) => ({
         team_id: teamId,
         user_id: userId,
       }));
 
-      const { error } = await supabaseAdmin
-        .from('team_members')
-        .insert(teamMembers);
+      const { error } = await supabaseAdmin.from('team_members').insert(teamMembers);
 
       if (error) {
         throw new ApiError(500, 'Erro ao adicionar usuário aos times: ' + error.message);
@@ -430,6 +500,43 @@ export const userService = {
         throw error;
       }
       throw new ApiError(500, error.message || 'Erro ao adicionar usuário aos times');
+    }
+  },
+
+  // Define (substitui) o conjunto de times de um usuário: remove os vínculos
+  // atuais e insere os novos. Substitui o antigo delete+insert que o frontend
+  // fazia direto no Supabase com a anon key (achado H6).
+  async setUserTeams(userId: string, teamIds: string[]): Promise<void> {
+    try {
+      // Remove todos os vínculos atuais do usuário
+      const { error: deleteError } = await supabaseAdmin
+        .from('team_members')
+        .delete()
+        .eq('user_id', userId);
+
+      if (deleteError) {
+        throw new ApiError(500, 'Erro ao atualizar times do usuário: ' + deleteError.message);
+      }
+
+      if (!teamIds || teamIds.length === 0) {
+        return;
+      }
+
+      const teamMembers = teamIds.map((teamId) => ({
+        team_id: teamId,
+        user_id: userId,
+      }));
+
+      const { error: insertError } = await supabaseAdmin.from('team_members').insert(teamMembers);
+
+      if (insertError) {
+        throw new ApiError(500, 'Erro ao atualizar times do usuário: ' + insertError.message);
+      }
+    } catch (error: any) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError(500, error.message || 'Erro ao atualizar times do usuário');
     }
   },
 
@@ -468,7 +575,7 @@ export const userService = {
               userId: user.id,
               name: user.name,
               status: 'error',
-              details: 'Erro ao buscar track_position: ' + tpError.message
+              details: 'Erro ao buscar track_position: ' + tpError.message,
             });
             continue;
           }
@@ -481,7 +588,7 @@ export const userService = {
               .update({
                 current_track_position_id: trackPosition.id,
                 track_id: trackPosition.track_id, // Garantir que track_id também está correto
-                updated_at: new Date().toISOString()
+                updated_at: new Date().toISOString(),
               })
               .eq('id', user.id);
 
@@ -490,14 +597,14 @@ export const userService = {
                 userId: user.id,
                 name: user.name,
                 status: 'error',
-                details: 'Erro ao atualizar: ' + updateError.message
+                details: 'Erro ao atualizar: ' + updateError.message,
               });
             } else {
               results.push({
                 userId: user.id,
                 name: user.name,
                 status: 'fixed',
-                details: `current_track_position_id definido como ${trackPosition.id}`
+                details: `current_track_position_id definido como ${trackPosition.id}`,
               });
             }
           } else {
@@ -516,7 +623,7 @@ export const userService = {
                   .from('users')
                   .update({
                     current_track_position_id: possiblePositions[0].id,
-                    updated_at: new Date().toISOString()
+                    updated_at: new Date().toISOString(),
                   })
                   .eq('id', user.id);
 
@@ -525,14 +632,15 @@ export const userService = {
                     userId: user.id,
                     name: user.name,
                     status: 'error',
-                    details: 'Erro ao atualizar com primeira posição da trilha: ' + updateError.message
+                    details:
+                      'Erro ao atualizar com primeira posição da trilha: ' + updateError.message,
                   });
                 } else {
                   results.push({
                     userId: user.id,
                     name: user.name,
                     status: 'fixed_with_default',
-                    details: `Atribuído à primeira posição da trilha: ${possiblePositions[0].id}`
+                    details: `Atribuído à primeira posição da trilha: ${possiblePositions[0].id}`,
                   });
                 }
               } else {
@@ -540,7 +648,7 @@ export const userService = {
                   userId: user.id,
                   name: user.name,
                   status: 'skipped',
-                  details: 'position_id inválido e nenhuma posição encontrada na trilha'
+                  details: 'position_id inválido e nenhuma posição encontrada na trilha',
                 });
               }
             } else {
@@ -548,7 +656,7 @@ export const userService = {
                 userId: user.id,
                 name: user.name,
                 status: 'skipped',
-                details: 'position_id inválido e sem track_id definido'
+                details: 'position_id inválido e sem track_id definido',
               });
             }
           }
@@ -557,14 +665,16 @@ export const userService = {
             userId: user.id,
             name: user.name,
             status: 'error',
-            details: err.message
+            details: err.message,
           });
         }
       }
 
-      const fixed = results.filter(r => r.status === 'fixed' || r.status === 'fixed_with_default').length;
-      const errors = results.filter(r => r.status === 'error').length;
-      const skipped = results.filter(r => r.status === 'skipped').length;
+      const fixed = results.filter(
+        (r) => r.status === 'fixed' || r.status === 'fixed_with_default',
+      ).length;
+      const errors = results.filter((r) => r.status === 'error').length;
+      const skipped = results.filter((r) => r.status === 'skipped').length;
 
       return {
         message: `Migração concluída: ${fixed} corrigidos, ${errors} erros, ${skipped} ignorados`,
@@ -572,7 +682,7 @@ export const userService = {
         fixed,
         errors,
         skipped,
-        details: results
+        details: results,
       };
     } catch (error: any) {
       if (error instanceof ApiError) {
@@ -580,5 +690,5 @@ export const userService = {
       }
       throw new ApiError(500, error.message || 'Erro na migração');
     }
-  }
+  },
 };

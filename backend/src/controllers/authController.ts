@@ -7,16 +7,16 @@ export const authController = {
   async login(req: Request<{}, {}, LoginRequest>, res: Response, next: NextFunction) {
     try {
       const { email, password } = req.body;
-      
+
       if (!email || !password) {
         return res.status(400).json({
           success: false,
-          error: 'Email e senha são obrigatórios'
+          error: 'Email e senha são obrigatórios',
         });
       }
-      
+
       const result = await authService.login(email, password);
-      
+
       // Estrutura de resposta esperada pelo frontend
       res.json({
         success: true,
@@ -24,20 +24,20 @@ export const authController = {
           user: result.profile, // Usar profile como user para compatibilidade
           access_token: result.session.access_token,
           refresh_token: result.session.refresh_token,
-          profile: result.profile
-        }
+          profile: result.profile,
+        },
       });
     } catch (error: any) {
       console.error('Login error:', error);
-      
+
       // Enviar resposta de erro estruturada
       if (error.statusCode === 401) {
         return res.status(401).json({
           success: false,
-          error: 'Email ou senha inválidos'
+          error: 'Email ou senha inválidos',
         });
       }
-      
+
       next(error);
     }
   },
@@ -47,7 +47,7 @@ export const authController = {
       // Logout é feito no frontend, mas podemos adicionar lógica adicional aqui
       res.json({
         success: true,
-        message: 'Logged out successfully'
+        message: 'Logged out successfully',
       });
     } catch (error) {
       next(error);
@@ -58,22 +58,43 @@ export const authController = {
     try {
       const authReq = req as AuthRequest;
       const userId = authReq.user?.id;
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'User not authenticated'
+          error: 'User not authenticated',
         });
       }
-      
+
       const profile = await authService.getProfile(userId);
-      
+
       res.json({
         success: true,
-        data: profile
+        data: profile,
       });
     } catch (error) {
       next(error);
     }
-  }
+  },
+
+  // Conclui o primeiro acesso do próprio usuário (must_change_password = false).
+  async completeFirstLogin(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const userId = authReq.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'User not authenticated',
+        });
+      }
+
+      await authService.completeFirstLogin(userId);
+
+      res.json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  },
 };

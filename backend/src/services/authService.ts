@@ -6,7 +6,7 @@ export const authService = {
     try {
       const { data, error } = await supabaseAdmin.auth.signInWithPassword({
         email,
-        password
+        password,
       });
 
       if (error) {
@@ -27,7 +27,7 @@ export const authService = {
 
       if (profileError) {
         console.error('Profile fetch error:', profileError);
-        
+
         // Se não encontrar perfil, cria um básico
         const basicProfile = {
           id: data.user.id,
@@ -39,25 +39,25 @@ export const authService = {
           active: true,
           join_date: new Date().toISOString().split('T')[0],
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         };
-        
+
         // Tenta criar o perfil
         const { data: newProfile, error: createError } = await supabaseAdmin
           .from('users')
           .insert(basicProfile)
           .select()
           .single();
-          
+
         if (createError) {
           console.error('Profile creation error:', createError);
           throw new ApiError(500, 'Erro ao criar perfil de usuário');
         }
-        
+
         return {
           user: data.user,
           session: data.session,
-          profile: newProfile
+          profile: newProfile,
         };
       }
 
@@ -69,7 +69,7 @@ export const authService = {
       return {
         user: data.user,
         session: data.session,
-        profile
+        profile,
       };
     } catch (error: any) {
       console.error('Auth service error:', error);
@@ -97,13 +97,30 @@ export const authService = {
     }
   },
 
+  // Conclui o primeiro acesso: marca must_change_password = false para o
+  // próprio usuário. Antes era um UPDATE direto em `users` pelo frontend com a
+  // anon key; movido para o backend (service_role) para permitir trancar o RLS
+  // da tabela `users` (achado C4/H6).
+  async completeFirstLogin(userId: string) {
+    const { error } = await supabaseAdmin
+      .from('users')
+      .update({ must_change_password: false, updated_at: new Date().toISOString() })
+      .eq('id', userId);
+
+    if (error) {
+      throw new ApiError(500, 'Erro ao concluir primeiro acesso: ' + error.message);
+    }
+
+    return { success: true };
+  },
+
   async updateProfile(userId: string, updates: any) {
     try {
       const { data, error } = await supabaseAdmin
         .from('users')
         .update({
           ...updates,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', userId)
         .select()
@@ -119,5 +136,5 @@ export const authService = {
       console.error('Error in updateProfile:', error);
       throw error;
     }
-  }
+  },
 };

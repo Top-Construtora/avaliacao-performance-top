@@ -64,7 +64,13 @@ export const teamController = {
   async updateTeam(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const updates = req.body;
+      // Whitelist de campos (anti mass-assignment) — nunca espalhar o corpo cru.
+      const { name, department_id, responsible_id, description } = req.body;
+      const updates: Record<string, any> = {};
+      if (name !== undefined) updates.name = name;
+      if (department_id !== undefined) updates.department_id = department_id;
+      if (responsible_id !== undefined) updates.responsible_id = responsible_id;
+      if (description !== undefined) updates.description = description;
 
       const { data, error } = await req.supabase
         .from('teams')
