@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import XLSX from 'xlsx-js-style';
+import { sanitizeSheetData } from '../../utils/exportSafety';
 import { useSupabaseData } from '../../hooks/useSupabaseData';
 import type { UserWithDetails } from '../../types/supabase';
 import { RoleGuard } from '../../components/RoleGuard';
@@ -275,7 +276,7 @@ const UserManagement = () => {
     }));
 
     // Criar planilha
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(sanitizeSheetData(data));
 
     // Estilo do cabeçalho (cor primária com texto branco)
     const headerStyle = {
@@ -355,7 +356,7 @@ const UserManagement = () => {
       { Indicador: '', Quantidade: '' },
       { Indicador: 'Data de Exportação', Quantidade: new Date().toLocaleString('pt-BR') },
     ];
-    const wsResumo = XLSX.utils.json_to_sheet(resumoData);
+    const wsResumo = XLSX.utils.json_to_sheet(sanitizeSheetData(resumoData));
     wsResumo['!cols'] = [{ wch: 25 }, { wch: 20 }];
 
     // Aplicar estilo ao cabeçalho do resumo

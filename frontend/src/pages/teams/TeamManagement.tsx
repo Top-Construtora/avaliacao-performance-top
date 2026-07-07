@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
+import { sanitizeSheetData } from '../../utils/exportSafety';
 import { useSupabaseData } from '../../hooks/useSupabaseData';
 import type { TeamWithDetails } from '../../types/supabase';
 import {
@@ -150,7 +151,7 @@ const TeamManagement = () => {
       'Criado em': new Date(team.created_at).toLocaleDateString('pt-BR'),
     }));
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(sanitizeSheetData(data));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Times');
     XLSX.writeFile(wb, 'times.xlsx');

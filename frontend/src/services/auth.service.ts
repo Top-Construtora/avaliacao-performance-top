@@ -122,36 +122,11 @@ export const authService = {
       return false;
     }
   },
-
-  // Função auxiliar para limpar usuários órfãos (sem perfil)
-  // NOTA: Esta função precisa ser executada com privilégios de admin
-  // e deve ser chamada no backend, não no frontend
-  async cleanupOrphanedAuthUsers() {
-    try {
-      // Esta função precisa ser executada com privilégios de admin
-      // Pode ser chamada periodicamente ou manualmente
-      const { data: authUsers } = await supabase.auth.admin.listUsers();
-
-      if (!authUsers || !authUsers.users) return;
-
-      for (const authUser of authUsers.users) {
-        // Verificar se existe perfil para este usuário - usando a API
-        try {
-          const profile = await userService.getUserById(authUser.id);
-
-          // Se não existe perfil, deletar o usuário do Auth
-          if (!profile) {
-            console.log(`Removendo usuário órfão: ${authUser.email}`);
-            await supabase.auth.admin.deleteUser(authUser.id);
-          }
-        } catch (error) {
-          // Se o getUserById retornar erro 404, significa que não existe perfil
-          console.log(`Removendo usuário órfão: ${authUser.email}`);
-          await supabase.auth.admin.deleteUser(authUser.id);
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao limpar usuários órfãos:', error);
-    }
-  },
 };
+
+// NOTA (segurança): a limpeza de usuários órfãos do Auth requer a chave
+// service_role e DEVE ser feita no backend (via supabaseAdmin), nunca no
+// frontend. A antiga `cleanupOrphanedAuthUsers`, que chamava
+// `supabase.auth.admin.*` a partir do navegador, foi removida — além de não
+// funcionar com a anon key, era um risco latente caso a service_role fosse
+// introduzida no bundle. Ver auditoria de segurança 2026-07-06, achado H7.

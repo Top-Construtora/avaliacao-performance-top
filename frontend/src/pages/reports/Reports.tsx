@@ -17,6 +17,7 @@ import Button from '../../components/Button';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import XLSX from 'xlsx-js-style';
+import { sanitizeSheetData } from '../../utils/exportSafety';
 import { toast } from 'react-hot-toast';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { evaluationService } from '../../services/evaluation.service';
@@ -479,7 +480,7 @@ const Reports = () => {
       { label: 'Data de Exportação', value: new Date().toLocaleString('pt-BR') },
     ].map((r) => ({ Indicador: r.label, Valor: r.value }));
 
-    const wsResumo = XLSX.utils.json_to_sheet(resumoData);
+    const wsResumo = XLSX.utils.json_to_sheet(sanitizeSheetData(resumoData));
     wsResumo['!cols'] = [{ wch: 28 }, { wch: 25 }];
     for (let col = 0; col < 2; col++) {
       const cellRef = XLSX.utils.encode_cell({ r: 0, c: col });
@@ -530,7 +531,7 @@ const Reports = () => {
       })
       .sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(sanitizeSheetData(data));
     const colWidths = [
       { wch: 30 }, // Nome
       { wch: 25 }, // Cargo
@@ -597,7 +598,7 @@ const Reports = () => {
       })
       .sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(sanitizeSheetData(data));
     const colWidths = [
       { wch: 30 }, // Nome
       { wch: 35 }, // Email
@@ -649,7 +650,7 @@ const Reports = () => {
       })
       .sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(sanitizeSheetData(data));
     const colWidths = [
       { wch: 30 }, // Nome
       { wch: 25 }, // Cargo
@@ -725,7 +726,7 @@ const Reports = () => {
       })
       .sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(sanitizeSheetData(data));
     const colWidths = [
       { wch: 30 }, // Nome
       { wch: 25 }, // Cargo
@@ -822,7 +823,7 @@ const Reports = () => {
       })
       .sort((a, b) => a['Nome'].localeCompare(b['Nome'], 'pt-BR'));
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(sanitizeSheetData(data));
     const colWidths = [
       { wch: 30 }, // Nome
       { wch: 25 }, // Cargo

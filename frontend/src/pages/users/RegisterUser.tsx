@@ -432,14 +432,10 @@ const RegisterUser = () => {
         ...(isAdmin ? { position_is_confidential: formData.positionIsConfidential } : {}),
       } as any);
 
-      // Adicionar usuário aos times, se especificado
+      // Adicionar usuário aos times via backend (antes era feito direto no
+      // Supabase com a anon key — achado de segurança H6).
       if (formData.teamIds && formData.teamIds.length > 0 && formData.profileType !== 'director') {
-        const teamMembers = formData.teamIds.map((teamId) => ({
-          team_id: teamId,
-          user_id: user.id,
-        }));
-
-        await supabase.from('team_members').insert(teamMembers);
+        await userService.addUserToTeams(user.id, formData.teamIds);
       }
 
       await reloadUsers();

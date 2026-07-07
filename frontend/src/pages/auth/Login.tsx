@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import gioWordmark from '@/assets/images/gio-wordmark.png';
 import { useAuth } from '../../context/AuthContext';
+import { devLog } from '../../utils/logger';
 
 // gio — Identidade v4.0: split obsidian + grade blueprint + lime.
 // Marca GIO (wordmark) sobre obsidian; CTA lime; card com vidro.
@@ -24,7 +25,7 @@ export default function Login() {
   // Redirecionar se já estiver autenticado
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      console.log('✅ Usuário já autenticado, redirecionando para home...');
+      devLog('✅ Usuário já autenticado, redirecionando para home...');
       navigate('/', { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
@@ -40,17 +41,17 @@ export default function Login() {
 
     try {
       setIsLoading(true);
-      console.log('🔑 Tentando fazer login...');
+      devLog('🔑 Tentando fazer login...');
 
       const success = await signIn(email, password);
 
-      console.log('📊 Resultado do login:', success);
+      devLog('📊 Resultado do login:', success);
 
       if (success) {
-        console.log('✅ Login bem-sucedido, redirecionando...');
+        devLog('✅ Login bem-sucedido, redirecionando...');
         navigate('/');
       } else {
-        console.log('❌ Login falhou');
+        devLog('❌ Login falhou');
         setError('Email ou senha inválidos');
         setIsLoading(false);
       }

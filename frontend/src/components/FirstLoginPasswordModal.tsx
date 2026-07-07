@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Eye, EyeOff, Shield, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import { api } from '../config/api';
 import toast from 'react-hot-toast';
 
 interface FirstLoginPasswordModalProps {
@@ -51,11 +52,9 @@ const FirstLoginPasswordModal: React.FC<FirstLoginPasswordModalProps> = ({ isOpe
         throw error;
       }
 
-      // Atualiza o flag must_change_password no perfil (sem mostrar toast)
-      await supabase
-        .from('users')
-        .update({ must_change_password: false, updated_at: new Date().toISOString() })
-        .eq('id', profile?.id);
+      // Conclui o primeiro acesso via backend (antes era update direto em
+      // `users` com a anon key — achado C4/H6).
+      await api.post('/auth/complete-first-login', {});
 
       toast.success('Senha alterada com sucesso!');
       onSuccess();
