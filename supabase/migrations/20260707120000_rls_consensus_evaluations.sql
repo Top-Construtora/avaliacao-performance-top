@@ -13,8 +13,15 @@
 -- Dropar as policies permissivas antigas antes (DO-block), senão a restritiva
 -- seria inútil (policies são OR).
 --
--- DEPLOY: subir o backend+frontend desta mudança ANTES de aplicar esta migração
--- (senão o "salvar consenso" quebra). Rollback: alter table ... disable row level security;
+-- POLICY DE INSERT (à prova de deploy): permite INSERT direto por
+-- diretor/admin. Assim, a migração pode ser aplicada ANTES do deploy do
+-- backend/frontend sem quebrar o "salvar consenso" (o front atual insere
+-- direto como diretor; o front novo insere via backend/service_role). Depois
+-- que 100% dos clientes estiverem no front novo, dá para REMOVER esta policy
+-- para forçar escrita só pelo backend (H6 completo):
+--   drop policy "consensus_evaluations_insert" on public.consensus_evaluations;
+--
+-- Rollback: alter table public.consensus_evaluations disable row level security;
 
 -- Função de visibilidade (idempotente — mesma do B1).
 create or replace function public.can_view_employee(target_employee uuid)
@@ -40,3 +47,16 @@ alter table public.consensus_evaluations enable row level security;
 create policy "consensus_evaluations_select"
   on public.consensus_evaluations for select to authenticated
   using (public.can_view_employee(employee_id));
+
+-- INSERT direto permitido só a diretor/admin (ver nota no topo). O backend
+-- (service_role) ignora o RLS e insere de qualquer forma.
+create policy "consensus_evaluations_insert"
+  on public.consensus_evaluations for insert to authenticated
+  with check (
+    exists (
+      select 1 from public.users v
+      where v.id = auth.uid()
+        and (coalesce(v.is_director, false)
+             or coalesce((to_jsonb(v) ->> 'is_admin')::boolean, false))
+    )
+  );
