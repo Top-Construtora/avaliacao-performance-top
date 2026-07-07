@@ -1,6 +1,25 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { notificationService } from '../services/notificationService';
+import { isPrivileged } from '../utils/accessControl';
+import { AppError } from '../errors/AppError';
+
+// Escopo de gestão de time (achado M7): admin/diretor gerenciam qualquer time;
+// líder só gerencia os times sob sua responsabilidade (teams.responsible_id).
+async function assertCanManageTeam(req: AuthRequest, teamId: string): Promise<void> {
+  const user = req.user;
+  if (!user) throw AppError.unauthorized();
+  if (isPrivileged(user)) return;
+  const { data, error } = await req.supabase
+    .from('teams')
+    .select('responsible_id')
+    .eq('id', teamId)
+    .single();
+  if (error || !data) throw AppError.notFound('Time não encontrado');
+  if (data.responsible_id !== user.id) {
+    throw AppError.forbidden('Você só pode gerenciar times sob sua responsabilidade');
+  }
+}
 
 export const teamController = {
   async getTeams(req: AuthRequest, res: Response, next: NextFunction) {
@@ -64,6 +83,7 @@ export const teamController = {
   async updateTeam(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
+      await assertCanManageTeam(req, id);
       // Whitelist de campos (anti mass-assignment) — nunca espalhar o corpo cru.
       const { name, department_id, responsible_id, description } = req.body;
       const updates: Record<string, any> = {};
@@ -152,6 +172,7 @@ export const teamController = {
   async addTeamMember(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
+      await assertCanManageTeam(req, id);
       const { user_id } = req.body;
 
       if (!user_id) {
@@ -193,6 +214,7 @@ export const teamController = {
   async removeTeamMember(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id, userId } = req.params;
+      await assertCanManageTeam(req, id);
 
       const { error } = await req.supabase
         .from('team_members')
@@ -211,6 +233,7 @@ export const teamController = {
   async replaceTeamMembers(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
+      await assertCanManageTeam(req, id);
       const { user_ids } = req.body;
 
       if (!Array.isArray(user_ids)) {
