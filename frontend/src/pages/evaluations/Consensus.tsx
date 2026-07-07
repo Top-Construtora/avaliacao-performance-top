@@ -881,13 +881,9 @@ const Consensus = () => {
       };
 
       // Insert consensus evaluation
-      const { data: evaluation, error: evalError } = await supabase
-        .from('consensus_evaluations')
-        .insert(consensusData)
-        .select()
-        .single();
-
-      if (evalError) throw evalError;
+      // Salva via backend (antes era insert direto no Supabase com a anon key
+      // — achado de segurança H6, permite trancar a tabela com RLS).
+      await evaluationService.saveConsensusEvaluation(consensusData);
 
       // Limpar auto-save após salvar com sucesso
       const autoSaveKey = `consensus_autosave_${selectedEmployeeId}`;

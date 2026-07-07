@@ -7,13 +7,18 @@ import type {
   CycleDashboard,
   NineBoxData,
 } from '../types';
-import { filterRestrictedUsers, filterRestrictedEmployeeRelations, filterEvaluationRestrictedUsers, filterEvaluationRestrictedEmployeeRelations } from '../utils/userFilterUtils';
+import {
+  filterRestrictedUsers,
+  filterRestrictedEmployeeRelations,
+  filterEvaluationRestrictedUsers,
+  filterEvaluationRestrictedEmployeeRelations,
+} from '../utils/userFilterUtils';
 
 export const evaluationService = {
   // ====================================
   // CICLOS DE AVALIAÇÃO
   // ====================================
-  
+
   // Buscar todos os ciclos
   async getEvaluationCycles(supabase: any) {
     try {
@@ -38,7 +43,7 @@ export const evaluationService = {
   async getCurrentCycle(supabase: any) {
     try {
       const now = new Date().toISOString().split('T')[0];
-      
+
       const { data, error } = await supabase
         .from('evaluation_cycles')
         .select('*')
@@ -84,7 +89,7 @@ export const evaluationService = {
           is_editable: true,
           created_by: cycleData.created_by,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .select()
         .single();
@@ -106,10 +111,7 @@ export const evaluationService = {
     try {
       // Se estiver abrindo um ciclo, fechar outros ciclos abertos
       if (status === 'open') {
-        await supabase
-          .from('evaluation_cycles')
-          .update({ status: 'closed' })
-          .eq('status', 'open');
+        await supabase.from('evaluation_cycles').update({ status: 'closed' }).eq('status', 'open');
       }
 
       const { data, error } = await supabase
@@ -117,7 +119,7 @@ export const evaluationService = {
         .update({
           status: status,
           is_editable: status !== 'closed',
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', cycleId)
         .select()
@@ -138,24 +140,28 @@ export const evaluationService = {
   // ====================================
   // DASHBOARD E RELATÓRIOS
   // ====================================
-  
+
   // Dashboard do ciclo
   async getCycleDashboard(supabase: any, cycleId: string, currentUserEmail?: string) {
     try {
       // OTIMIZAÇÃO: Executar todas as queries em PARALELO com Promise.all
-      const [cycleResult, usersResult, selfEvalsResult, leaderEvalsResult, consensusEvalsResult, teamMembersResult] = await Promise.all([
+      const [
+        cycleResult,
+        usersResult,
+        selfEvalsResult,
+        leaderEvalsResult,
+        consensusEvalsResult,
+        teamMembersResult,
+      ] = await Promise.all([
         // Query 0: Buscar o ciclo para saber a data de término (usada como cutoff)
-        supabase
-          .from('evaluation_cycles')
-          .select('id, end_date')
-          .eq('id', cycleId)
-          .single(),
+        supabase.from('evaluation_cycles').select('id, end_date').eq('id', cycleId).single(),
 
         // Query 1: Buscar usuários (exceto admins). Inclui inativos — quem foi
         // desligado depois ainda precisa aparecer com suas notas no ciclo.
         supabase
           .from('users')
-          .select(`
+          .select(
+            `
             id,
             name,
             email,
@@ -165,41 +171,46 @@ export const evaluationService = {
             active,
             created_at,
             departments:department_id(id, name)
-          `)
+          `,
+          )
           .eq('is_admin', false),
 
         // Query 2: Buscar autoavaliações
         supabase
           .from('self_evaluations')
-          .select(`
+          .select(
+            `
             *,
             employee:users!employee_id(id, name, email, position)
-          `)
+          `,
+          )
           .eq('cycle_id', cycleId),
 
         // Query 3: Buscar avaliações de líder
         supabase
           .from('leader_evaluations')
-          .select(`
+          .select(
+            `
             *,
             employee:users!employee_id(id, name, email, position),
             evaluator:users!evaluator_id(id, name)
-          `)
+          `,
+          )
           .eq('cycle_id', cycleId),
 
         // Query 4: Buscar avaliações de consenso
         supabase
           .from('consensus_evaluations')
-          .select(`
+          .select(
+            `
             *,
             employee:users!employee_id(id, name, email, position)
-          `)
+          `,
+          )
           .eq('cycle_id', cycleId),
 
         // Query 5: Buscar membros de times com departamento
-        supabase
-          .from('team_members')
-          .select(`
+        supabase.from('team_members').select(`
             user_id,
             teams!inner(
               id,
@@ -207,7 +218,7 @@ export const evaluationService = {
               department_id,
               departments!inner(id, name)
             )
-          `)
+          `),
       ]);
 
       // Extrair dados e verificar erros
@@ -229,7 +240,9 @@ export const evaluationService = {
       // - Quem tem qualquer avaliação no ciclo entra sempre (mesmo desativado).
       // - Quem não tem avaliação só entra se estava ativo e foi criado até a
       //   data de término do ciclo (potencial "pendente" legítimo).
-      const cycleEndDate = cycle?.end_date ? new Date(`${cycle.end_date}T23:59:59.999Z`).getTime() : null;
+      const cycleEndDate = cycle?.end_date
+        ? new Date(`${cycle.end_date}T23:59:59.999Z`).getTime()
+        : null;
       const employeesWithEvals = new Set<string>([
         ...(selfEvals || []).map((e: any) => e.employee_id),
         ...(leaderEvals || []).map((e: any) => e.employee_id),
@@ -261,11 +274,26 @@ export const evaluationService = {
 
       // Aplicar filtro nas avaliações também
       let filteredSelfEvals = filterRestrictedEmployeeRelations(currentUserEmail, selfEvals || []);
-      filteredSelfEvals = filterEvaluationRestrictedEmployeeRelations(currentUserEmail, filteredSelfEvals);
-      let filteredLeaderEvals = filterRestrictedEmployeeRelations(currentUserEmail, leaderEvals || []);
-      filteredLeaderEvals = filterEvaluationRestrictedEmployeeRelations(currentUserEmail, filteredLeaderEvals);
-      let filteredConsensusEvals = filterRestrictedEmployeeRelations(currentUserEmail, consensusEvals || []);
-      filteredConsensusEvals = filterEvaluationRestrictedEmployeeRelations(currentUserEmail, filteredConsensusEvals);
+      filteredSelfEvals = filterEvaluationRestrictedEmployeeRelations(
+        currentUserEmail,
+        filteredSelfEvals,
+      );
+      let filteredLeaderEvals = filterRestrictedEmployeeRelations(
+        currentUserEmail,
+        leaderEvals || [],
+      );
+      filteredLeaderEvals = filterEvaluationRestrictedEmployeeRelations(
+        currentUserEmail,
+        filteredLeaderEvals,
+      );
+      let filteredConsensusEvals = filterRestrictedEmployeeRelations(
+        currentUserEmail,
+        consensusEvals || [],
+      );
+      filteredConsensusEvals = filterEvaluationRestrictedEmployeeRelations(
+        currentUserEmail,
+        filteredConsensusEvals,
+      );
 
       // Combinar dados para o dashboard
       const employeeMap = new Map<string, CycleDashboard>();
@@ -297,7 +325,7 @@ export const evaluationService = {
           consensus_status: isDirector ? 'n/a' : 'pending',
           consensus_performance_score: null,
           consensus_potential_score: null,
-          ninebox_position: null
+          ninebox_position: null,
         });
       });
 
@@ -346,10 +374,10 @@ export const evaluationService = {
       const result = Array.from(employeeMap.values());
 
       // Garantir que todos os campos estão presentes
-      const finalResult = result.map(emp => ({
+      const finalResult = result.map((emp) => ({
         ...emp,
         leader_potential_score: emp.leader_potential_score ?? null,
-        ninebox_position: emp.ninebox_position ?? null
+        ninebox_position: emp.ninebox_position ?? null,
       }));
 
       return finalResult;
@@ -364,7 +392,8 @@ export const evaluationService = {
     try {
       const { data, error } = await supabase
         .from('consensus_evaluations')
-        .select(`
+        .select(
+          `
           *,
           employee:users!employee_id(
             id,
@@ -373,7 +402,8 @@ export const evaluationService = {
             position,
             department:departments(name)
           )
-        `)
+        `,
+        )
         .eq('cycle_id', cycleId);
 
       if (error) throw new ApiError(500, error.message);
@@ -382,18 +412,20 @@ export const evaluationService = {
       let filteredData = filterRestrictedEmployeeRelations(currentUserEmail, data || []);
       filteredData = filterEvaluationRestrictedEmployeeRelations(currentUserEmail, filteredData);
 
-      return filteredData?.map((item: any) => ({
-        employee_id: item.employee_id,
-        employee_name: item.employee?.name || '',
-        position: item.employee?.position || '',
-        department: item.employee?.department?.name || '',
-        performance_score: item.consensus_score,
-        potential_score: item.potential_score,
-        nine_box_position: this.calculateNineBoxPosition(
-          item.consensus_score,
-          item.potential_score
-        )
-      })) || [];
+      return (
+        filteredData?.map((item: any) => ({
+          employee_id: item.employee_id,
+          employee_name: item.employee?.name || '',
+          position: item.employee?.position || '',
+          department: item.employee?.department?.name || '',
+          performance_score: item.consensus_score,
+          potential_score: item.potential_score,
+          nine_box_position: this.calculateNineBoxPosition(
+            item.consensus_score,
+            item.potential_score,
+          ),
+        })) || []
+      );
     } catch (error: any) {
       console.error('Service error:', error);
       throw error;
@@ -403,16 +435,18 @@ export const evaluationService = {
   // ====================================
   // AUTOAVALIAÇÕES
   // ====================================
-  
+
   // Buscar autoavaliações do funcionário
   async getSelfEvaluations(supabase: any, employeeId: string, cycleId?: string) {
     try {
       let query = supabase
         .from('self_evaluations')
-        .select(`
+        .select(
+          `
           *,
           evaluation_competencies!self_evaluation_id (*)
-        `)
+        `,
+        )
         .eq('employee_id', employeeId);
 
       if (cycleId) {
@@ -434,12 +468,14 @@ export const evaluationService = {
     try {
       const { data, error } = await supabase
         .from('self_evaluations')
-        .select(`
+        .select(
+          `
           *,
           evaluation_competencies!self_evaluation_id (*),
           employee:users!employee_id(id, name, email, cargo, department),
           cycle:evaluation_cycles!cycle_id(id, title)
-        `)
+        `,
+        )
         .eq('id', evaluationId)
         .single();
 
@@ -456,8 +492,14 @@ export const evaluationService = {
     try {
       // Calcular scores por categoria (pode retornar null se não houver competências)
       const technicalScore = this.calculateCategoryScore(evaluationData.competencies, 'technical');
-      const behavioralScore = this.calculateCategoryScore(evaluationData.competencies, 'behavioral');
-      const deliveriesScore = this.calculateCategoryScore(evaluationData.competencies, 'deliveries');
+      const behavioralScore = this.calculateCategoryScore(
+        evaluationData.competencies,
+        'behavioral',
+      );
+      const deliveriesScore = this.calculateCategoryScore(
+        evaluationData.competencies,
+        'deliveries',
+      );
       const finalScore = this.calculateFinalScore(evaluationData.competencies);
 
       // Criar a autoavaliação
@@ -475,7 +517,7 @@ export const evaluationService = {
         qualities: evaluationData.toolkit?.qualities || [],
         evaluation_date: new Date().toISOString().split('T')[0],
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
       const { data: evaluation, error: evalError } = await supabase
@@ -499,7 +541,7 @@ export const evaluationService = {
           category: comp.category,
           score: comp.score,
           written_response: comp.written_response || '',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         }));
 
         const { error: compError } = await supabase
@@ -522,17 +564,19 @@ export const evaluationService = {
   // ====================================
   // AVALIAÇÕES DE LÍDER
   // ====================================
-  
+
   // Buscar avaliações de líder
   async getLeaderEvaluations(supabase: any, employeeId: string, cycleId?: string) {
     try {
       let query = supabase
         .from('leader_evaluations')
-        .select(`
+        .select(
+          `
           *,
           evaluation_competencies!leader_evaluation_id (*),
           evaluator:users!evaluator_id(id, name)
-        `)
+        `,
+        )
         .eq('employee_id', employeeId);
 
       if (cycleId) {
@@ -554,13 +598,15 @@ export const evaluationService = {
     try {
       const { data, error } = await supabase
         .from('leader_evaluations')
-        .select(`
+        .select(
+          `
           *,
           evaluation_competencies!leader_evaluation_id (*),
           evaluator:users!evaluator_id(id, name, email),
           employee:users!employee_id(id, name, email, cargo, department),
           cycle:evaluation_cycles!cycle_id(id, title)
-        `)
+        `,
+        )
         .eq('id', evaluationId)
         .single();
 
@@ -577,8 +623,14 @@ export const evaluationService = {
     try {
       // Calcular scores (pode retornar null se não houver competências)
       const technicalScore = this.calculateCategoryScore(evaluationData.competencies, 'technical');
-      const behavioralScore = this.calculateCategoryScore(evaluationData.competencies, 'behavioral');
-      const deliveriesScore = this.calculateCategoryScore(evaluationData.competencies, 'deliveries');
+      const behavioralScore = this.calculateCategoryScore(
+        evaluationData.competencies,
+        'behavioral',
+      );
+      const deliveriesScore = this.calculateCategoryScore(
+        evaluationData.competencies,
+        'deliveries',
+      );
       const finalScore = this.calculateFinalScore(evaluationData.competencies);
 
       // Criar a avaliação
@@ -597,7 +649,7 @@ export const evaluationService = {
           potential_details: evaluationData.potentialDetails || null, // Notas individuais de potencial
           evaluation_date: new Date().toISOString().split('T')[0],
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .select()
         .single();
@@ -613,7 +665,7 @@ export const evaluationService = {
           criterion_description: comp.description || comp.criterion_description,
           category: comp.category,
           score: comp.score,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         }));
 
         const { error: compError } = await supabase
@@ -640,7 +692,9 @@ export const evaluationService = {
 
           // Extrair como desenvolver e calendarização da action
           const actionMatch = action.match(/^(Curto|Médio|Longo) Prazo - (.+?) \(Prazo: (.+?)\)/);
-          const comoDesenvolver = actionMatch ? actionMatch[2] : action.split('(')[0]?.trim() || action;
+          const comoDesenvolver = actionMatch
+            ? actionMatch[2]
+            : action.split('(')[0]?.trim() || action;
           const calendarizacao = actionMatch ? actionMatch[3] : 'A definir';
           const prazo = prazoMatch ? prazoMatch[1].toLowerCase() : 'curto';
 
@@ -651,8 +705,11 @@ export const evaluationService = {
             comoDesenvolver: comoDesenvolver,
             resultadosEsperados: resultadosEsperados,
             status: '1', // Status inicial
-            observacao: evaluationData.pdi.resources && evaluationData.pdi.resources[i] ? evaluationData.pdi.resources[i] : '',
-            prazo: prazo
+            observacao:
+              evaluationData.pdi.resources && evaluationData.pdi.resources[i]
+                ? evaluationData.pdi.resources[i]
+                : '',
+            prazo: prazo,
           });
         }
 
@@ -682,7 +739,7 @@ export const evaluationService = {
           periodo: evaluationData.pdi.timeline || 'Anual',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          created_by: evaluationData.evaluatorId
+          created_by: evaluationData.evaluatorId,
         };
 
         const { data: pdiData, error: pdiError } = await supabase
@@ -707,7 +764,7 @@ export const evaluationService = {
   // ====================================
   // BUSCAR TODAS AS AVALIAÇÕES (UNIFICADO)
   // ====================================
-  
+
   async getEmployeeEvaluations(supabase: any, employeeId: string) {
     try {
       // Buscar usando a view unificada
@@ -722,13 +779,13 @@ export const evaluationService = {
         // Se a view não existir, buscar das tabelas separadas
         if (error.code === '42P01') {
           console.warn('View v_evaluations_summary does not exist, fetching from separate tables');
-          
+
           const selfEvals = await this.getSelfEvaluations(supabase, employeeId);
           const leaderEvals = await this.getLeaderEvaluations(supabase, employeeId);
-          
+
           return [
             ...selfEvals.map((e: any) => ({ ...e, evaluation_type: 'self' })),
-            ...leaderEvals.map((e: any) => ({ ...e, evaluation_type: 'leader' }))
+            ...leaderEvals.map((e: any) => ({ ...e, evaluation_type: 'leader' })),
           ];
         }
         throw new ApiError(500, error.message || 'Failed to fetch evaluations');
@@ -742,10 +799,15 @@ export const evaluationService = {
   },
 
   // Verificar avaliação existente
-  async checkExistingEvaluation(supabase: any, cycleId: string, employeeId: string, type: 'self' | 'leader') {
+  async checkExistingEvaluation(
+    supabase: any,
+    cycleId: string,
+    employeeId: string,
+    type: 'self' | 'leader',
+  ) {
     try {
       const table = type === 'self' ? 'self_evaluations' : 'leader_evaluations';
-      
+
       const { data, error } = await supabase
         .from(table)
         .select('id')
@@ -754,7 +816,7 @@ export const evaluationService = {
         .limit(1);
 
       if (error) throw new ApiError(500, error.message);
-      
+
       return data && data.length > 0;
     } catch (error: any) {
       console.error('Service error:', error);
@@ -765,10 +827,10 @@ export const evaluationService = {
   // ====================================
   // FUNÇÕES AUXILIARES
   // ====================================
-  
+
   // Calcular score por categoria
   calculateCategoryScore(competencies: EvaluationCompetency[], category: string): number | null {
-    const categoryComps = competencies.filter(c => c.category === category);
+    const categoryComps = competencies.filter((c) => c.category === category);
     if (categoryComps.length === 0) return null; // Retorna null se não houver competências
 
     const sum = categoryComps.reduce((acc, comp) => acc + (comp.score || 0), 0);
@@ -794,7 +856,10 @@ export const evaluationService = {
 
     // Se alguma categoria estiver faltando, redistribuir pesos proporcionalmente
     const totalWeight = categories.reduce((sum, cat) => sum + cat.weight, 0);
-    const weightedScore = categories.reduce((sum, cat) => sum + (cat.score * (cat.weight / totalWeight)), 0);
+    const weightedScore = categories.reduce(
+      (sum, cat) => sum + cat.score * (cat.weight / totalWeight),
+      0,
+    );
 
     // Arredondar para 10 casas decimais para eliminar erros de precisão de ponto flutuante
     return Math.round(weightedScore * 10000000000) / 10000000000;
@@ -814,7 +879,7 @@ export const evaluationService = {
       'medium-high': 'Forte performance',
       'high-low': 'Especialista',
       'high-medium': 'Alto performance',
-      'high-high': 'Estrela'
+      'high-high': 'Estrela',
     };
 
     return positions[`${perfLevel}-${potLevel}`] || 'Não classificado';
@@ -851,7 +916,7 @@ export const evaluationService = {
     // B1 B2 B3
     // B4 B5 B6
     // B7 B8 B9
-    const boxNumber = (perfRow * 3) + potCol + 1;
+    const boxNumber = perfRow * 3 + potCol + 1;
 
     return `B${boxNumber}`;
   },
@@ -893,7 +958,7 @@ export const evaluationService = {
           timeline: pdiData.timeline || null,
           status: 'active',
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .select()
         .single();
@@ -914,10 +979,14 @@ export const evaluationService = {
       const goals: string[] = [];
       const actions: string[] = [];
       const resources: string[] = [];
-      
+
       pdiData.items.forEach((item: any) => {
-        goals.push(`Competência: ${item.competencia || 'N/A'}. Resultados Esperados: ${item.resultadosEsperados || 'N/A'}.`);
-        actions.push(`Como desenvolver: ${item.comoDesenvolver || 'N/A'} (Prazo: ${item.calendarizacao || 'N/A'}, Status: ${item.status || 'N/A'}, Observação: ${item.observacao || 'N/A'}).`);
+        goals.push(
+          `Competência: ${item.competencia || 'N/A'}. Resultados Esperados: ${item.resultadosEsperados || 'N/A'}.`,
+        );
+        actions.push(
+          `Como desenvolver: ${item.comoDesenvolver || 'N/A'} (Prazo: ${item.calendarizacao || 'N/A'}, Status: ${item.status || 'N/A'}, Observação: ${item.observacao || 'N/A'}).`,
+        );
         if (item.observacao) {
           resources.push(item.observacao);
         }
@@ -939,7 +1008,7 @@ export const evaluationService = {
         timeline: pdiData.periodo || null,
         items: pdiData.items, // Salvar items como JSONB
         status: 'active',
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
       if (existingPDI) {
@@ -960,7 +1029,7 @@ export const evaluationService = {
           .insert({
             ...pdiPayload,
             created_at: new Date().toISOString(),
-            created_by: pdiData.createdBy
+            created_by: pdiData.createdBy,
           })
           .select()
           .single();
@@ -980,10 +1049,12 @@ export const evaluationService = {
     try {
       const { data, error } = await supabase
         .from('development_plans')
-        .select(`
+        .select(
+          `
           *,
           employee:users!employee_id(id, name, position)
-        `)
+        `,
+        )
         .eq('employee_id', employeeId)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
@@ -1016,7 +1087,7 @@ export const evaluationService = {
         .from('development_plans')
         .update({
           ...updates,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', pdiId)
         .select()
@@ -1035,6 +1106,56 @@ export const evaluationService = {
   // ====================================
 
   /**
+   * Cria uma avaliação de consenso (Comitê de Gente). Antes era um insert
+   * direto no Supabase pelo Consensus.tsx com a anon key (achado H6); movido
+   * para o backend para permitir trancar a tabela com RLS. Rejeita duplicata
+   * (mesmo colaborador + ciclo). Whitelist de campos.
+   */
+  async createConsensus(supabase: any, data: any) {
+    if (!data?.employee_id || !data?.cycle_id) {
+      throw new ApiError(400, 'employee_id e cycle_id são obrigatórios');
+    }
+
+    const { data: existing } = await supabase
+      .from('consensus_evaluations')
+      .select('id')
+      .eq('employee_id', data.employee_id)
+      .eq('cycle_id', data.cycle_id)
+      .maybeSingle();
+
+    if (existing) {
+      throw new ApiError(
+        409,
+        'Já existe um consenso salvo para este colaborador neste ciclo. Não é possível alterar.',
+      );
+    }
+
+    const insertData = {
+      employee_id: data.employee_id,
+      cycle_id: data.cycle_id,
+      self_evaluation_id: data.self_evaluation_id ?? null,
+      leader_evaluation_id: data.leader_evaluation_id ?? null,
+      consensus_score: data.consensus_score ?? null,
+      potential_score: data.potential_score ?? null,
+      nine_box_position: data.nine_box_position ?? null,
+      notes: data.notes ?? null,
+      evaluation_date: data.evaluation_date ?? new Date().toISOString().split('T')[0],
+    };
+
+    const { data: created, error } = await supabase
+      .from('consensus_evaluations')
+      .insert(insertData)
+      .select()
+      .single();
+
+    if (error) {
+      throw new ApiError(500, 'Erro ao salvar consenso: ' + error.message);
+    }
+
+    return created;
+  },
+
+  /**
    * Define a posição de potencial de um colaborador no Nine Box
    * Só é permitido quando a nota de potencial é exatamente 2.0 ou 3.0 (limite entre quadrantes)
    * Permite manter na posição atual ou mover para o quadrante superior
@@ -1043,7 +1164,7 @@ export const evaluationService = {
     supabase: any,
     consensusId: string,
     promotedPotentialQuadrant: number,
-    promotedBy: string
+    promotedBy: string,
   ) {
     try {
       // Primeiro, buscar a avaliação de consenso atual
@@ -1059,7 +1180,10 @@ export const evaluationService = {
 
       // Verificar se já foi definido
       if (consensus.promoted_potential_quadrant !== null) {
-        throw new ApiError(400, 'A posição deste colaborador já foi definida e não pode ser alterada');
+        throw new ApiError(
+          400,
+          'A posição deste colaborador já foi definida e não pode ser alterada',
+        );
       }
 
       // Verificar se a nota de potencial permite movimentação (~2.0 ou ~3.0)
@@ -1068,7 +1192,10 @@ export const evaluationService = {
       const isScore3 = potentialScore >= 2.99 && potentialScore <= 3.01;
 
       if (!isScore2 && !isScore3) {
-        throw new ApiError(400, `Movimentação só é permitida quando a nota de potencial é 2.0 ou 3.0. Nota atual: ${potentialScore}`);
+        throw new ApiError(
+          400,
+          `Movimentação só é permitida quando a nota de potencial é 2.0 ou 3.0. Nota atual: ${potentialScore}`,
+        );
       }
 
       // Validar quadrantes permitidos baseado na nota de potencial
@@ -1082,7 +1209,10 @@ export const evaluationService = {
       }
 
       if (!validQuadrants.includes(promotedPotentialQuadrant)) {
-        throw new ApiError(400, `Quadrante inválido. Para nota ${potentialScore}, os quadrantes válidos são: ${validQuadrants.join(' ou ')}`);
+        throw new ApiError(
+          400,
+          `Quadrante inválido. Para nota ${potentialScore}, os quadrantes válidos são: ${validQuadrants.join(' ou ')}`,
+        );
       }
 
       // Atualizar a avaliação de consenso com a posição definida
@@ -1091,7 +1221,7 @@ export const evaluationService = {
         .update({
           promoted_potential_quadrant: promotedPotentialQuadrant,
           promoted_by: promotedBy,
-          promoted_at: new Date().toISOString()
+          promoted_at: new Date().toISOString(),
         })
         .eq('id', consensusId)
         .select()
@@ -1115,17 +1245,13 @@ export const evaluationService = {
   /**
    * Salva as deliberações do comitê para um colaborador
    */
-  async saveCommitteeDeliberations(
-    supabase: any,
-    consensusId: string,
-    deliberations: string
-  ) {
+  async saveCommitteeDeliberations(supabase: any, consensusId: string, deliberations: string) {
     try {
       const { data, error } = await supabase
         .from('consensus_evaluations')
         .update({
           committee_deliberations: deliberations,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', consensusId)
         .select()
@@ -1149,25 +1275,27 @@ export const evaluationService = {
   async getEmployeeEvaluationHistory(supabase: any, employeeId: string) {
     try {
       // Buscar avaliações (self e leader) do colaborador
-      const [selfEvalsResult, leaderEvalsResult, consensusResult, cyclesResult] = await Promise.all([
-        supabase
-          .from('self_evaluations')
-          .select('cycle_id, final_score')
-          .eq('employee_id', employeeId),
-        supabase
-          .from('leader_evaluations')
-          .select('cycle_id, final_score')
-          .eq('employee_id', employeeId),
-        supabase
-          .from('consensus_evaluations')
-          .select('cycle_id, consensus_score, potential_score, nine_box_position')
-          .eq('employee_id', employeeId),
-        supabase
-          .from('evaluation_cycles')
-          .select('id, title, start_date, end_date')
-          .in('status', ['open', 'closed'])
-          .order('start_date', { ascending: false })
-      ]);
+      const [selfEvalsResult, leaderEvalsResult, consensusResult, cyclesResult] = await Promise.all(
+        [
+          supabase
+            .from('self_evaluations')
+            .select('cycle_id, final_score')
+            .eq('employee_id', employeeId),
+          supabase
+            .from('leader_evaluations')
+            .select('cycle_id, final_score')
+            .eq('employee_id', employeeId),
+          supabase
+            .from('consensus_evaluations')
+            .select('cycle_id, consensus_score, potential_score, nine_box_position')
+            .eq('employee_id', employeeId),
+          supabase
+            .from('evaluation_cycles')
+            .select('id, title, start_date, end_date')
+            .in('status', ['open', 'closed'])
+            .order('start_date', { ascending: false }),
+        ],
+      );
 
       const selfEvals = selfEvalsResult.data || [];
       const leaderEvals = leaderEvalsResult.data || [];
@@ -1190,7 +1318,7 @@ export const evaluationService = {
         consensusMap.set(ce.cycle_id, {
           consensus_score: ce.consensus_score,
           potential_score: ce.potential_score,
-          nine_box_position: ce.nine_box_position
+          nine_box_position: ce.nine_box_position,
         });
       });
 
@@ -1210,7 +1338,7 @@ export const evaluationService = {
             leader_score: leaderMap.get(cycle.id) ?? null,
             consensus_score: consensus?.consensus_score ?? null,
             potential_score: consensus?.potential_score ?? null,
-            nine_box_position: consensus?.nine_box_position ?? null
+            nine_box_position: consensus?.nine_box_position ?? null,
           };
         });
 
@@ -1224,10 +1352,7 @@ export const evaluationService = {
   /**
    * Busca as deliberações do comitê para um colaborador
    */
-  async getCommitteeDeliberations(
-    supabase: any,
-    consensusId: string
-  ) {
+  async getCommitteeDeliberations(supabase: any, consensusId: string) {
     try {
       const { data, error } = await supabase
         .from('consensus_evaluations')
@@ -1244,5 +1369,5 @@ export const evaluationService = {
       console.error('Service error:', error);
       throw error;
     }
-  }
+  },
 };
