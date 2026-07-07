@@ -14,8 +14,8 @@ import {
   FileSpreadsheet,
 } from 'lucide-react';
 import Button from '../../components/Button';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import XLSX from 'xlsx-js-style';
 import { sanitizeSheetData } from '../../utils/exportSafety';
 import { toast } from 'react-hot-toast';
@@ -26,12 +26,6 @@ import type { Department, UserWithDetails, Team } from '../../types/supabase';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { CycleDashboard, EvaluationCycle } from '../../types/evaluation.types';
 import LoadingSpinner from '../../components/LoadingSpinner';
-
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 const Reports = () => {
   const { currentCycle, loadCurrentCycle, loading: evaluationLoading } = useEvaluation();
@@ -787,7 +781,7 @@ const Reports = () => {
       ];
     });
 
-    doc.autoTable({
+    autoTable(doc, {
       head: [['Nome', 'Cargo', 'Departamento', 'Autoavaliação', 'Líder', 'Consenso', 'Nine Box']],
       body: tableData,
       startY: 40,
