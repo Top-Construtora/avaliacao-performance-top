@@ -4,10 +4,7 @@ import { AuthRequest } from '../middleware/auth';
 export const departmentController = {
   async getDepartments(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { data, error } = await req.supabase
-        .from('departments')
-        .select('*')
-        .order('name');
+      const { data, error } = await req.supabase.from('departments').select('*').order('name');
 
       if (error) throw error;
 
@@ -20,7 +17,7 @@ export const departmentController = {
   async getDepartmentById(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      
+
       const { data, error } = await req.supabase
         .from('departments')
         .select('*')
@@ -30,9 +27,9 @@ export const departmentController = {
       if (error) throw error;
 
       if (!data) {
-        return res.status(404).json({ 
-          success: false, 
-          error: 'Departamento não encontrado' 
+        return res.status(404).json({
+          success: false,
+          error: 'Departamento não encontrado',
         });
       }
 
@@ -47,9 +44,9 @@ export const departmentController = {
       const { name, description, active = true } = req.body;
 
       if (!name) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Nome é obrigatório' 
+        return res.status(400).json({
+          success: false,
+          error: 'Nome é obrigatório',
         });
       }
 
@@ -70,7 +67,13 @@ export const departmentController = {
   async updateDepartment(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const updates = req.body;
+      // Whitelist de campos (anti mass-assignment) — nunca espalhar o corpo cru.
+      const { name, description, responsible_id, active } = req.body;
+      const updates: Record<string, any> = {};
+      if (name !== undefined) updates.name = name;
+      if (description !== undefined) updates.description = description;
+      if (responsible_id !== undefined) updates.responsible_id = responsible_id;
+      if (active !== undefined) updates.active = active;
 
       const { data, error } = await req.supabase
         .from('departments')
@@ -82,9 +85,9 @@ export const departmentController = {
       if (error) throw error;
 
       if (!data) {
-        return res.status(404).json({ 
-          success: false, 
-          error: 'Departamento não encontrado' 
+        return res.status(404).json({
+          success: false,
+          error: 'Departamento não encontrado',
         });
       }
 
@@ -108,16 +111,13 @@ export const departmentController = {
       if (usersError) throw usersError;
 
       if (users && users.length > 0) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Não é possível excluir departamento com usuários vinculados' 
+        return res.status(400).json({
+          success: false,
+          error: 'Não é possível excluir departamento com usuários vinculados',
         });
       }
 
-      const { error } = await req.supabase
-        .from('departments')
-        .delete()
-        .eq('id', id);
+      const { error } = await req.supabase.from('departments').delete().eq('id', id);
 
       if (error) throw error;
 
@@ -125,5 +125,5 @@ export const departmentController = {
     } catch (error) {
       next(error);
     }
-  }
+  },
 };

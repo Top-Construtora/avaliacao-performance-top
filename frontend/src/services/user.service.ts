@@ -10,10 +10,13 @@ export const userService = {
     reports_to?: string;
   }): Promise<User[]> {
     const queryParams = new URLSearchParams(
-      Object.entries(filters || {}).reduce((acc, [key, value]) => {
-        if (value !== undefined) acc[key] = String(value);
-        return acc;
-      }, {} as Record<string, string>)
+      Object.entries(filters || {}).reduce(
+        (acc, [key, value]) => {
+          if (value !== undefined) acc[key] = String(value);
+          return acc;
+        },
+        {} as Record<string, string>,
+      ),
     ).toString();
 
     const response = await api.get(`/users?${queryParams}`);
@@ -59,5 +62,11 @@ export const userService = {
 
   async addUserToTeams(userId: string, teamIds: string[]): Promise<void> {
     await api.post(`/users/${userId}/teams`, { teamIds });
-  }
+  },
+
+  // Substitui o conjunto de times do usuário (via backend; antes era feito
+  // direto no Supabase com a anon key — achado de segurança H6).
+  async setUserTeams(userId: string, teamIds: string[]): Promise<void> {
+    await api.put(`/users/${userId}/teams`, { teamIds });
+  },
 };

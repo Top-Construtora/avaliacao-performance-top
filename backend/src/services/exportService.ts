@@ -4,6 +4,17 @@ import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
 import { salaryService } from './salaryService';
 
+// Neutraliza CSV/Formula Injection (achado H9): células de TEXTO iniciadas por
+// = + - @ (ou tab/CR) são interpretadas como fórmula pelo Excel/Sheets. Prefixar
+// uma aspa simples força o conteúdo a ser tratado como texto literal. Valores
+// numéricos passam intactos (não são vetor de injeção).
+function sanitizeCell<T>(value: T): T | string {
+  if (typeof value === 'string' && /^[=+\-@\t\r]/.test(value)) {
+    return `'${value}`;
+  }
+  return value;
+}
+
 export const exportService = {
   /**
    * Exporta os dados de uma trilha para PDF
@@ -64,7 +75,9 @@ export const exportService = {
               doc.addPage();
             }
 
-            doc.fontSize(12).text(`${index + 1}. ${position.position?.name || 'Cargo nao identificado'}`);
+            doc
+              .fontSize(12)
+              .text(`${index + 1}. ${position.position?.name || 'Cargo nao identificado'}`);
             doc.fontSize(10);
             doc.text(`   Classe: ${position.class?.code || 'N/A'} - ${position.class?.name || ''}`);
 
@@ -77,14 +90,19 @@ export const exportService = {
               levels.forEach((level: any) => {
                 // Buscar percentage customizada ou usar a padrão
                 let percentage = 0;
-                if (position.custom_level_percentages && position.custom_level_percentages[level.id]) {
+                if (
+                  position.custom_level_percentages &&
+                  position.custom_level_percentages[level.id]
+                ) {
                   percentage = position.custom_level_percentages[level.id];
                 } else if (level.percentage !== undefined && level.percentage !== null) {
                   percentage = level.percentage;
                 }
 
                 const salary = baseSalary * (1 + percentage / 100);
-                doc.text(`      ${level.name}: R$ ${salary.toFixed(2).replace('.', ',')} (+${percentage}%)`);
+                doc.text(
+                  `      ${level.name}: R$ ${salary.toFixed(2).replace('.', ',')} (+${percentage}%)`,
+                );
               });
             }
 
@@ -97,10 +115,7 @@ export const exportService = {
         const dateStr = now.toLocaleDateString('pt-BR');
         const timeStr = now.toLocaleTimeString('pt-BR');
         doc.moveDown(2);
-        doc.fontSize(8).text(
-          `Gerado em: ${dateStr} as ${timeStr}`,
-          { align: 'center' }
-        );
+        doc.fontSize(8).text(`Gerado em: ${dateStr} as ${timeStr}`, { align: 'center' });
 
         doc.end();
       } catch (error) {
@@ -147,12 +162,12 @@ export const exportService = {
       sheet.getCell('A1').fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'FFD9EAD3' }
+        fgColor: { argb: 'FFD9EAD3' },
       };
 
-      sheet.getRow(2).values = ['Nome:', track.name || 'N/A'];
-      sheet.getRow(3).values = ['Departamento:', departmentName];
-      sheet.getRow(4).values = ['Descricao:', track.description || 'N/A'];
+      sheet.getRow(2).values = ['Nome:', sanitizeCell(track.name || 'N/A')];
+      sheet.getRow(3).values = ['Departamento:', sanitizeCell(departmentName)];
+      sheet.getRow(4).values = ['Descricao:', sanitizeCell(track.description || 'N/A')];
       sheet.getRow(5).values = ['Status:', track.active ? 'Ativa' : 'Inativa'];
 
       // Estilizar labels
@@ -176,7 +191,7 @@ export const exportService = {
       sheet.getCell(`A${startRow}`).fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'FFD9EAD3' }
+        fgColor: { argb: 'FFD9EAD3' },
       };
 
       // Definir colunas da tabela
@@ -185,7 +200,7 @@ export const exportService = {
         { header: 'Ordem', key: 'order', width: 10 },
         { header: 'Cargo', key: 'position_name', width: 30 },
         { header: 'Classe', key: 'class_code', width: 20 },
-        { header: 'Salario Base', key: 'base_salary', width: 15 }
+        { header: 'Salario Base', key: 'base_salary', width: 15 },
       ];
 
       // Adicionar colunas de níveis
@@ -194,13 +209,13 @@ export const exportService = {
           columns.push({
             header: `Nivel ${level.name}`,
             key: `level_${level.id}`,
-            width: 15
+            width: 15,
           });
         });
       }
 
       // Definir headers na linha correta
-      const headerValues = columns.map(col => col.header);
+      const headerValues = columns.map((col) => col.header);
       sheet.getRow(headerRow).values = headerValues;
 
       // Estilizar cabeçalho da tabela
@@ -209,7 +224,7 @@ export const exportService = {
       tableHeaderRow.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'FFCCCCCC' }
+        fgColor: { argb: 'FFCCCCCC' },
       };
       tableHeaderRow.alignment = { vertical: 'middle', horizontal: 'center' };
 
@@ -224,9 +239,9 @@ export const exportService = {
         positions.forEach((position: any, index: number) => {
           const rowValues: any[] = [
             position.order_index || index + 1,
-            position.position?.name || 'N/A',
-            `${position.class?.code || ''} - ${position.class?.name || ''}`,
-            position.base_salary || 0
+            sanitizeCell(position.position?.name || 'N/A'),
+            sanitizeCell(`${position.class?.code || ''} - ${position.class?.name || ''}`),
+            position.base_salary || 0,
           ];
 
           // Calcular salários por nível
@@ -234,7 +249,10 @@ export const exportService = {
             levels.forEach((level: any) => {
               // Buscar percentage customizada ou usar a padrão
               let percentage = 0;
-              if (position.custom_level_percentages && position.custom_level_percentages[level.id]) {
+              if (
+                position.custom_level_percentages &&
+                position.custom_level_percentages[level.id]
+              ) {
                 percentage = position.custom_level_percentages[level.id];
               } else if (level.percentage !== undefined && level.percentage !== null) {
                 percentage = level.percentage;
@@ -271,5 +289,5 @@ export const exportService = {
       console.error('Erro ao gerar Excel:', error);
       throw error;
     }
-  }
+  },
 };

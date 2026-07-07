@@ -3,6 +3,19 @@ import { salaryService } from '../services/salaryService';
 import { exportService } from '../services/exportService';
 import { AuthRequest } from '../middleware/auth';
 import { notificationService } from '../services/notificationService';
+import { isPrivileged, isDirectLeaderOf } from '../utils/accessControl';
+import { AppError } from '../errors/AppError';
+
+// Remuneração é sensível: só o próprio, admin/diretor ou o líder direto podem
+// consultar os dados salariais de um colaborador.
+async function assertCanViewSalary(req: AuthRequest, targetUserId: string): Promise<void> {
+  const user = req.user;
+  if (!user) throw AppError.unauthorized();
+  if (user.id === targetUserId) return;
+  if (isPrivileged(user)) return;
+  if (user.is_leader && (await isDirectLeaderOf(req.supabase, user.id, targetUserId))) return;
+  throw AppError.forbidden('Você não tem permissão para ver os dados salariais deste colaborador');
+}
 
 export const salaryController = {
   // ===== CLASSES SALARIAIS =====
@@ -275,14 +288,14 @@ export const salaryController = {
     try {
       const { userId } = req.params;
       const { trackPositionId, salaryLevelId } = req.body;
-      
+
       const updated = await salaryService.assignUserToTrack(
-        req.supabase, 
-        userId, 
-        trackPositionId, 
-        salaryLevelId
+        req.supabase,
+        userId,
+        trackPositionId,
+        salaryLevelId,
       );
-      
+
       res.json({ success: true, data: updated });
     } catch (error) {
       next(error);
@@ -293,13 +306,13 @@ export const salaryController = {
     try {
       const { userId } = req.params;
       const { salaryLevelId } = req.body;
-      
+
       const updated = await salaryService.updateUserSalaryLevel(
-        req.supabase, 
-        userId, 
-        salaryLevelId
+        req.supabase,
+        userId,
+        salaryLevelId,
       );
-      
+
       res.json({ success: true, data: updated });
     } catch (error) {
       next(error);
@@ -309,6 +322,7 @@ export const salaryController = {
   async getUserSalaryInfo(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { userId } = req.params;
+      await assertCanViewSalary(req, userId);
       const info = await salaryService.getUserSalaryInfo(req.supabase, userId);
       res.json({ success: true, data: info });
     } catch (error) {
@@ -342,21 +356,23 @@ export const salaryController = {
         toSalaryLevelId,
         progressionType,
         reason,
-        approvedBy: req.user?.id
+        approvedBy: req.user?.id,
       });
 
       // Notificar o colaborador sobre progressão de carreira
-      notificationService.send(req.supabase, {
-        type: 'career_progression_approved',
-        title: 'Progressão de carreira aprovada',
-        message: `Sua progressão de carreira (${progressionType === 'vertical' ? 'vertical' : 'horizontal'}) foi aprovada.`,
-        targets: [{ type: 'user', user_id: userId }],
-        actor_id: req.user?.id,
-        priority: 'high',
-        action_url: '/career-track',
-        entity_type: 'progression_history',
-        entity_id: progression?.history?.id,
-      }).catch(err => console.error('Notification error:', err));
+      notificationService
+        .send(req.supabase, {
+          type: 'career_progression_approved',
+          title: 'Progressão de carreira aprovada',
+          message: `Sua progressão de carreira (${progressionType === 'vertical' ? 'vertical' : 'horizontal'}) foi aprovada.`,
+          targets: [{ type: 'user', user_id: userId }],
+          actor_id: req.user?.id,
+          priority: 'high',
+          action_url: '/career-track',
+          entity_type: 'progression_history',
+          entity_id: progression?.history?.id,
+        })
+        .catch((err) => console.error('Notification error:', err));
 
       res.json({ success: true, data: progression });
     } catch (error) {
@@ -367,6 +383,7 @@ export const salaryController = {
   async getUserProgressionHistory(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { userId } = req.params;
+      await assertCanViewSalary(req, userId);
       const history = await salaryService.getUserProgressionHistory(req.supabase, userId);
       res.json({ success: true, data: history });
     } catch (error) {
@@ -409,7 +426,7 @@ export const salaryController = {
       const calculated = await salaryService.calculateSalary(
         req.supabase,
         trackPositionId,
-        salaryLevelId
+        salaryLevelId,
       );
       res.json({ success: true, data: calculated });
     } catch (error) {
@@ -442,7 +459,10 @@ export const salaryController = {
       const excelBuffer = await exportService.exportTrackToExcel(req.supabase, trackId);
       const fileName = `trilha_${track.name.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.xlsx`;
 
-      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
       res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
       res.setHeader('Content-Length', excelBuffer.length.toString());
       res.send(excelBuffer);
@@ -450,5 +470,5 @@ export const salaryController = {
       console.error('[Excel Export] Erro ao exportar:', error);
       next(error);
     }
-  }
+  },
 };

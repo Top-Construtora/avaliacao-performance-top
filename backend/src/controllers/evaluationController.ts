@@ -2,22 +2,24 @@ import { Request, Response, NextFunction } from 'express';
 import { evaluationService } from '../services/evaluationService';
 import { AuthRequest } from '../middleware/auth';
 import { notificationService } from '../services/notificationService';
+import { assertCanAccessEmployeeData, isPrivileged } from '../utils/accessControl';
+import { AppError } from '../errors/AppError';
 
 export const evaluationController = {
   // ====================================
   // CICLOS DE AVALIAÇÃO
   // ====================================
-  
+
   // Buscar todos os ciclos
   async getCycles(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      
+
       const cycles = await evaluationService.getEvaluationCycles(authReq.supabase);
-      
+
       res.json({
         success: true,
-        data: cycles
+        data: cycles,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -29,12 +31,12 @@ export const evaluationController = {
   async getCurrentCycle(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      
+
       const currentCycle = await evaluationService.getCurrentCycle(authReq.supabase);
-      
+
       res.json({
         success: true,
-        data: currentCycle
+        data: currentCycle,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -47,15 +49,15 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const cycleData = req.body;
-      
+
       const newCycle = await evaluationService.createCycle(authReq.supabase, {
         ...cycleData,
-        created_by: authReq.user?.id
+        created_by: authReq.user?.id,
       });
-      
+
       res.json({
         success: true,
-        data: newCycle
+        data: newCycle,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -69,28 +71,26 @@ export const evaluationController = {
       const authReq = req as AuthRequest;
       const { id } = req.params;
 
-      const updatedCycle = await evaluationService.updateCycleStatus(
-        authReq.supabase,
-        id,
-        'open'
-      );
+      const updatedCycle = await evaluationService.updateCycleStatus(authReq.supabase, id, 'open');
 
       // Notificar todos os colaboradores
-      notificationService.send(authReq.supabase, {
-        type: 'evaluation_cycle_opened',
-        title: 'Ciclo de avaliação aberto',
-        message: `O ciclo "${updatedCycle?.title || 'Avaliação'}" está aberto. Complete sua autoavaliação.`,
-        targets: [{ type: 'all' }],
-        actor_id: authReq.user!.id,
-        priority: 'high',
-        action_url: '/self-evaluation',
-        entity_type: 'evaluation_cycle',
-        entity_id: id,
-      }).catch(err => console.error('Notification error:', err));
+      notificationService
+        .send(authReq.supabase, {
+          type: 'evaluation_cycle_opened',
+          title: 'Ciclo de avaliação aberto',
+          message: `O ciclo "${updatedCycle?.title || 'Avaliação'}" está aberto. Complete sua autoavaliação.`,
+          targets: [{ type: 'all' }],
+          actor_id: authReq.user!.id,
+          priority: 'high',
+          action_url: '/self-evaluation',
+          entity_type: 'evaluation_cycle',
+          entity_id: id,
+        })
+        .catch((err) => console.error('Notification error:', err));
 
       res.json({
         success: true,
-        data: updatedCycle
+        data: updatedCycle,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -107,24 +107,26 @@ export const evaluationController = {
       const updatedCycle = await evaluationService.updateCycleStatus(
         authReq.supabase,
         id,
-        'closed'
+        'closed',
       );
 
       // Notificar todos os colaboradores
-      notificationService.send(authReq.supabase, {
-        type: 'evaluation_cycle_closed',
-        title: 'Ciclo de avaliação encerrado',
-        message: `O ciclo "${updatedCycle?.title || 'Avaliação'}" foi encerrado.`,
-        targets: [{ type: 'all' }],
-        actor_id: authReq.user!.id,
-        action_url: '/',
-        entity_type: 'evaluation_cycle',
-        entity_id: id,
-      }).catch(err => console.error('Notification error:', err));
+      notificationService
+        .send(authReq.supabase, {
+          type: 'evaluation_cycle_closed',
+          title: 'Ciclo de avaliação encerrado',
+          message: `O ciclo "${updatedCycle?.title || 'Avaliação'}" foi encerrado.`,
+          targets: [{ type: 'all' }],
+          actor_id: authReq.user!.id,
+          action_url: '/',
+          entity_type: 'evaluation_cycle',
+          entity_id: id,
+        })
+        .catch((err) => console.error('Notification error:', err));
 
       res.json({
         success: true,
-        data: updatedCycle
+        data: updatedCycle,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -135,7 +137,7 @@ export const evaluationController = {
   // ====================================
   // DASHBOARD E RELATÓRIOS
   // ====================================
-  
+
   // Dashboard do ciclo
   async getCycleDashboard(req: Request, res: Response, next: NextFunction) {
     try {
@@ -145,12 +147,12 @@ export const evaluationController = {
       const dashboard = await evaluationService.getCycleDashboard(
         authReq.supabase,
         cycleId,
-        authReq.user?.email
+        authReq.user?.email,
       );
 
       res.json({
         success: true,
-        data: dashboard
+        data: dashboard,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -167,12 +169,12 @@ export const evaluationController = {
       const nineBoxData = await evaluationService.getNineBoxData(
         authReq.supabase,
         cycleId,
-        authReq.user?.email
+        authReq.user?.email,
       );
 
       res.json({
         success: true,
-        data: nineBoxData
+        data: nineBoxData,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -183,21 +185,23 @@ export const evaluationController = {
   // ====================================
   // AVALIAÇÕES
   // ====================================
-  
+
   // Buscar avaliações do funcionário (unificado)
   async getEmployeeEvaluations(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
       const { employeeId } = req.params;
-      
+
+      await assertCanAccessEmployeeData(authReq.supabase, authReq.user, employeeId);
+
       const evaluations = await evaluationService.getEmployeeEvaluations(
         authReq.supabase,
-        employeeId
+        employeeId,
       );
-      
+
       res.json({
         success: true,
-        data: evaluations
+        data: evaluations,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -212,15 +216,17 @@ export const evaluationController = {
       const { employeeId } = req.params;
       const { cycleId } = req.query;
 
+      await assertCanAccessEmployeeData(authReq.supabase, authReq.user, employeeId);
+
       const evaluations = await evaluationService.getSelfEvaluations(
         authReq.supabase,
         employeeId,
-        cycleId as string
+        cycleId as string,
       );
 
       res.json({
         success: true,
-        data: evaluations
+        data: evaluations,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -236,12 +242,16 @@ export const evaluationController = {
 
       const evaluation = await evaluationService.getSelfEvaluationById(
         authReq.supabase,
-        evaluationId
+        evaluationId,
       );
+
+      if (evaluation?.employee_id) {
+        await assertCanAccessEmployeeData(authReq.supabase, authReq.user, evaluation.employee_id);
+      }
 
       res.json({
         success: true,
-        data: evaluation
+        data: evaluation,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -256,15 +266,17 @@ export const evaluationController = {
       const { employeeId } = req.params;
       const { cycleId } = req.query;
 
+      await assertCanAccessEmployeeData(authReq.supabase, authReq.user, employeeId);
+
       const evaluations = await evaluationService.getLeaderEvaluations(
         authReq.supabase,
         employeeId,
-        cycleId as string
+        cycleId as string,
       );
 
       res.json({
         success: true,
-        data: evaluations
+        data: evaluations,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -280,12 +292,16 @@ export const evaluationController = {
 
       const evaluation = await evaluationService.getLeaderEvaluationById(
         authReq.supabase,
-        evaluationId
+        evaluationId,
       );
+
+      if (evaluation?.employee_id) {
+        await assertCanAccessEmployeeData(authReq.supabase, authReq.user, evaluation.employee_id);
+      }
 
       res.json({
         success: true,
-        data: evaluation
+        data: evaluation,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -298,24 +314,24 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const { cycleId, employeeId, type } = req.query;
-      
+
       if (!cycleId || !employeeId || !type) {
         return res.status(400).json({
           success: false,
-          error: 'Missing required parameters: cycleId, employeeId, type'
+          error: 'Missing required parameters: cycleId, employeeId, type',
         });
       }
-      
+
       const exists = await evaluationService.checkExistingEvaluation(
         authReq.supabase,
         cycleId as string,
         employeeId as string,
-        type as 'self' | 'leader'
+        type as 'self' | 'leader',
       );
-      
+
       res.json({
         success: true,
-        data: exists
+        data: exists,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -328,30 +344,34 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
 
-      const evaluation = await evaluationService.createSelfEvaluation(
-        authReq.supabase,
-        req.body
-      );
+      // Autoavaliação é sempre sobre o próprio usuário: o servidor força o
+      // employeeId, impedindo forjar avaliação em nome de terceiros.
+      const evaluation = await evaluationService.createSelfEvaluation(authReq.supabase, {
+        ...req.body,
+        employeeId: authReq.user!.id,
+      });
 
       // Notificar o líder direto
       if (authReq.user?.reports_to) {
-        notificationService.send(authReq.supabase, {
-          type: 'self_evaluation_completed',
-          title: 'Autoavaliação concluída',
-          message: `${authReq.user!.name} completou sua autoavaliação.`,
-          targets: [{ type: 'user', user_id: authReq.user!.reports_to }],
-          actor_id: authReq.user!.id,
-          action_url: '/leader-evaluation',
-          entity_type: 'self_evaluation',
-          entity_id: evaluation.id,
-          group_key: `self_eval_${req.body.cycleId}_${authReq.user!.id}`,
-          anti_spam: 'aggregate',
-        }).catch(err => console.error('Notification error:', err));
+        notificationService
+          .send(authReq.supabase, {
+            type: 'self_evaluation_completed',
+            title: 'Autoavaliação concluída',
+            message: `${authReq.user!.name} completou sua autoavaliação.`,
+            targets: [{ type: 'user', user_id: authReq.user!.reports_to }],
+            actor_id: authReq.user!.id,
+            action_url: '/leader-evaluation',
+            entity_type: 'self_evaluation',
+            entity_id: evaluation.id,
+            group_key: `self_eval_${req.body.cycleId}_${authReq.user!.id}`,
+            anti_spam: 'aggregate',
+          })
+          .catch((err) => console.error('Notification error:', err));
       }
 
       res.json({
         success: true,
-        data: evaluation
+        data: evaluation,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -364,28 +384,38 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
 
-      const evaluation = await evaluationService.createLeaderEvaluation(
-        authReq.supabase,
-        req.body
-      );
+      // Só líder/diretor/admin avalia; e apenas colaboradores que gerencia
+      // (líder direto) — a menos que seja privilegiado. O avaliador é sempre
+      // o próprio usuário autenticado (não aceita evaluatorId do corpo).
+      if (!isPrivileged(authReq.user) && !authReq.user?.is_leader) {
+        throw AppError.forbidden('Apenas líderes ou diretores podem registrar avaliação de líder');
+      }
+      await assertCanAccessEmployeeData(authReq.supabase, authReq.user, req.body.employeeId);
+
+      const evaluation = await evaluationService.createLeaderEvaluation(authReq.supabase, {
+        ...req.body,
+        evaluatorId: authReq.user!.id,
+      });
 
       // Notificar o colaborador avaliado
       if (req.body.employeeId) {
-        notificationService.send(authReq.supabase, {
-          type: 'leader_evaluation_completed',
-          title: 'Avaliação do líder concluída',
-          message: `${authReq.user!.name} concluiu sua avaliação.`,
-          targets: [{ type: 'user', user_id: req.body.employeeId }],
-          actor_id: authReq.user!.id,
-          action_url: '/self-evaluation',
-          entity_type: 'leader_evaluation',
-          entity_id: evaluation.id,
-        }).catch(err => console.error('Notification error:', err));
+        notificationService
+          .send(authReq.supabase, {
+            type: 'leader_evaluation_completed',
+            title: 'Avaliação do líder concluída',
+            message: `${authReq.user!.name} concluiu sua avaliação.`,
+            targets: [{ type: 'user', user_id: req.body.employeeId }],
+            actor_id: authReq.user!.id,
+            action_url: '/self-evaluation',
+            entity_type: 'leader_evaluation',
+            entity_id: evaluation.id,
+          })
+          .catch((err) => console.error('Notification error:', err));
       }
 
       res.json({
         success: true,
-        data: evaluation
+        data: evaluation,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -396,7 +426,7 @@ export const evaluationController = {
   // ====================================
   // PDI (PLANO DE DESENVOLVIMENTO INDIVIDUAL)
   // ====================================
-  
+
   // Salvar PDI
   async savePDI(req: Request, res: Response, next: NextFunction) {
     try {
@@ -406,29 +436,28 @@ export const evaluationController = {
       if (!employeeId || !items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({
           success: false,
-          error: 'Campos obrigatórios: employeeId e items (array não vazio)'
+          error: 'Campos obrigatórios: employeeId e items (array não vazio)',
         });
       }
+
+      await assertCanAccessEmployeeData(authReq.supabase, authReq.user, employeeId);
 
       // Importar o pdiService
       const { pdiService } = require('../services/pdiService');
 
       // Usar o pdiService para salvar o PDI
-      const pdi = await pdiService.savePDI(
-        authReq.supabase,
-        {
-          employeeId,
-          cycleId,
-          leaderEvaluationId,
-          items,
-          periodo: periodo || 'Anual',
-          createdBy: authReq.user?.id
-        }
-      );
+      const pdi = await pdiService.savePDI(authReq.supabase, {
+        employeeId,
+        cycleId,
+        leaderEvaluationId,
+        items,
+        periodo: periodo || 'Anual',
+        createdBy: authReq.user?.id,
+      });
 
       res.json({
         success: true,
-        data: pdi
+        data: pdi,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -442,25 +471,24 @@ export const evaluationController = {
       const authReq = req as AuthRequest;
       const { employeeId } = req.params;
 
+      await assertCanAccessEmployeeData(authReq.supabase, authReq.user, employeeId);
+
       // Importar o pdiService
       const { pdiService } = require('../services/pdiService');
 
-      const pdi = await pdiService.getPDI(
-        authReq.supabase,
-        employeeId
-      );
+      const pdi = await pdiService.getPDI(authReq.supabase, employeeId);
 
       // Se não encontrou PDI, retorna null ao invés de erro
       if (!pdi) {
         return res.json({
           success: true,
-          data: null
+          data: null,
         });
       }
 
       res.json({
         success: true,
-        data: pdi
+        data: pdi,
       });
     } catch (error: any) {
       console.error('Controller error:', error);
@@ -469,7 +497,7 @@ export const evaluationController = {
       if (error.message && error.message.includes('PGRST116')) {
         return res.json({
           success: true,
-          data: null
+          data: null,
         });
       }
 
@@ -484,20 +512,27 @@ export const evaluationController = {
       const { pdiId } = req.params;
       const { goals, actions, resources, timeline } = req.body;
 
-      const pdi = await evaluationService.updatePDI(
-        authReq.supabase,
-        pdiId,
-        {
-          goals,
-          actions,
-          resources,
-          timeline
-        }
-      );
+      // Verifica a posse pelo dono do PDI antes de permitir a atualização.
+      const { data: existingPdi } = await authReq.supabase
+        .from('development_plans')
+        .select('employee_id')
+        .eq('id', pdiId)
+        .single();
+      if (!existingPdi) {
+        throw AppError.notFound('PDI não encontrado');
+      }
+      await assertCanAccessEmployeeData(authReq.supabase, authReq.user, existingPdi.employee_id);
+
+      const pdi = await evaluationService.updatePDI(authReq.supabase, pdiId, {
+        goals,
+        actions,
+        resources,
+        timeline,
+      });
 
       res.json({
         success: true,
-        data: pdi
+        data: pdi,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -516,7 +551,7 @@ export const evaluationController = {
       if (!promotedBy) {
         return res.status(401).json({
           success: false,
-          error: 'Usuário não autenticado'
+          error: 'Usuário não autenticado',
         });
       }
 
@@ -524,7 +559,7 @@ export const evaluationController = {
       if (![1, 2, 3].includes(promotedPotentialQuadrant)) {
         return res.status(400).json({
           success: false,
-          error: 'Quadrante inválido. Use 1 (Baixo), 2 (Médio) ou 3 (Alto)'
+          error: 'Quadrante inválido. Use 1 (Baixo), 2 (Médio) ou 3 (Alto)',
         });
       }
 
@@ -532,12 +567,12 @@ export const evaluationController = {
         authReq.supabase,
         consensusId,
         promotedPotentialQuadrant,
-        promotedBy
+        promotedBy,
       );
 
       res.json({
         success: true,
-        data: result
+        data: result,
       });
     } catch (error: any) {
       console.error('Controller error:', error);
@@ -551,14 +586,16 @@ export const evaluationController = {
       const authReq = req as AuthRequest;
       const { employeeId } = req.params;
 
+      await assertCanAccessEmployeeData(authReq.supabase, authReq.user, employeeId);
+
       const history = await evaluationService.getEmployeeEvaluationHistory(
         authReq.supabase,
-        employeeId
+        employeeId,
       );
 
       res.json({
         success: true,
-        data: history
+        data: history,
       });
     } catch (error) {
       console.error('Controller error:', error);
@@ -576,16 +613,16 @@ export const evaluationController = {
       const result = await evaluationService.saveCommitteeDeliberations(
         authReq.supabase,
         consensusId,
-        deliberations
+        deliberations,
       );
 
       res.json({
         success: true,
-        data: result
+        data: result,
       });
     } catch (error: any) {
       console.error('Controller error:', error);
       next(error);
     }
-  }
+  },
 };

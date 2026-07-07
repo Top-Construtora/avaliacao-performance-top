@@ -24,6 +24,7 @@ import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 import { usePeopleCommitteePermission } from '../../hooks/usePeopleCommittee';
 import { supabase } from '../../lib/supabase';
+import { userService } from '../../services/user.service';
 import { evaluationService } from '../../services/evaluation.service';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
@@ -166,11 +167,9 @@ const NineBoxMatrix = () => {
       }
 
       try {
-        // Buscar todos os usuários para construir a hierarquia
-        const { data: allUsers } = await supabase
-          .from('users')
-          .select('id, reports_to')
-          .eq('active', true);
+        // Buscar todos os usuários para construir a hierarquia (via backend;
+        // antes era leitura direta de `users` com a anon key — achado C4/H6).
+        const allUsers = await userService.getUsers({ active: true });
 
         if (!allUsers) return;
 

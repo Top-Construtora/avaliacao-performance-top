@@ -551,19 +551,11 @@ const EditUser = () => {
         ...(isAdmin ? { position_is_confidential: formData.positionIsConfidential } : {}),
       } as any);
 
-      // Atualizar times do usuário
-      // Primeiro remove todos os times
-      await supabase.from('team_members').delete().eq('user_id', id);
-
-      // Depois adiciona os novos
-      if (formData.teamIds.length > 0 && formData.profileType !== 'director') {
-        const teamMembers = formData.teamIds.map((teamId) => ({
-          team_id: teamId,
-          user_id: id!,
-        }));
-
-        await supabase.from('team_members').insert(teamMembers);
-      }
+      // Atualizar times do usuário via backend (antes era feito direto no
+      // Supabase com a anon key — achado de segurança H6). Diretor não fica
+      // em times, então enviamos lista vazia nesse caso.
+      const teamIdsToSet = formData.profileType !== 'director' ? formData.teamIds : [];
+      await api.put(`/users/${id}/teams`, { teamIds: teamIdsToSet });
 
       // Atualizar senha via backend API
       if (showPasswordChange && newPassword) {
