@@ -122,7 +122,7 @@ const CYCLE_CACHE_KEY = 'ninebox_last_cycle_id';
 
 const NineBoxMatrix = () => {
   const {
-    currentCycle,
+    displayCycle,
     dashboard,
     loadDashboard,
     employees,
@@ -215,29 +215,38 @@ const NineBoxMatrix = () => {
       loadDashboard(cachedCycleId).finally(() => setIsLoadingDashboard(false));
     } else if (!cachedCycleId) {
       // Se não há cache, aguardar o ciclo carregar (mas não mostrar loading infinito)
-      // O loading será controlado pelo useEffect abaixo quando currentCycle carregar
+      // O loading será controlado pelo useEffect abaixo quando displayCycle carregar
     }
   }, [loadDashboard]);
 
   // Quando o ciclo atual carregar, atualizar cache e recarregar se necessário
   useEffect(() => {
-    if (currentCycle) {
+    if (displayCycle) {
       const cachedCycleId = localStorage.getItem(CYCLE_CACHE_KEY);
 
       // Salvar ciclo atual no cache
-      localStorage.setItem(CYCLE_CACHE_KEY, currentCycle.id);
+      localStorage.setItem(CYCLE_CACHE_KEY, displayCycle.id);
 
       // Se o ciclo mudou ou ainda não carregamos, carregar dashboard
-      if (cachedCycleId !== currentCycle.id || !dashboardLoadedRef.current) {
+      if (cachedCycleId !== displayCycle.id || !dashboardLoadedRef.current) {
         dashboardLoadedRef.current = true;
         setIsLoadingDashboard(true);
-        loadDashboard(currentCycle.id).finally(() => setIsLoadingDashboard(false));
+        loadDashboard(displayCycle.id).finally(() => setIsLoadingDashboard(false));
       } else {
         // Ciclo é o mesmo do cache e já carregamos - não está mais loading
         setIsLoadingDashboard(false);
       }
     }
-  }, [currentCycle, loadDashboard]);
+  }, [displayCycle, loadDashboard]);
+
+  // Guard: se não há ciclo algum para exibir (nenhum criado) e o carregamento
+  // de ciclos já terminou, sair do loading — mostra o estado vazio em vez de
+  // "Carregando colaboradores..." para sempre.
+  useEffect(() => {
+    if (!displayCycle && !loading) {
+      setIsLoadingDashboard(false);
+    }
+  }, [displayCycle, loading]);
 
   // Filtrar colaboradores com avaliações de consenso completas
   // Usando useMemo + Map para lookup O(1) em vez de O(n²)
@@ -405,8 +414,8 @@ const NineBoxMatrix = () => {
       // Limpar seleção
       setSelectedQuadrantToMove(null);
       // Recarregar dashboard para atualizar os dados
-      if (currentCycle?.id) {
-        await loadDashboard(currentCycle.id);
+      if (displayCycle?.id) {
+        await loadDashboard(displayCycle.id);
       }
     } catch (error: any) {
       console.error('Erro ao salvar posição:', error);
@@ -432,7 +441,7 @@ const NineBoxMatrix = () => {
 
     // Carregar detalhes de potencial da avaliação do líder
     const loadPotentialDetails = async () => {
-      if (!selectedEvaluation?.leader_evaluation_id || !currentCycle?.id) return;
+      if (!selectedEvaluation?.leader_evaluation_id || !displayCycle?.id) return;
 
       setIsLoadingPotentialDetails(true);
       try {
@@ -461,7 +470,7 @@ const NineBoxMatrix = () => {
     selectedEmployee,
     selectedEvaluation?.committee_deliberations,
     selectedEvaluation?.leader_evaluation_id,
-    currentCycle?.id,
+    displayCycle?.id,
   ]);
 
   /**
@@ -1517,8 +1526,8 @@ const NineBoxMatrix = () => {
           onUpdate={async () => {
             // Recarregar dados dos colaboradores e do dashboard
             await reloadEmployees();
-            if (currentCycle?.id) {
-              await loadDashboard(currentCycle.id);
+            if (displayCycle?.id) {
+              await loadDashboard(displayCycle.id);
             }
           }}
         />
