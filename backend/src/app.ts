@@ -45,15 +45,23 @@ if (process.env.FRONTEND_URL && !allowedOrigins.includes(process.env.FRONTEND_UR
   allowedOrigins.push(process.env.FRONTEND_URL);
 }
 
+// Libera os deploys de PREVIEW da Vercel deste projeto
+// (ex.: https://avaliacao-performance-top-git-<branch>-<org>.vercel.app).
+// Necessário para validar builds antes de promover para produção, sem
+// esbarrar no bloqueio de CORS. Escopado ao namespace do projeto.
+const vercelPreviewRegex = /^https:\/\/avaliacao-performance-top[a-z0-9-]*\.vercel\.app$/;
+
 const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
     // Permite requisições sem 'origin' (ex: Postman, apps mobile, ou server-to-server)
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || vercelPreviewRegex.test(origin)) {
       callback(null, true);
     } else {
-      // Loga a origem bloqueada para facilitar o debug
-      console.error(`CORS Bloqueado para a origem: ${origin}`);
-      callback(new Error('Acesso não permitido por CORS'));
+      // Origem não permitida: NÃO lançar Error (viraria 500 no preflight).
+      // Retornar false faz o cors não setar os headers; o navegador bloqueia
+      // do lado dele, sem poluir o log com stack trace.
+      console.warn(`CORS: origem não permitida - ${origin}`);
+      callback(null, false);
     }
   },
   credentials: true, // Essencial para cookies e autenticação
