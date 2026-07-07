@@ -35,7 +35,7 @@ import {
   useOperationValidator,
 } from '../../hooks/usePermissions';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import {
   PermissionGuard,
   ActionGuard,
@@ -43,12 +43,6 @@ import {
   OperationWarning,
 } from '../../components/PermissionGuard';
 import LoadingSpinner from '../../components/LoadingSpinner';
-
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 type ViewMode = 'grid' | 'list';
 type ExportFormat = 'excel' | 'notion' | 'pdf';
@@ -198,7 +192,7 @@ const DepartmentManagement = () => {
     doc.setFontSize(16);
     doc.text(title, 14, 15);
 
-    doc.autoTable({
+    autoTable(doc, {
       head: [headers],
       body: data,
       startY: 25,
