@@ -21,7 +21,7 @@ import { evaluationService } from '../../services/evaluation.service';
 const LeaderDashboard = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { currentCycle } = useEvaluation();
+  const { displayCycle } = useEvaluation();
   const firstName = profile?.name?.split(' ')[0];
 
   const [myStatus, setMyStatus] = useState({
@@ -36,18 +36,18 @@ const LeaderDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (profile?.id && currentCycle) {
+    if (profile?.id && displayCycle) {
       loadData();
     } else {
       setLoading(false);
     }
-  }, [profile?.id, currentCycle]);
+  }, [profile?.id, displayCycle]);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      if (currentCycle && profile?.id) {
-        const dashboard = await evaluationService.getCycleDashboard(currentCycle.id);
+      if (displayCycle && profile?.id) {
+        const dashboard = await evaluationService.getCycleDashboard(displayCycle.id);
 
         // Meu progresso pessoal
         const myData = dashboard.find((d: any) => String(d.employee_id) === String(profile.id));
@@ -160,9 +160,9 @@ const LeaderDashboard = () => {
           <h2 className="text-lg font-semibold text-foreground mb-6 flex items-center">
             <Calendar className="mr-2 text-lime-deep dark:text-lime" size={20} />
             Meu Progresso
-            {currentCycle && (
+            {displayCycle && (
               <span className="ml-auto text-sm font-normal text-muted-foreground">
-                {currentCycle.title}
+                {displayCycle.title}
               </span>
             )}
           </h2>

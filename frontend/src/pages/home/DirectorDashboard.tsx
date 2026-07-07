@@ -19,7 +19,7 @@ import { evaluationService } from '../../services/evaluation.service';
 const DirectorDashboard = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { currentCycle } = useEvaluation();
+  const { displayCycle } = useEvaluation();
   const { users } = useUsers();
   const firstName = profile?.name?.split(' ')[0];
 
@@ -27,18 +27,18 @@ const DirectorDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (profile?.id && currentCycle) {
+    if (profile?.id && displayCycle) {
       loadData();
     } else {
       setLoading(false);
     }
-  }, [profile?.id, currentCycle, users]);
+  }, [profile?.id, displayCycle, users]);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      if (currentCycle && profile?.id) {
-        const dashboard = await evaluationService.getCycleDashboard(currentCycle.id);
+      if (displayCycle && profile?.id) {
+        const dashboard = await evaluationService.getCycleDashboard(displayCycle.id);
 
         const normalizeStatus = (status: string | null | undefined): string => {
           if (!status) return 'pending';

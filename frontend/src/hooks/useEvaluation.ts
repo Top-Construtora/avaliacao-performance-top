@@ -10,7 +10,7 @@ import type {
   CycleDashboard,
   NineBoxData,
   SelfEvaluation,
-  LeaderEvaluation
+  LeaderEvaluation,
 } from '../types/evaluation.types';
 import type { UserWithDetails } from '../types/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -44,12 +44,18 @@ interface PdiData {
   dataAtualizacao?: string;
 }
 
-
 interface UseEvaluationReturn {
   // States
   loading: boolean;
   cyclesLoading: boolean;
   currentCycle: EvaluationCycle | null;
+  /**
+   * Ciclo para EXIBIÇÃO nos dashboards: o ciclo ativo/aberto quando existe,
+   * ou o mais recente (mesmo `closed`) quando não há nenhum aberto. Assim o
+   * último ciclo continua visível depois de encerrado. NÃO usar para fluxos
+   * de escrita (autoavaliação, líder, consenso) — para isso, `currentCycle`.
+   */
+  displayCycle: EvaluationCycle | null;
   cycles: EvaluationCycle[];
   dashboard: CycleDashboard[];
   employees: UserWithDetails[];
@@ -63,7 +69,7 @@ interface UseEvaluationReturn {
   loadDashboard: (cycleId: string) => Promise<void>;
   loadNineBoxData: (cycleId: string) => Promise<void>;
   loadSubordinates: () => Promise<void>;
-  
+
   // Cycle management
   createCycle: (cycle: Omit<EvaluationCycle, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
   openCycle: (cycleId: string) => Promise<void>;
@@ -81,7 +87,7 @@ interface UseEvaluationReturn {
       qualities?: string[];
     };
   }) => Promise<void>;
-  
+
   saveLeaderEvaluation: (data: {
     cycleId: string;
     employeeId: string;
@@ -101,15 +107,24 @@ interface UseEvaluationReturn {
       timeline?: string;
     };
   }) => Promise<void>;
-  
+
   createConsensus: (data: Partial<ConsensusMeeting>) => Promise<void>;
-  completeConsensus: (meetingId: string, performanceScore: number, potentialScore: number, notes: string) => Promise<void>;
-  
+  completeConsensus: (
+    meetingId: string,
+    performanceScore: number,
+    potentialScore: number,
+    notes: string,
+  ) => Promise<void>;
+
   // Queries
   getEmployeeEvaluations: (cycleId: string, employeeId: string) => Promise<EvaluationExtended[]>;
   getSelfEvaluations: (employeeId: string, cycleId?: string) => Promise<SelfEvaluation[]>;
   getLeaderEvaluations: (employeeId: string, cycleId?: string) => Promise<LeaderEvaluation[]>;
-  checkExistingEvaluation: (cycleId: string, employeeId: string, type: 'self' | 'leader') => Promise<boolean>;
+  checkExistingEvaluation: (
+    cycleId: string,
+    employeeId: string,
+    type: 'self' | 'leader',
+  ) => Promise<boolean>;
   getNineBoxByEmployeeId: (employeeId: string) => NineBoxData | undefined;
   savePDI: (pdiData: any) => Promise<any>;
   loadPDI: (employeeId: string) => Promise<PdiData | null>;
@@ -121,6 +136,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
   const [loading, setLoading] = useState(false);
   const [cyclesLoading, setCyclesLoading] = useState(false);
   const [currentCycle, setCurrentCycle] = useState<EvaluationCycle | null>(null);
+  const [displayCycle, setDisplayCycle] = useState<EvaluationCycle | null>(null);
   const [cycles, setCycles] = useState<EvaluationCycle[]>([]);
   const [dashboard, setDashboard] = useState<CycleDashboard[]>([]);
   const [employees, setEmployees] = useState<UserWithDetails[]>([]);
@@ -133,15 +149,32 @@ export const useEvaluation = (): UseEvaluationReturn => {
     try {
       setLoading(true);
       const cycle = await evaluationService.getCurrentCycle();
-      setCurrentCycle(cycle);
-      
-      // Se não houver ciclo ativo, tenta carregar todos e verificar se algum está aberto
-      if (!cycle) {
-        const allCycles = await evaluationService.getAllCycles();
-        const activeCycle = allCycles.find(c => c.status === 'open');
-        if (activeCycle) {
-          setCurrentCycle(activeCycle);
+
+      // Ciclo ATIVO (para fluxos de escrita): o retornado por getCurrentCycle
+      // ou, na falta dele, algum com status 'open'.
+      let active = cycle;
+      let allCycles: EvaluationCycle[] = [];
+      if (!active) {
+        allCycles = await evaluationService.getAllCycles();
+        active = allCycles.find((c) => c.status === 'open') || null;
+      }
+      setCurrentCycle(active);
+
+      // Ciclo de EXIBIÇÃO (dashboards): usa o ativo quando existe; senão, o
+      // mais recente (mesmo 'closed'), para o último ciclo seguir visível.
+      if (active) {
+        setDisplayCycle(active);
+      } else {
+        if (allCycles.length === 0) {
+          allCycles = await evaluationService.getAllCycles();
         }
+        const latest =
+          [...allCycles].sort(
+            (a, b) =>
+              new Date(b.created_at || b.start_date || 0).getTime() -
+              new Date(a.created_at || a.start_date || 0).getTime(),
+          )[0] || null;
+        setDisplayCycle(latest);
       }
     } catch (error) {
       console.error('Erro ao carregar ciclo atual:', error);
@@ -175,7 +208,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
       if (!data || data.length === 0) {
         toast('Nenhum dado encontrado para este ciclo', {
           icon: 'ℹ️',
-          duration: 3000
+          duration: 3000,
         });
       }
     } catch (error) {
@@ -204,11 +237,11 @@ export const useEvaluation = (): UseEvaluationReturn => {
   // Load subordinates
   const loadSubordinates = useCallback(async () => {
     if (!user?.id) return;
-    
+
     try {
       setLoading(true);
       const allUsers = await usersService.getAll();
-      const subs = allUsers.filter(u => u.reports_to === user.id);
+      const subs = allUsers.filter((u) => u.reports_to === user.id);
       setSubordinates(subs);
     } catch (error) {
       console.error('Erro ao carregar subordinados:', error);
@@ -219,124 +252,139 @@ export const useEvaluation = (): UseEvaluationReturn => {
   }, [user]);
 
   // Create new cycle
-  const createCycle = useCallback(async (cycle: Omit<EvaluationCycle, 'id' | 'created_at' | 'updated_at'>) => {
-    try {
-      setLoading(true);
-      const newCycle = await evaluationService.createCycle({
-        ...cycle,
-        created_by: user?.id || ''
-      });
-      toast.success('Ciclo de avaliação criado com sucesso!');
-      await loadAllCycles();
-    } catch (error: any) {
-      console.error('Erro ao criar ciclo:', error);
-      toast.error(error.message || 'Erro ao criar ciclo de avaliação');
-    } finally {
-      setLoading(false);
-    }
-  }, [user, loadAllCycles]);
+  const createCycle = useCallback(
+    async (cycle: Omit<EvaluationCycle, 'id' | 'created_at' | 'updated_at'>) => {
+      try {
+        setLoading(true);
+        const newCycle = await evaluationService.createCycle({
+          ...cycle,
+          created_by: user?.id || '',
+        });
+        toast.success('Ciclo de avaliação criado com sucesso!');
+        await loadAllCycles();
+      } catch (error: any) {
+        console.error('Erro ao criar ciclo:', error);
+        toast.error(error.message || 'Erro ao criar ciclo de avaliação');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user, loadAllCycles],
+  );
 
   // Open cycle
-  const openCycle = useCallback(async (cycleId: string) => {
-    try {
-      setLoading(true);
-      await evaluationService.openCycle(cycleId);
-      toast.success('Ciclo de avaliação aberto!');
-      await loadAllCycles();
-      await loadCurrentCycle();
-    } catch (error) {
-      console.error('Erro ao abrir ciclo:', error);
-      toast.error('Erro ao abrir ciclo de avaliação');
-    } finally {
-      setLoading(false);
-    }
-  }, [loadAllCycles, loadCurrentCycle]);
+  const openCycle = useCallback(
+    async (cycleId: string) => {
+      try {
+        setLoading(true);
+        await evaluationService.openCycle(cycleId);
+        toast.success('Ciclo de avaliação aberto!');
+        await loadAllCycles();
+        await loadCurrentCycle();
+      } catch (error) {
+        console.error('Erro ao abrir ciclo:', error);
+        toast.error('Erro ao abrir ciclo de avaliação');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loadAllCycles, loadCurrentCycle],
+  );
 
   // Close cycle
-  const closeCycle = useCallback(async (cycleId: string) => {
-    try {
-      setLoading(true);
-      await evaluationService.closeCycle(cycleId);
-      toast.success('Ciclo de avaliação encerrado!');
-      await loadAllCycles();
-      await loadCurrentCycle();
-    } catch (error) {
-      console.error('Erro ao fechar ciclo:', error);
-      toast.error('Erro ao fechar ciclo de avaliação');
-    } finally {
-      setLoading(false);
-    }
-  }, [loadAllCycles, loadCurrentCycle]);
+  const closeCycle = useCallback(
+    async (cycleId: string) => {
+      try {
+        setLoading(true);
+        await evaluationService.closeCycle(cycleId);
+        toast.success('Ciclo de avaliação encerrado!');
+        await loadAllCycles();
+        await loadCurrentCycle();
+      } catch (error) {
+        console.error('Erro ao fechar ciclo:', error);
+        toast.error('Erro ao fechar ciclo de avaliação');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loadAllCycles, loadCurrentCycle],
+  );
 
   // Save self evaluation
-  const saveSelfEvaluation = useCallback(async (data: {
-    cycleId: string;
-    employeeId: string;
-    competencies: EvaluationCompetency[];
-    toolkit?: {
-      knowledge?: string[];
-      tools?: string[];
-      strengths_internal?: string[];
-      qualities?: string[];
-    };
-  }) => {
-    try {
-      setLoading(true);
-      await evaluationService.saveSelfEvaluation(
-        data.cycleId,
-        data.employeeId,
-        data.competencies,
-        data.toolkit
-      );
-      toast.success('Autoavaliação salva com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao salvar autoavaliação:', error);
-      toast.error(error.message || 'Erro ao salvar autoavaliação');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const saveSelfEvaluation = useCallback(
+    async (data: {
+      cycleId: string;
+      employeeId: string;
+      competencies: EvaluationCompetency[];
+      toolkit?: {
+        knowledge?: string[];
+        tools?: string[];
+        strengths_internal?: string[];
+        qualities?: string[];
+      };
+    }) => {
+      try {
+        setLoading(true);
+        await evaluationService.saveSelfEvaluation(
+          data.cycleId,
+          data.employeeId,
+          data.competencies,
+          data.toolkit,
+        );
+        toast.success('Autoavaliação salva com sucesso!');
+      } catch (error: any) {
+        console.error('Erro ao salvar autoavaliação:', error);
+        toast.error(error.message || 'Erro ao salvar autoavaliação');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   // Save leader evaluation
-  const saveLeaderEvaluation = useCallback(async (data: {
-    cycleId: string;
-    employeeId: string;
-    evaluatorId: string;
-    competencies: EvaluationCompetency[];
-    potentialScore: number;
-    potentialDetails?: Record<string, { name: string; score: number }>;
-    feedback?: {
-      strengths_internal?: string;
-      improvements?: string;
-      observations?: string;
-    };
-    pdi?: {
-      goals: string[];
-      actions: string[];
-      resources?: string[];
-      timeline?: string;
-    };
-  }) => {
-    try {
-      setLoading(true);
-      await evaluationService.saveLeaderEvaluation(
-        data.cycleId,
-        data.employeeId,
-        data.evaluatorId,
-        data.competencies,
-        data.potentialScore,
-        data.feedback,
-        data.pdi,
-        data.potentialDetails
-      );
-      toast.success('Avaliação do líder salva com sucesso!');
-    } catch (error) {
-      console.error('Erro ao salvar avaliação:', error);
-      toast.error('Erro ao salvar avaliação do líder');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const saveLeaderEvaluation = useCallback(
+    async (data: {
+      cycleId: string;
+      employeeId: string;
+      evaluatorId: string;
+      competencies: EvaluationCompetency[];
+      potentialScore: number;
+      potentialDetails?: Record<string, { name: string; score: number }>;
+      feedback?: {
+        strengths_internal?: string;
+        improvements?: string;
+        observations?: string;
+      };
+      pdi?: {
+        goals: string[];
+        actions: string[];
+        resources?: string[];
+        timeline?: string;
+      };
+    }) => {
+      try {
+        setLoading(true);
+        await evaluationService.saveLeaderEvaluation(
+          data.cycleId,
+          data.employeeId,
+          data.evaluatorId,
+          data.competencies,
+          data.potentialScore,
+          data.feedback,
+          data.pdi,
+          data.potentialDetails,
+        );
+        toast.success('Avaliação do líder salva com sucesso!');
+      } catch (error) {
+        console.error('Erro ao salvar avaliação:', error);
+        toast.error('Erro ao salvar avaliação do líder');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   // Create consensus meeting
   const createConsensus = useCallback(async (data: Partial<ConsensusMeeting>) => {
@@ -353,72 +401,78 @@ export const useEvaluation = (): UseEvaluationReturn => {
   }, []);
 
   // Complete consensus
-  const completeConsensus = useCallback(async (
-    meetingId: string,
-    performanceScore: number,
-    potentialScore: number,
-    notes: string
-  ) => {
-    try {
-      setLoading(true);
-      await evaluationService.completeConsensusMeeting(
-        meetingId,
-        performanceScore,
-        potentialScore,
-        notes
-      );
-      toast.success('Consenso finalizado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao finalizar consenso:', error);
-      toast.error('Erro ao finalizar consenso');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const completeConsensus = useCallback(
+    async (meetingId: string, performanceScore: number, potentialScore: number, notes: string) => {
+      try {
+        setLoading(true);
+        await evaluationService.completeConsensusMeeting(
+          meetingId,
+          performanceScore,
+          potentialScore,
+          notes,
+        );
+        toast.success('Consenso finalizado com sucesso!');
+      } catch (error) {
+        console.error('Erro ao finalizar consenso:', error);
+        toast.error('Erro ao finalizar consenso');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   // Get employee evaluations (unified)
-  const getEmployeeEvaluations = useCallback(async (cycleId: string, employeeId: string): Promise<EvaluationExtended[]> => {
-    try {
-      return await evaluationService.getEmployeeEvaluations(cycleId, employeeId);
-    } catch (error) {
-      console.error('Erro ao buscar avaliações:', error);
-      return [];
-    }
-  }, []);
+  const getEmployeeEvaluations = useCallback(
+    async (cycleId: string, employeeId: string): Promise<EvaluationExtended[]> => {
+      try {
+        return await evaluationService.getEmployeeEvaluations(cycleId, employeeId);
+      } catch (error) {
+        console.error('Erro ao buscar avaliações:', error);
+        return [];
+      }
+    },
+    [],
+  );
 
   // Get self evaluations
-  const getSelfEvaluations = useCallback(async (employeeId: string, cycleId?: string): Promise<SelfEvaluation[]> => {
-    try {
-      return await evaluationService.getSelfEvaluations(employeeId, cycleId);
-    } catch (error) {
-      console.error('Erro ao buscar autoavaliações:', error);
-      return [];
-    }
-  }, []);
+  const getSelfEvaluations = useCallback(
+    async (employeeId: string, cycleId?: string): Promise<SelfEvaluation[]> => {
+      try {
+        return await evaluationService.getSelfEvaluations(employeeId, cycleId);
+      } catch (error) {
+        console.error('Erro ao buscar autoavaliações:', error);
+        return [];
+      }
+    },
+    [],
+  );
 
   // Get leader evaluations
-  const getLeaderEvaluations = useCallback(async (employeeId: string, cycleId?: string): Promise<LeaderEvaluation[]> => {
-    try {
-      return await evaluationService.getLeaderEvaluations(employeeId, cycleId);
-    } catch (error) {
-      console.error('Erro ao buscar avaliações de líder:', error);
-      return [];
-    }
-  }, []);
+  const getLeaderEvaluations = useCallback(
+    async (employeeId: string, cycleId?: string): Promise<LeaderEvaluation[]> => {
+      try {
+        return await evaluationService.getLeaderEvaluations(employeeId, cycleId);
+      } catch (error) {
+        console.error('Erro ao buscar avaliações de líder:', error);
+        return [];
+      }
+    },
+    [],
+  );
 
   // Check existing evaluation
-  const checkExistingEvaluation = useCallback(async (
-    cycleId: string,
-    employeeId: string,
-    type: 'self' | 'leader'
-  ): Promise<boolean> => {
-    try {
-      return await evaluationService.checkExistingEvaluation(cycleId, employeeId, type);
-    } catch (error) {
-      console.error('Erro ao verificar avaliação existente:', error);
-      return false;
-    }
-  }, []);
+  const checkExistingEvaluation = useCallback(
+    async (cycleId: string, employeeId: string, type: 'self' | 'leader'): Promise<boolean> => {
+      try {
+        return await evaluationService.checkExistingEvaluation(cycleId, employeeId, type);
+      } catch (error) {
+        console.error('Erro ao verificar avaliação existente:', error);
+        return false;
+      }
+    },
+    [],
+  );
 
   // Add getNineBoxByEmployeeId
   const getNineBoxByEmployeeId = (employeeId: string) => {
@@ -462,7 +516,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
               comoDesenvolver: item.comoDesenvolver || '',
               resultadosEsperados: item.resultadosEsperados || '',
               status: item.status || '1',
-              observacao: item.observacao || ''
+              observacao: item.observacao || '',
             };
 
             // Distribuir nos prazos corretos
@@ -485,25 +539,35 @@ export const useEvaluation = (): UseEvaluationReturn => {
         else if (pdiDataFromApi.goals && Array.isArray(pdiDataFromApi.goals)) {
           pdiDataFromApi.goals.forEach((goal: string, index: number) => {
             const action = pdiDataFromApi.actions?.[index] || '';
-            
+
             // Extrair competência e resultados esperados do goal
             const competenciaMatch = goal.match(/Competência: (.+?)\. Resultados Esperados: (.+)/);
             const competencia = competenciaMatch?.[1] || goal.split('.')[0] || 'N/A';
             const resultadosEsperados = competenciaMatch?.[2] || goal.split('.')[1] || 'N/A';
-            
+
             // Extrair como desenvolver, prazo, status e observação do action
             // Tentar diferentes formatos de regex
-            let actionMatch = action.match(/Como desenvolver: (.+?) \(Prazo: (.+?), Status: (.+?), Observação: (.+?)\)\./);
+            let actionMatch = action.match(
+              /Como desenvolver: (.+?) \(Prazo: (.+?), Status: (.+?), Observação: (.+?)\)\./,
+            );
             if (!actionMatch) {
               // Tentar sem o ponto final
-              actionMatch = action.match(/Como desenvolver: (.+?) \(Prazo: (.+?), Status: (.+?), Observação: (.+?)\)/);
+              actionMatch = action.match(
+                /Como desenvolver: (.+?) \(Prazo: (.+?), Status: (.+?), Observação: (.+?)\)/,
+              );
             }
-            
-            const comoDesenvolver = actionMatch?.[1] || action.replace(/Como desenvolver: /, '').split('(')[0].trim() || 'N/A';
+
+            const comoDesenvolver =
+              actionMatch?.[1] ||
+              action
+                .replace(/Como desenvolver: /, '')
+                .split('(')[0]
+                .trim() ||
+              'N/A';
             const calendarizacao = actionMatch?.[2] || 'N/A';
             const status = (actionMatch?.[3] || '1') as '1' | '2' | '3' | '4' | '5';
             const observacao = actionMatch?.[4] || 'N/A';
-            
+
             const actionItem: ActionItem = {
               id: `item-${index}-${Date.now()}`,
               competencia,
@@ -533,7 +597,9 @@ export const useEvaluation = (): UseEvaluationReturn => {
           colaborador: '', // Será preenchido no componente
           cargo: '', // Será preenchido no componente
           departamento: '', // Será preenchido no componente
-          periodo: pdiDataFromApi.timeline || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
+          periodo:
+            pdiDataFromApi.timeline ||
+            `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
           curtosPrazos,
           mediosPrazos,
           longosPrazos,
@@ -579,7 +645,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
           name: comp.name,
           description: comp.description,
           category: 'deliveries' as const,
-          position: comp.position
+          position: comp.position,
         }));
         setDeliveriesCriteria(mappedDeliveries);
       } else {
@@ -612,6 +678,7 @@ export const useEvaluation = (): UseEvaluationReturn => {
     loading,
     cyclesLoading,
     currentCycle,
+    displayCycle,
     cycles,
     dashboard,
     employees,
