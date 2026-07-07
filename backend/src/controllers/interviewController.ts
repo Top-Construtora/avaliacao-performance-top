@@ -114,7 +114,10 @@ export const interviewController = {
 
       if (error) throw error;
 
-      // Notificar apenas o entrevistador (o colaborador entrevistado NÃO é notificado)
+      // Notifica os envolvidos na entrevista: entrevistador, colaborador
+      // entrevistado e quem criou/agendou. O notificationService remove o
+      // actor (quem disparou a ação) da lista de destinatários, então quem
+      // agenda não é notificado da própria entrevista que criou.
       const notifType = type === 'exit' ? 'interview_exit_scheduled' : 'interview_90day_scheduled';
       const notifTitle =
         type === 'exit' ? 'Entrevista de desligamento agendada' : 'Entrevista de 90 dias agendada';
@@ -125,7 +128,11 @@ export const interviewController = {
           type: notifType,
           title: notifTitle,
           message: `Uma entrevista foi agendada${dateStr ? ` para ${dateStr}` : ''}.`,
-          targets: [{ type: 'user', user_id: interviewer_id }],
+          targets: [
+            { type: 'user', user_id: interviewer_id },
+            { type: 'user', user_id: employee_id },
+            { type: 'user', user_id: data?.created_by || undefined },
+          ],
           actor_id: req.user?.id,
           priority: type === 'exit' ? 'high' : 'medium',
           action_url: `/interviews/${data?.id}`,
@@ -324,6 +331,18 @@ export const interviewController = {
       const { error } = await supabaseAdmin.from('interviews').delete().eq('id', id);
 
       if (error) throw error;
+
+      // entity_id não é FK no banco, então não há cascade: removemos aqui as
+      // notificações dessa entrevista para não deixar registros órfãos
+      // (notificação apontando para uma entrevista que não existe mais).
+      const { error: notifCleanupError } = await supabaseAdmin
+        .from('notifications')
+        .delete()
+        .eq('entity_type', 'interview')
+        .eq('entity_id', id);
+      if (notifCleanupError) {
+        console.error('Falha ao limpar notificações da entrevista:', notifCleanupError.message);
+      }
 
       res.json({ success: true, message: 'Entrevista excluída com sucesso' });
     } catch (error) {
