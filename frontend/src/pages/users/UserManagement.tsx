@@ -47,7 +47,7 @@ import {
 } from '../../hooks/usePermissions';
 import { useAuth } from '../../context/AuthContext';
 import type { User } from '../../types/supabase';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
   PermissionGuard,

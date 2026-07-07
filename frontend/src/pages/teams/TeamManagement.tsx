@@ -33,7 +33,7 @@ import {
   useUIPermissions,
   useOperationValidator,
 } from '../../hooks/usePermissions';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
   PermissionGuard,
