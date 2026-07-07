@@ -385,6 +385,15 @@ export const evaluationService = {
   // ====================================
 
   /**
+   * Salva uma avaliação de consenso (Comitê de Gente) via backend.
+   * Antes era um insert direto no Supabase com a anon key (achado H6).
+   */
+  async saveConsensusEvaluation(data: any): Promise<any> {
+    const response = await api.post('/evaluations/consensus-evaluation', data);
+    return response.data || response;
+  },
+
+  /**
    * Promove um colaborador para um quadrante de potencial superior no Nine Box
    * @param consensusId - ID da avaliação de consenso
    * @param promotedPotentialQuadrant - Quadrante de destino (1=Baixo, 2=Médio, 3=Alto)

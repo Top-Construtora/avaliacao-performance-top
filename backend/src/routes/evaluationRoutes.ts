@@ -68,6 +68,7 @@ router.put('/pdi/:pdiId', evaluationController.updatePDI);
 // ====================================
 // ROTAS DE PROMOÇÃO NINE BOX
 // ====================================
+router.post('/consensus-evaluation', requireDirector, evaluationController.createConsensus);
 router.put(
   '/consensus/:consensusId/promote',
   requireDirector,

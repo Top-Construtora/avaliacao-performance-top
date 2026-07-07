@@ -540,6 +540,18 @@ export const evaluationController = {
     }
   },
 
+  // Criar avaliação de consenso (Comitê de Gente)
+  async createConsensus(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const consensus = await evaluationService.createConsensus(authReq.supabase, req.body);
+      res.status(201).json({ success: true, data: consensus });
+    } catch (error) {
+      console.error('Controller error:', error);
+      next(error);
+    }
+  },
+
   // Promover quadrante no Nine Box
   async promoteNineBoxQuadrant(req: Request, res: Response, next: NextFunction) {
     try {
