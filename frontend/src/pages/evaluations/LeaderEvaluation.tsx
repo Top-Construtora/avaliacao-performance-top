@@ -13,6 +13,7 @@ import { AlertCircle, CheckCircle, ArrowRight, BookOpen, Target, Award, Info } f
 import Button from '../../components/Button';
 import { motion } from 'framer-motion';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { formatDateBR } from '../../utils/date';
 
 // Define SectionProps interface for type consistency
 interface CompetencyItem {
@@ -788,13 +789,13 @@ const LeaderEvaluation = () => {
     if (today < startDate) {
       return {
         type: 'warning',
-        message: `O período de avaliação iniciará em ${startDate.toLocaleDateString('pt-BR')}`,
+        message: `O período de avaliação iniciará em ${formatDateBR(currentCycle.start_date)}`,
       };
     }
     if (today > endDate) {
       return {
         type: 'error',
-        message: `O período de avaliação encerrou em ${endDate.toLocaleDateString('pt-BR')}`,
+        message: `O período de avaliação encerrou em ${formatDateBR(currentCycle.end_date)}`,
       };
     }
     const daysRemaining = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -857,8 +858,7 @@ const LeaderEvaluation = () => {
                 {existingEvaluationData && (
                   <span className="block mt-1 font-medium">
                     Nota Final: {existingEvaluationData.final_score?.toFixed(1) || 'N/A'} | Avaliado
-                    em:{' '}
-                    {new Date(existingEvaluationData.evaluation_date).toLocaleDateString('pt-BR')}
+                    em: {formatDateBR(existingEvaluationData.evaluation_date)}
                   </span>
                 )}
               </p>

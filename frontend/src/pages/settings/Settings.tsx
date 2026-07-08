@@ -26,6 +26,7 @@ import {
   FileText,
   BadgeCheck,
 } from 'lucide-react';
+import { formatDateBR } from '../../utils/date';
 
 type SettingSection = 'profile' | 'preferences' | 'security';
 
@@ -122,7 +123,7 @@ const Settings = () => {
 
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return null;
-    return new Date(dateStr).toLocaleDateString('pt-BR');
+    return formatDateBR(dateStr);
   };
 
   // Handlers

@@ -24,6 +24,7 @@ import { useEvaluation } from '../../hooks/useEvaluation';
 import { useUserRole } from '../../context/AuthContext';
 import type { EvaluationCycle } from '../../types/evaluation.types';
 import Button from '../../components/Button';
+import { formatDateBR } from '../../utils/date';
 
 const CycleManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -177,9 +178,9 @@ const CycleManagement: React.FC = () => {
     };
   };
 
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
+  // Delega para o helper que trata datas date-only sem o deslocamento de fuso
+  // (evita que 2026-07-01 seja exibido como 30/06/2026 em UTC-3).
+  const formatDate = (dateString: string): string => formatDateBR(dateString);
 
   const getDaysRemaining = (endDate: string): number => {
     const now = new Date();

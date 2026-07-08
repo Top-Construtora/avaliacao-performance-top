@@ -13,6 +13,7 @@ import {
 import { evaluationService } from '../services/evaluation.service';
 import { EvaluationHistory } from '../types/evaluation.types';
 import { User } from '../types/supabase';
+import { formatDateBR } from '../utils/date';
 
 interface UserSalaryAssignmentProps {
   user: User;
@@ -149,7 +150,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('pt-BR');
+    return formatDateBR(date);
   };
 
   if (!isOpen) return null;
@@ -368,7 +369,7 @@ const UserSalaryAssignment = ({ user, isOpen, onClose, onUpdate }: UserSalaryAss
                         Nível {hist.from_level?.name || '—'} → Nível {hist.to_level?.name || '—'}
                       </p>
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <span>{new Date(hist.progression_date).toLocaleDateString('pt-BR')}</span>
+                        <span>{formatDateBR(hist.progression_date)}</span>
                         <span>
                           {hist.from_salary ? formatCurrency(hist.from_salary) : 'N/A'} →{' '}
                           {hist.to_salary ? formatCurrency(hist.to_salary) : 'N/A'}

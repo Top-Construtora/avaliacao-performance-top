@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { interviewService, Interview } from '../../services/interview.service';
 import { useAuth } from '../../context/AuthContext';
+import { formatDateBR } from '../../utils/date';
 
 type TabFilter = 'all' | 'ninety_days' | 'exit';
 type StatusFilter = 'all' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
@@ -307,7 +308,7 @@ const InterviewList = () => {
                     <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <span>
                       {interview.scheduled_date
-                        ? new Date(interview.scheduled_date).toLocaleDateString('pt-BR')
+                        ? formatDateBR(interview.scheduled_date)
                         : 'Sem data'}
                     </span>
                   </div>
