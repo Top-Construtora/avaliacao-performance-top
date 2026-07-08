@@ -32,7 +32,7 @@ export const competencyController = {
       if (!data) {
         return res.status(404).json({
           success: false,
-          error: 'Competência não encontrada'
+          error: 'Competência não encontrada',
         });
       }
 
@@ -49,13 +49,26 @@ export const competencyController = {
       if (!name) {
         return res.status(400).json({
           success: false,
-          error: 'Nome é obrigatório'
+          error: 'Nome é obrigatório',
         });
+      }
+
+      // `position` é NOT NULL no banco. Se o cliente não enviar, calcula o
+      // próximo valor (max(position) + 1) para não violar a constraint.
+      let resolvedPosition = position;
+      if (resolvedPosition === undefined || resolvedPosition === null) {
+        const { data: last } = await req.supabase
+          .from('organizational_competencies')
+          .select('position')
+          .order('position', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        resolvedPosition = ((last?.position ?? 0) as number) + 1;
       }
 
       const { data, error } = await req.supabase
         .from('organizational_competencies')
-        .insert([{ name, description, is_active, position }])
+        .insert([{ name, description, is_active, position: resolvedPosition }])
         .select()
         .single();
 
@@ -84,7 +97,7 @@ export const competencyController = {
       if (!data) {
         return res.status(404).json({
           success: false,
-          error: 'Competência não encontrada'
+          error: 'Competência não encontrada',
         });
       }
 
@@ -109,5 +122,5 @@ export const competencyController = {
     } catch (error) {
       next(error);
     }
-  }
+  },
 };

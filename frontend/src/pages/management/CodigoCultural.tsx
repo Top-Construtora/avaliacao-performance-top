@@ -123,13 +123,18 @@ const CodigoCultural = () => {
         await competencyService.updateOrganizationalCompetency(editingId, {
           name: formData.name,
           description: formData.description,
+          position: formData.position,
+          is_active: formData.is_active,
         });
         toast.success('Competência atualizada com sucesso!');
       } else {
-        // Criar nova
+        // Criar nova. `position` e `is_active` são obrigatórios no banco
+        // (position é NOT NULL) — enviar sempre para não gerar erro 500.
         await competencyService.createOrganizationalCompetency({
           name: formData.name,
           description: formData.description,
+          position: formData.position ?? competencies.length + 1,
+          is_active: formData.is_active ?? true,
         });
         toast.success('Competência criada com sucesso!');
       }

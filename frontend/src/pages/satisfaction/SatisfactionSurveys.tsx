@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { satisfactionService, SatisfactionSurvey } from '../../services/satisfaction.service';
 import { useUserRole } from '../../context/AuthContext';
+import { formatDateBR } from '../../utils/date';
 
 const statusConfig = {
   draft: { label: 'Rascunho', color: 'bg-warning/15 text-warning', icon: FileText },
@@ -278,8 +279,7 @@ const SatisfactionSurveys = () => {
                     <p className="text-sm text-muted-foreground">
                       {survey.question_count || 0} perguntas • {survey.response_count || 0}{' '}
                       respostas
-                      {survey.end_date &&
-                        ` • Até ${new Date(survey.end_date).toLocaleDateString('pt-BR')}`}
+                      {survey.end_date && ` • Até ${formatDateBR(survey.end_date)}`}
                     </p>
                   </div>
 

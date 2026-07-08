@@ -29,6 +29,7 @@ import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 import { EVALUATION_COMPETENCIES } from '../../types/evaluation.types';
 import { evaluationService } from '../../services/evaluation.service';
+import { formatDateBR } from '../../utils/date';
 
 interface SelfEvaluationData {
   conhecimentos: string[];
@@ -568,14 +569,14 @@ const SelfEvaluation = () => {
     if (today < startDate) {
       return {
         type: 'warning',
-        message: `O período de avaliação iniciará em ${startDate.toLocaleDateString('pt-BR')}`,
+        message: `O período de avaliação iniciará em ${formatDateBR(currentCycle.start_date)}`,
       };
     }
 
     if (today > endDate) {
       return {
         type: 'error',
-        message: `O período de avaliação encerrou em ${endDate.toLocaleDateString('pt-BR')}`,
+        message: `O período de avaliação encerrou em ${formatDateBR(currentCycle.end_date)}`,
       };
     }
 
@@ -609,8 +610,8 @@ const SelfEvaluation = () => {
               <strong>Ciclo:</strong> {currentCycle.title}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Período: {new Date(currentCycle.start_date).toLocaleDateString('pt-BR')} -{' '}
-              {new Date(currentCycle.end_date).toLocaleDateString('pt-BR')}
+              Período: {formatDateBR(currentCycle.start_date)} -{' '}
+              {formatDateBR(currentCycle.end_date)}
             </p>
           </div>
         )}
@@ -1214,8 +1215,7 @@ const SelfEvaluation = () => {
               </p>
               {currentCycle && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Ciclo: {currentCycle.title} | Prazo:{' '}
-                  {new Date(currentCycle.end_date).toLocaleDateString('pt-BR')}
+                  Ciclo: {currentCycle.title} | Prazo: {formatDateBR(currentCycle.end_date)}
                 </p>
               )}
             </div>
@@ -1394,8 +1394,7 @@ const SelfEvaluation = () => {
                     </span>
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    Avaliado em:{' '}
-                    {new Date(existingEvaluationData.evaluation_date).toLocaleDateString('pt-BR')}
+                    Avaliado em: {formatDateBR(existingEvaluationData.evaluation_date)}
                   </span>
                 </div>
               )}

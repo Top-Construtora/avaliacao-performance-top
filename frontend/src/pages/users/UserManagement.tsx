@@ -24,6 +24,7 @@ import {
   Grid3x3,
   List,
   FileSpreadsheet,
+  FileDown,
   DollarSign,
   Database,
   UsersIcon,
@@ -56,6 +57,7 @@ import {
   OperationWarning,
 } from '../../components/PermissionGuard';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { formatDateBR } from '../../utils/date';
 
 type ViewMode = 'grid' | 'list';
 type ExportFormat = 'excel' | 'notion' | 'pdf';
@@ -258,13 +260,9 @@ const UserManagement = () => {
       Salário: user.current_salary
         ? `R$ ${user.current_salary.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
         : '-',
-      'Data de Admissão': user.join_date
-        ? new Date(user.join_date).toLocaleDateString('pt-BR')
-        : '-',
+      'Data de Admissão': user.join_date ? formatDateBR(user.join_date) : '-',
       Telefone: uiPermissions.showFullContactInfo ? user.phone || '-' : '***',
-      'Data de Nascimento': user.birth_date
-        ? new Date(user.birth_date).toLocaleDateString('pt-BR')
-        : '-',
+      'Data de Nascimento': user.birth_date ? formatDateBR(user.birth_date) : '-',
       Idade: user.birth_date ? calculateAge(user.birth_date) : '-',
       Status: user.active !== false ? 'Ativo' : 'Inativo',
     }));
@@ -406,7 +404,7 @@ const UserManagement = () => {
       user.email,
       user.position,
       user.is_director ? 'Diretor' : user.is_leader ? 'Avaliador' : 'Avaliado',
-      new Date(user.join_date).toLocaleDateString('pt-BR'),
+      formatDateBR(user.join_date),
     ]);
 
     doc.setFontSize(16);
@@ -718,7 +716,7 @@ const UserManagement = () => {
               <Calendar className="h-4 w-4 mr-3 text-muted-foreground" />
               <span className="text-sm">
                 Desde{' '}
-                {new Date(user.join_date).toLocaleDateString('pt-BR', {
+                {formatDateBR(user.join_date, {
                   month: 'short',
                   year: 'numeric',
                 })}
@@ -1098,10 +1096,7 @@ const UserManagement = () => {
                         <div className="flex items-center space-x-3">
                           <div className="text-right">
                             <p className="text-xs text-muted-foreground">
-                              Admissão:{' '}
-                              {new Date(user.admission_date || user.join_date!).toLocaleDateString(
-                                'pt-BR',
-                              )}
+                              Admissão: {formatDateBR(user.admission_date || user.join_date)}
                             </p>
                             <p
                               className={`text-xs font-semibold ${
@@ -1396,6 +1391,17 @@ const UserManagement = () => {
                     <div className="flex-1">
                       <p className="font-semibold">Excel</p>
                       <p className="text-xs text-success">Arquivo .xlsx para análises</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleExport('pdf')}
+                    className="w-full p-4 bg-destructive/10 hover:bg-destructive/20 rounded-xl border border-destructive/30 text-destructive font-medium text-left flex items-center space-x-3 transition-all"
+                  >
+                    <FileDown className="h-5 w-5" />
+                    <div className="flex-1">
+                      <p className="font-semibold">PDF</p>
+                      <p className="text-xs text-muted-foreground">Documento para impressão</p>
                     </div>
                   </button>
                 </div>
