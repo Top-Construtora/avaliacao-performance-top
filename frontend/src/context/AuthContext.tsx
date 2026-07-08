@@ -72,6 +72,31 @@ export const useUserRole = (): UserRole => {
   };
 };
 
+// Bootstrap do perfil do usuário logado.
+//
+// Lê da VIEW `users_safe` direto no Supabase, em vez de bater no backend
+// (Render). Motivo: o backend hiberna no plano free e o cold start (30-60s)
+// estourava o timeout de 5s do checkAuth, jogando o usuário de volta pra tela
+// de login logo após autenticar — especialmente no fluxo OAuth/Microsoft, cujo
+// perfil é buscado no retorno do redirect. O Supabase nunca hiberna, então o
+// login deixa de depender do estado do Render.
+//
+// `users_safe` é SECURITY DEFINER e liberada a `authenticated` (o canal de
+// leitura sancionado pela segurança — a tabela `users` está trancada por RLS,
+// ver migration 20260706150100). Espelha todas as colunas de `users`; para o
+// próprio usuário o cargo NÃO é mascarado (auth.uid() = id). As demais leituras
+// (outros usuários, dropdowns) e as mutações continuam no backend.
+async function fetchOwnProfile(userId: string): Promise<User | null> {
+  const { data, error } = await supabase.from('users_safe').select('*').eq('id', userId).single();
+
+  if (error) {
+    console.error('❌ Erro ao buscar perfil (users_safe):', error.message);
+    return null;
+  }
+
+  return (data as User) ?? null;
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<User | null>(null);
@@ -146,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const fetchProfile = async () => {
           try {
-            const profileData = await userService.getUserById(session.user.id);
+            const profileData = await fetchOwnProfile(session.user.id);
 
             if (profileData) {
               // Verifica se o usuário está ativo
@@ -247,7 +272,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('access_token', validSession.access_token);
 
       try {
-        const profileData = await userService.getUserById(validSession.user.id);
+        const profileData = await fetchOwnProfile(validSession.user.id);
 
         if (profileData) {
           if (!profileData.active) {
@@ -331,7 +356,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Busca o perfil do usuário usando a API
       let profileData: User | null = null;
       try {
-        profileData = await userService.getUserById(data.user.id);
+        profileData = await fetchOwnProfile(data.user.id);
       } catch (error) {
         console.error('❌ Erro ao buscar perfil:', error);
         toast.error('Erro ao buscar perfil do usuário');
