@@ -21,6 +21,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { recruitmentService, JobOpening } from '../../services/recruitment.service';
+import { formatDateBR } from '../../utils/date';
 
 const candidateStatusConfig: Record<string, { label: string; color: string }> = {
   received: { label: 'Recebido', color: 'bg-secondary text-muted-foreground' },
@@ -314,7 +315,7 @@ const RecruitmentView = () => {
                   opening.brief_expected_start ? (
                     <span className="inline-flex items-center gap-1">
                       <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                      {new Date(opening.brief_expected_start).toLocaleDateString('pt-BR')}
+                      {formatDateBR(opening.brief_expected_start)}
                     </span>
                   ) : null
                 }

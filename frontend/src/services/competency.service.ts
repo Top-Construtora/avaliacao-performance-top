@@ -4,6 +4,8 @@ export interface OrganizationalCompetency {
   id: string;
   name: string;
   description: string | null;
+  position: number;
+  is_active: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -37,13 +39,18 @@ export const competencyService = {
   },
 
   // Criar competência
-  async createOrganizationalCompetency(data: Omit<OrganizationalCompetency, 'id' | 'created_at' | 'updated_at'>): Promise<OrganizationalCompetency> {
+  async createOrganizationalCompetency(
+    data: Omit<OrganizationalCompetency, 'id' | 'created_at' | 'updated_at'>,
+  ): Promise<OrganizationalCompetency> {
     const response = await api.post('/competencies/organizational', data);
     return response.data || response;
   },
 
   // Atualizar competência
-  async updateOrganizationalCompetency(id: string, data: Partial<OrganizationalCompetency>): Promise<OrganizationalCompetency> {
+  async updateOrganizationalCompetency(
+    id: string,
+    data: Partial<OrganizationalCompetency>,
+  ): Promise<OrganizationalCompetency> {
     const response = await api.put(`/competencies/organizational/${id}`, data);
     return response.data || response;
   },

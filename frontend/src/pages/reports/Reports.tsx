@@ -26,6 +26,7 @@ import type { Department, UserWithDetails, Team } from '../../types/supabase';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { CycleDashboard, EvaluationCycle } from '../../types/evaluation.types';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { formatDateBR } from '../../utils/date';
 
 const Reports = () => {
   const { currentCycle, loadCurrentCycle, loading: evaluationLoading } = useEvaluation();
@@ -582,9 +583,9 @@ const Reports = () => {
           'Time(s)': teamNames,
           Líder: user.manager?.name || '-',
           'Data Admissão': user.admission_date
-            ? new Date(user.admission_date).toLocaleDateString('pt-BR')
+            ? formatDateBR(user.admission_date)
             : user.join_date
-              ? new Date(user.join_date).toLocaleDateString('pt-BR')
+              ? formatDateBR(user.join_date)
               : '-',
           'Tipo Contrato': user.contract_type || '-',
           Ativo: user.active ? 'Sim' : 'Não',
@@ -1118,14 +1119,19 @@ const Reports = () => {
               Exporta nome, cargo, departamento, email, status e notas de cada etapa (autoavaliação,
               líder, consenso) e posição Nine Box.
             </p>
-            <Button
-              variant="primary"
-              onClick={exportEvaluationsExcel}
-              icon={<Download size={16} />}
-              size="sm"
-            >
-              Baixar Excel
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="primary"
+                onClick={exportEvaluationsExcel}
+                icon={<Download size={16} />}
+                size="sm"
+              >
+                Baixar Excel
+              </Button>
+              <Button variant="outline" onClick={exportPDF} icon={<FileDown size={16} />} size="sm">
+                Baixar PDF
+              </Button>
+            </div>
           </div>
 
           {/* Relatório de Colaboradores */}

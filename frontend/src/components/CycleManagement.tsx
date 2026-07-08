@@ -18,8 +18,7 @@ import {
 } from 'lucide-react';
 // Date utilities
 const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('pt-BR');
+  return formatDateBR(dateString);
 };
 
 const isAfter = (date1: Date, date2: Date): boolean => {
@@ -33,6 +32,7 @@ import toast from 'react-hot-toast';
 import { useEvaluation } from '../hooks/useEvaluation';
 import { useUserRole } from '../context/AuthContext';
 import type { EvaluationCycle } from '../types/evaluation.types';
+import { formatDateBR } from '../utils/date';
 
 const CycleManagement: React.FC = () => {
   const { cycles, currentCycle, loading, createCycle, openCycle, closeCycle } = useEvaluation();

@@ -14,6 +14,7 @@ import {
   Download,
   FileText,
   FileSpreadsheet,
+  Layers,
 } from 'lucide-react';
 
 // Importações corretas dos serviços
@@ -21,7 +22,7 @@ import Button from '../../components/Button';
 import { RoleGuard } from '../../components/RoleGuard';
 import { useAuth } from '../../context/AuthContext';
 import { departmentsService } from '../../services/departments.service';
-import { salaryService, CareerTrack } from '../../services/salary.service';
+import { salaryService, CareerTrack, SalaryClass } from '../../services/salary.service';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 // Interface para Department estendida com active
@@ -47,6 +48,8 @@ const SalaryAdminPage = () => {
   const [showCreateTrackModal, setShowCreateTrackModal] = useState(false);
   const [exportingTrack, setExportingTrack] = useState<string | null>(null);
   const [showExportMenu, setShowExportMenu] = useState<string | null>(null);
+  const [salaryClasses, setSalaryClasses] = useState<SalaryClass[]>([]);
+  const [showClassesModal, setShowClassesModal] = useState(false);
 
   // Verificar se o usuário tem permissão para acessar esta página
   useEffect(() => {
@@ -121,6 +124,15 @@ const SalaryAdminPage = () => {
         }
 
         tracksData = [];
+      }
+
+      // Buscar classes salariais (dado de referência gerenciável nesta tela)
+      try {
+        const classesResponse = await salaryService.getClasses();
+        setSalaryClasses(Array.isArray(classesResponse) ? classesResponse : []);
+      } catch (error) {
+        console.error('Erro ao carregar classes salariais:', error);
+        setSalaryClasses([]);
       }
 
       setTracks(tracksData);
@@ -198,6 +210,35 @@ const SalaryAdminPage = () => {
     }
   };
 
+  const handleCreateClass = async (data: { code: string; name: string; description: string }) => {
+    try {
+      const newClass = await salaryService.createClass({
+        code: data.code,
+        name: data.name,
+        description: data.description || '',
+        order_index: salaryClasses.length + 1,
+        active: true,
+      });
+      setSalaryClasses((prev) => [...prev, newClass]);
+      toast.success('Classe salarial criada com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao criar classe salarial:', error);
+      toast.error(error?.message || 'Erro ao criar classe salarial.');
+    }
+  };
+
+  const handleDeleteClass = async (id: string) => {
+    if (!window.confirm('Tem certeza que deseja excluir esta classe salarial?')) return;
+    try {
+      await salaryService.deleteClass(id);
+      setSalaryClasses((prev) => prev.filter((c) => c.id !== id));
+      toast.success('Classe salarial excluída com sucesso.');
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao excluir. Verifique se não há cargos usando esta classe.');
+    }
+  };
+
   const handleExportPDF = async (trackId: string, trackName: string) => {
     setExportingTrack(trackId);
     setShowExportMenu(null);
@@ -251,6 +292,10 @@ const SalaryAdminPage = () => {
                 </p>
               </div>
               <div className="flex gap-3">
+                <Button variant="secondary" onClick={() => setShowClassesModal(true)}>
+                  <Layers className="h-4 w-4 mr-2" />
+                  Gerenciar Classes
+                </Button>
                 <Button onClick={() => setShowCreateTrackModal(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Criar Nova Trilha
@@ -391,6 +436,18 @@ const SalaryAdminPage = () => {
               />
             )}
           </AnimatePresence>
+
+          {/* --- Modal de Gestão de Classes Salariais --- */}
+          <AnimatePresence>
+            {showClassesModal && (
+              <ManageClassesModal
+                classes={salaryClasses}
+                onCreate={handleCreateClass}
+                onDelete={handleDeleteClass}
+                onClose={() => setShowClassesModal(false)}
+              />
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </RoleGuard>
@@ -513,6 +570,141 @@ const CreateTrackModal = ({ departments, onSave, onClose }: CreateTrackModalProp
             <Save className="h-4 w-4 mr-2" />
             Salvar e Continuar
           </Button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// --- Componente do Modal para Gerenciar Classes Salariais ---
+interface ManageClassesModalProps {
+  classes: SalaryClass[];
+  onCreate: (data: { code: string; name: string; description: string }) => Promise<void>;
+  onDelete: (id: string) => void;
+  onClose: () => void;
+}
+
+const ManageClassesModal = ({ classes, onCreate, onDelete, onClose }: ManageClassesModalProps) => {
+  const [form, setForm] = useState({ code: '', name: '', description: '' });
+  const [saving, setSaving] = useState(false);
+
+  const handleAdd = async () => {
+    if (!form.code.trim() || !form.name.trim()) {
+      toast.error('Preencha o código e o nome da classe.');
+      return;
+    }
+    setSaving(true);
+    try {
+      await onCreate(form);
+      setForm({ code: '', name: '', description: '' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-popover text-popover-foreground border border-border rounded-xl shadow-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <Layers className="h-5 w-5 text-lime-deep dark:text-lime" />
+            Classes Salariais
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Lista de classes existentes */}
+        <div className="space-y-2 mb-6">
+          {classes.length > 0 ? (
+            classes.map((cls) => (
+              <div
+                key={cls.id}
+                className="flex items-center justify-between bg-secondary rounded-lg px-3 py-2 border border-border"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {cls.code} — {cls.name}
+                  </p>
+                  {cls.description && (
+                    <p className="text-xs text-muted-foreground">{cls.description}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => onDelete(cls.id)}
+                  className="text-muted-foreground hover:text-destructive transition-colors"
+                  title="Excluir classe"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Nenhuma classe salarial cadastrada ainda.
+            </p>
+          )}
+        </div>
+
+        {/* Formulário de nova classe */}
+        <div className="border-t border-border pt-4 space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">Nova Classe</h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-1">
+              <label className="block text-xs font-medium text-foreground mb-1">Código *</label>
+              <input
+                type="text"
+                value={form.code}
+                onChange={(e) => setForm((p) => ({ ...p, code: e.target.value }))}
+                className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-lg focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background"
+                placeholder="Ex: C1"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs font-medium text-foreground mb-1">Nome *</label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-lg focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background"
+                placeholder="Ex: Classe I"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-foreground mb-1">
+              Descrição (opcional)
+            </label>
+            <input
+              type="text"
+              value={form.description}
+              onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+              className="w-full px-3 py-2 border border-border bg-secondary text-foreground placeholder:text-muted-foreground rounded-lg focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background"
+              placeholder="Breve descrição da classe"
+            />
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={handleAdd} disabled={saving || !form.code.trim() || !form.name.trim()}>
+              <Plus className="h-4 w-4 mr-2" />
+              {saving ? 'Adicionando...' : 'Adicionar Classe'}
+            </Button>
+          </div>
         </div>
       </motion.div>
     </motion.div>

@@ -32,6 +32,7 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react';
+import { formatDateBR } from '../../utils/date';
 
 interface ScoreMap {
   [key: string]: number;
@@ -1251,7 +1252,7 @@ const Consensus = () => {
                   Data:{' '}
                   <strong className="ml-1">
                     {existingConsensusData?.evaluation_date
-                      ? new Date(existingConsensusData.evaluation_date).toLocaleDateString('pt-BR')
+                      ? formatDateBR(existingConsensusData.evaluation_date)
                       : 'N/A'}
                   </strong>
                 </span>

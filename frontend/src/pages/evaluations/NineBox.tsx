@@ -29,6 +29,7 @@ import { evaluationService } from '../../services/evaluation.service';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import UserSalaryAssignment from '../../components/UserSalaryAssignment';
+import { formatDateBR } from '../../utils/date';
 
 interface MatrixConfig {
   bgColor: string;
@@ -664,8 +665,7 @@ const NineBoxMatrix = () => {
   // Formatar data de admissão
   const formatJoinDate = (date: string | null | undefined) => {
     if (!date) return '-';
-    const dateObj = new Date(date);
-    return dateObj.toLocaleDateString('pt-BR', {
+    return formatDateBR(date, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

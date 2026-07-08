@@ -16,6 +16,7 @@ import {
 import type { EvaluationCycle } from '../types/evaluation.types';
 import type { UserWithDetails } from '../types/supabase';
 import { useEvaluation } from '../hooks/useEvaluation'; // Import useEvaluation to get getNineBoxByEmployeeId
+import { formatDateBR } from '../utils/date';
 
 interface LeaderEvaluationHeaderProps {
   currentStep: number;
@@ -143,8 +144,7 @@ const LeaderEvaluationHeader: React.FC<LeaderEvaluationHeaderProps> = ({
             </p>
             {currentCycle && (
               <p className="text-xs text-muted-foreground mt-1">
-                Ciclo: {currentCycle.title} | Prazo:{' '}
-                {new Date(currentCycle.end_date).toLocaleDateString('pt-BR')}
+                Ciclo: {currentCycle.title} | Prazo: {formatDateBR(currentCycle.end_date)}
               </p>
             )}
           </div>
