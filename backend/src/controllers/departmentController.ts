@@ -101,35 +101,38 @@ export const departmentController = {
     try {
       const { id } = req.params;
 
-      // Verificar se existem usuários ou times vinculados ao departamento
-      const [{ data: users, error: usersError }, { data: teams, error: teamsError }] =
-        await Promise.all([
+      // Pré-check informativo (não-fatal): usuários/times vinculados.
+      // Se essas consultas falharem, seguimos direto para o delete e deixamos
+      // a captura de FK abaixo tratar — nunca deve virar 500 por causa do check.
+      try {
+        const [usersRes, teamsRes] = await Promise.all([
           req.supabase.from('profiles').select('id').eq('department_id', id).limit(1),
           req.supabase.from('teams').select('id').eq('department_id', id).limit(1),
         ]);
 
-      if (usersError) throw usersError;
-      if (teamsError) throw teamsError;
-
-      if (users && users.length > 0) {
-        return res.status(400).json({
-          success: false,
-          error: 'Não é possível excluir: há usuários vinculados a este departamento.',
-        });
-      }
-
-      if (teams && teams.length > 0) {
-        return res.status(400).json({
-          success: false,
-          error: 'Não é possível excluir: há times vinculados a este departamento.',
-        });
+        if (usersRes.data && usersRes.data.length > 0) {
+          return res.status(400).json({
+            success: false,
+            error: 'Não é possível excluir: há usuários vinculados a este departamento.',
+          });
+        }
+        if (teamsRes.data && teamsRes.data.length > 0) {
+          return res.status(400).json({
+            success: false,
+            error: 'Não é possível excluir: há times vinculados a este departamento.',
+          });
+        }
+      } catch {
+        /* pré-check é apenas informativo; o delete + captura de FK resolvem */
       }
 
       const { error } = await req.supabase.from('departments').delete().eq('id', id);
 
       if (error) {
-        // Violação de chave estrangeira → mensagem amigável em vez de 500
-        if ((error as { code?: string }).code === '23503') {
+        // Violação de chave estrangeira → 400 amigável em vez de 500
+        const code = (error as { code?: string }).code;
+        const message = String((error as { message?: string }).message || '');
+        if (code === '23503' || /foreign key|violat|constraint/i.test(message)) {
           return res.status(400).json({
             success: false,
             error:
