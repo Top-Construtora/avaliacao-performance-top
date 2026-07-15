@@ -42,18 +42,15 @@ export function useSupabaseDepartments() {
     }
   }, []);
 
+  // Toasts (sucesso/erro) são exibidos pelos componentes que chamam estas ações,
+  // para evitar duplicidade. O hook apenas executa e propaga o erro.
+
   // Criar departamento
   const createDepartment = useCallback(
     async (department: Omit<Department, 'id' | 'created_at' | 'updated_at'>) => {
-      try {
-        const newDept = await departmentsService.create(department);
-        await loadDepartments(); // Recarregar lista
-        toast.success('Departamento criado com sucesso!');
-        return newDept;
-      } catch (err) {
-        toast.error('Erro ao criar departamento');
-        throw err;
-      }
+      const newDept = await departmentsService.create(department);
+      await loadDepartments(); // Recarregar lista
+      return newDept;
     },
     [loadDepartments],
   );
@@ -61,15 +58,9 @@ export function useSupabaseDepartments() {
   // Atualizar departamento
   const updateDepartment = useCallback(
     async (id: string, updates: Partial<Department>) => {
-      try {
-        const updated = await departmentsService.update(id, updates);
-        await loadDepartments(); // Recarregar lista
-        toast.success('Departamento atualizado com sucesso!');
-        return updated;
-      } catch (err) {
-        toast.error('Erro ao atualizar departamento');
-        throw err;
-      }
+      const updated = await departmentsService.update(id, updates);
+      await loadDepartments(); // Recarregar lista
+      return updated;
     },
     [loadDepartments],
   );
@@ -77,14 +68,8 @@ export function useSupabaseDepartments() {
   // Deletar departamento
   const deleteDepartment = useCallback(
     async (id: string) => {
-      try {
-        await departmentsService.delete(id);
-        await loadDepartments(); // Recarregar lista
-        toast.success('Departamento removido com sucesso!');
-      } catch (err) {
-        toast.error('Erro ao remover departamento');
-        throw err;
-      }
+      await departmentsService.delete(id);
+      await loadDepartments(); // Recarregar lista
     },
     [loadDepartments],
   );
@@ -236,18 +221,15 @@ export function useSupabaseTeams() {
     }
   }, []);
 
+  // Toasts (sucesso/erro) são exibidos pelos componentes que chamam estas ações,
+  // para evitar duplicidade. O hook apenas executa e propaga o erro.
+
   // Criar time
   const createTeam = useCallback(
     async (team: Omit<Team, 'id' | 'created_at' | 'updated_at'>) => {
-      try {
-        const newTeam = await teamsService.create(team);
-        await loadTeams(); // Recarregar lista
-        toast.success('Time criado com sucesso!');
-        return newTeam;
-      } catch (err) {
-        toast.error('Erro ao criar time');
-        throw err;
-      }
+      const newTeam = await teamsService.create(team);
+      await loadTeams(); // Recarregar lista
+      return newTeam;
     },
     [loadTeams],
   );
@@ -255,15 +237,9 @@ export function useSupabaseTeams() {
   // Atualizar time
   const updateTeam = useCallback(
     async (id: string, updates: Partial<Team>) => {
-      try {
-        const updated = await teamsService.update(id, updates);
-        await loadTeams(); // Recarregar lista
-        toast.success('Time atualizado com sucesso!');
-        return updated;
-      } catch (err) {
-        toast.error('Erro ao atualizar time');
-        throw err;
-      }
+      const updated = await teamsService.update(id, updates);
+      await loadTeams(); // Recarregar lista
+      return updated;
     },
     [loadTeams],
   );
@@ -271,14 +247,8 @@ export function useSupabaseTeams() {
   // Deletar time
   const deleteTeam = useCallback(
     async (id: string) => {
-      try {
-        await teamsService.delete(id);
-        await loadTeams(); // Recarregar lista
-        toast.success('Time removido com sucesso!');
-      } catch (err) {
-        toast.error('Erro ao remover time');
-        throw err;
-      }
+      await teamsService.delete(id);
+      await loadTeams(); // Recarregar lista
     },
     [loadTeams],
   );
@@ -286,14 +256,8 @@ export function useSupabaseTeams() {
   // Gerenciar membros
   const updateTeamMembers = useCallback(
     async (teamId: string, userIds: string[]) => {
-      try {
-        await teamsService.replaceMembers(teamId, userIds);
-        await loadTeams(); // Recarregar lista
-        toast.success('Membros do time atualizados!');
-      } catch (err) {
-        toast.error('Erro ao atualizar membros do time');
-        throw err;
-      }
+      await teamsService.replaceMembers(teamId, userIds);
+      await loadTeams(); // Recarregar lista
     },
     [loadTeams],
   );
