@@ -4,14 +4,12 @@ import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import UserSalaryAssignment from '../../components/UserSalaryAssignment';
 import {
-  Users,
   Edit,
   Search,
   Filter,
   Shield,
   Mail,
   Calendar,
-  UserCheck,
   MoreVertical,
   Crown,
   Download,
@@ -30,7 +28,6 @@ import {
   UsersIcon,
   UserPlus,
   Eye,
-  Clock,
   AlertTriangle,
   ChevronDown,
   ChevronUp,
@@ -82,7 +79,9 @@ const UserManagement = () => {
   const [selectedTeam, setSelectedTeam] = useState('');
   const [userTypeFilter, setUserTypeFilter] = useState<UserTypeFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768 ? 'list' : 'grid',
+  );
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'department'>('name');
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
@@ -558,28 +557,6 @@ const UserManagement = () => {
 
   const [show90DaysSection, setShow90DaysSection] = useState(true);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: 'spring',
-        stiffness: 100,
-      },
-    },
-  };
-
   const renderUserCard = (user: UserWithDetails) => {
     const userTeams = user.teams || [];
     const subordinates = getSubordinates(user.id);
@@ -968,68 +945,6 @@ const UserManagement = () => {
               </Button>
             </UIGuard>
           </div>
-
-          <motion.div
-            className="grid grid-cols-2 sm:grid-cols-5 gap-4"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <motion.div
-              variants={itemVariants}
-              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
-            >
-              <div className="relative z-10">
-                <p className="text-2xl font-bold text-foreground">{stats.totalUsers}</p>
-                <p className="text-sm text-muted-foreground font-medium">Total</p>
-              </div>
-              <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
-            </motion.div>
-
-            <motion.div
-              variants={itemVariants}
-              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
-            >
-              <div className="relative z-10">
-                <p className="text-2xl font-bold text-foreground">{stats.totalDirectors}</p>
-                <p className="text-sm text-muted-foreground font-medium">Diretores</p>
-              </div>
-              <Shield className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
-            </motion.div>
-
-            <motion.div
-              variants={itemVariants}
-              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
-            >
-              <div className="relative z-10">
-                <p className="text-2xl font-bold text-foreground">{stats.totalLeaders}</p>
-                <p className="text-sm text-muted-foreground font-medium">Avaliadores</p>
-              </div>
-              <Crown className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
-            </motion.div>
-
-            <motion.div
-              variants={itemVariants}
-              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
-            >
-              <div className="relative z-10">
-                <p className="text-2xl font-bold text-foreground">{stats.totalCollaborators}</p>
-                <p className="text-sm text-muted-foreground font-medium">Avaliados</p>
-              </div>
-              <UserCheck className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
-            </motion.div>
-
-            <motion.div
-              variants={itemVariants}
-              className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg"
-            >
-              <div className="relative z-10">
-                <p className="text-2xl font-bold text-foreground">{usersNearing90Days.length}</p>
-                <p className="text-sm text-muted-foreground font-medium">90 dias</p>
-              </div>
-              <Clock className="absolute -bottom-2 -right-2 h-16 w-16 text-lime/10" />
-            </motion.div>
-          </motion.div>
         </motion.div>
 
         {/* Banner de colaboradores completando 90 dias */}
