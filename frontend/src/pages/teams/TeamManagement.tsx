@@ -98,8 +98,9 @@ const TeamManagement = () => {
           try {
             await actions.teams.delete(id);
             toast.success('Time removido com sucesso!');
-          } catch (error) {
-            toast.error('Erro ao remover time');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } catch (error: any) {
+            toast.error(error?.response?.data?.error || error?.message || 'Erro ao remover time');
           }
         },
       });
@@ -111,8 +112,9 @@ const TeamManagement = () => {
       try {
         await actions.teams.delete(id);
         toast.success('Time removido com sucesso!');
-      } catch (error) {
-        toast.error('Erro ao remover time');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        toast.error(error?.response?.data?.error || error?.message || 'Erro ao remover time');
       }
     }
   };

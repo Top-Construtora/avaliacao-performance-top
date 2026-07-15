@@ -118,18 +118,25 @@ export const teamController = {
     try {
       const { id } = req.params;
 
-      // Primeiro remove todos os membros
-      const { error: membersError } = await req.supabase
-        .from('team_members')
-        .delete()
-        .eq('team_id', id);
-
-      if (membersError) throw membersError;
+      // Primeiro remove os membros (se falhar, o delete do time abaixo acusa a FK)
+      await req.supabase.from('team_members').delete().eq('team_id', id);
 
       // Depois deleta o time
       const { error } = await req.supabase.from('teams').delete().eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        // Violação de chave estrangeira → 400 amigável em vez de 500
+        const code = (error as { code?: string }).code;
+        const message = String((error as { message?: string }).message || '');
+        if (code === '23503' || /foreign key|violat|constraint/i.test(message)) {
+          return res.status(400).json({
+            success: false,
+            error:
+              'Não é possível excluir: existem registros vinculados a este time. Remova ou realoque esses vínculos primeiro.',
+          });
+        }
+        throw error;
+      }
 
       res.json({ success: true, message: 'Time excluído com sucesso' });
     } catch (error) {
