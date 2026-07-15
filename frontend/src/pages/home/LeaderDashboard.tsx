@@ -129,7 +129,7 @@ const LeaderDashboard = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-[#1A1A1A] p-8 text-white shadow-md hover:shadow-lg transition-shadow duration-300"
+        className="relative overflow-hidden rounded-2xl bg-[#1A1A1A] p-5 sm:p-8 text-white shadow-md hover:shadow-lg transition-shadow duration-300"
       >
         <div className="absolute inset-y-0 left-0 w-1 bg-[#D2FF00]" />
         <div className="flex items-center justify-between">
@@ -155,7 +155,7 @@ const LeaderDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-card rounded-2xl p-6 shadow-sm border border-border"
+          className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm border border-border"
         >
           <h2 className="text-lg font-semibold text-foreground mb-6 flex items-center">
             <Calendar className="mr-2 text-lime-deep dark:text-lime" size={20} />
@@ -167,7 +167,7 @@ const LeaderDashboard = () => {
             )}
           </h2>
 
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3 xs:grid-cols-4">
             {/* Autoavaliação */}
             <div className="flex flex-col items-center">
               <div className="relative">
@@ -465,7 +465,7 @@ const LeaderDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-card rounded-2xl p-6 shadow-sm border border-border"
+          className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm border border-border"
         >
           <h2 className="text-lg font-semibold text-foreground mb-6 flex items-center">
             <BarChart2 className="mr-2 text-lime-deep dark:text-lime" size={20} />

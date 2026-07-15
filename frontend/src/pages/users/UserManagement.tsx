@@ -942,7 +942,7 @@ const UserManagement = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8"
+          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-4 sm:p-8"
         >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-4">
@@ -1133,7 +1133,7 @@ const UserManagement = () => {
 
         <div className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Tabs de status */}
               <div className="flex items-center bg-secondary backdrop-blur-sm rounded-xl p-1.5">
                 <button
@@ -1209,7 +1209,7 @@ const UserManagement = () => {
                 <button className="p-2.5 rounded-lg bg-secondary text-muted-foreground hover:bg-accent transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                   <MoreVertical className="h-4 w-4" />
                 </button>
-                <div className="absolute right-0 mt-2 w-56 bg-popover text-popover-foreground rounded-xl shadow-xl dark:shadow-2xl border border-border py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                <div className="absolute right-0 mt-2 w-56 bg-popover text-popover-foreground rounded-xl shadow-xl dark:shadow-2xl border border-border py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all">
                   <UIGuard show="showExportButton">
                     <button
                       onClick={() => handleQuickAction('export')}

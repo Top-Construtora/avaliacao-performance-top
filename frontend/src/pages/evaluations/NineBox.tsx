@@ -733,7 +733,7 @@ const NineBoxMatrix = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8"
+        className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-4 sm:p-8"
       >
         <div className="mb-4 sm:mb-6">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center">
@@ -1182,24 +1182,24 @@ const NineBoxMatrix = () => {
 
           {/* Coluna Central e Direita - Matriz */}
           <div className="lg:col-span-2">
-            <div className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8">
+            <div className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-4 sm:p-8">
               <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-foreground mb-4 sm:mb-6 flex items-center">
                 <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-muted-foreground" />
                 Posicionamento na Matriz
               </h2>
 
               {/* Grid da Matriz 9-Box */}
-              <div className="flex justify-center">
+              <div className="flex justify-center pl-9 sm:pl-0">
                 <div className="relative">
                   {/* Título do eixo Y (Potencial) */}
-                  <div className="absolute -left-12 sm:-left-40 top-1/2 transform -translate-y-1/2 -rotate-90">
+                  <div className="absolute -left-9 sm:-left-40 top-1/2 transform -translate-y-1/2 -rotate-90">
                     <span className="text-sm sm:text-base font-bold text-foreground font-medium uppercase tracking-widest">
                       POTENCIAL
                     </span>
                   </div>
 
                   {/* Labels do eixo Y */}
-                  <div className="absolute -left-10 sm:-left-12 flex flex-col justify-between h-72 sm:h-[420px]">
+                  <div className="absolute -left-8 sm:-left-12 flex flex-col justify-between h-60 sm:h-[420px]">
                     <span className="text-xs sm:text-sm font-semibold text-muted-foreground">
                       Alto
                     </span>
@@ -1212,7 +1212,7 @@ const NineBoxMatrix = () => {
                   </div>
 
                   {/* Container da Matriz */}
-                  <div className="relative w-72 h-72 sm:w-[420px] sm:h-[420px]">
+                  <div className="relative w-60 h-60 sm:w-[420px] sm:h-[420px]">
                     {/* Grid 3x3 */}
                     <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
                       {[3, 2, 1].map((row) =>
@@ -1270,7 +1270,7 @@ const NineBoxMatrix = () => {
                   </div>
 
                   {/* Labels do eixo X */}
-                  <div className="flex justify-between w-72 sm:w-[420px] mt-4 sm:mt-6">
+                  <div className="flex justify-between w-60 sm:w-[420px] mt-4 sm:mt-6">
                     <span className="text-xs sm:text-sm font-semibold text-muted-foreground">
                       Baixo
                     </span>
@@ -1283,7 +1283,7 @@ const NineBoxMatrix = () => {
                   </div>
 
                   {/* Título do eixo X */}
-                  <div className="flex justify-center w-72 sm:w-[420px] mt-3">
+                  <div className="flex justify-center w-60 sm:w-[420px] mt-3">
                     <span className="text-sm sm:text-base font-bold text-foreground font-medium uppercase tracking-widest">
                       performance
                     </span>
@@ -1475,7 +1475,7 @@ const NineBoxMatrix = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-16 text-center"
+          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8 sm:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
             <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-secondary mb-4 sm:mb-6">
@@ -1496,7 +1496,7 @@ const NineBoxMatrix = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-16 text-center"
+          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8 sm:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
             <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-warning/10 mb-4 sm:mb-6">

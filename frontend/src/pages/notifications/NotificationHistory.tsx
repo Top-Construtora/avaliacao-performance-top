@@ -561,7 +561,7 @@ const NotificationHistory: React.FC = () => {
       >
         {/* View Mode Tabs */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-          <div className="flex p-1.5 bg-secondary backdrop-blur-sm rounded-xl">
+          <div className="flex p-1.5 bg-secondary backdrop-blur-sm rounded-xl overflow-x-auto">
             {[
               { id: 'all' as const, label: 'Todas', count: stats.total },
               { id: 'unread' as const, label: 'Não lidas', count: stats.unread },
@@ -727,7 +727,7 @@ const NotificationHistory: React.FC = () => {
                 </span>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -855,9 +855,9 @@ const NotificationHistory: React.FC = () => {
                                 showActionMenu === notification.id ? null : notification.id,
                               );
                             }}
-                            className="p-1 hover:bg-accent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="p-2 hover:bg-accent rounded-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                           >
-                            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                            <MoreVertical className="h-5 w-5 text-muted-foreground" />
                           </button>
                         </div>
                       </div>
@@ -899,7 +899,7 @@ const NotificationHistory: React.FC = () => {
                     </div>
 
                     {/* Arrow */}
-                    <ChevronRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mt-1" />
+                    <ChevronRight className="h-5 w-5 text-muted-foreground opacity-40 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity mt-1" />
                   </div>
 
                   {/* Action Menu */}
