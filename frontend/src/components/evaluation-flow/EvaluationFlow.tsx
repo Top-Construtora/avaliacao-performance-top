@@ -142,7 +142,7 @@ export default function EvaluationFlow({
   if (!step) return null;
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-5xl flex-col md:flex-row md:gap-8">
+    <div className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-4xl flex-col md:flex-row md:gap-8">
       {/* Rail lateral (desktop) */}
       <aside className="hidden w-56 flex-shrink-0 md:block">
         <div className="sticky top-4">
@@ -160,8 +160,10 @@ export default function EvaluationFlow({
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Topo pegajoso: header compacto (mobile) + progresso */}
         <div className="sticky top-0 z-30 -mx-1 border-b border-border bg-background/95 px-1 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-          {header && <div className="mb-3 md:hidden">{header}</div>}
-          <FlowProgress steps={steps} index={safeIndex} />
+          <div className="mx-auto max-w-2xl">
+            {header && <div className="mb-3 md:hidden">{header}</div>}
+            <FlowProgress steps={steps} index={safeIndex} />
+          </div>
         </div>
 
         {/* Área da tela */}

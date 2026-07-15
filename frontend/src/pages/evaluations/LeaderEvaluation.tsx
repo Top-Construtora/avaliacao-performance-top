@@ -81,6 +81,7 @@ export default function LeaderEvaluation() {
     handleSubmit,
     isCycleInValidPeriod,
     getCyclePeriodMessage,
+    isAdminDemo,
   } = form;
 
   const [flowIndex, setFlowIndex] = useState(0);
@@ -309,7 +310,7 @@ export default function LeaderEvaluation() {
   // ------- Guards -------
   if (loading) return <LoadingSpinner minHeight="min-h-[60vh]" />;
 
-  if (!currentCycle || !isCycleInValidPeriod()) {
+  if ((!currentCycle || !isCycleInValidPeriod()) && !isAdminDemo) {
     const periodMessage = getCyclePeriodMessage();
     return (
       <div className="rounded-xl border border-border bg-card p-8 text-center shadow-sm">
@@ -352,7 +353,7 @@ export default function LeaderEvaluation() {
       </div>
       <p className="mt-0.5 truncate text-xs text-muted-foreground">
         {selectedEmployee?.position ? `${selectedEmployee.position} · ` : ''}
-        {currentCycle.title}
+        {currentCycle?.title ?? 'Pré-visualização (demonstração)'}
       </p>
       {periodMessage && (
         <p
