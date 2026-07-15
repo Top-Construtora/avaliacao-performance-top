@@ -80,7 +80,16 @@ const AdminDashboard = () => {
           const total = dashboard.length;
           const finalizados = dashboard.filter((d) => d.consensus_status === 'completed').length;
           const pct = total > 0 ? Math.round((finalizados / total) * 100) : 0;
-          consensosPendentes = total - finalizados;
+          // Um consenso só está "aguardando" quando auto e líder já concluíram
+          // e o consenso ainda não foi feito. Contar total - finalizados incluía
+          // todo o headcount (inclusive quem nem começou e diretores 'n/a').
+          consensosPendentes = dashboard.filter(
+            (d) =>
+              d.self_evaluation_status === 'completed' &&
+              d.leader_evaluation_status === 'completed' &&
+              d.consensus_status !== 'completed' &&
+              d.consensus_status !== 'n/a',
+          ).length;
           cycleData = { title: cycle.title, completionPct: pct };
         } catch {
           cycleData = { title: cycle.title, completionPct: null };
