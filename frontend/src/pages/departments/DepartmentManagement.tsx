@@ -98,8 +98,11 @@ const DepartmentManagement = () => {
           try {
             await actions.departments.delete(id);
             toast.success('Departamento removido com sucesso!');
-          } catch (error) {
-            toast.error('Erro ao remover departamento');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } catch (error: any) {
+            toast.error(
+              error?.response?.data?.error || error?.message || 'Erro ao remover departamento',
+            );
           }
         },
       });
@@ -111,8 +114,11 @@ const DepartmentManagement = () => {
       try {
         await actions.departments.delete(id);
         toast.success('Departamento removido com sucesso!');
-      } catch (error) {
-        toast.error('Erro ao remover departamento');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        toast.error(
+          error?.response?.data?.error || error?.message || 'Erro ao remover departamento',
+        );
       }
     }
   };

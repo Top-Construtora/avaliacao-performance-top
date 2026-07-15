@@ -101,25 +101,43 @@ export const departmentController = {
     try {
       const { id } = req.params;
 
-      // Verificar se existem usuários no departamento
-      const { data: users, error: usersError } = await req.supabase
-        .from('profiles')
-        .select('id')
-        .eq('department_id', id)
-        .limit(1);
+      // Verificar se existem usuários ou times vinculados ao departamento
+      const [{ data: users, error: usersError }, { data: teams, error: teamsError }] =
+        await Promise.all([
+          req.supabase.from('profiles').select('id').eq('department_id', id).limit(1),
+          req.supabase.from('teams').select('id').eq('department_id', id).limit(1),
+        ]);
 
       if (usersError) throw usersError;
+      if (teamsError) throw teamsError;
 
       if (users && users.length > 0) {
         return res.status(400).json({
           success: false,
-          error: 'Não é possível excluir departamento com usuários vinculados',
+          error: 'Não é possível excluir: há usuários vinculados a este departamento.',
+        });
+      }
+
+      if (teams && teams.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Não é possível excluir: há times vinculados a este departamento.',
         });
       }
 
       const { error } = await req.supabase.from('departments').delete().eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        // Violação de chave estrangeira → mensagem amigável em vez de 500
+        if ((error as { code?: string }).code === '23503') {
+          return res.status(400).json({
+            success: false,
+            error:
+              'Não é possível excluir: existem registros vinculados a este departamento (usuários, times ou avaliações). Remova ou realoque esses vínculos primeiro.',
+          });
+        }
+        throw error;
+      }
 
       res.json({ success: true, message: 'Departamento excluído com sucesso' });
     } catch (error) {
