@@ -487,13 +487,13 @@ const RegisterUser = () => {
         {/* Profile Type Selection */}
         <motion.div
           variants={itemVariants}
-          className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
         >
           <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
             <Shield className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
             Tipo de Perfil
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             {[
               {
                 value: 'regular',
@@ -528,7 +528,7 @@ const RegisterUser = () => {
             ].map((type) => (
               <label
                 key={type.value}
-                className={`relative flex flex-col p-6 rounded-lg border cursor-pointer transition-all transform hover:scale-[1.02] ${
+                className={`relative flex flex-col items-center text-center sm:items-start sm:text-left p-3 sm:p-6 rounded-lg border cursor-pointer transition-all sm:hover:scale-[1.02] ${
                   formData.profileType === type.value
                     ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
                     : 'bg-secondary border-border hover:border-lime'
@@ -549,30 +549,28 @@ const RegisterUser = () => {
                   }
                   className="sr-only"
                 />
-                <div className="flex items-start justify-between mb-4">
-                  <div
-                    className={`p-3 rounded-xl shadow-md transition-colors ${
-                      formData.profileType === type.value
-                        ? 'bg-lime text-obsidian'
-                        : `${type.gradient} text-foreground`
-                    }`}
-                  >
-                    <type.icon className="h-6 w-6" />
+                {formData.profileType === type.value && (
+                  <div className="absolute top-2 right-2 rounded-full bg-lime p-1 shadow-md">
+                    <Check className="h-3 w-3 text-obsidian" />
                   </div>
-                  {formData.profileType === type.value && (
-                    <div className="rounded-full bg-lime p-1.5 shadow-md">
-                      <Check className="h-4 w-4 text-obsidian" />
-                    </div>
-                  )}
+                )}
+                <div
+                  className={`mb-2 rounded-xl p-2 shadow-md transition-colors sm:mb-4 sm:p-3 ${
+                    formData.profileType === type.value
+                      ? 'bg-lime text-obsidian'
+                      : `${type.gradient} text-foreground`
+                  }`}
+                >
+                  <type.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
                 <h4
-                  className={`font-bold text-base mb-1 ${
+                  className={`font-bold text-sm sm:mb-1 sm:text-base ${
                     formData.profileType === type.value ? type.selectedText : 'text-foreground'
                   }`}
                 >
                   {type.label}
                 </h4>
-                <p className="text-sm text-muted-foreground">{type.description}</p>
+                <p className="hidden text-sm text-muted-foreground sm:block">{type.description}</p>
               </label>
             ))}
           </div>
@@ -581,13 +579,13 @@ const RegisterUser = () => {
         {/* Contract Type Selection */}
         <motion.div
           variants={itemVariants}
-          className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
         >
           <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
             <FileText className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
             Tipo de Contrato
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
             {[
               {
                 value: 'CLT',
@@ -612,7 +610,7 @@ const RegisterUser = () => {
             ].map((type) => (
               <label
                 key={type.value}
-                className={`relative flex flex-col p-6 rounded-lg border cursor-pointer transition-all transform hover:scale-[1.02] ${
+                className={`relative flex flex-col items-center text-center sm:items-start sm:text-left p-3 sm:p-6 rounded-lg border cursor-pointer transition-all sm:hover:scale-[1.02] ${
                   formData.contractType === type.value
                     ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
                     : 'bg-secondary border-border hover:border-lime'
@@ -631,30 +629,28 @@ const RegisterUser = () => {
                   }
                   className="sr-only"
                 />
-                <div className="flex items-start justify-between mb-4">
-                  <div
-                    className={`p-3 rounded-xl shadow-md transition-colors ${
-                      formData.contractType === type.value
-                        ? 'bg-lime text-obsidian'
-                        : `${type.gradient} text-foreground`
-                    }`}
-                  >
-                    <type.icon className="h-6 w-6" />
+                {formData.contractType === type.value && (
+                  <div className="absolute top-2 right-2 rounded-full bg-lime p-1 shadow-md">
+                    <Check className="h-3 w-3 text-obsidian" />
                   </div>
-                  {formData.contractType === type.value && (
-                    <div className="rounded-full bg-lime p-1.5 shadow-md">
-                      <Check className="h-4 w-4 text-obsidian" />
-                    </div>
-                  )}
+                )}
+                <div
+                  className={`mb-2 rounded-xl p-2 shadow-md transition-colors sm:mb-4 sm:p-3 ${
+                    formData.contractType === type.value
+                      ? 'bg-lime text-obsidian'
+                      : `${type.gradient} text-foreground`
+                  }`}
+                >
+                  <type.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
                 <h4
-                  className={`font-bold text-base mb-1 ${
+                  className={`font-bold text-sm sm:mb-1 sm:text-base ${
                     formData.contractType === type.value ? type.selectedText : 'text-foreground'
                   }`}
                 >
                   {type.label}
                 </h4>
-                <p className="text-sm text-muted-foreground">{type.description}</p>
+                <p className="hidden text-sm text-muted-foreground sm:block">{type.description}</p>
               </label>
             ))}
           </div>
@@ -663,7 +659,7 @@ const RegisterUser = () => {
         {/* Basic Information */}
         <motion.div
           variants={itemVariants}
-          className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
         >
           <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
             <User className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
@@ -885,7 +881,7 @@ const RegisterUser = () => {
         {/* Career Information */}
         <motion.div
           variants={itemVariants}
-          className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
         >
           <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
             <TrendingUp className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
@@ -1047,7 +1043,7 @@ const RegisterUser = () => {
         {formData.profileType !== 'director' && (
           <motion.div
             variants={itemVariants}
-            className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+            className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
           >
             <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
               <Users className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
@@ -1105,7 +1101,7 @@ const RegisterUser = () => {
         {(formData.profileType === 'regular' || formData.profileType === 'leader') && (
           <motion.div
             variants={itemVariants}
-            className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+            className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
           >
             <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
               <GitBranch className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
@@ -1170,7 +1166,7 @@ const RegisterUser = () => {
         {/* Observations */}
         <motion.div
           variants={itemVariants}
-          className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+          className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
         >
           <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
             <MessageSquare className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
@@ -1197,7 +1193,7 @@ const RegisterUser = () => {
         {isAdmin && (
           <motion.div
             variants={itemVariants}
-            className="bg-card rounded-2xl p-6 shadow-sm dark:shadow-lg border border-border"
+            className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
           >
             <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
               <Lock className="h-5 w-5 mr-2 text-warning" />
