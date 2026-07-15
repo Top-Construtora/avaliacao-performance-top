@@ -256,15 +256,14 @@ export const useEvaluation = (): UseEvaluationReturn => {
     async (cycle: Omit<EvaluationCycle, 'id' | 'created_at' | 'updated_at'>) => {
       try {
         setLoading(true);
-        const newCycle = await evaluationService.createCycle({
+        await evaluationService.createCycle({
           ...cycle,
           created_by: user?.id || '',
         });
-        toast.success('Ciclo de avaliação criado com sucesso!');
         await loadAllCycles();
-      } catch (error: any) {
+      } catch (error) {
         console.error('Erro ao criar ciclo:', error);
-        toast.error(error.message || 'Erro ao criar ciclo de avaliação');
+        throw error;
       } finally {
         setLoading(false);
       }
@@ -278,12 +277,11 @@ export const useEvaluation = (): UseEvaluationReturn => {
       try {
         setLoading(true);
         await evaluationService.openCycle(cycleId);
-        toast.success('Ciclo de avaliação aberto!');
         await loadAllCycles();
         await loadCurrentCycle();
       } catch (error) {
         console.error('Erro ao abrir ciclo:', error);
-        toast.error('Erro ao abrir ciclo de avaliação');
+        throw error;
       } finally {
         setLoading(false);
       }
@@ -297,12 +295,11 @@ export const useEvaluation = (): UseEvaluationReturn => {
       try {
         setLoading(true);
         await evaluationService.closeCycle(cycleId);
-        toast.success('Ciclo de avaliação encerrado!');
         await loadAllCycles();
         await loadCurrentCycle();
       } catch (error) {
         console.error('Erro ao fechar ciclo:', error);
-        toast.error('Erro ao fechar ciclo de avaliação');
+        throw error;
       } finally {
         setLoading(false);
       }
@@ -331,10 +328,10 @@ export const useEvaluation = (): UseEvaluationReturn => {
           data.competencies,
           data.toolkit,
         );
-        toast.success('Autoavaliação salva com sucesso!');
-      } catch (error: any) {
+        // Toast é responsabilidade do chamador (evita duplicidade); erro re-lançado
+      } catch (error) {
         console.error('Erro ao salvar autoavaliação:', error);
-        toast.error(error.message || 'Erro ao salvar autoavaliação');
+        throw error;
       } finally {
         setLoading(false);
       }
@@ -375,10 +372,10 @@ export const useEvaluation = (): UseEvaluationReturn => {
           data.pdi,
           data.potentialDetails,
         );
-        toast.success('Avaliação do líder salva com sucesso!');
+        // Toast é responsabilidade do chamador (evita duplicidade); erro re-lançado
       } catch (error) {
         console.error('Erro ao salvar avaliação:', error);
-        toast.error('Erro ao salvar avaliação do líder');
+        throw error;
       } finally {
         setLoading(false);
       }
@@ -484,11 +481,9 @@ export const useEvaluation = (): UseEvaluationReturn => {
     try {
       setLoading(true);
       const result = await evaluationService.savePDI(pdiData);
-      toast.success('PDI salvo com sucesso!');
       return result;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erro ao salvar PDI:', error);
-      toast.error(error.message || 'Erro ao salvar PDI');
       throw error;
     } finally {
       setLoading(false);
