@@ -130,12 +130,14 @@ const MyPdi: React.FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="bg-card rounded-xl p-6 shadow-sm hover:shadow-md dark:shadow-lg border border-border"
+            className="bg-card rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md dark:shadow-lg border border-border"
           >
             <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h4 className="text-lg font-semibold text-foreground mb-2">{item.competencia}</h4>
-                <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1 min-w-0">
+                <h4 className="text-lg font-semibold text-foreground mb-2 break-words">
+                  {item.competencia}
+                </h4>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${STATUS_LABELS[item.status]?.color || 'bg-secondary text-muted-foreground'}`}
                   >
@@ -206,7 +208,7 @@ const MyPdi: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border overflow-hidden"
       >
-        <div className="p-6 border-b border-border">
+        <div className="p-4 sm:p-6 border-b border-border">
           <div className="flex items-center space-x-3">
             <div
               className={`flex items-center justify-center h-10 w-10 rounded-lg ${iconBgClass} text-obsidian`}
@@ -222,7 +224,7 @@ const MyPdi: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-6">{renderActionItems(safeItems, sectionKey)}</div>
+        <div className="p-4 sm:p-6">{renderActionItems(safeItems, sectionKey)}</div>
       </motion.div>
     );
   };
@@ -237,7 +239,7 @@ const MyPdi: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8"
+          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-4 sm:p-8"
         >
           <div className="flex items-center space-x-4">
             <div>
@@ -255,7 +257,7 @@ const MyPdi: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-16 text-center"
+          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8 sm:p-16 text-center"
         >
           <div className="max-w-md mx-auto">
             <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-secondary mb-6">
@@ -280,7 +282,7 @@ const MyPdi: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8"
+        className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-4 sm:p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-4">
@@ -303,7 +305,7 @@ const MyPdi: React.FC = () => {
               <Info className="inline h-4 w-4 mr-1" />
               Colaborador
             </label>
-            <div className="px-4 py-3 bg-secondary rounded-xl text-foreground font-medium text-sm">
+            <div className="px-4 py-3 bg-secondary rounded-xl text-foreground font-medium text-sm break-words">
               {pdiData.colaborador || 'N/A'}
             </div>
           </div>
@@ -313,7 +315,7 @@ const MyPdi: React.FC = () => {
               <Target className="inline h-4 w-4 mr-1" />
               Cargo
             </label>
-            <div className="px-4 py-3 bg-secondary rounded-xl text-foreground font-medium text-sm">
+            <div className="px-4 py-3 bg-secondary rounded-xl text-foreground font-medium text-sm break-words">
               {pdiData.cargo || 'N/A'}
             </div>
           </div>
@@ -323,7 +325,7 @@ const MyPdi: React.FC = () => {
               <Calendar className="inline h-4 w-4 mr-1" />
               Período
             </label>
-            <div className="px-4 py-3 bg-secondary rounded-xl text-foreground font-medium text-sm">
+            <div className="px-4 py-3 bg-secondary rounded-xl text-foreground font-medium text-sm break-words">
               {pdiData.periodo || 'N/A'}
             </div>
           </div>
@@ -333,7 +335,7 @@ const MyPdi: React.FC = () => {
               <Info className="inline h-4 w-4 mr-1" />
               Última Atualização
             </label>
-            <div className="px-4 py-3 bg-secondary rounded-xl text-foreground font-medium text-sm">
+            <div className="px-4 py-3 bg-secondary rounded-xl text-foreground font-medium text-sm break-words">
               {pdiData.dataAtualizacao
                 ? new Date(pdiData.dataAtualizacao).toLocaleDateString('pt-BR')
                 : 'N/A'}

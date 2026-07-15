@@ -250,25 +250,25 @@ const EvaluationDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center">
-              <BarChart3 className="h-7 w-7 text-lime-deep dark:text-lime mr-3" />
+      <div className="bg-card rounded-xl shadow-sm border border-border p-4 sm:p-6">
+        <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center">
+              <BarChart3 className="h-6 w-6 sm:h-7 sm:w-7 text-lime-deep dark:text-lime mr-2 sm:mr-3 flex-shrink-0" />
               Dashboard de Avaliações
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground mt-1 truncate">
               {currentCycle?.title || 'Ciclo de Avaliação'}
             </p>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <button className="p-2 hover:bg-accent rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button className="flex h-11 w-11 flex-shrink-0 items-center justify-center hover:bg-accent rounded-lg transition-all duration-200">
               <Download className="h-5 w-5 text-muted-foreground" />
             </button>
             <button
               onClick={() => navigate('/nine-box')}
-              className="px-4 py-2 bg-lime text-obsidian rounded-lg hover:bg-lime/90 transition-colors flex items-center"
+              className="flex h-11 flex-1 sm:flex-none items-center justify-center px-4 bg-lime text-obsidian rounded-lg hover:bg-lime/90 transition-colors"
             >
               <Grid3x3 className="h-5 w-5 mr-2" />
               Ver Matriz 9-Box
@@ -397,7 +397,8 @@ const EvaluationDashboard: React.FC = () => {
 
       {/* Employees Table */}
       <div className="bg-card rounded-2xl shadow-sm hover:shadow-md border border-border overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop: tabela */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-secondary">
               <tr>
@@ -470,6 +471,58 @@ const EvaluationDashboard: React.FC = () => {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile: cards empilhados (um por colaborador) */}
+        <div className="divide-y divide-border md:hidden">
+          {filteredEmployees.map((item: CycleDashboard) => {
+            const user = users.find((u) => u.id === item.employee_id);
+            const deptName =
+              item.department_name ||
+              (user?.teams && user.teams[0]
+                ? departments.find((d) => d.id === user.teams![0].department_id)?.name || '-'
+                : '-');
+
+            return (
+              <div key={item.employee_id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {item.employee_name || '-'}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {item.employee_position || '-'}
+                      {deptName && deptName !== '-' ? ` · ${deptName}` : ''}
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0">
+                    {getNineBoxBadge(item.ninebox_position, item)}
+                  </div>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="flex items-center justify-between gap-2 rounded-lg bg-secondary px-3 py-2">
+                    <span className="text-xs text-muted-foreground">Autoaval.</span>
+                    {getStatusBadge(item.self_evaluation_status)}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 rounded-lg bg-secondary px-3 py-2">
+                    <span className="text-xs text-muted-foreground">Líder</span>
+                    {getStatusBadge(item.leader_evaluation_status)}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 rounded-lg bg-secondary px-3 py-2">
+                    <span className="text-xs text-muted-foreground">Consenso</span>
+                    {getStatusBadge(item.consensus_status)}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 rounded-lg bg-secondary px-3 py-2">
+                    <span className="text-xs text-muted-foreground">PDI</span>
+                    {item.self_evaluation_status === 'n/a' && item.consensus_status === 'n/a'
+                      ? getStatusBadge('n/a')
+                      : getStatusBadge(item.ninebox_position ? 'completed' : 'pending')}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {filteredEmployees.length === 0 && (

@@ -411,7 +411,7 @@ const TeamManagement = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8"
+          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-4 sm:p-8"
         >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-4">
@@ -439,7 +439,7 @@ const TeamManagement = () => {
           </div>
 
           <motion.div
-            className="grid grid-cols-3 sm:grid-cols-3 gap-4"
+            className="grid grid-cols-3 gap-2 sm:gap-4"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -524,7 +524,7 @@ const TeamManagement = () => {
                 <button className="p-2.5 rounded-lg bg-secondary text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                   <MoreVertical className="h-4 w-4" />
                 </button>
-                <div className="absolute right-0 mt-2 w-56 bg-popover text-popover-foreground border border-border rounded-xl shadow-xl dark:shadow-2xl py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                <div className="absolute right-0 mt-2 w-56 bg-popover text-popover-foreground border border-border rounded-xl shadow-xl dark:shadow-2xl py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all">
                   <button
                     onClick={() => handleQuickAction('import')}
                     className="w-full px-4 py-2.5 text-left text-sm text-foreground font-medium hover:bg-accent flex items-center space-x-3 transition-colors"

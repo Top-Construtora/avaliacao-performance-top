@@ -217,7 +217,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
       >
         <MenuIcon size={18} />
       </button>
-      <div className="min-w-0 flex-none">
+      <div className="min-w-0 flex-1 lg:flex-none">
         <h1 className="text-[15.5px] font-semibold tracking-[-0.015em] leading-[1.2] text-white truncate">
           {pageTitle}
         </h1>

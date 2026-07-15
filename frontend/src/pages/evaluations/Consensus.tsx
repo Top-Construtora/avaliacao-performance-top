@@ -1001,7 +1001,7 @@ const Consensus = () => {
     const displayScore = hasScore ? score : '-';
 
     return (
-      <div className="flex flex-col items-center space-y-4 w-32">
+      <div className="flex flex-col items-center space-y-4 w-24 sm:w-32">
         <h6 className="text-sm font-medium text-foreground font-medium text-center h-10 flex items-center justify-center">
           {config[type].label}
         </h6>
@@ -1037,7 +1037,7 @@ const Consensus = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8"
+        className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-4 sm:p-8"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-4">
@@ -1459,7 +1459,7 @@ const Consensus = () => {
                                       Avaliações
                                     </h5>
                                   </div>
-                                  <div className="flex items-start justify-center space-x-8">
+                                  <div className="flex items-start justify-center gap-3 sm:gap-8">
                                     <ScoreIndicator
                                       score={selfScore}
                                       type="self"
@@ -1595,7 +1595,7 @@ const Consensus = () => {
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8"
+                          className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-4 sm:p-8"
                         >
                           <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg sm:text-xl font-bold text-foreground flex items-center">
