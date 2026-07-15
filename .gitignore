@@ -64,3 +64,5 @@ login-gio-desktop.png
 # Permitir migrações/seed do Supabase apesar do "*.sql" acima
 !supabase/migrations/*.sql
 !supabase/seed.sql
+# vite-plugin-pwa dev output
+dev-dist/

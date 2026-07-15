@@ -1,834 +1,329 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
-import { useEvaluation } from '../../hooks/useEvaluation';
-import { useAuth } from '../../context/AuthContext';
-import { EVALUATION_COMPETENCIES } from '../../types/evaluation.types';
-import { pdiService } from '../../services/pdiService';
-import { evaluationService } from '../../services/evaluation.service';
-import LeaderEvaluationHeader from '../../components/LeaderEvaluationHeader';
-import EvaluationSection from '../../components/EvaluationSection';
-import PotentialAndPDI from '../../components/PotentialAndPDI';
-import { AlertCircle, CheckCircle, ArrowRight, BookOpen, Target, Award, Info } from 'lucide-react';
-import Button from '../../components/Button';
-import { motion } from 'framer-motion';
+import { useEffect, useMemo, useRef, useState, type ElementType } from 'react';
+import { AlertCircle, BookOpen, Rocket, Star, Target, TrendingUp } from 'lucide-react';
+import { COMPETENCY_SCALE, POTENTIAL_SCALE, getRatingOption } from '../../constants/ratingScales';
+import {
+  useLeaderEvaluationForm,
+  getQuadrantColor,
+  type Prazo,
+} from '../../hooks/useLeaderEvaluationForm';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { formatDateBR } from '../../utils/date';
+import EvaluationFlow from '../../components/evaluation-flow/EvaluationFlow';
+import SectionIntroScreen from '../../components/evaluation-flow/screens/SectionIntroScreen';
+import RatingScreen from '../../components/evaluation-flow/screens/RatingScreen';
+import EmployeePickerScreen from '../../components/evaluation-flow/screens/EmployeePickerScreen';
+import PdiPrazoScreen from '../../components/evaluation-flow/screens/PdiPrazoScreen';
+import ReviewScreen, {
+  type ReviewGroup,
+} from '../../components/evaluation-flow/screens/ReviewScreen';
+import type { FlowStep } from '../../components/evaluation-flow/types';
 
-// Define SectionProps interface for type consistency
-interface CompetencyItem {
-  id: string;
-  name: string;
-  description: string;
-  score?: number; // score can be number or undefined
-}
-
-interface SectionProps {
-  id: string;
+const PDI_META: {
+  prazo: Prazo;
+  key: 'curtosPrazos' | 'mediosPrazos' | 'longosPrazos';
   title: string;
-  weight: number;
-  expanded: boolean;
-  icon: React.ElementType; // Icon component from LucideReact
-  gradient: string;
-  darkGradient: string;
-  bgColor: string;
-  darkBgColor: string;
-  borderColor: string;
-  darkBorderColor: string;
-  items: CompetencyItem[];
-}
-
-interface Scores {
-  technical: number;
-  behavioral: number;
-  organizational: number;
-  final: number;
-}
-
-// Define PotentialItem interface here or import it from PotentialAndPDI
-interface PotentialItem {
-  id: string;
-  name: string;
+  subtitle: string;
   description: string;
-  score?: number;
-}
+  icon: ElementType;
+}[] = [
+  {
+    prazo: 'curto',
+    key: 'curtosPrazos',
+    title: 'Curto Prazo',
+    subtitle: '3 meses',
+    description: 'Ações imediatas e de rápido impacto.',
+    icon: BookOpen,
+  },
+  {
+    prazo: 'medio',
+    key: 'mediosPrazos',
+    title: 'Médio Prazo',
+    subtitle: '3-6 meses',
+    description: 'Desenvolvimento contínuo e estruturado.',
+    icon: Target,
+  },
+  {
+    prazo: 'longo',
+    key: 'longosPrazos',
+    title: 'Longo Prazo',
+    subtitle: '6-12 meses',
+    description: 'Visão estratégica e crescimento sustentável.',
+    icon: Rocket,
+  },
+];
 
-interface ActionItem {
-  id: string;
-  competencia: string;
-  calendarizacao: string;
-  comoDesenvolver: string;
-  resultadosEsperados: string;
-  status: '1' | '2' | '3' | '4' | '5';
-  observacao: string;
-}
-
-interface PdiData {
-  id?: string;
-  colaboradorId: string;
-  colaborador: string;
-  cargo: string;
-  departamento: string;
-  periodo: string;
-  nineBoxQuadrante?: string;
-  nineBoxDescricao?: string;
-  curtosPrazos: ActionItem[];
-  mediosPrazos: ActionItem[];
-  longosPrazos: ActionItem[];
-  dataCriacao?: string;
-  dataAtualizacao?: string;
-}
-
-const LeaderEvaluation = () => {
-  const navigate = useNavigate();
+export default function LeaderEvaluation() {
+  const form = useLeaderEvaluationForm();
   const {
+    navigate,
+    profile,
     currentCycle,
-    saveLeaderEvaluation,
-    checkExistingEvaluation,
-    loadSubordinates,
     subordinates,
-    deliveriesCriteria,
-  } = useEvaluation();
-  const { user, profile } = useAuth();
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
-  const [currentStep, setCurrentStep] = useState(1); // 1: Competências, 2: Potencial, 3: PDI
-  const [loading, setLoading] = useState(true);
-  const [isLoadingEmployee, setIsLoadingEmployee] = useState(false);
-  const [hasExistingEvaluation, setHasExistingEvaluation] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [leaderEvaluationId, setLeaderEvaluationId] = useState<string | null>(null);
-
-  // Verificar se é usuário admin para modo demonstração
-  const isAdminDemo = user?.email === 'admintop@sistema.com';
-
-  // Controle de modo de visualização (igual ao Consenso)
-  const [viewMode, setViewMode] = useState<'edit' | 'view'>('edit');
-  const [existingEvaluationData, setExistingEvaluationData] = useState<any>(null);
-
-  // Auto-save states
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [isRestoringData, setIsRestoringData] = useState(false);
-  const autoSaveRestoredRef = React.useRef<string | null>(null);
-
-  // Storage key for auto-save
-  const getStorageKey = useCallback(() => {
-    if (!currentCycle?.id || !selectedEmployeeId || !profile?.id) return null;
-    return `leader_evaluation_autosave_${currentCycle.id}_${selectedEmployeeId}_${profile.id}`;
-  }, [currentCycle?.id, selectedEmployeeId, profile?.id]);
-
-  const [sections, setSections] = useState<SectionProps[]>([]); // Inicializar vazio, será preenchido no useEffect
-
-  // Inicializar sections quando deliveriesCriteria carregar
-  useEffect(() => {
-    // Usar deliveriesCriteria do contexto ou fallback para EVALUATION_COMPETENCIES.deliveries
-    const organizationalCompetencies =
-      deliveriesCriteria.length > 0 ? deliveriesCriteria : EVALUATION_COMPETENCIES.deliveries;
-
-    setSections([
-      {
-        id: 'technical',
-        title: 'Competências Técnicas',
-        weight: 50,
-        expanded: true,
-        icon: BookOpen,
-        gradient: 'from-lime to-lime-deep',
-        darkGradient: 'dark:from-lime dark:to-lime-deep',
-        bgColor: 'bg-lime/10',
-        darkBgColor: 'dark:bg-lime/10',
-        borderColor: 'border-lime/30',
-        darkBorderColor: 'dark:border-lime/30',
-        items: EVALUATION_COMPETENCIES.technical.map((comp) => ({
-          id: comp.name.toLowerCase().replace(/\s+/g, '-'),
-          name: comp.name,
-          description: comp.description,
-          score: undefined,
-        })),
-      },
-      {
-        id: 'behavioral',
-        title: 'Competências Comportamentais',
-        weight: 30,
-        expanded: false,
-        icon: Target,
-        gradient: 'from-lime to-lime-deep',
-        darkGradient: 'dark:from-lime dark:to-lime-deep',
-        bgColor: 'bg-lime/10',
-        darkBgColor: 'dark:bg-lime/10',
-        borderColor: 'border-lime/30',
-        darkBorderColor: 'dark:border-lime/30',
-        items: EVALUATION_COMPETENCIES.behavioral.map((comp) => ({
-          id: comp.name.toLowerCase().replace(/\s+/g, '-'),
-          name: comp.name,
-          description: comp.description,
-          score: undefined,
-        })),
-      },
-      {
-        id: 'organizational',
-        title: 'Competências Organizacionais',
-        weight: 20,
-        expanded: false,
-        icon: Award,
-        gradient: 'from-lime to-lime-deep',
-        darkGradient: 'dark:from-lime dark:to-lime-deep',
-        bgColor: 'bg-lime/10',
-        darkBgColor: 'dark:bg-lime/10',
-        borderColor: 'border-lime/30',
-        darkBorderColor: 'dark:border-lime/30',
-        items: organizationalCompetencies.map((comp: any) => ({
-          id: comp.name.toLowerCase().replace(/\s+/g, '-'),
-          name: comp.name,
-          description: comp.description,
-          score: undefined,
-        })),
-      },
-    ]);
-  }, [deliveriesCriteria]);
-
-  const [potentialItems, setPotentialItems] = useState<PotentialItem[]>([
-    // Explicitly type potentialItems state
-    {
-      id: 'pot1',
-      name: 'Potencial para função subsequente',
-      description:
-        'O que você enxerga como potencial máximo deste parceiro do negócio: você acredita que ele consegue assumir uma função subsequente no prazo de 1 ano, dado o performancee e a motivação sustentados até hoje?',
-      score: undefined,
-    },
-    {
-      id: 'pot2',
-      name: 'Aprendizado contínuo',
-      description:
-        'Sobre o aprendizado contínuo: percebo que este busca o desenvolvimento pessoal, profissional e o aprimoramento de seus conhecimentos técnicos e acadêmicos.',
-      score: undefined,
-    },
-    {
-      id: 'pot3',
-      name: 'Alinhamento com Código Cultural',
-      description: 'O parceiro de negócio possui alinhamento com o Código Cultural da empresa.',
-      score: undefined,
-    },
-    {
-      id: 'pot4',
-      name: 'Visão sistêmica',
-      description: 'O parceiro de negócio possui uma visão sistêmica da empresa.',
-      score: undefined,
-    },
-  ]);
-
-  const [pdiData, setPdiData] = useState<PdiData>({
-    // Explicitly type pdiData state
-    colaboradorId: '',
-    colaborador: '',
-    cargo: '',
-    departamento: '',
-    periodo: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
-    curtosPrazos: [],
-    mediosPrazos: [],
-    longosPrazos: [],
-  });
-
-  // Load subordinates on mount
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await loadSubordinates();
-      setLoading(false);
-    };
-    loadData();
-  }, [loadSubordinates]);
-
-  // Auto-save: Restaurar dados do localStorage ao selecionar colaborador
-  // Aguarda sections estar inicializado para que o restore funcione corretamente
-  useEffect(() => {
-    const storageKey = getStorageKey();
-    if (!storageKey || hasExistingEvaluation || viewMode === 'view' || sections.length === 0)
-      return;
-    // Evitar restaurar mais de uma vez para o mesmo colaborador
-    if (autoSaveRestoredRef.current === storageKey) return;
-
-    const savedData = localStorage.getItem(storageKey);
-    if (savedData) {
-      try {
-        setIsRestoringData(true);
-        autoSaveRestoredRef.current = storageKey;
-        const parsed = JSON.parse(savedData);
-
-        // IMPORTANTE: Apenas restaurar os scores dos items, não a section inteira,
-        // pois propriedades como 'icon' (componentes React) não sobrevivem à serialização JSON
-        if (
-          parsed.sections &&
-          Array.isArray(parsed.sections) &&
-          parsed.sections.every((s: any) => s && s.id && Array.isArray(s.items))
-        ) {
-          setSections((prev) =>
-            prev.map((section) => {
-              const savedSection = parsed.sections.find((s: any) => s.id === section.id);
-              if (!savedSection) return section;
-              return {
-                ...section,
-                expanded: savedSection.expanded ?? section.expanded,
-                items: section.items.map((item) => {
-                  const savedItem = savedSection.items.find((i: any) => i.id === item.id);
-                  return savedItem ? { ...item, score: savedItem.score } : item;
-                }),
-              };
-            }),
-          );
-        }
-
-        if (parsed.potentialItems && Array.isArray(parsed.potentialItems)) {
-          setPotentialItems(parsed.potentialItems);
-        }
-
-        if (parsed.pdiData && typeof parsed.pdiData === 'object') {
-          setPdiData((prev) => ({ ...prev, ...parsed.pdiData }));
-        }
-
-        if (parsed.currentStep && typeof parsed.currentStep === 'number') {
-          setCurrentStep(parsed.currentStep);
-        }
-
-        if (parsed.timestamp) {
-          setLastSaved(new Date(parsed.timestamp));
-        }
-
-        toast.success('Dados restaurados automaticamente', {
-          icon: '💾',
-          duration: 3000,
-        });
-      } catch (error) {
-        console.error('Erro ao restaurar auto-save:', error);
-        localStorage.removeItem(storageKey);
-      } finally {
-        setIsRestoringData(false);
-      }
-    } else {
-      // Marcar como já verificado mesmo sem dados salvos
-      autoSaveRestoredRef.current = storageKey;
-    }
-  }, [getStorageKey, hasExistingEvaluation, viewMode, sections.length]);
-
-  // Auto-save: Salvar dados no localStorage quando houver mudanças
-  useEffect(() => {
-    const storageKey = getStorageKey();
-    if (!storageKey || viewMode === 'view' || hasExistingEvaluation || isRestoringData) return;
-
-    // Verificar se há dados para salvar
-    const hasSectionScores = sections.some((s) => s.items.some((i) => i.score !== undefined));
-    const hasPotentialScores = potentialItems.some((i) => i.score !== undefined);
-    const hasPdiItems =
-      pdiData.curtosPrazos.length > 0 ||
-      pdiData.mediosPrazos.length > 0 ||
-      pdiData.longosPrazos.length > 0;
-
-    if (hasSectionScores || hasPotentialScores || hasPdiItems) {
-      // Salvar apenas dados serializáveis das sections (sem icon que é componente React)
-      const serializableSections = sections.map(({ icon, ...rest }) => rest);
-      const dataToSave = {
-        sections: serializableSections,
-        potentialItems,
-        pdiData,
-        currentStep,
-        timestamp: new Date().toISOString(),
-      };
-
-      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-      setLastSaved(new Date());
-    }
-  }, [
+    selectedEmployeeId,
+    setSelectedEmployeeId,
+    currentStep,
+    setCurrentStep,
+    loading,
+    isLoadingEmployee,
+    isSaving,
+    viewMode,
     sections,
     potentialItems,
     pdiData,
-    currentStep,
-    getStorageKey,
-    viewMode,
-    hasExistingEvaluation,
-    isRestoringData,
-  ]);
+    employeeNineBox,
+    selectedEmployee,
+    setSectionScore,
+    handlePotentialScoreChange,
+    addPdiItem,
+    removePdiItem,
+    updateActionItem,
+    canProceedToStep2,
+    canProceedToStep3,
+    handleSubmit,
+    isCycleInValidPeriod,
+    getCyclePeriodMessage,
+  } = form;
 
-  // Limpar auto-save após salvar com sucesso
-  const clearAutoSave = useCallback(() => {
-    const storageKey = getStorageKey();
-    if (storageKey) {
-      localStorage.removeItem(storageKey);
-      console.log('🗑️ Auto-save limpo após salvar com sucesso');
-    }
-  }, [getStorageKey]);
+  const [flowIndex, setFlowIndex] = useState(0);
+  const initializedRef = useRef(false);
+  const readOnly = viewMode === 'view';
 
-  // Load existing PDI when employee is selected
-  const loadExistingPDI = async (employeeId: string) => {
-    try {
-      const existingPDI = await pdiService.getPDI(employeeId);
+  const totalPdiItems =
+    pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length;
 
-      if (existingPDI) {
-        const transformedPDI = pdiService.transformPDIDataFromAPI(existingPDI);
-        setPdiData((prev) => ({
-          ...transformedPDI,
-          colaboradorId: employeeId,
-          colaborador: prev.colaborador || transformedPDI.colaborador,
-          cargo: prev.cargo || transformedPDI.cargo,
-          departamento: prev.departamento || transformedPDI.departamento,
-        }));
-        toast('PDI existente carregado para edição');
-      }
-    } catch (error) {
-      console.error('Erro ao carregar PDI:', error);
-      // Não mostrar erro se não houver PDI, é esperado
-    }
-  };
+  // ------- Sequência de telas -------
+  const { steps, potIntroIdx, pdiIntroIdx } = useMemo(() => {
+    const list: FlowStep[] = [];
 
-  // Check for existing evaluation and populate PDI data when employee is selected
-  useEffect(() => {
-    const checkAndPopulate = async () => {
-      if (!selectedEmployeeId) {
-        setIsLoadingEmployee(false);
-        return;
-      }
-
-      // Resetar auto-save ref para permitir re-restauração se trocar de colaborador
-      autoSaveRestoredRef.current = null;
-
-      // Preencher dados do PDI com info do colaborador selecionado
-      const employeeProfile = subordinates.find((sub) => sub.id === selectedEmployeeId);
-      if (employeeProfile) {
-        setPdiData((prev: PdiData) => ({
-          ...prev,
-          colaboradorId: employeeProfile.id,
-          colaborador: employeeProfile.name,
-          cargo: employeeProfile.position,
-          departamento: Array.isArray(employeeProfile.departments)
-            ? employeeProfile.departments.map((dep) => dep.name).join(', ')
-            : employeeProfile.departments || 'Não definido',
-          periodo: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`,
-          dataCriacao: prev.dataCriacao || new Date().toISOString(),
-          dataAtualizacao: new Date().toISOString(),
-        }));
-      }
-
-      if (currentCycle) {
-        setIsLoadingEmployee(true);
-        try {
-          const response = await evaluationService.getLeaderEvaluations(
-            selectedEmployeeId,
-            currentCycle.id,
-          );
-
-          if (response && response.length > 0) {
-            const existingEval = response[0];
-            setHasExistingEvaluation(true);
-            setExistingEvaluationData(existingEval);
-            setViewMode('view');
-
-            toast.success(
-              `Visualizando avaliação salva (Nota Final: ${existingEval.final_score?.toFixed(1) || 'N/A'})`,
-              { duration: 4000 },
-            );
-
-            // Preencher competências com os dados salvos
-            if (existingEval.evaluation_competencies) {
-              const technicalComps = existingEval.evaluation_competencies.filter(
-                (c: any) => c.category === 'technical',
-              );
-              const behavioralComps = existingEval.evaluation_competencies.filter(
-                (c: any) => c.category === 'behavioral',
-              );
-              const deliveriesComps = existingEval.evaluation_competencies.filter(
-                (c: any) => c.category === 'deliveries',
-              );
-
-              setSections((prev) =>
-                prev.map((section) => {
-                  const comps =
-                    section.id === 'technical'
-                      ? technicalComps
-                      : section.id === 'behavioral'
-                        ? behavioralComps
-                        : deliveriesComps;
-
-                  return {
-                    ...section,
-                    items: section.items.map((item) => {
-                      const matchingComp = comps.find((c: any) => c.criterion_name === item.name);
-                      return {
-                        ...item,
-                        score: matchingComp?.score,
-                      };
-                    }),
-                  };
-                }),
-              );
-            }
-
-            // Preencher potencial
-            if (existingEval.potential_score) {
-              setPotentialItems((prev) =>
-                prev.map((item, idx) => ({
-                  ...item,
-                  score: idx === 0 ? existingEval.potential_score : item.score,
-                })),
-              );
-            }
-          } else {
-            setHasExistingEvaluation(false);
-            setExistingEvaluationData(null);
-            setViewMode('edit');
-          }
-        } catch (error) {
-          console.error('Erro ao verificar avaliação existente:', error);
-          setHasExistingEvaluation(false);
-          setExistingEvaluationData(null);
-          setViewMode('edit');
-        } finally {
-          setIsLoadingEmployee(false);
-        }
-
-        // Load existing PDI
-        await loadExistingPDI(selectedEmployeeId);
-      }
-    };
-    checkAndPopulate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentCycle, selectedEmployeeId]);
-
-  const calculateScores = (): Scores => {
-    const newScores: Scores = { technical: 0, behavioral: 0, organizational: 0, final: 0 };
-
-    sections.forEach((section) => {
-      const sectionScores = section.items
-        .filter((item) => item.score !== undefined)
-        .map((item) => item.score || 0);
-      if (sectionScores.length > 0) {
-        const average = sectionScores.reduce((a, b) => a + b, 0) / sectionScores.length;
-
-        if (section.id === 'technical') newScores.technical = average;
-        else if (section.id === 'behavioral') newScores.behavioral = average;
-        else if (section.id === 'organizational') newScores.organizational = average;
-      }
+    // 0 — Seleção de colaborador
+    list.push({
+      id: 'picker',
+      kind: 'picker',
+      group: 'Colaborador',
+      isComplete: !!selectedEmployeeId,
+      blockAdvanceUntilComplete: true,
+      render: () => (
+        <EmployeePickerScreen
+          subordinates={subordinates}
+          selectedId={selectedEmployeeId}
+          onSelect={setSelectedEmployeeId}
+          loading={loading}
+        />
+      ),
     });
 
-    newScores.final =
-      newScores.technical * 0.5 + newScores.behavioral * 0.3 + newScores.organizational * 0.2;
-    return newScores;
-  };
-
-  const calculatePotentialScores = () => {
-    const scores = potentialItems
-      .filter((item) => item.score !== undefined)
-      .map((item) => item.score || 0);
-    if (scores.length === 0) return { results: 0, agility: 0, relationships: 0, final: 0 };
-
-    const average = scores.reduce((a, b) => a + b, 0) / scores.length;
-    return {
-      results: potentialItems[0]?.score || 0,
-      agility: potentialItems[1]?.score || 0,
-      relationships: ((potentialItems[2]?.score || 0) + (potentialItems[3]?.score || 0)) / 2,
-      final: average,
-    };
-  };
-
-  const getProgress = () => {
-    if (currentStep === 1) {
-      const totalItems = sections.reduce((acc, section) => acc + section.items.length, 0);
-      const scoredItems = sections.reduce(
-        (acc, section) => acc + section.items.filter((item) => item.score !== undefined).length,
-        0,
-      );
-      return totalItems > 0 ? (scoredItems / totalItems) * 100 : 0;
-    } else if (currentStep === 2) {
-      const scoredItems = potentialItems.filter((item) => item.score !== undefined).length;
-      return potentialItems.length > 0 ? (scoredItems / potentialItems.length) * 100 : 0;
-    } else {
-      const allPdiItems = [
-        ...pdiData.curtosPrazos,
-        ...pdiData.mediosPrazos,
-        ...pdiData.longosPrazos,
-      ];
-      if (allPdiItems.length === 0) return 0;
-      const completedItems = allPdiItems.filter((item) => item.status === '5').length;
-      return (completedItems / allPdiItems.length) * 100;
-    }
-  };
-
-  const canProceedToStep2 = () => {
-    return sections.every((section) => section.items.every((item) => item.score !== undefined));
-  };
-
-  const canProceedToStep3 = () => {
-    return potentialItems.every((item) => item.score !== undefined);
-  };
-
-  const handleNextStep = () => {
-    // Admin demo pode navegar livremente entre etapas
-    if (currentStep === 1 && (canProceedToStep2() || isAdminDemo)) {
-      setCurrentStep(2);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (currentStep === 2 && (canProceedToStep3() || isAdminDemo)) {
-      setCurrentStep(3);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const handlePreviousStep = () => {
-    if (currentStep === 3) {
-      setCurrentStep(2);
-    } else if (currentStep === 2) {
-      setCurrentStep(1);
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleSubmit = async () => {
-    if (!currentCycle || !selectedEmployeeId || !profile?.id) {
-      toast.error('Dados incompletos para enviar');
-      return;
+    // Sem colaborador → só o picker
+    if (!selectedEmployeeId) {
+      return { steps: list, competIntroIdx: 1, potIntroIdx: 1, pdiIntroIdx: 1 };
     }
 
-    const allCompetenciesScored = sections.every((section) =>
-      section.items.every((item) => item.score !== undefined),
-    );
-
-    const allPotentialScored = potentialItems.every((item) => item.score !== undefined);
-
-    if (!allCompetenciesScored || !allPotentialScored) {
-      toast.error('Complete todas as avaliações de competências e potencial antes de enviar');
-      return;
-    }
-
-    const totalPdiItems =
-      pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length;
-    if (totalPdiItems === 0) {
-      toast.error(
-        'Adicione pelo menos um item ao Plano de Desenvolvimento Individual (PDI) antes de enviar.',
-      );
-      return;
-    }
-
-    const competencies = sections.flatMap((section) =>
-      section.items.map((item) => {
-        // Determinar a categoria baseada no ID da seção
-        let category: 'technical' | 'behavioral' | 'deliveries';
-        if (section.id === 'technical') {
-          category = 'technical';
-        } else if (section.id === 'behavioral') {
-          category = 'behavioral';
-        } else {
-          category = 'deliveries';
-        }
-
-        return {
-          id: item.id,
-          criterion_name: item.name,
-          criterion_description: item.description,
-          category: category,
-          score: item.score!,
-          weight: 1.0,
-        };
-      }),
-    );
-
-    setIsSaving(true);
-    try {
-      // Preparar detalhes de potencial para salvar
-      const potentialDetails: Record<string, { name: string; score: number }> = {};
-      potentialItems.forEach((item) => {
-        if (item.score !== undefined) {
-          potentialDetails[item.id] = {
-            name: item.name,
-            score: item.score,
-          };
-        }
+    // Competências
+    const cIdx = list.length;
+    list.push({
+      id: 'intro-comp',
+      kind: 'intro',
+      group: 'Competências',
+      render: () => (
+        <SectionIntroScreen
+          icon={Star}
+          eyebrow="Etapa 1 de 3"
+          title="Competências"
+          description="Avalie cada competência do colaborador. Toque na nota — avança sozinho."
+        />
+      ),
+    });
+    sections.forEach((sec) => {
+      sec.items.forEach((item) => {
+        list.push({
+          id: `comp-${sec.id}-${item.id}`,
+          kind: 'rating',
+          group: sec.title,
+          isComplete: item.score !== undefined,
+          render: (ctx) => (
+            <RatingScreen
+              ctx={ctx}
+              eyebrow={`${sec.title} · peso ${sec.weight}%`}
+              title={item.name}
+              description={item.description}
+              options={COMPETENCY_SCALE}
+              value={item.score}
+              readOnly={readOnly}
+              onChange={(v) => setSectionScore(sec.id, item.id, v)}
+            />
+          ),
+        });
       });
-
-      // 1. Criar a avaliação do líder
-      await saveLeaderEvaluation({
-        cycleId: currentCycle.id,
-        employeeId: selectedEmployeeId,
-        evaluatorId: profile.id,
-        competencies,
-        potentialScore: calculatePotentialScores().final,
-        potentialDetails,
-        feedback: {
-          strengths_internal: 'Avaliação completa',
-          improvements: '',
-          observations: `Potencial: ${potentialItems.map((item) => `${item.name}: ${item.score}`).join(', ')}`,
-        },
-      });
-
-      // 2. Salvar o PDI usando o novo serviço
-      const pdiParams = pdiService.transformPDIDataForAPI(
-        pdiData,
-        currentCycle.id,
-        undefined, // leaderEvaluationId será undefined por enquanto
-      );
-
-      await pdiService.savePDI(pdiParams);
-
-      // Limpar auto-save após salvar com sucesso
-      clearAutoSave();
-
-      toast.success('Avaliação e PDI salvos com sucesso!');
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
-    } catch (error) {
-      console.error('Erro ao enviar avaliação:', error);
-      toast.error('Erro ao enviar avaliação');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Função de salvar rascunho removida - não é mais necessária
-  /*
-  const handleSaveDraft = async () => {
-    if (!currentCycle || !selectedEmployeeId || !profile?.id) {
-      toast.error('Dados incompletos para salvar');
-      return;
-    }
-
-    const competencies = sections.flatMap(section =>
-      section.items
-        .filter(item => item.score !== undefined)
-        .map(item => {
-          // Determinar a categoria baseada no ID da seção
-          let category: 'technical' | 'behavioral' | 'deliveries';
-          if (section.id === 'technical') {
-            category = 'technical';
-          } else if (section.id === 'behavioral') {
-            category = 'behavioral';
-          } else {
-            category = 'deliveries';
-          }
-
-          return {
-            id: item.id,
-            criterion_name: item.name,
-            criterion_description: item.description,
-            category: category,
-            score: item.score!,
-            weight: 1.0
-          };
-        })
-    );
-
-    const totalPdiItems = pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length;
-    if (competencies.length === 0 && totalPdiItems === 0) {
-      toast.error('Avalie pelo menos uma competência ou adicione um item ao PDI antes de salvar');
-      return;
-    }
-
-    const potentialScore = potentialItems.some(item => item.score !== undefined)
-      ? calculatePotentialScores().final
-      : undefined;
-
-    // Preparar detalhes de potencial para salvar (rascunho)
-    const potentialDetails: Record<string, { name: string; score: number }> = {};
-    potentialItems.forEach(item => {
-      if (item.score !== undefined) {
-        potentialDetails[item.id] = {
-          name: item.name,
-          score: item.score
-        };
-      }
     });
 
-    setIsSaving(true);
-    try {
-      // Salvar avaliação como rascunho
-      await saveLeaderEvaluation({
-        cycleId: currentCycle.id,
-        employeeId: selectedEmployeeId,
-        evaluatorId: profile.id,
-        competencies,
-        potentialScore: potentialScore || 0,
-        potentialDetails: Object.keys(potentialDetails).length > 0 ? potentialDetails : undefined,
-        feedback: {
-          strengths_internal: '',
-          improvements: '',
-          observations: 'Avaliação salva como rascunho'
-        }
+    // Potencial
+    const pIdx = list.length;
+    list.push({
+      id: 'intro-pot',
+      kind: 'intro',
+      group: 'Potencial',
+      render: () => (
+        <SectionIntroScreen
+          icon={TrendingUp}
+          eyebrow="Etapa 2 de 3"
+          title="Potencial"
+          description="Avalie o potencial de crescimento do colaborador."
+        />
+      ),
+    });
+    potentialItems.forEach((item) => {
+      list.push({
+        id: `pot-${item.id}`,
+        kind: 'rating',
+        group: 'Potencial',
+        isComplete: item.score !== undefined,
+        render: (ctx) => (
+          <RatingScreen
+            ctx={ctx}
+            eyebrow="Potencial"
+            title={item.name}
+            description={item.description}
+            options={POTENTIAL_SCALE}
+            value={item.score}
+            readOnly={readOnly}
+            onChange={(v) => handlePotentialScoreChange(item.id, v)}
+          />
+        ),
       });
+    });
 
-      // Se houver itens no PDI, salvar também
-      if (totalPdiItems > 0) {
-        const pdiParams = pdiService.transformPDIDataForAPI(
-          pdiData,
-          currentCycle.id,
-          undefined // Sem ID da avaliação por enquanto
+    // PDI
+    const dIdx = list.length;
+    list.push({
+      id: 'intro-pdi',
+      kind: 'intro',
+      group: 'PDI',
+      render: () => (
+        <SectionIntroScreen
+          icon={Rocket}
+          eyebrow="Etapa 3 de 3"
+          title="Plano de Desenvolvimento"
+          description="Defina ações de curto, médio e longo prazo. Ao menos um item é necessário."
+        />
+      ),
+    });
+    PDI_META.forEach((meta) => {
+      list.push({
+        id: `pdi-${meta.prazo}`,
+        kind: 'form',
+        group: 'PDI',
+        isComplete: pdiData[meta.key].length > 0,
+        render: () => (
+          <PdiPrazoScreen
+            prazo={meta.prazo}
+            icon={meta.icon}
+            title={meta.title}
+            subtitle={meta.subtitle}
+            description={meta.description}
+            items={pdiData[meta.key]}
+            readOnly={readOnly}
+            onAdd={addPdiItem}
+            onRemove={(id) => removePdiItem(id, meta.prazo)}
+            onUpdate={(id, field, value) => updateActionItem(meta.key, id, field, value)}
+          />
+        ),
+      });
+    });
+
+    // Revisão
+    list.push({
+      id: 'review',
+      kind: 'review',
+      group: 'Revisão',
+      render: (ctx) => {
+        const compGroups: ReviewGroup[] = sections.map((sec) => ({
+          label: sec.title,
+          items: sec.items.map((item) => {
+            const opt = getRatingOption(COMPETENCY_SCALE, item.score);
+            return {
+              id: `${sec.id}-${item.id}`,
+              label: item.name,
+              answer: opt?.label,
+              done: item.score !== undefined,
+              stepIndex: list.findIndex((s) => s.id === `comp-${sec.id}-${item.id}`),
+            };
+          }),
+        }));
+        const potGroup: ReviewGroup = {
+          label: 'Potencial',
+          items: potentialItems.map((item) => {
+            const opt = getRatingOption(POTENTIAL_SCALE, item.score);
+            return {
+              id: `pot-${item.id}`,
+              label: item.name,
+              answer: opt?.label,
+              done: item.score !== undefined,
+              stepIndex: list.findIndex((s) => s.id === `pot-${item.id}`),
+            };
+          }),
+        };
+        const pdiGroup: ReviewGroup = {
+          label: 'PDI',
+          items: PDI_META.map((meta) => ({
+            id: `pdi-${meta.prazo}`,
+            label: meta.title,
+            answer:
+              pdiData[meta.key].length > 0 ? `${pdiData[meta.key].length} item(ns)` : undefined,
+            done: pdiData[meta.key].length > 0,
+            stepIndex: list.findIndex((s) => s.id === `pdi-${meta.prazo}`),
+          })),
+        };
+        return (
+          <ReviewScreen
+            mode={ctx.mode}
+            groups={[...compGroups, potGroup, pdiGroup]}
+            onEdit={(i) => ctx.goTo(i)}
+          />
         );
+      },
+    });
 
-        await pdiService.savePDI(pdiParams);
-      }
+    return { steps: list, competIntroIdx: cIdx, potIntroIdx: pIdx, pdiIntroIdx: dIdx };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedEmployeeId, subordinates, loading, sections, potentialItems, pdiData, readOnly]);
 
-      toast.success('Rascunho salvo com sucesso');
-    } catch (error) {
-      console.error('Erro ao salvar avaliação:', error);
-      toast.error('Erro ao salvar avaliação');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-  */
+  // Inicializa a posição a partir do currentStep restaurado (uma vez, após seleção)
+  useEffect(() => {
+    if (initializedRef.current) return;
+    if (!selectedEmployeeId || sections.length === 0) return;
+    initializedRef.current = true;
+    if (currentStep === 2) setFlowIndex(potIntroIdx);
+    else if (currentStep === 3) setFlowIndex(pdiIntroIdx);
+  }, [selectedEmployeeId, sections.length, currentStep, potIntroIdx, pdiIntroIdx]);
 
-  const isCycleInValidPeriod = (): boolean => {
-    // Explicitly define return type
-    if (!currentCycle) return false;
-    const today = new Date();
-    const startDate = new Date(currentCycle.start_date);
-    const endDate = new Date(currentCycle.end_date);
-    return today >= startDate && today <= endDate;
-  };
+  // Ao trocar de colaborador, permitir nova inicialização
+  useEffect(() => {
+    initializedRef.current = false;
+    setFlowIndex(0);
+  }, [selectedEmployeeId]);
 
-  const getCyclePeriodMessage = (): { type: 'warning' | 'error'; message: string } | null => {
-    // Explicitly define return type
-    if (!currentCycle) return null;
-    const today = new Date();
-    const startDate = new Date(currentCycle.start_date);
-    const endDate = new Date(currentCycle.end_date);
-
-    if (today < startDate) {
-      return {
-        type: 'warning',
-        message: `O período de avaliação iniciará em ${formatDateBR(currentCycle.start_date)}`,
-      };
-    }
-    if (today > endDate) {
-      return {
-        type: 'error',
-        message: `O período de avaliação encerrou em ${formatDateBR(currentCycle.end_date)}`,
-      };
-    }
-    const daysRemaining = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    if (daysRemaining <= 7) {
-      return {
-        type: 'warning',
-        message: `Atenção: ${daysRemaining} dias restantes para completar as avaliações`,
-      };
-    }
-    return null;
+  const handleIndexChange = (i: number) => {
+    setFlowIndex(i);
+    const region = i >= pdiIntroIdx ? 3 : i >= potIntroIdx ? 2 : 1;
+    if (region !== currentStep) setCurrentStep(region);
   };
 
-  const selectedEmployee = subordinates.find((emp) => emp.id === selectedEmployeeId);
-
-  if (loading) {
-    return <LoadingSpinner minHeight="min-h-[60vh]" />;
-  }
+  // ------- Guards -------
+  if (loading) return <LoadingSpinner minHeight="min-h-[60vh]" />;
 
   if (!currentCycle || !isCycleInValidPeriod()) {
     const periodMessage = getCyclePeriodMessage();
     return (
-      <div className="bg-card rounded-xl shadow-sm border border-border p-8 text-center">
-        <AlertCircle className="h-12 w-12 text-lime-deep dark:text-lime mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">
+      <div className="rounded-xl border border-border bg-card p-8 text-center shadow-sm">
+        <AlertCircle className="mx-auto mb-4 h-12 w-12 text-lime-deep dark:text-lime" />
+        <h3 className="mb-2 text-lg font-semibold text-foreground">
           {!currentCycle ? 'Nenhum ciclo de avaliação ativo' : 'Período de avaliação indisponível'}
         </h3>
-        <p className="text-muted-foreground mb-4">
+        <p className="mb-4 text-muted-foreground">
           {periodMessage?.message || 'Aguarde a abertura de um novo ciclo de avaliação.'}
         </p>
         {profile?.is_director && (
           <button
             onClick={() => (window.location.href = '/cycle-management')}
-            className="px-4 py-2 bg-lime text-obsidian rounded-lg hover:bg-lime/90 transition-colors"
+            className="rounded-lg bg-lime px-4 py-2 text-obsidian transition-colors hover:bg-lime/90"
           >
             Gerenciar Ciclos
           </button>
@@ -837,201 +332,57 @@ const LeaderEvaluation = () => {
     );
   }
 
-  return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Info Banner for Existing Evaluation - View Mode (igual ao Consenso) */}
-      {hasExistingEvaluation && selectedEmployeeId && !loading && viewMode === 'view' && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-lime/10 border-l-4 border-lime rounded-lg p-4 shadow-sm"
+  // ------- Header compacto -------
+  const periodMessage = getCyclePeriodMessage();
+  const header = (
+    <div className="rounded-xl border border-border bg-card px-3 py-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate text-sm font-semibold text-foreground">
+          {selectedEmployee ? selectedEmployee.name : 'Avaliação do Líder'}
+        </p>
+        {employeeNineBox?.nine_box_position && (
+          <span
+            className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${getQuadrantColor(
+              employeeNineBox.nine_box_position,
+            )}`}
+          >
+            {employeeNineBox.nine_box_position}
+          </span>
+        )}
+      </div>
+      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+        {selectedEmployee?.position ? `${selectedEmployee.position} · ` : ''}
+        {currentCycle.title}
+      </p>
+      {periodMessage && (
+        <p
+          className={`mt-1 text-xs font-medium ${
+            periodMessage.type === 'error' ? 'text-destructive' : 'text-warning'
+          }`}
         >
-          <div className="flex items-start">
-            <CheckCircle className="h-5 w-5 text-lime-deep dark:text-lime mt-0.5 mr-3 flex-shrink-0" />
-            <div className="flex-1">
-              <h4 className="text-sm font-semibold text-foreground mb-1">
-                Avaliação de Líder já realizada
-              </h4>
-              <p className="text-sm text-muted-foreground">
-                Esta avaliação já foi preenchida e salva. Você está visualizando os dados em modo
-                somente leitura.
-                {existingEvaluationData && (
-                  <span className="block mt-1 font-medium">
-                    Nota Final: {existingEvaluationData.final_score?.toFixed(1) || 'N/A'} | Avaliado
-                    em: {formatDateBR(existingEvaluationData.evaluation_date)}
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
-        </motion.div>
+          {periodMessage.message}
+        </p>
       )}
-
-      <LeaderEvaluationHeader
-        currentStep={currentStep}
-        currentCycle={currentCycle}
-        selectedEmployeeId={selectedEmployeeId}
-        setSelectedEmployeeId={setSelectedEmployeeId}
-        subordinates={subordinates}
-        loading={loading}
-        progress={getProgress()}
-        periodMessage={getCyclePeriodMessage()}
-        pdiData={pdiData}
-        setPdiData={setPdiData}
-        lastSaved={lastSaved}
-      />
-
-      {/* Loading ao carregar dados do colaborador */}
-      {selectedEmployeeId && isLoadingEmployee && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-card rounded-xl shadow-sm border border-border p-8 text-center"
-        >
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D2FF00] mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando dados da avaliação...</p>
-        </motion.div>
-      )}
-
-      {/* Modo demonstração para admin ou colaborador selecionado */}
-      {(selectedEmployeeId || isAdminDemo) && !isLoadingEmployee && (
-        <>
-          {/* Banner de modo demonstração para admin */}
-          {isAdminDemo && !selectedEmployeeId && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-warning/15 border-l-4 border-warning rounded-lg p-4 shadow-sm"
-            >
-              <div className="flex items-start">
-                <Info className="h-5 w-5 text-warning mt-0.5 mr-3 flex-shrink-0" />
-                <div className="flex-1">
-                  <h4 className="text-sm font-semibold text-foreground mb-1">Modo Demonstração</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Você está visualizando a interface em modo demonstração. As funcionalidades
-                    estão disponíveis para visualização, mas não é possível salvar avaliações sem
-                    selecionar um colaborador.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {currentStep === 1 && (
-            <>
-              {sections.map((section, index) => (
-                <EvaluationSection
-                  key={section.id}
-                  section={section}
-                  setSections={setSections}
-                  sectionIndex={index}
-                  calculateScores={calculateScores}
-                  isSaving={isSaving}
-                  readOnly={viewMode === 'view' || (isAdminDemo && !selectedEmployeeId)}
-                />
-              ))}
-              {viewMode === 'edit' && (
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-                  <div className="flex items-center space-x-2 text-sm">
-                    {!canProceedToStep2() ? (
-                      <>
-                        <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-warning flex-shrink-0" />
-                        <span className="text-muted-foreground">
-                          Complete todas as competências para prosseguir
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success flex-shrink-0" />
-                        <span className="text-success font-medium">
-                          Competências avaliadas! Prossiga para avaliar o potencial.
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                    <Button
-                      variant="primary"
-                      onClick={handleNextStep}
-                      icon={<ArrowRight size={18} />}
-                      size="lg"
-                      disabled={!canProceedToStep2() && !isAdminDemo}
-                    >
-                      Próxima Etapa
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {currentStep === 2 && (
-            <PotentialAndPDI
-              currentStep={currentStep}
-              potentialItems={potentialItems}
-              setPotentialItems={setPotentialItems}
-              pdiData={pdiData}
-              setPdiData={setPdiData}
-              handlePreviousStep={handlePreviousStep}
-              handleNextStep={handleNextStep}
-              handleSubmit={handleSubmit}
-              isSaving={isSaving}
-              loading={loading}
-              canProceedToStep3={canProceedToStep3}
-              selectedEmployee={selectedEmployee}
-              hideActionButtons={viewMode === 'view'}
-              readOnly={viewMode === 'view' || (isAdminDemo && !selectedEmployeeId)}
-            />
-          )}
-
-          {currentStep === 3 && (
-            <PotentialAndPDI
-              currentStep={currentStep}
-              potentialItems={potentialItems}
-              setPotentialItems={setPotentialItems}
-              pdiData={pdiData}
-              setPdiData={setPdiData}
-              handlePreviousStep={handlePreviousStep}
-              handleNextStep={handleNextStep}
-              handleSubmit={handleSubmit}
-              isSaving={isSaving}
-              loading={loading}
-              canProceedToStep3={canProceedToStep3}
-              selectedEmployee={selectedEmployee}
-              hideActionButtons={viewMode === 'view'}
-              readOnly={viewMode === 'view' || (isAdminDemo && !selectedEmployeeId)}
-            />
-          )}
-        </>
-      )}
-
-      {!selectedEmployeeId && !isAdminDemo && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-card rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-border p-8 sm:p-16 text-center"
-        >
-          <div className="max-w-md mx-auto">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-lime/10 mb-4 sm:mb-6">
-              <Info className="h-8 w-8 sm:h-10 sm:w-10 text-lime-deep dark:text-lime" />
-            </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
-              {subordinates.length === 0 && !loading
-                ? 'Nenhum subordinado disponível'
-                : 'Nenhum avaliado selecionado'}
-            </h3>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              {subordinates.length === 0 && !loading
-                ? profile?.is_leader && !profile?.is_director
-                  ? 'Você não possui avaliados subordinados para avaliar.'
-                  : 'Entre em contato com o RH para verificar suas permissões.'
-                : 'Selecione um avaliado acima para iniciar a avaliação de performance'}
-            </p>
-          </div>
-        </motion.div>
+      {isLoadingEmployee && (
+        <p className="mt-1 text-xs text-muted-foreground">Carregando dados do colaborador…</p>
       )}
     </div>
   );
-};
 
-export default LeaderEvaluation;
+  const canSubmit = canProceedToStep2() && canProceedToStep3() && totalPdiItems > 0;
+
+  return (
+    <EvaluationFlow
+      steps={steps}
+      index={flowIndex}
+      onIndexChange={handleIndexChange}
+      mode={viewMode}
+      onSubmit={handleSubmit}
+      isSubmitting={isSaving}
+      submitLabel="Enviar Avaliação"
+      canSubmit={canSubmit}
+      header={header}
+      onExit={() => navigate('/')}
+    />
+  );
+}

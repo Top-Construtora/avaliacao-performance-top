@@ -1,615 +1,225 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-hot-toast';
-import {
-  Brain,
-  Wrench,
-  Award,
-  Plus,
-  X,
-  Save,
-  ArrowLeft,
-  ArrowRight,
-  Target,
-  CheckCircle,
-  Info,
-  Shield,
-  Users,
-  Building,
-  ChevronDown,
-  ChevronRight,
-  Zap,
-  Pen,
-  AlertCircle,
-  Clock,
-} from 'lucide-react';
-import Button from '../../components/Button';
-import { useEvaluation } from '../../hooks/useEvaluation';
-import { useAuth } from '../../context/AuthContext';
-import { EVALUATION_COMPETENCIES } from '../../types/evaluation.types';
-import { evaluationService } from '../../services/evaluation.service';
+import { useEffect, useMemo, useRef, useState, type ElementType } from 'react';
+import { AlertCircle, Award, Brain, Clock, Pen, Shield, Wrench, Zap } from 'lucide-react';
 import { formatDateBR } from '../../utils/date';
+import { COMPETENCY_SCALE, getRatingOption } from '../../constants/ratingScales';
+import { useSelfEvaluationForm, type ToolkitSectionId } from '../../hooks/useSelfEvaluationForm';
+import EvaluationFlow from '../../components/evaluation-flow/EvaluationFlow';
+import SectionIntroScreen from '../../components/evaluation-flow/screens/SectionIntroScreen';
+import RatingScreen from '../../components/evaluation-flow/screens/RatingScreen';
+import TextListScreen from '../../components/evaluation-flow/screens/TextListScreen';
+import ReviewScreen, {
+  type ReviewGroup,
+} from '../../components/evaluation-flow/screens/ReviewScreen';
+import type { FlowStep } from '../../components/evaluation-flow/types';
 
-interface SelfEvaluationData {
-  conhecimentos: string[];
-  ferramentas: string[];
-  forcasInternas: string[];
-  qualidades: string[];
-}
-
-interface CompetencyScore {
-  [key: string]: number;
-}
-
-interface Section {
-  id: keyof SelfEvaluationData;
+const TOOLKIT_META: {
+  id: ToolkitSectionId;
   title: string;
-  subtitle: string;
-  icon: React.ElementType;
-  gradient: string;
-  bgColor: string;
-  borderColor: string;
-  iconBg: string;
-  items: string[];
-}
+  prompt: string;
+  icon: ElementType;
+}[] = [
+  { id: 'conhecimentos', title: 'Conhecimentos', prompt: 'Sei falar sobre:', icon: Brain },
+  { id: 'ferramentas', title: 'Ferramentas', prompt: 'Sei usar:', icon: Wrench },
+  { id: 'forcasInternas', title: 'Forças Internas', prompt: 'Me sustentam:', icon: Shield },
+  { id: 'qualidades', title: 'Qualidades', prompt: 'Tenho para oferecer:', icon: Award },
+];
 
-const SelfEvaluation = () => {
-  const navigate = useNavigate();
-  const { user, profile } = useAuth();
-  const { currentCycle, saveSelfEvaluation, checkExistingEvaluation, loading, deliveriesCriteria } =
-    useEvaluation();
-
-  // Controle de modo de visualização (igual ao Consenso)
-  const [viewMode, setViewMode] = useState<'edit' | 'view'>('edit');
-  const [hasExistingEvaluation, setHasExistingEvaluation] = useState(false);
-  const [existingEvaluationData, setExistingEvaluationData] = useState<any>(null);
-
-  const [currentStep, setCurrentStep] = useState<'toolkit' | 'competencies'>('toolkit');
-  const [formData, setFormData] = useState<SelfEvaluationData>({
-    conhecimentos: [''],
-    ferramentas: [''],
-    forcasInternas: [''],
-    qualidades: [''],
-  });
-  const [competencyScores, setCompetencyScores] = useState<CompetencyScore>({});
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set([
-      'competencias-tecnicas',
-      'competencias-comportamentais',
-      'competencias-organizacionais',
-    ]),
-  );
-  const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
-  const [isSaving, setIsSaving] = useState(false);
-  const [competencyCategories, setCompetencyCategories] = useState<any[]>([]);
-
-  // Auto-save states
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isRestoringData, setIsRestoringData] = useState(false);
-
-  // Validation states
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-
-  // Storage key for auto-save
-  const getStorageKey = useCallback(() => {
-    if (!currentCycle?.id || !user?.id) return null;
-    return `self_evaluation_autosave_${currentCycle.id}_${user.id}`;
-  }, [currentCycle?.id, user?.id]);
-
-  // Check for existing evaluation (igual ao Consenso)
-  useEffect(() => {
-    const checkExisting = async () => {
-      if (currentCycle && user) {
-        try {
-          const response = await evaluationService.getSelfEvaluations(user.id, currentCycle.id);
-
-          if (response && response.length > 0) {
-            const existingEval = response[0];
-            setHasExistingEvaluation(true);
-            setExistingEvaluationData(existingEval);
-            setViewMode('view');
-            setCurrentStep('competencies');
-
-            // Preencher scores de competências
-            if (existingEval.evaluation_competencies) {
-              const scores: CompetencyScore = {};
-              existingEval.evaluation_competencies.forEach((comp: any) => {
-                scores[comp.criterion_name] = comp.score;
-              });
-              setCompetencyScores(scores);
-            }
-
-            // Preencher dados do toolkit
-            setFormData({
-              conhecimentos: existingEval.knowledge?.length > 0 ? existingEval.knowledge : [''],
-              ferramentas: existingEval.tools?.length > 0 ? existingEval.tools : [''],
-              forcasInternas:
-                existingEval.strengths_internal?.length > 0
-                  ? existingEval.strengths_internal
-                  : [''],
-              qualidades: existingEval.qualities?.length > 0 ? existingEval.qualities : [''],
-            });
-
-            // Marcar seções como completas para exibição correta
-            const completedSectionsSet = new Set<string>();
-            if (existingEval.knowledge?.length > 0) completedSectionsSet.add('conhecimentos');
-            if (existingEval.tools?.length > 0) completedSectionsSet.add('ferramentas');
-            if (existingEval.strengths_internal?.length > 0)
-              completedSectionsSet.add('forcasInternas');
-            if (existingEval.qualities?.length > 0) completedSectionsSet.add('qualidades');
-            setCompletedSections(completedSectionsSet);
-
-            // Expandir todas as seções de competências no modo view
-            setExpandedSections(
-              new Set([
-                'competencias-tecnicas',
-                'competencias-comportamentais',
-                'competencias-organizacionais',
-              ]),
-            );
-          } else {
-            setHasExistingEvaluation(false);
-            setExistingEvaluationData(null);
-            setViewMode('edit');
-          }
-        } catch (error) {
-          console.error('Erro ao verificar autoavaliação existente:', error);
-          setHasExistingEvaluation(false);
-          setExistingEvaluationData(null);
-          setViewMode('edit');
-        }
-      }
-    };
-    checkExisting();
-  }, [currentCycle, user]);
-
-  // Auto-save: Restaurar dados do localStorage ao carregar (apenas se não houver avaliação existente)
-  useEffect(() => {
-    const storageKey = getStorageKey();
-    if (!storageKey || hasExistingEvaluation || viewMode === 'view') return;
-
-    const savedData = localStorage.getItem(storageKey);
-    if (savedData) {
-      try {
-        setIsRestoringData(true);
-        const parsed = JSON.parse(savedData);
-
-        if (parsed.formData) {
-          setFormData(parsed.formData);
-          // Atualizar seções completas
-          const completedSectionsSet = new Set<string>();
-          Object.entries(parsed.formData).forEach(([key, values]) => {
-            if ((values as string[]).some((v) => v.trim() !== '')) {
-              completedSectionsSet.add(key);
-            }
-          });
-          setCompletedSections(completedSectionsSet);
-        }
-
-        if (parsed.competencyScores) {
-          setCompetencyScores(parsed.competencyScores);
-        }
-
-        if (parsed.currentStep) {
-          setCurrentStep(parsed.currentStep);
-        }
-
-        if (parsed.timestamp) {
-          setLastSaved(new Date(parsed.timestamp));
-        }
-
-        toast.success('Dados restaurados automaticamente', {
-          icon: '💾',
-          duration: 3000,
-        });
-
-        console.log('📝 Dados restaurados do auto-save:', {
-          formData: !!parsed.formData,
-          scores: Object.keys(parsed.competencyScores || {}).length,
-          step: parsed.currentStep,
-        });
-      } catch (error) {
-        console.error('Erro ao restaurar auto-save:', error);
-        localStorage.removeItem(storageKey);
-      } finally {
-        setIsRestoringData(false);
-      }
-    }
-  }, [getStorageKey, hasExistingEvaluation, viewMode]);
-
-  // Auto-save: Salvar dados no localStorage quando houver mudanças
-  useEffect(() => {
-    const storageKey = getStorageKey();
-    if (!storageKey || viewMode === 'view' || hasExistingEvaluation || isRestoringData) return;
-
-    // Verificar se há dados para salvar
-    const hasFormData = Object.values(formData).some((arr) => arr.some((v) => v.trim() !== ''));
-    const hasScores = Object.keys(competencyScores).length > 0;
-
-    if (hasFormData || hasScores) {
-      const dataToSave = {
-        formData,
-        competencyScores,
-        currentStep,
-        timestamp: new Date().toISOString(),
-      };
-
-      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-      setLastSaved(new Date());
-      setHasUnsavedChanges(false);
-
-      console.log('💾 Auto-save realizado:', {
-        formDataSections: Object.keys(formData).length,
-        numScores: Object.keys(competencyScores).length,
-        step: currentStep,
-      });
-    }
-  }, [
+export default function SelfEvaluation() {
+  const form = useSelfEvaluationForm();
+  const {
+    navigate,
+    profile,
+    currentCycle,
+    viewMode,
+    currentStep,
+    setCurrentStep,
     formData,
     competencyScores,
-    currentStep,
-    getStorageKey,
-    viewMode,
-    hasExistingEvaluation,
-    isRestoringData,
-  ]);
+    competencyCategories,
+    isSaving,
+    lastSaved,
+    addField,
+    removeField,
+    updateField,
+    handleCompetencyScore,
+    handleSave,
+    isCycleInValidPeriod,
+    getCyclePeriodMessage,
+    competencyProgress,
+  } = form;
 
-  // Marcar como tendo alterações não salvas
-  useEffect(() => {
-    if (!isRestoringData && viewMode === 'edit') {
-      setHasUnsavedChanges(true);
-    }
-  }, [formData, competencyScores, isRestoringData, viewMode]);
+  const [flowIndex, setFlowIndex] = useState(0);
+  const initializedRef = useRef(false);
+  const readOnly = viewMode === 'view';
 
-  // Limpar auto-save após salvar com sucesso
-  const clearAutoSave = useCallback(() => {
-    const storageKey = getStorageKey();
-    if (storageKey) {
-      localStorage.removeItem(storageKey);
-      console.log('🗑️ Auto-save limpo após salvar com sucesso');
-    }
-  }, [getStorageKey]);
+  // ------- Monta a sequência de telas -------
+  const { steps, competenciesIntroIndex } = useMemo(() => {
+    const list: FlowStep[] = [];
 
-  // Validação em tempo real para toolkit
-  const validateToolkitSection = useCallback(
-    (section: keyof SelfEvaluationData, values: string[]) => {
-      const hasValidItem = values.some((v) => v.trim() !== '');
-      if (!hasValidItem) {
-        setValidationErrors((prev) => ({
-          ...prev,
-          [section]: 'Adicione pelo menos um item nesta seção',
-        }));
-      } else {
-        setValidationErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors[section];
-          return newErrors;
-        });
-      }
-    },
-    [],
-  );
-
-  // Initialize competency categories with dynamic organizational competencies
-  useEffect(() => {
-    // Usar deliveriesCriteria do contexto ou fallback para EVALUATION_COMPETENCIES.deliveries
-    const organizationalCompetencies =
-      deliveriesCriteria.length > 0 ? deliveriesCriteria : EVALUATION_COMPETENCIES.deliveries;
-
-    setCompetencyCategories([
-      {
-        id: 'competencias-tecnicas',
-        title: 'Competências Técnicas',
-        icon: Target,
-        gradient: 'from-lime to-lime-deep',
-        bgColor: 'bg-secondary',
-        borderColor: 'border-border',
-        items: EVALUATION_COMPETENCIES.technical.map((comp) => ({
-          id: comp.name.toLowerCase().replace(/\s+/g, '-'),
-          name: comp.name,
-          description: comp.description,
-        })),
-      },
-      {
-        id: 'competencias-comportamentais',
-        title: 'Competências Comportamentais',
-        icon: Users,
-        gradient: 'from-lime to-lime-deep',
-        bgColor: 'bg-secondary',
-        borderColor: 'border-border',
-        items: EVALUATION_COMPETENCIES.behavioral.map((comp) => ({
-          id: comp.name.toLowerCase().replace(/\s+/g, '-'),
-          name: comp.name,
-          description: comp.description,
-        })),
-      },
-      {
-        id: 'competencias-organizacionais',
-        title: 'Competências Organizacionais',
-        icon: Building,
-        gradient: 'from-lime to-lime-deep',
-        bgColor: 'bg-secondary',
-        borderColor: 'border-border',
-        items: organizationalCompetencies.map((comp: any) => ({
-          id: comp.name.toLowerCase().replace(/\s+/g, '-'),
-          name: comp.name,
-          description: comp.description,
-        })),
-      },
-    ]);
-  }, [deliveriesCriteria]);
-
-  const addField = (section: keyof SelfEvaluationData) => {
-    setFormData((prev) => ({
-      ...prev,
-      [section]: [...prev[section], ''],
-    }));
-  };
-
-  const removeField = (section: keyof SelfEvaluationData, index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      [section]: prev[section].filter((_, i) => i !== index),
-    }));
-  };
-
-  const updateField = (section: keyof SelfEvaluationData, index: number, value: string) => {
-    const newSectionData = formData[section].map((item, i) => (i === index ? value : item));
-
-    setFormData((prev) => ({
-      ...prev,
-      [section]: newSectionData,
-    }));
-
-    // Validação em tempo real
-    validateToolkitSection(section, newSectionData);
-
-    // Check if section is completed
-    const hasValidItems = newSectionData.some((item) => item.trim() !== '');
-
-    if (hasValidItems) {
-      setCompletedSections((prev) => new Set(prev).add(section));
-    } else {
-      setCompletedSections((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(section);
-        return newSet;
-      });
-    }
-  };
-
-  const handleCompetencyScore = (competencyName: string, score: number) => {
-    setCompetencyScores((prev) => ({
-      ...prev,
-      [competencyName]: score,
-    }));
-  };
-
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(sectionId)) {
-        newSet.delete(sectionId);
-      } else {
-        newSet.add(sectionId);
-      }
-      return newSet;
+    // Intro do toolkit
+    list.push({
+      id: 'intro-toolkit',
+      kind: 'intro',
+      group: 'Toolkit',
+      render: () => (
+        <SectionIntroScreen
+          icon={Pen}
+          eyebrow="Etapa 1 de 2"
+          title="Meu Toolkit Profissional"
+          description="Registre o que você domina e o que te fortalece. Um item por linha — capriche, isso apoia seu desenvolvimento."
+        />
+      ),
     });
-  };
 
-  const handleNextStep = () => {
-    const hasEmptySections = Object.entries(formData).some(([key, values]) =>
-      values.every((value: string) => value.trim() === ''),
-    );
+    // Telas de texto (uma por seção do toolkit)
+    TOOLKIT_META.forEach((meta) => {
+      const items = formData[meta.id];
+      const complete = items.some((v) => v.trim() !== '');
+      list.push({
+        id: `toolkit-${meta.id}`,
+        kind: 'text',
+        group: 'Toolkit',
+        isComplete: complete,
+        render: () => (
+          <TextListScreen
+            icon={meta.icon}
+            eyebrow="Toolkit"
+            title={meta.title}
+            prompt={meta.prompt}
+            items={items}
+            readOnly={readOnly}
+            onUpdate={(i, v) => updateField(meta.id, i, v)}
+            onAdd={() => addField(meta.id)}
+            onRemove={(i) => removeField(meta.id, i)}
+          />
+        ),
+      });
+    });
 
-    if (hasEmptySections) {
-      toast.error('Preencha pelo menos um item em cada seção');
-      return;
-    }
+    // Intro de competências
+    const introIdx = list.length;
+    list.push({
+      id: 'intro-competencies',
+      kind: 'intro',
+      group: 'Competências',
+      render: () => (
+        <SectionIntroScreen
+          icon={Zap}
+          eyebrow="Etapa 2 de 2"
+          title="Autoavaliação de Competências"
+          description="Avalie cada competência com sinceridade. Toque na nota que melhor te representa — avança sozinho."
+        />
+      ),
+    });
 
-    setCurrentStep('competencies');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+    // Uma tela de rating por competência
+    competencyCategories.forEach((cat) => {
+      cat.items.forEach((item) => {
+        const score = competencyScores[item.name] ?? competencyScores[item.id];
+        list.push({
+          id: `comp-${cat.id}-${item.id}`,
+          kind: 'rating',
+          group: cat.title,
+          isComplete: score !== undefined,
+          render: (ctx) => (
+            <RatingScreen
+              ctx={ctx}
+              eyebrow={cat.title}
+              title={item.name}
+              description={item.description}
+              options={COMPETENCY_SCALE}
+              value={score}
+              readOnly={readOnly}
+              onChange={(v) => handleCompetencyScore(item.name, v)}
+            />
+          ),
+        });
+      });
+    });
 
-  const handleSave = async (): Promise<void> => {
-    console.log('🔄 Iniciando salvamento da autoavaliação');
-
-    if (!currentCycle || !user) {
-      console.error('❌ Erro: Ciclo ou usuário não encontrado', { currentCycle, user });
-      toast.error('Ciclo de avaliação ou usuário não encontrado');
-      return;
-    }
-
-    // Check if all competencies are evaluated
-    const totalCompetencies = competencyCategories.reduce(
-      (sum, category) => sum + category.items.length,
-      0,
-    );
-    const evaluatedCompetencies = Object.keys(competencyScores).length;
-
-    console.log('📊 Validação de competências:', { totalCompetencies, evaluatedCompetencies });
-
-    if (evaluatedCompetencies < totalCompetencies) {
-      console.warn('⚠️ Nem todas as competências foram avaliadas');
-      toast.error('Avalie todas as competências antes de salvar');
-      return;
-    }
-
-    const cleanedData = Object.entries(formData).reduce((acc, [key, values]) => {
-      acc[key as keyof SelfEvaluationData] = values.filter((value: string) => value.trim() !== '');
-      return acc;
-    }, {} as SelfEvaluationData);
-
-    // Prepare competencies for the new system
-    const competencies = competencyCategories.flatMap((category) =>
-      category.items.map((item) => {
-        // Determinar a categoria baseada no ID da categoria
-        let categoryType: 'technical' | 'behavioral' | 'deliveries';
-        if (category.id === 'competencias-tecnicas') {
-          categoryType = 'technical';
-        } else if (category.id === 'competencias-comportamentais') {
-          categoryType = 'behavioral';
-        } else {
-          categoryType = 'deliveries';
-        }
-
-        return {
-          criterion_name: item.name,
-          criterion_description: item.description,
-          name: item.name,
-          description: item.description,
-          category: categoryType,
-          score: competencyScores[item.name] || competencyScores[item.id] || 0,
-          written_response: '',
+    // Revisão final
+    list.push({
+      id: 'review',
+      kind: 'review',
+      group: 'Revisão',
+      render: (ctx) => {
+        const toolkitGroup: ReviewGroup = {
+          label: 'Toolkit',
+          items: TOOLKIT_META.map((meta, i) => {
+            const filled = formData[meta.id].filter((v) => v.trim() !== '');
+            return {
+              id: meta.id,
+              label: meta.title,
+              answer: filled.length > 0 ? `${filled.length} item(ns)` : undefined,
+              done: filled.length > 0,
+              stepIndex: 1 + i, // após a intro do toolkit
+            };
+          }),
         };
-      }),
-    );
-
-    console.log('📦 Dados preparados para envio:', {
-      cycleId: currentCycle.id,
-      employeeId: user.id,
-      competenciesCount: competencies.length,
-      toolkitSections: Object.keys(cleanedData).length,
+        const compGroups: ReviewGroup[] = competencyCategories.map((cat) => ({
+          label: cat.title,
+          items: cat.items.map((item) => {
+            const score = competencyScores[item.name] ?? competencyScores[item.id];
+            const opt = getRatingOption(COMPETENCY_SCALE, score);
+            const stepIndex = list.findIndex((s) => s.id === `comp-${cat.id}-${item.id}`);
+            return {
+              id: `${cat.id}-${item.id}`,
+              label: item.name,
+              answer: opt?.label,
+              done: score !== undefined,
+              stepIndex,
+            };
+          }),
+        }));
+        return (
+          <ReviewScreen
+            mode={ctx.mode}
+            groups={[toolkitGroup, ...compGroups]}
+            onEdit={(i) => ctx.goTo(i)}
+          />
+        );
+      },
     });
 
-    const saveDraft = async () => {
-      if (!currentCycle?.id || !profile?.id) {
-        toast.error('Informações necessárias não encontradas');
-        return;
-      }
+    return { steps: list, competenciesIntroIndex: introIdx };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData, competencyScores, competencyCategories, readOnly]);
 
-      try {
-        await evaluationService.saveSelfEvaluation(currentCycle.id, profile.id, competencies);
-        toast.success('Rascunho salvo!');
-      } catch (error) {
-        toast.error('Erro ao salvar rascunho');
-      }
-    };
-
-    setIsSaving(true);
-    try {
-      console.log('📤 Enviando autoavaliação para o servidor...');
-
-      await saveSelfEvaluation({
-        cycleId: currentCycle.id,
-        employeeId: user.id,
-        competencies,
-        toolkit: {
-          knowledge: cleanedData.conhecimentos,
-          tools: cleanedData.ferramentas,
-          strengths_internal: cleanedData.forcasInternas,
-          qualities: cleanedData.qualidades,
-        },
-      });
-
-      console.log('✅ Autoavaliação salva com sucesso!');
-      clearAutoSave(); // Limpar auto-save após salvar com sucesso
-      toast.success('Autoavaliação completa salva com sucesso!');
-      navigate('/');
-    } catch (error: any) {
-      // Log detalhado do erro
-      console.error('❌ Erro ao salvar autoavaliação:', {
-        message: error.message,
-        response: error.response,
-        status: error.response?.status,
-        data: error.response?.data,
-        stack: error.stack,
-      });
-
-      // Mensagem específica baseada no tipo de erro
-      if (error.response?.status === 401) {
-        console.error('🔒 Erro de autenticação: Token expirado ou inválido');
-        toast.error('Sua sessão expirou. Por favor, faça login novamente.', {
-          duration: 5000,
-          icon: '🔒',
-        });
-        // Aguardar 2 segundos para o usuário ler a mensagem antes de redirecionar
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
-      } else if (error.response?.status === 403) {
-        console.error('⛔ Erro de permissão');
-        toast.error('Você não tem permissão para realizar esta ação.');
-      } else if (error.response?.status === 500) {
-        console.error('💥 Erro interno do servidor');
-        toast.error('Erro no servidor. Por favor, tente novamente em alguns instantes.');
-      } else if (error.request) {
-        console.error('🌐 Erro de conexão: Sem resposta do servidor');
-        toast.error('Erro de conexão. Verifique sua internet e tente novamente.');
-      } else {
-        console.error('⚠️ Erro desconhecido');
-        toast.error(error.message || 'Erro ao salvar autoavaliação. Por favor, tente novamente.');
-      }
-    } finally {
-      setIsSaving(false);
-      console.log('🏁 Processo de salvamento finalizado');
+  // Inicializa a posição a partir do currentStep restaurado (uma vez)
+  useEffect(() => {
+    if (initializedRef.current) return;
+    if (competencyCategories.length === 0) return; // aguarda telas
+    initializedRef.current = true;
+    if (currentStep === 'competencies') {
+      setFlowIndex(competenciesIntroIndex);
     }
+  }, [competencyCategories.length, currentStep, competenciesIntroIndex]);
+
+  // Sincroniza o currentStep persistido a partir da região atual
+  const handleIndexChange = (i: number) => {
+    setFlowIndex(i);
+    const region = i >= competenciesIntroIndex ? 'competencies' : 'toolkit';
+    if (region !== currentStep) setCurrentStep(region);
   };
 
-  // Check if cycle is within valid dates
-  const isCycleInValidPeriod = () => {
-    if (!currentCycle) return false;
-
-    const today = new Date();
-    const startDate = new Date(currentCycle.start_date);
-    const endDate = new Date(currentCycle.end_date);
-
-    return today >= startDate && today <= endDate;
-  };
-
-  const getCyclePeriodMessage = () => {
-    if (!currentCycle) return null;
-
-    const today = new Date();
-    const startDate = new Date(currentCycle.start_date);
-    const endDate = new Date(currentCycle.end_date);
-
-    if (today < startDate) {
-      return {
-        type: 'warning',
-        message: `O período de avaliação iniciará em ${formatDateBR(currentCycle.start_date)}`,
-      };
-    }
-
-    if (today > endDate) {
-      return {
-        type: 'error',
-        message: `O período de avaliação encerrou em ${formatDateBR(currentCycle.end_date)}`,
-      };
-    }
-
-    const daysRemaining = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    if (daysRemaining <= 7) {
-      return {
-        type: 'warning',
-        message: `Atenção: ${daysRemaining} dias restantes para completar a avaliação`,
-      };
-    }
-
-    return null;
-  };
-
-  // Check if there's no active cycle or cycle is out of period
+  // ------- Guard: sem ciclo / fora do período -------
   if (!currentCycle || !isCycleInValidPeriod()) {
     const periodMessage = getCyclePeriodMessage();
-
     return (
-      <div className="bg-card rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-border p-8 text-center">
-        <AlertCircle className="h-12 w-12 text-lime-deep dark:text-lime mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">
+      <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
+        <AlertCircle className="mx-auto mb-4 h-12 w-12 text-lime-deep dark:text-lime" />
+        <h3 className="mb-2 text-lg font-semibold text-foreground">
           {!currentCycle ? 'Nenhum ciclo de avaliação ativo' : 'Período de avaliação indisponível'}
         </h3>
-        <p className="text-muted-foreground mb-4">
+        <p className="mb-4 text-muted-foreground">
           {periodMessage?.message || 'Aguarde a abertura de um novo ciclo de avaliação.'}
         </p>
         {currentCycle && (
-          <div className="mt-4 p-4 bg-secondary rounded-lg">
-            <p className="text-sm text-foreground font-medium">
+          <div className="mt-4 rounded-lg bg-secondary p-4">
+            <p className="text-sm font-medium text-foreground">
               <strong>Ciclo:</strong> {currentCycle.title}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="mt-1 text-sm text-muted-foreground">
               Período: {formatDateBR(currentCycle.start_date)} -{' '}
               {formatDateBR(currentCycle.end_date)}
             </p>
@@ -618,7 +228,7 @@ const SelfEvaluation = () => {
         {profile?.is_director && (
           <button
             onClick={() => (window.location.href = '/cycle-management')}
-            className="mt-4 px-4 py-2 bg-lime text-obsidian rounded-lg hover:bg-lime/90 transition-colors"
+            className="mt-4 rounded-lg bg-lime px-4 py-2 text-obsidian transition-colors hover:bg-lime/90"
           >
             Gerenciar Ciclos
           </button>
@@ -627,783 +237,50 @@ const SelfEvaluation = () => {
     );
   }
 
-  const sections: Section[] = [
-    {
-      id: 'conhecimentos',
-      title: 'Conhecimentos',
-      subtitle: 'Sei falar sobre:',
-      icon: Brain,
-      gradient: 'from-lime to-lime-deep',
-      bgColor: 'bg-lime/10',
-      borderColor: 'border-lime/30',
-      iconBg: 'bg-obsidian',
-      items: formData.conhecimentos,
-    },
-    {
-      id: 'ferramentas',
-      title: 'Ferramentas',
-      subtitle: 'Sei usar:',
-      icon: Wrench,
-      gradient: 'from-lime to-lime-deep',
-      bgColor: 'bg-lime/10',
-      borderColor: 'border-lime/30',
-      iconBg: 'bg-obsidian',
-      items: formData.ferramentas,
-    },
-    {
-      id: 'forcasInternas',
-      title: 'Forças Internas',
-      subtitle: 'Me sustentam:',
-      icon: Shield,
-      gradient: 'from-lime to-lime-deep',
-      bgColor: 'bg-lime/10',
-      borderColor: 'border-lime/30',
-      iconBg: 'bg-obsidian',
-      items: formData.forcasInternas,
-    },
-    {
-      id: 'qualidades',
-      title: 'Qualidades',
-      subtitle: 'Tenho para oferecer:',
-      icon: Award,
-      gradient: 'from-lime to-lime-deep',
-      bgColor: 'bg-lime/10',
-      borderColor: 'border-lime/30',
-      iconBg: 'bg-obsidian',
-      items: formData.qualidades,
-    },
-  ];
-
-  const toolkitProgress = (completedSections.size / sections.length) * 100;
-  const competencyProgress =
-    (Object.keys(competencyScores).length /
-      competencyCategories.reduce((sum, cat) => sum + cat.items.length, 0)) *
-    100;
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: 'spring',
-        stiffness: 100,
-      },
-    },
-  };
-
-  const renderToolkitStep = () => (
-    <>
-      {/* Sections */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-4 sm:space-y-6"
-      >
-        {sections.map((section: Section, sectionIndex) => {
-          const IconComponent = section.icon;
-          const isCompleted = completedSections.has(section.id);
-
-          return (
-            <motion.div
-              key={section.id}
-              variants={itemVariants}
-              className={`bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border ${isCompleted ? section.borderColor : 'border-border'} overflow-hidden transition-all duration-300`}
-            >
-              {/* Section Header */}
-              <div
-                className={`px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${isCompleted ? section.bgColor : 'bg-secondary'} border-b border-border`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3 sm:space-x-4">
-                    <div
-                      className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${section.iconBg} shadow-md`}
-                    >
-                      <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                        {section.title}
-                      </h2>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{section.subtitle}</p>
-                    </div>
-                  </div>
-                  {isCompleted ? (
-                    <div className="flex items-center space-x-1 sm:space-x-2 text-success bg-success/15 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
-                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="text-xs sm:text-sm font-medium hidden sm:inline">
-                        Completo
-                      </span>
-                    </div>
-                  ) : validationErrors[section.id] && viewMode === 'edit' ? (
-                    <div className="flex items-center space-x-1 sm:space-x-2 text-destructive bg-destructive/15 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
-                      <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="text-xs sm:text-sm font-medium hidden sm:inline">
-                        Obrigatório
-                      </span>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-
-              {/* Section Content */}
-              <div className="p-4 sm:p-6 lg:p-8">
-                <div className="space-y-2 sm:space-y-3">
-                  {section.items.map((item: string, index: number) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-center space-x-2 sm:space-x-3 group"
-                    >
-                      <div className="flex-1 relative">
-                        {viewMode === 'view' && item.trim() ? (
-                          // Visualização estática - apenas mostra o texto
-                          <div className="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-secondary border border-border text-foreground font-medium rounded-lg sm:rounded-xl">
-                            {item}
-                          </div>
-                        ) : viewMode === 'view' ? null : (
-                          // Modo de edição - input editável
-                          <>
-                            <input
-                              type="text"
-                              value={item}
-                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                updateField(section.id, index, e.target.value)
-                              }
-                              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-border bg-secondary text-foreground placeholder:text-muted-foreground font-medium rounded-lg sm:rounded-xl focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-all duration-200"
-                              placeholder={`Digite ${section.title.toLowerCase()} ${index + 1}...`}
-                            />
-                            {item.trim() && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="absolute right-2 sm:right-3 top-2 sm:top-3.5"
-                              >
-                                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-lime-deep dark:text-lime" />
-                              </motion.div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                      {section.items.length > 1 && viewMode === 'edit' && (
-                        <button
-                          onClick={() => removeField(section.id, index)}
-                          className="p-1.5 sm:p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
-                        >
-                          <X className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </button>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
-
-                {/* Add More Button - Only show in edit mode */}
-                {viewMode === 'edit' && (
-                  <button
-                    onClick={() => addField(section.id)}
-                    className={`mt-3 sm:mt-4 flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-lg border border-dashed ${isCompleted ? section.borderColor : 'border-border'} text-muted-foreground hover:text-foreground hover:border-lime transition-all duration-200 group`}
-                  >
-                    <Plus className="h-3 w-3 sm:h-4 sm:w-4 group-hover:rotate-90 transition-transform duration-200" />
-                    <span className="text-xs sm:text-sm font-medium">Adicionar mais</span>
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          );
-        })}
-
-        {/* Tips Section - Only show in edit mode */}
-        {viewMode === 'edit' && (
-          <motion.div
-            variants={itemVariants}
-            className="bg-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-border"
-          >
-            <div className="flex items-start space-x-3">
-              <div className="p-2 bg-secondary rounded-lg shadow-sm">
-                <Info className="h-4 w-4 sm:h-5 sm:w-5 text-lime-deep dark:text-lime" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-foreground mb-2 text-sm sm:text-base">
-                  Dicas para uma boa autoavaliação
-                </h3>
-                <ul className="space-y-1 text-xs sm:text-sm text-muted-foreground">
-                  <li className="flex items-start">
-                    <span className="text-lime-deep dark:text-lime mr-2">•</span>
-                    <span>Seja específico e honesto sobre suas competências</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-lime-deep dark:text-lime mr-2">•</span>
-                    <span>Inclua tanto habilidades técnicas quanto comportamentais</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-lime-deep dark:text-lime mr-2">•</span>
-                    <span>Pense em situações reais onde aplicou essas habilidades</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </motion.div>
+  // ------- Header compacto (ciclo + prazo + auto-save) -------
+  const periodMessage = getCyclePeriodMessage();
+  const header = (
+    <div className="rounded-xl border border-border bg-card px-3 py-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate text-sm font-semibold text-foreground">
+          {readOnly ? 'Autoavaliação · leitura' : 'Autoavaliação'}
+        </p>
+        {!readOnly && lastSaved && (
+          <span className="flex flex-shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            Salvo {lastSaved.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+          </span>
         )}
-
-        {/* Action Buttons - Only show in edit mode */}
-        {viewMode === 'edit' && (
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 space-y-4 sm:space-y-0"
-          >
-            <Button
-              variant="outline"
-              onClick={() => navigate('/')}
-              size="lg"
-              className="w-full sm:w-auto order-2 sm:order-1"
-            >
-              Cancelar
-            </Button>
-
-            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 order-1 sm:order-2">
-              <span className="text-xs sm:text-sm text-center">
-                {completedSections.size === sections.length ? (
-                  <span className="flex items-center text-success">
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Todas as seções completas!
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground">
-                    {sections.length - completedSections.size} seções pendentes
-                  </span>
-                )}
-              </span>
-              <Button
-                variant="primary"
-                onClick={handleNextStep}
-                icon={<ArrowRight size={18} />}
-                size="lg"
-                disabled={completedSections.size !== sections.length}
-                className="w-full sm:w-auto"
-              >
-                Próxima Etapa
-              </Button>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Navigation Buttons - View mode */}
-        {viewMode === 'view' && (
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 space-y-4 sm:space-y-0"
-          >
-            <Button
-              variant="outline"
-              onClick={() => navigate('/')}
-              size="lg"
-              className="w-full sm:w-auto order-2 sm:order-1"
-            >
-              Voltar ao Dashboard
-            </Button>
-
-            <Button
-              variant="primary"
-              onClick={() => setCurrentStep('competencies')}
-              icon={<ArrowRight size={18} />}
-              size="lg"
-              className="w-full sm:w-auto order-1 sm:order-2"
-            >
-              Ver Competências
-            </Button>
-          </motion.div>
-        )}
-      </motion.div>
-    </>
-  );
-
-  const renderCompetenciesStep = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 100 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -100 }}
-      className="space-y-4 sm:space-y-6"
-    >
-      {competencyCategories.map((category, categoryIndex) => {
-        const IconComponent = category.icon;
-        const isExpanded = expandedSections.has(category.id);
-        const categoryProgress =
-          (category.items.filter(
-            (item) =>
-              competencyScores[item.name] !== undefined || competencyScores[item.id] !== undefined,
-          ).length /
-            category.items.length) *
-          100;
-
-        return (
-          <motion.div
-            key={category.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: categoryIndex * 0.1 }}
-            className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border overflow-hidden"
-          >
-            <button
-              onClick={() => toggleSection(category.id)}
-              className={`w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ${category.bgColor} border-b ${category.borderColor} hover:opacity-90 transition-all duration-200`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 sm:space-x-4">
-                  <div
-                    className={`p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-br ${category.gradient} shadow-md`}
-                  >
-                    <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                      {category.title}
-                    </h2>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                      {
-                        category.items.filter(
-                          (item) =>
-                            competencyScores[item.name] !== undefined ||
-                            competencyScores[item.id] !== undefined,
-                        ).length
-                      }{' '}
-                      de {category.items.length} competências avaliadas
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2 sm:space-x-4">
-                  <div className="w-16 sm:w-32 bg-secondary rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full bg-gradient-to-r ${category.gradient} transition-all duration-300`}
-                      style={{ width: `${categoryProgress}%` }}
-                    />
-                  </div>
-                  {isExpanded ? (
-                    <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-                  )}
-                </div>
-              </div>
-            </button>
-
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6"
-                >
-                  {category.items.map((item, itemIndex) => {
-                    const ratingLabels = {
-                      1: {
-                        label: 'Insatisfatório',
-                        color: 'bg-destructive',
-                        textColor: 'text-destructive',
-                      },
-                      2: {
-                        label: 'Em Desenvolvimento',
-                        color: 'bg-warning',
-                        textColor: 'text-warning',
-                      },
-                      3: {
-                        label: 'Satisfatório',
-                        color: 'bg-success/80',
-                        textColor: 'text-success',
-                      },
-                      4: { label: 'Excepcional', color: 'bg-success', textColor: 'text-success' },
-                    };
-                    // Buscar score pelo nome (criterion_name) ou pelo id
-                    const score = competencyScores[item.name] || competencyScores[item.id];
-                    const ratingInfo = score
-                      ? ratingLabels[score as keyof typeof ratingLabels]
-                      : null;
-
-                    return viewMode === 'view' ? (
-                      // Modo visualização - linha compacta com nota
-                      <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: itemIndex * 0.03 }}
-                        className="flex items-center justify-between p-3 sm:p-4 bg-secondary rounded-xl border border-border"
-                      >
-                        <div className="flex-1 mr-4">
-                          <h4 className="text-sm sm:text-base font-medium text-foreground">
-                            {item.name}
-                          </h4>
-                          <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-                            {item.description}
-                          </p>
-                        </div>
-                        {score && ratingInfo && (
-                          <div className="flex items-center gap-2 sm:gap-3">
-                            <span
-                              className={`text-xs sm:text-sm font-medium ${ratingInfo.textColor}`}
-                            >
-                              {ratingInfo.label}
-                            </span>
-                            <div
-                              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${ratingInfo.color} flex items-center justify-center`}
-                            >
-                              <span className="text-lg sm:text-xl font-bold text-white">
-                                {score}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                      </motion.div>
-                    ) : (
-                      // Modo edição - cards clicáveis
-                      <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: itemIndex * 0.05 }}
-                        className="space-y-3 sm:space-y-4"
-                      >
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between space-y-2 sm:space-y-0">
-                          <div className="flex-1 sm:mr-4">
-                            <h4 className="text-base sm:text-lg font-semibold text-foreground mb-1">
-                              {item.name}
-                            </h4>
-                            <p className="text-xs sm:text-sm text-muted-foreground">
-                              {item.description}
-                            </p>
-                          </div>
-                          {score && (
-                            <div className="text-center">
-                              <div
-                                className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
-                                  score >= 4
-                                    ? 'bg-success/15 text-success'
-                                    : score >= 3
-                                      ? 'bg-success/15 text-success'
-                                      : score >= 2
-                                        ? 'bg-warning/15 text-warning'
-                                        : 'bg-destructive/15 text-destructive'
-                                }`}
-                              >
-                                Nota: {score}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                          {[1, 2, 3, 4].map((rating) => {
-                            const ratingLabel = ratingLabels[rating as keyof typeof ratingLabels];
-
-                            return (
-                              <button
-                                key={rating}
-                                onClick={() => handleCompetencyScore(item.name, rating)}
-                                className={`py-3 sm:py-4 px-2 sm:px-4 rounded-lg border transition-all duration-200 ${
-                                  score === rating
-                                    ? `${ratingLabel.color} text-white border-transparent shadow-lg transform scale-105`
-                                    : 'border-border hover:border-lime hover:bg-accent bg-card text-muted-foreground'
-                                }`}
-                              >
-                                <div className="text-center">
-                                  <div className="text-xl sm:text-2xl font-bold mb-1">{rating}</div>
-                                  <div className="text-xs">{ratingLabel.label}</div>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        );
-      })}
-
-      {/* Action Buttons - Only show in edit mode */}
-      {viewMode === 'edit' && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 space-y-4 sm:space-y-0"
+      </div>
+      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+        {currentCycle.title} · até {formatDateBR(currentCycle.end_date)}
+      </p>
+      {periodMessage && (
+        <p
+          className={`mt-1 text-xs font-medium ${
+            periodMessage.type === 'error' ? 'text-destructive' : 'text-warning'
+          }`}
         >
-          <Button
-            variant="outline"
-            onClick={() => setCurrentStep('toolkit')}
-            icon={<ArrowLeft size={18} />}
-            size="lg"
-            className="w-full sm:w-auto order-2 sm:order-1"
-          >
-            Voltar
-          </Button>
-
-          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 order-1 sm:order-2">
-            <span className="text-xs sm:text-sm text-center">
-              {competencyProgress === 100 ? (
-                <span className="flex items-center text-success">
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Todas as competências avaliadas!
-                </span>
-              ) : (
-                <span className="text-muted-foreground">
-                  {Math.round(competencyProgress)}% completo
-                </span>
-              )}
-            </span>
-            <Button
-              variant="primary"
-              onClick={handleSave}
-              icon={<Save size={18} />}
-              size="lg"
-              disabled={competencyProgress < 100 || isSaving || loading}
-              className="w-full sm:w-auto"
-            >
-              {isSaving ? 'Salvando...' : 'Salvar Autoavaliação'}
-            </Button>
-          </div>
-        </motion.div>
-      )}
-    </motion.div>
-  );
-
-  return (
-    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-card rounded-2xl shadow-sm hover:shadow-md dark:shadow-lg border border-border p-8"
-      >
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 sm:mb-6 space-y-4 lg:space-y-0">
-          <div className="flex items-center space-x-3 sm:space-x-4 w-full lg:w-auto">
-            <div className="flex-1 lg:flex-none">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center font-lemon-milk tracking-wide">
-                {currentStep === 'toolkit' ? (
-                  <>
-                    <Pen className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-lime-deep dark:text-lime mr-2 sm:mr-3" />
-                    <span className="break-words">Meu Toolkit Profissional</span>
-                  </>
-                ) : (
-                  <>
-                    <Zap className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-lime-deep dark:text-lime mr-2 sm:mr-3" />
-                    <span className="break-words">Autoavaliação de Competências</span>
-                  </>
-                )}
-              </h1>
-              <p className="text-xs sm:text-sm lg:text-base text-muted-foreground mt-1">
-                {currentStep === 'toolkit'
-                  ? 'Construa seu perfil de competências e habilidades'
-                  : 'Avalie suas competências técnicas, comportamentais e organizacionais'}
-              </p>
-              {currentCycle && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Ciclo: {currentCycle.title} | Prazo: {formatDateBR(currentCycle.end_date)}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Period Alert - Only show in edit mode */}
-          {viewMode === 'edit' && getCyclePeriodMessage() && (
-            <div
-              className={`mt-4 p-3 rounded-lg flex items-start space-x-2 ${
-                getCyclePeriodMessage()?.type === 'error'
-                  ? 'bg-destructive/15 text-destructive'
-                  : 'bg-warning/15 text-warning'
-              }`}
-            >
-              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <p className="text-sm">{getCyclePeriodMessage()?.message}</p>
-            </div>
-          )}
-
-          {/* Progress Indicator - Only show in edit mode */}
-          {viewMode === 'edit' && (
-            <div className="flex items-center space-x-4 w-full lg:w-auto justify-end">
-              {/* Auto-save indicator */}
-              {lastSaved && (
-                <div className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-full">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>
-                    Salvo às{' '}
-                    {lastSaved.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-              )}
-              <div className="text-right">
-                <p className="text-xs sm:text-sm text-muted-foreground">Progresso</p>
-                <p className="text-base sm:text-lg font-bold text-foreground">
-                  {Math.round(currentStep === 'toolkit' ? toolkitProgress : competencyProgress)}%
-                </p>
-              </div>
-              <div className="relative">
-                <svg className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 transform -rotate-90">
-                  <circle
-                    cx="50%"
-                    cy="50%"
-                    r="40%"
-                    stroke="#e5e7eb"
-                    strokeWidth="4"
-                    fill="none"
-                    className="dark:stroke-gray-700"
-                  />
-                  <circle
-                    cx="50%"
-                    cy="50%"
-                    r="40%"
-                    stroke="url(#progressGradient)"
-                    strokeWidth="4"
-                    fill="none"
-                    strokeDasharray={`${(currentStep === 'toolkit' ? toolkitProgress : competencyProgress) * 1.76} 176`}
-                    strokeLinecap="round"
-                  />
-                  <defs>
-                    <linearGradient id="progressGradient">
-                      <stop offset="0%" stopColor="#D2FF00" />
-                      <stop offset="100%" stopColor="#D2FF00" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Step Indicator - Show in edit mode and view mode (clickable in view mode) */}
-        {(viewMode === 'edit' || viewMode === 'view') && (
-          <div className="flex items-center justify-center space-x-2 sm:space-x-4">
-            <button
-              onClick={() => viewMode === 'view' && setCurrentStep('toolkit')}
-              disabled={viewMode === 'edit'}
-              className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-all duration-200 ${
-                currentStep === 'toolkit'
-                  ? 'bg-lime/20 text-lime-deep dark:text-lime'
-                  : 'bg-secondary text-muted-foreground'
-              } ${viewMode === 'view' ? 'cursor-pointer hover:opacity-80' : ''}`}
-            >
-              <div
-                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'toolkit' ? 'bg-lime text-obsidian' : 'bg-secondary text-muted-foreground'}`}
-              >
-                1
-              </div>
-              <span className="font-medium text-xs sm:text-sm hidden sm:inline">
-                Toolkit Profissional
-              </span>
-            </button>
-
-            <div className="w-8 sm:w-16 h-1 bg-secondary rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-all duration-500 ${viewMode === 'view' || currentStep === 'competencies' ? 'w-full bg-lime' : 'w-0'}`}
-              />
-            </div>
-
-            <button
-              onClick={() => viewMode === 'view' && setCurrentStep('competencies')}
-              disabled={viewMode === 'edit'}
-              className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-all duration-200 ${
-                currentStep === 'competencies'
-                  ? 'bg-lime/20 text-lime-deep dark:text-lime'
-                  : 'bg-secondary text-muted-foreground'
-              } ${viewMode === 'view' ? 'cursor-pointer hover:opacity-80' : ''}`}
-            >
-              <div
-                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm ${currentStep === 'competencies' ? 'bg-lime text-obsidian' : 'bg-secondary text-muted-foreground'}`}
-              >
-                2
-              </div>
-              <span className="font-medium text-xs sm:text-sm hidden sm:inline">Competências</span>
-            </button>
-          </div>
-        )}
-
-        {/* Quick Stats for Toolkit Step - Only show in edit mode */}
-        {currentStep === 'toolkit' && viewMode === 'edit' && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mt-4 sm:mt-6">
-            {sections.map((section) => {
-              const filledItems = section.items.filter((item) => item.trim() !== '').length;
-              const isCompleted = completedSections.has(section.id);
-
-              return (
-                <div
-                  key={section.id}
-                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border ${isCompleted ? section.borderColor : 'border-border'} ${isCompleted ? section.bgColor : 'bg-secondary'} transition-all duration-300`}
-                >
-                  <div className="flex items-center justify-between">
-                    <section.icon
-                      className={`h-4 w-4 sm:h-5 sm:w-5 ${isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}
-                    />
-                    {isCompleted && <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-success" />}
-                  </div>
-                  <p className="text-xs sm:text-sm font-medium text-foreground mt-1 sm:mt-2 break-words">
-                    {section.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{filledItems} itens</p>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </motion.div>
-
-      {/* Content based on current step */}
-      <AnimatePresence mode="wait">
-        {currentStep === 'toolkit' ? renderToolkitStep() : renderCompetenciesStep()}
-      </AnimatePresence>
-
-      {/* Info Banner for Existing Evaluation - View Mode - No final da página */}
-      {hasExistingEvaluation && !loading && viewMode === 'view' && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-lime/10 border border-lime/30 rounded-2xl p-6 shadow-sm"
-        >
-          <div className="flex items-start">
-            <CheckCircle className="h-6 w-6 text-lime-deep dark:text-lime mt-0.5 mr-3 flex-shrink-0" />
-            <div className="flex-1">
-              <h4 className="text-lg font-semibold text-foreground mb-1">
-                Autoavaliação já realizada
-              </h4>
-              <p className="text-sm text-muted-foreground">
-                Você já completou sua autoavaliação para este ciclo. Visualizando em modo somente
-                leitura.
-              </p>
-              {existingEvaluationData && (
-                <div className="flex flex-wrap gap-4 items-center mt-3">
-                  <span className="text-sm font-medium text-foreground">
-                    Nota Final:{' '}
-                    <span className="text-lg font-bold">
-                      {existingEvaluationData.final_score?.toFixed(1) || 'N/A'}
-                    </span>
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    Avaliado em: {formatDateBR(existingEvaluationData.evaluation_date)}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </motion.div>
+          {periodMessage.message}
+        </p>
       )}
     </div>
   );
-};
 
-export default SelfEvaluation;
+  const canSubmit = competencyProgress >= 100;
+
+  return (
+    <EvaluationFlow
+      steps={steps}
+      index={flowIndex}
+      onIndexChange={handleIndexChange}
+      mode={viewMode}
+      onSubmit={handleSave}
+      isSubmitting={isSaving}
+      submitLabel="Salvar Autoavaliação"
+      canSubmit={canSubmit}
+      header={header}
+      onExit={() => navigate('/')}
+    />
+  );
+}
