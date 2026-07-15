@@ -514,8 +514,8 @@ const Consensus = () => {
         }
       }
 
-      // Buscar a autoavaliação mais recente
-      const { data: selfEval, error: selfError } = await supabase
+      // Buscar a autoavaliação mais recente DO CICLO ATUAL
+      let selfEvalQuery = supabase
         .from('self_evaluations')
         .select(
           `
@@ -524,7 +524,11 @@ const Consensus = () => {
         `,
         )
         .eq('employee_id', selectedEmployeeId)
-        .eq('status', 'completed')
+        .eq('status', 'completed');
+      if (currentCycle?.id) {
+        selfEvalQuery = selfEvalQuery.eq('cycle_id', currentCycle.id);
+      }
+      const { data: selfEval, error: selfError } = await selfEvalQuery
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -541,8 +545,8 @@ const Consensus = () => {
         setEmployeeToolkit(null);
       }
 
-      // Buscar a avaliação do líder mais recente
-      const { data: leaderEval, error: leaderError } = await supabase
+      // Buscar a avaliação do líder mais recente DO CICLO ATUAL
+      let leaderEvalQuery = supabase
         .from('leader_evaluations')
         .select(
           `
@@ -551,7 +555,11 @@ const Consensus = () => {
         `,
         )
         .eq('employee_id', selectedEmployeeId)
-        .eq('status', 'completed')
+        .eq('status', 'completed');
+      if (currentCycle?.id) {
+        leaderEvalQuery = leaderEvalQuery.eq('cycle_id', currentCycle.id);
+      }
+      const { data: leaderEval, error: leaderError } = await leaderEvalQuery
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
