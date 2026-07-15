@@ -240,12 +240,13 @@ const CycleManagement: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center space-x-3 mt-4 lg:mt-0">
+          <div className="flex flex-col xs:flex-row xs:items-center gap-2 sm:gap-3 mt-4 lg:mt-0">
             <Button
               variant="outline"
               onClick={() => loadAllCycles()}
               icon={<RefreshCw className={`h-5 w-5 ${cyclesLoading ? 'animate-spin' : ''}`} />}
               disabled={cyclesLoading}
+              className="w-full xs:w-auto justify-center whitespace-nowrap"
             >
               Atualizar
             </Button>
@@ -253,6 +254,7 @@ const CycleManagement: React.FC = () => {
               variant="primary"
               onClick={() => setShowCreateModal(true)}
               icon={<Plus className="h-5 w-5" />}
+              className="w-full xs:w-auto justify-center whitespace-nowrap"
             >
               Novo Ciclo
             </Button>
@@ -287,7 +289,7 @@ const CycleManagement: React.FC = () => {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6">
           <div className="bg-card border border-border rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -368,9 +370,9 @@ const CycleManagement: React.FC = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 whileHover={{ scale: 1.01 }}
-                className="bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-md transition-all duration-200"
+                className="bg-card rounded-xl shadow-sm border border-border p-4 sm:p-6 hover:shadow-md transition-all duration-200"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1">
                     <div className="flex items-center mb-2">
                       <div className={`w-2 h-2 rounded-full ${status.dotColor} mr-3`} />
@@ -411,7 +413,7 @@ const CycleManagement: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2 ml-4">
+                  <div className="flex flex-wrap items-center gap-2 sm:ml-4">
                     {/* Action buttons based on status */}
                     {cycle.status === 'draft' && (
                       <>
