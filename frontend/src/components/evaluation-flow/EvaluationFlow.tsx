@@ -142,7 +142,7 @@ export default function EvaluationFlow({
   if (!step) return null;
 
   return (
-    <div className="flex flex-col md:flex-row md:gap-6">
+    <div className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-5xl flex-col md:flex-row md:gap-8">
       {/* Rail lateral (desktop) */}
       <aside className="hidden w-56 flex-shrink-0 md:block">
         <div className="sticky top-4">
@@ -165,7 +165,7 @@ export default function EvaluationFlow({
         </div>
 
         {/* Área da tela */}
-        <div ref={scrollRef} tabIndex={-1} className="outline-none" aria-live="polite">
+        <div ref={scrollRef} tabIndex={-1} className="flex-1 outline-none" aria-live="polite">
           <div className="mx-auto max-w-2xl px-1 py-5 sm:py-8">
             <AnimatePresence mode="wait" custom={directionRef.current}>
               <motion.div

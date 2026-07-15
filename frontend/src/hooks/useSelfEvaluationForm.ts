@@ -35,6 +35,9 @@ export function useSelfEvaluationForm() {
   const { user, profile } = useAuth();
   const { currentCycle, saveSelfEvaluation, loading, deliveriesCriteria } = useEvaluation();
 
+  // Modo demonstração: admin pode percorrer o fluxo mesmo sem ciclo/dados reais
+  const isAdminDemo = user?.email === 'admintop@sistema.com';
+
   const [viewMode, setViewMode] = useState<'edit' | 'view'>('edit');
   const [hasExistingEvaluation, setHasExistingEvaluation] = useState(false);
 
@@ -274,6 +277,11 @@ export function useSelfEvaluationForm() {
 
   const handleSave = useCallback(async (): Promise<void> => {
     if (!currentCycle || !user) {
+      if (isAdminDemo) {
+        toast('Modo demonstração — autoavaliação não enviada', { icon: '🎬' });
+        navigate('/');
+        return;
+      }
       toast.error('Ciclo de avaliação ou usuário não encontrado');
       return;
     }
@@ -345,6 +353,7 @@ export function useSelfEvaluationForm() {
       setIsSaving(false);
     }
   }, [
+    isAdminDemo,
     currentCycle,
     user,
     competencyCategories,
@@ -398,6 +407,7 @@ export function useSelfEvaluationForm() {
     profile,
     currentCycle,
     loading,
+    isAdminDemo,
     // estado
     viewMode,
     hasExistingEvaluation,
