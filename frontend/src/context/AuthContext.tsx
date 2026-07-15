@@ -478,11 +478,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         throw error;
       }
-
-      toast.success('Senha alterada com sucesso!');
-    } catch (error: any) {
+      // Toast é responsabilidade do chamador (Settings) — evita duplicidade
+    } catch (error) {
       console.error('Update password error:', error);
-      toast.error(error.message || 'Erro ao alterar senha');
       throw error;
     }
   };
