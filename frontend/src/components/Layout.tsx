@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import FirstLoginPasswordModal from './FirstLoginPasswordModal';
+import PWAInstallPrompt from './pwa/PWAInstallPrompt';
 import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
@@ -136,6 +137,9 @@ export default function Layout() {
         isOpen={showPasswordModal}
         onSuccess={() => setShowPasswordModal(false)}
       />
+
+      {/* Convite discreto de instalação do PWA (somente mobile) */}
+      <PWAInstallPrompt />
     </div>
   );
 }
