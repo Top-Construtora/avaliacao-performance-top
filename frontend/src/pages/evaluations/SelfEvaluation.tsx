@@ -46,6 +46,7 @@ export default function SelfEvaluation() {
     isCycleInValidPeriod,
     getCyclePeriodMessage,
     competencyProgress,
+    isAdminDemo,
   } = form;
 
   const [flowIndex, setFlowIndex] = useState(0);
@@ -202,8 +203,8 @@ export default function SelfEvaluation() {
     if (region !== currentStep) setCurrentStep(region);
   };
 
-  // ------- Guard: sem ciclo / fora do período -------
-  if (!currentCycle || !isCycleInValidPeriod()) {
+  // ------- Guard: sem ciclo / fora do período (ignorado no modo demo do admin) -------
+  if ((!currentCycle || !isCycleInValidPeriod()) && !isAdminDemo) {
     const periodMessage = getCyclePeriodMessage();
     return (
       <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
@@ -245,15 +246,24 @@ export default function SelfEvaluation() {
         <p className="truncate text-sm font-semibold text-foreground">
           {readOnly ? 'Autoavaliação · leitura' : 'Autoavaliação'}
         </p>
-        {!readOnly && lastSaved && (
-          <span className="flex flex-shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
-            <Clock className="h-3 w-3" />
-            Salvo {lastSaved.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+        {isAdminDemo && !currentCycle ? (
+          <span className="flex flex-shrink-0 items-center gap-1 rounded-full bg-lime/15 px-2 py-0.5 text-[11px] font-medium text-lime-deep dark:text-lime">
+            Demonstração
           </span>
+        ) : (
+          !readOnly &&
+          lastSaved && (
+            <span className="flex flex-shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              Salvo {lastSaved.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )
         )}
       </div>
       <p className="mt-0.5 truncate text-xs text-muted-foreground">
-        {currentCycle.title} · até {formatDateBR(currentCycle.end_date)}
+        {currentCycle
+          ? `${currentCycle.title} · até ${formatDateBR(currentCycle.end_date)}`
+          : 'Pré-visualização do fluxo de autoavaliação'}
       </p>
       {periodMessage && (
         <p
