@@ -84,6 +84,7 @@ const UserManagement = () => {
   );
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'department'>('name');
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [openRowMenuId, setOpenRowMenuId] = useState<string | null>(null);
   const [showWarning, setShowWarning] = useState(false);
   const [showSalaryModal, setShowSalaryModal] = useState(false);
   const [selectedUserForSalary, setSelectedUserForSalary] = useState<User | null>(null);
@@ -774,8 +775,8 @@ const UserManagement = () => {
     const leader = user.manager;
 
     return (
-      <div className="bg-card rounded-xl shadow-sm hover:shadow-md dark:shadow-lg border border-border overflow-hidden hover:border-lime transition-all duration-300">
-        <div className="flex items-center p-4 gap-4">
+      <div className="bg-card rounded-xl shadow-sm hover:shadow-md dark:shadow-lg border border-border hover:border-lime transition-all duration-300">
+        <div className="flex items-center p-4 gap-3">
           {/* Avatar */}
           <div className="flex-shrink-0">
             {user.profile_image ? (
@@ -796,27 +797,27 @@ const UserManagement = () => {
             )}
           </div>
 
-          {/* Nome e Cargo */}
+          {/* Nome e Cargo — nome em linha própria (legível), badges abaixo */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-foreground truncate">{user.name}</h3>
+            <h3 className="font-semibold text-foreground truncate">{user.name}</h3>
+            <div className="mt-0.5 flex items-center gap-2">
+              <p className="text-sm text-muted-foreground truncate">{user.position}</p>
               {user.is_director && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary text-foreground">
+                <span className="inline-flex flex-shrink-0 items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary text-foreground">
                   Diretor
                 </span>
               )}
               {user.is_leader && !user.is_director && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-lime/20 text-lime-deep dark:text-lime">
+                <span className="inline-flex flex-shrink-0 items-center px-2 py-0.5 rounded text-xs font-medium bg-lime/20 text-lime-deep dark:text-lime">
                   Avaliador
                 </span>
               )}
               {user.active === false && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-destructive/15 text-destructive">
+                <span className="inline-flex flex-shrink-0 items-center px-2 py-0.5 rounded text-xs font-medium bg-destructive/15 text-destructive">
                   Inativo
                 </span>
               )}
             </div>
-            <p className="text-sm text-muted-foreground truncate">{user.position}</p>
           </div>
 
           {/* Email */}
@@ -858,51 +859,82 @@ const UserManagement = () => {
             )}
           </div>
 
-          {/* Ações */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <ActionGuard can={() => permissions.canEditUser(user.id)}>
-              <button
-                onClick={() => handleEdit(user)}
-                className="p-2 rounded-lg transition-colors hover:bg-accent text-muted-foreground hover:text-lime-deep dark:hover:text-lime"
-                title="Editar"
-              >
-                <Edit className="h-4 w-4" />
-              </button>
-            </ActionGuard>
+          {/* Ações — menu único de três pontos */}
+          <div className="relative flex-shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenRowMenuId(openRowMenuId === user.id ? null : user.id);
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              aria-label="Ações do usuário"
+            >
+              <MoreVertical className="h-5 w-5" />
+            </button>
 
-            {canViewSalary && (
-              <RoleGuard allowedRoles={['director', 'leader']}>
-                <button
-                  onClick={() => handleOpenSalaryModal(user)}
-                  className="p-2 rounded-lg transition-colors hover:bg-accent text-muted-foreground hover:text-success"
-                  title="Gestão Salarial"
-                >
-                  <DollarSign className="h-4 w-4" />
-                </button>
-              </RoleGuard>
+            {openRowMenuId === user.id && (
+              <>
+                {/* backdrop para fechar ao tocar fora */}
+                <div className="fixed inset-0 z-30" onClick={() => setOpenRowMenuId(null)} />
+                <div className="absolute right-0 top-full z-40 mt-1 w-48 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-border bg-popover py-1 shadow-xl dark:shadow-2xl">
+                  <ActionGuard can={() => permissions.canEditUser(user.id)}>
+                    <button
+                      onClick={() => {
+                        setOpenRowMenuId(null);
+                        handleEdit(user);
+                      }}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-foreground hover:bg-accent"
+                    >
+                      <Edit className="h-4 w-4 text-muted-foreground" />
+                      Editar
+                    </button>
+                  </ActionGuard>
+
+                  {canViewSalary && (
+                    <RoleGuard allowedRoles={['director', 'leader']}>
+                      <button
+                        onClick={() => {
+                          setOpenRowMenuId(null);
+                          handleOpenSalaryModal(user);
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-foreground hover:bg-accent"
+                      >
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        Gestão salarial
+                      </button>
+                    </RoleGuard>
+                  )}
+
+                  {user.active === false && (
+                    <ActionGuard can={permissions.canDeactivateUser}>
+                      <button
+                        onClick={() => {
+                          setOpenRowMenuId(null);
+                          handleReactivate(user.id);
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-success hover:bg-accent"
+                      >
+                        <UserPlus className="h-4 w-4" />
+                        Reativar
+                      </button>
+                    </ActionGuard>
+                  )}
+
+                  <ActionGuard can={permissions.canDeactivateUser}>
+                    <button
+                      onClick={() => {
+                        setOpenRowMenuId(null);
+                        handleDelete(user.id);
+                      }}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-destructive hover:bg-accent"
+                    >
+                      <UserX className="h-4 w-4" />
+                      {user.active === false ? 'Excluir' : 'Desativar'}
+                    </button>
+                  </ActionGuard>
+                </div>
+              </>
             )}
-
-            {user.active === false && (
-              <ActionGuard can={permissions.canDeactivateUser}>
-                <button
-                  onClick={() => handleReactivate(user.id)}
-                  className="p-2 rounded-lg transition-colors hover:bg-success/10 text-muted-foreground hover:text-success"
-                  title="Reativar usuário"
-                >
-                  <UserPlus className="h-4 w-4" />
-                </button>
-              </ActionGuard>
-            )}
-
-            <ActionGuard can={permissions.canDeactivateUser}>
-              <button
-                onClick={() => handleDelete(user.id)}
-                className="p-2 rounded-lg transition-colors hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                title={user.active === false ? 'Excluir permanentemente' : 'Desativar usuário'}
-              >
-                <UserX className="h-4 w-4" />
-              </button>
-            </ActionGuard>
           </div>
         </div>
       </div>
@@ -1124,7 +1156,7 @@ const UserManagement = () => {
                 <button className="p-2.5 rounded-lg bg-secondary text-muted-foreground hover:bg-accent transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                   <MoreVertical className="h-4 w-4" />
                 </button>
-                <div className="absolute right-0 mt-2 w-56 bg-popover text-popover-foreground rounded-xl shadow-xl dark:shadow-2xl border border-border py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all">
+                <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-popover text-popover-foreground rounded-xl shadow-xl dark:shadow-2xl border border-border py-2 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all">
                   <UIGuard show="showExportButton">
                     <button
                       onClick={() => handleQuickAction('export')}
@@ -1147,7 +1179,7 @@ const UserManagement = () => {
                 placeholder="Buscar usuários..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+                className="w-full pl-12 pr-4 rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-3 px-3"
               />
             </div>
 
@@ -1159,7 +1191,7 @@ const UserManagement = () => {
                   exit={{ opacity: 0, height: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-secondary rounded-xl border border-border">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 bg-secondary rounded-xl border border-border">
                     <div>
                       <label className="block text-sm font-semibold text-foreground font-medium mb-2">
                         Departamento
@@ -1167,7 +1199,7 @@ const UserManagement = () => {
                       <select
                         value={selectedDepartment}
                         onChange={(e) => setSelectedDepartment(e.target.value)}
-                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-3 px-3"
                       >
                         <option value="">Todos</option>
                         {departments.map((dept) => (
@@ -1185,7 +1217,7 @@ const UserManagement = () => {
                       <select
                         value={selectedTeam}
                         onChange={(e) => setSelectedTeam(e.target.value)}
-                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-3 px-3"
                       >
                         <option value="">Todos</option>
                         {teams.map((team) => (
@@ -1203,7 +1235,7 @@ const UserManagement = () => {
                       <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value as any)}
-                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-3 px-3"
                       >
                         <option value="name">Nome</option>
                         <option value="date">Data de entrada</option>
@@ -1218,13 +1250,28 @@ const UserManagement = () => {
                       <select
                         value={userTypeFilter}
                         onChange={(e) => setUserTypeFilter(e.target.value as UserTypeFilter)}
-                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+                        className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-3 px-3"
                       >
                         <option value="all">Todos</option>
                         <option value="collaborator">Colaboradores</option>
                         <option value="leader">Líderes</option>
                         <option value="director">Diretores</option>
                       </select>
+                    </div>
+
+                    <div className="flex justify-end sm:col-span-2 lg:col-span-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedDepartment('');
+                          setSelectedTeam('');
+                          setSortBy('name');
+                          setUserTypeFilter('all');
+                        }}
+                        className="w-full sm:w-auto rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+                      >
+                        Limpar filtros
+                      </button>
                     </div>
                   </div>
                 </motion.div>
