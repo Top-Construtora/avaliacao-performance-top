@@ -564,6 +564,11 @@ export function useLeaderEvaluationForm() {
   // ------- Submit -------
   const handleSubmit = useCallback(async () => {
     if (!currentCycle || !selectedEmployeeId || !profile?.id) {
+      if (isAdminDemo) {
+        toast('Modo demonstração — avaliação não enviada', { icon: '🎬' });
+        navigate('/');
+        return;
+      }
       toast.error('Dados incompletos para enviar');
       return;
     }
@@ -637,6 +642,7 @@ export function useLeaderEvaluationForm() {
       setIsSaving(false);
     }
   }, [
+    isAdminDemo,
     currentCycle,
     selectedEmployeeId,
     profile?.id,
