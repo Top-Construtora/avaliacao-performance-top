@@ -153,6 +153,70 @@ const SatisfactionSurveys = () => {
 
   if (loading) return <LoadingSpinner />;
 
+  // Visão do colaborador: apenas as pesquisas ativas para responder, nada mais.
+  if (!canManage) {
+    const available = surveys.filter((s) => s.status === 'active');
+    return (
+      <div className="space-y-4 sm:space-y-6 max-w-3xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-2xl shadow-sm border border-border p-6 sm:p-8"
+        >
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
+            <SmilePlus className="h-6 w-6 sm:h-7 sm:w-7 text-lime-deep dark:text-lime mr-2 sm:mr-3 flex-shrink-0" />
+            Pesquisas de Satisfação
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+            Responda as pesquisas disponíveis para você
+          </p>
+        </motion.div>
+
+        <div className="bg-card rounded-2xl shadow-sm border border-border p-4 sm:p-6">
+          {available.length > 0 ? (
+            <div className="space-y-3">
+              {available.map((survey) => (
+                <motion.button
+                  key={survey.id}
+                  type="button"
+                  onClick={() => navigate(`/satisfaction/${survey.id}/respond`)}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full text-left bg-secondary rounded-xl border border-border hover:border-[#D2FF00] transition-all duration-300 p-4 flex items-center gap-4"
+                >
+                  <div className="flex-shrink-0 p-2.5 rounded-xl bg-lime/20">
+                    <SmilePlus className="h-5 w-5 text-lime-deep dark:text-lime" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground truncate">{survey.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {survey.question_count || 0} perguntas
+                      {survey.is_anonymous && ' • Anônima'}
+                    </p>
+                  </div>
+                  <span className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-lime text-obsidian text-sm font-semibold">
+                    <Send className="h-4 w-4" />
+                    <span className="hidden xs:inline">Responder</span>
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <SmilePlus className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                Nenhuma pesquisa disponível
+              </h3>
+              <p className="text-muted-foreground">
+                Quando houver uma pesquisa para responder, ela aparecerá aqui.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
