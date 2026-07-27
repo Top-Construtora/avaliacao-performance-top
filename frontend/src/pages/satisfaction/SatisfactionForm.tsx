@@ -12,14 +12,14 @@ const SatisfactionForm = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [anonymous, setAnonymous] = useState(true);
-  const [questions, setQuestions] = useState<{ question_text: string; question_type: string }[]>([
-    { question_text: '', question_type: 'rating' },
-  ]);
+  const [questions, setQuestions] = useState<
+    { question_text: string; question_type: string; required: boolean }[]
+  >([{ question_text: '', question_type: 'rating', required: true }]);
   const [saving, setSaving] = useState(false);
 
   const updateQuestion = (
     index: number,
-    patch: Partial<{ question_text: string; question_type: string }>,
+    patch: Partial<{ question_text: string; question_type: string; required: boolean }>,
   ) => {
     setQuestions((prev) => prev.map((q, i) => (i === index ? { ...q, ...patch } : q)));
   };
@@ -35,12 +35,26 @@ const SatisfactionForm = () => {
       .map((q) => {
         // 'rating_10' é um pseudo-tipo só da UI: vira 'rating' com escala 10.
         if (q.question_type === 'rating_10') {
-          return { question_text: q.question_text, question_type: 'rating', rating_scale: 10 };
+          return {
+            question_text: q.question_text,
+            question_type: 'rating',
+            rating_scale: 10,
+            required: q.required,
+          };
         }
         if (q.question_type === 'rating') {
-          return { question_text: q.question_text, question_type: 'rating', rating_scale: 5 };
+          return {
+            question_text: q.question_text,
+            question_type: 'rating',
+            rating_scale: 5,
+            required: q.required,
+          };
         }
-        return { question_text: q.question_text, question_type: q.question_type };
+        return {
+          question_text: q.question_text,
+          question_type: q.question_type,
+          required: q.required,
+        };
       });
 
     if (validQuestions.length === 0) {
@@ -183,6 +197,14 @@ const SatisfactionForm = () => {
                   <option value="text">Texto</option>
                   <option value="yes_no">Sim/Não</option>
                 </select>
+                <select
+                  value={q.required ? 'req' : 'opt'}
+                  onChange={(e) => updateQuestion(index, { required: e.target.value === 'req' })}
+                  className="w-full sm:w-36 rounded-xl border border-border bg-secondary text-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm"
+                >
+                  <option value="req">Obrigatória</option>
+                  <option value="opt">Opcional</option>
+                </select>
               </div>
               {questions.length > 1 && (
                 <button
@@ -197,7 +219,10 @@ const SatisfactionForm = () => {
         </div>
         <button
           onClick={() =>
-            setQuestions((prev) => [...prev, { question_text: '', question_type: 'rating' }])
+            setQuestions((prev) => [
+              ...prev,
+              { question_text: '', question_type: 'rating', required: true },
+            ])
           }
           className="mt-3 text-sm text-lime-deep dark:text-lime hover:text-lime-deep font-medium flex items-center gap-1"
         >
