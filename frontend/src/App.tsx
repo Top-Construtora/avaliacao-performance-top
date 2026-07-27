@@ -436,6 +436,14 @@ function App() {
                             </ProtectedRoute>
                           }
                         />
+                        <Route
+                          path="satisfaction/:id/edit"
+                          element={
+                            <ProtectedRoute allowedRoles={['director']}>
+                              <SatisfactionForm />
+                            </ProtectedRoute>
+                          }
+                        />
                         <Route path="satisfaction/:id/respond" element={<SatisfactionRespond />} />
                         <Route
                           path="satisfaction/:id/results"

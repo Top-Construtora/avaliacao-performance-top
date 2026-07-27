@@ -1,13 +1,16 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { ArrowLeft, Save, Plus, X, SmilePlus } from 'lucide-react';
 import { satisfactionService } from '../../services/satisfaction.service';
 
 const SatisfactionForm = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditing = !!id;
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -16,6 +19,32 @@ const SatisfactionForm = () => {
     { question_text: string; question_type: string; required: boolean }[]
   >([{ question_text: '', question_type: 'rating', required: true }]);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(isEditing);
+
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      try {
+        const survey = await satisfactionService.getSurveyById(id);
+        setTitle(survey.title || '');
+        setDescription(survey.description || '');
+        setAnonymous(survey.is_anonymous !== false);
+        const loaded = (survey.questions || []).map((q) => ({
+          question_text: q.question_text,
+          // Reconstrói o pseudo-tipo da UI: rating com escala 10 vira 'rating_10'.
+          question_type:
+            q.question_type === 'rating' && q.rating_scale === 10 ? 'rating_10' : q.question_type,
+          required: q.required !== false,
+        }));
+        if (loaded.length > 0) setQuestions(loaded);
+      } catch (error) {
+        toast.error('Erro ao carregar pesquisa');
+        navigate('/satisfaction');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id]);
 
   const updateQuestion = (
     index: number,
@@ -64,20 +93,32 @@ const SatisfactionForm = () => {
 
     try {
       setSaving(true);
-      await satisfactionService.createSurvey({
-        title,
-        description,
-        is_anonymous: anonymous,
-        questions: validQuestions,
-      });
-      toast.success('Pesquisa criada com sucesso!');
+      if (isEditing) {
+        await satisfactionService.updateSurvey(id!, {
+          title,
+          description,
+          is_anonymous: anonymous,
+          questions: validQuestions,
+        } as any);
+        toast.success('Pesquisa atualizada com sucesso!');
+      } else {
+        await satisfactionService.createSurvey({
+          title,
+          description,
+          is_anonymous: anonymous,
+          questions: validQuestions,
+        });
+        toast.success('Pesquisa criada com sucesso!');
+      }
       navigate('/satisfaction');
     } catch (error) {
-      toast.error('Erro ao criar pesquisa');
+      toast.error(isEditing ? 'Erro ao atualizar pesquisa' : 'Erro ao criar pesquisa');
     } finally {
       setSaving(false);
     }
   };
+
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="space-y-6">
@@ -98,10 +139,12 @@ const SatisfactionForm = () => {
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center">
                 <SmilePlus className="h-6 w-6 text-lime-deep dark:text-lime mr-2 flex-shrink-0" />
-                Nova Pesquisa de Satisfação
+                {isEditing ? 'Editar Pesquisa de Satisfação' : 'Nova Pesquisa de Satisfação'}
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Monte as perguntas e publique para os colaboradores
+                {isEditing
+                  ? 'Ajuste as perguntas e salve as alterações'
+                  : 'Monte as perguntas e publique para os colaboradores'}
               </p>
             </div>
           </div>
@@ -112,7 +155,7 @@ const SatisfactionForm = () => {
             icon={<Save size={18} />}
             className="flex-shrink-0"
           >
-            {saving ? 'Salvando...' : 'Criar Pesquisa'}
+            {saving ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Criar Pesquisa'}
           </Button>
         </div>
       </motion.div>
@@ -236,7 +279,7 @@ const SatisfactionForm = () => {
           Cancelar
         </Button>
         <Button variant="primary" onClick={handleSave} disabled={saving} icon={<Save size={18} />}>
-          {saving ? 'Salvando...' : 'Criar Pesquisa'}
+          {saving ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Criar Pesquisa'}
         </Button>
       </div>
     </div>
