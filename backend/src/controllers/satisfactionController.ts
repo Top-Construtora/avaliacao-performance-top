@@ -228,15 +228,16 @@ export const satisfactionController = {
         return res.status(400).json({ success: false, error: 'Pesquisa não está ativa' });
       }
 
-      // Verificar se já respondeu
-      const { data: existing } = await supabaseAdmin
-        .from('satisfaction_responses')
+      // Verificar se já respondeu — rastreado por participação, o que também
+      // funciona em pesquisas anônimas (onde respondent_id fica nulo).
+      const { data: participated } = await supabaseAdmin
+        .from('satisfaction_participants')
         .select('id')
         .eq('survey_id', id)
-        .eq('respondent_id', req.user?.id)
-        .single();
+        .eq('user_id', req.user?.id)
+        .maybeSingle();
 
-      if (existing) {
+      if (participated) {
         return res.status(400).json({ success: false, error: 'Você já respondeu esta pesquisa' });
       }
 
@@ -270,6 +271,12 @@ export const satisfactionController = {
 
         if (aError) throw aError;
       }
+
+      // Registrar participação (impede responder novamente, inclusive anônimo).
+      // As respostas seguem anônimas; aqui só marcamos que este usuário já respondeu.
+      await supabaseAdmin
+        .from('satisfaction_participants')
+        .upsert({ survey_id: id, user_id: req.user?.id }, { onConflict: 'survey_id,user_id' });
 
       res.status(201).json({ success: true, data: response });
     } catch (error) {
@@ -385,11 +392,11 @@ export const satisfactionController = {
       const { id } = req.params;
 
       const { data } = await supabaseAdmin
-        .from('satisfaction_responses')
+        .from('satisfaction_participants')
         .select('id')
         .eq('survey_id', id)
-        .eq('respondent_id', req.user?.id)
-        .single();
+        .eq('user_id', req.user?.id)
+        .maybeSingle();
 
       res.json({ success: true, data: { has_responded: !!data } });
     } catch (error) {
