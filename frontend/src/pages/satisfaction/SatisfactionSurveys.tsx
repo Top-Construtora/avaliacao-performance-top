@@ -157,7 +157,7 @@ const SatisfactionSurveys = () => {
   if (!canManage) {
     const available = surveys.filter((s) => s.status === 'active');
     return (
-      <div className="space-y-4 sm:space-y-6 max-w-3xl mx-auto">
+      <div className="space-y-4 sm:space-y-6">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
