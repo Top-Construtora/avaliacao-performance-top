@@ -120,53 +120,67 @@ const SatisfactionResults = () => {
             </div>
 
             {/* Rating results */}
-            {result.question_type === 'rating' && result.average !== undefined && (
-              <div className="ml-10">
-                <div className="flex items-center gap-4 mb-3">
-                  <div className={`px-4 py-2 rounded-xl ${getRatingBg(result.average)}`}>
-                    <span className={`text-2xl font-bold ${getRatingColor(result.average)}`}>
-                      {result.average.toFixed(1)}
-                    </span>
-                    <span className="text-sm text-muted-foreground ml-1">/ 5</span>
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    {result.total_answers} respostas
-                  </span>
-                </div>
+            {result.question_type === 'rating' &&
+              result.average !== undefined &&
+              (() => {
+                const scale = result.rating_scale === 10 ? 10 : 5;
+                // Cor baseada na proporção nota/escala (funciona para 1-5 e 1-10).
+                // Classes escritas por extenso para o Tailwind gerá-las (sem interpolação).
+                const TONE = {
+                  success: { text: 'text-success', bg15: 'bg-success/15', bar: 'bg-success' },
+                  warning: { text: 'text-warning', bg15: 'bg-warning/15', bar: 'bg-warning' },
+                  destructive: {
+                    text: 'text-destructive',
+                    bg15: 'bg-destructive/15',
+                    bar: 'bg-destructive',
+                  },
+                } as const;
+                const toneFor = (ratio: number) =>
+                  ratio >= 0.7 ? TONE.success : ratio >= 0.5 ? TONE.warning : TONE.destructive;
+                const avgTone = toneFor(result.average! / scale);
+                return (
+                  <div className="ml-10">
+                    <div className="flex items-center gap-4 mb-3">
+                      <div className={`px-4 py-2 rounded-xl ${avgTone.bg15}`}>
+                        <span className={`text-2xl font-bold ${avgTone.text}`}>
+                          {result.average!.toFixed(1)}
+                        </span>
+                        <span className="text-sm text-muted-foreground ml-1">/ {scale}</span>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {result.total_answers} respostas
+                      </span>
+                    </div>
 
-                {/* Distribution bars */}
-                {result.distribution && (
-                  <div className="space-y-2">
-                    {result.distribution.map((count, i) => {
-                      const percentage =
-                        result.total_answers > 0 ? (count / result.total_answers) * 100 : 0;
-                      return (
-                        <div key={i} className="flex items-center gap-3">
-                          <span className="w-4 text-xs text-muted-foreground text-right font-medium">
-                            {i + 1}
-                          </span>
-                          <div className="flex-1 h-6 bg-secondary rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-500 ${
-                                i + 1 >= 4
-                                  ? 'bg-success'
-                                  : i + 1 >= 3
-                                    ? 'bg-warning'
-                                    : 'bg-destructive'
-                              }`}
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                          <span className="w-12 text-xs text-muted-foreground text-right">
-                            {count} ({Math.round(percentage)}%)
-                          </span>
-                        </div>
-                      );
-                    })}
+                    {/* Distribution bars */}
+                    {result.distribution && (
+                      <div className="space-y-2">
+                        {result.distribution.map((count, i) => {
+                          const percentage =
+                            result.total_answers > 0 ? (count / result.total_answers) * 100 : 0;
+                          const tone = toneFor((i + 1) / scale);
+                          return (
+                            <div key={i} className="flex items-center gap-3">
+                              <span className="w-5 text-xs text-muted-foreground text-right font-medium">
+                                {i + 1}
+                              </span>
+                              <div className="flex-1 h-6 bg-secondary rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-500 ${tone.bar}`}
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                              <span className="w-12 text-xs text-muted-foreground text-right">
+                                {count} ({Math.round(percentage)}%)
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            )}
+                );
+              })()}
 
             {/* Yes/No results */}
             {result.question_type === 'yes_no' && (
