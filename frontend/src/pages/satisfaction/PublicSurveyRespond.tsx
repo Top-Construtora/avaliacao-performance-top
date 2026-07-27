@@ -7,6 +7,15 @@ import { satisfactionService, SatisfactionSurvey } from '../../services/satisfac
 
 const doneKey = (id: string) => `gio_public_survey_done_${id}`;
 
+// Moldura da página. Definida FORA do componente: se ficasse dentro, cada
+// re-render criaria um novo tipo de componente e o React remontaria a árvore
+// inteira — fazendo o textarea perder o foco a cada tecla digitada.
+const Shell = ({ children }: { children: React.ReactNode }) => (
+  <div className="min-h-screen bg-background text-foreground flex flex-col items-center px-4 py-8 sm:py-12">
+    <div className="w-full max-w-2xl">{children}</div>
+  </div>
+);
+
 const PublicSurveyRespond = () => {
   const { id } = useParams();
   const [survey, setSurvey] = useState<SatisfactionSurvey | null>(null);
@@ -69,12 +78,6 @@ const PublicSurveyRespond = () => {
       setSubmitting(false);
     }
   };
-
-  const Shell = ({ children }: { children: React.ReactNode }) => (
-    <div className="min-h-screen bg-background text-foreground flex flex-col items-center px-4 py-8 sm:py-12">
-      <div className="w-full max-w-2xl">{children}</div>
-    </div>
-  );
 
   if (loading) {
     return (
