@@ -11,6 +11,7 @@ import {
   MessageSquare,
   ThumbsUp,
   ThumbsDown,
+  ChevronDown,
 } from 'lucide-react';
 import { satisfactionService, SurveyResults } from '../../services/satisfaction.service';
 
@@ -19,6 +20,10 @@ const SatisfactionResults = () => {
   const { id } = useParams();
   const [results, setResults] = useState<SurveyResults | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  const toggleExpanded = (questionId: string) =>
+    setExpanded((prev) => ({ ...prev, [questionId]: !prev[questionId] }));
 
   useEffect(() => {
     if (id) loadResults();
@@ -140,6 +145,7 @@ const SatisfactionResults = () => {
                 const toneFor = (ratio: number) =>
                   ratio >= 0.7 ? TONE.success : ratio >= 0.5 ? TONE.warning : TONE.destructive;
                 const avgTone = toneFor(result.average! / scale);
+                const isOpen = !!expanded[result.id];
                 return (
                   <div className="ml-10">
                     <div className="flex items-center gap-4 mb-3">
@@ -152,10 +158,22 @@ const SatisfactionResults = () => {
                       <span className="text-sm text-muted-foreground">
                         {result.total_answers} respostas
                       </span>
+                      {result.distribution && result.distribution.length > 0 && (
+                        <button
+                          onClick={() => toggleExpanded(result.id)}
+                          className="ml-auto inline-flex items-center gap-1 text-sm font-medium text-lime-deep dark:text-lime hover:opacity-80 transition-opacity"
+                          aria-expanded={isOpen}
+                        >
+                          {isOpen ? 'Ocultar distribuição' : 'Ver distribuição'}
+                          <ChevronDown
+                            className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                          />
+                        </button>
+                      )}
                     </div>
 
-                    {/* Distribution bars */}
-                    {result.distribution && (
+                    {/* Distribution bars (retrátil) */}
+                    {isOpen && result.distribution && (
                       <div className="space-y-2">
                         {result.distribution.map((count, i) => {
                           const percentage =
