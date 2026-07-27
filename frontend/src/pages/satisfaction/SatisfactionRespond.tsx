@@ -184,10 +184,6 @@ const SatisfactionRespond = () => {
                         </button>
                       ))}
                     </div>
-                    <div className="mt-2 flex justify-between text-[10px] text-muted-foreground max-w-[220px]">
-                      <span>Insatisfeito</span>
-                      <span>Satisfeito</span>
-                    </div>
                   </div>
                 );
               })()}
