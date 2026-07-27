@@ -125,7 +125,9 @@ const SatisfactionRespond = () => {
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">{survey.title}</h1>
             {survey.description && (
-              <p className="text-sm text-muted-foreground mt-1">{survey.description}</p>
+              <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">
+                {survey.description}
+              </p>
             )}
           </div>
         </div>

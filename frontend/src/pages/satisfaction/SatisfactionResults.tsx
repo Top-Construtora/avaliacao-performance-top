@@ -73,7 +73,9 @@ const SatisfactionResults = () => {
               Resultados: {results.survey.title}
             </h1>
             {results.survey.description && (
-              <p className="text-sm text-muted-foreground mt-1">{results.survey.description}</p>
+              <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">
+                {results.survey.description}
+              </p>
             )}
           </div>
         </div>
