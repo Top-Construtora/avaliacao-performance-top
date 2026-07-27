@@ -9,48 +9,74 @@ import { NotificationProvider } from './context/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
+// Import dinâmico resiliente: se um chunk falhar ao carregar (típico logo após
+// um novo deploy, quando o index.html em cache aponta para arquivos antigos que
+// não existem mais), recarrega a página UMA vez para pegar o build novo.
+function lazyWithRetry(factory: () => Promise<{ default: React.ComponentType<any> }>) {
+  return lazy(async () => {
+    const alreadyReloaded = sessionStorage.getItem('chunk-reload') === '1';
+    try {
+      const mod = await factory();
+      sessionStorage.removeItem('chunk-reload');
+      return mod;
+    } catch (err) {
+      if (!alreadyReloaded) {
+        sessionStorage.setItem('chunk-reload', '1');
+        window.location.reload();
+        // Promise que nunca resolve: evita renderizar erro enquanto recarrega.
+        return new Promise<{ default: React.ComponentType<any> }>(() => {});
+      }
+      throw err;
+    }
+  });
+}
+
 // Lazy loaded pages
-const Login = lazy(() => import('./pages/auth/Login'));
-const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
-const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
-const Dashboard = lazy(() => import('./pages/home/Dashboard'));
-const SelfEvaluation = lazy(() => import('./pages/evaluations/SelfEvaluation'));
-const LeaderEvaluation = lazy(() => import('./pages/evaluations/LeaderEvaluation'));
-const NineBoxGuide = lazy(() => import('./pages/evaluations/NineBoxGuide'));
-const NineBoxMatrix = lazy(() => import('./pages/evaluations/NineBox'));
-const Consensus = lazy(() => import('./pages/evaluations/Consensus'));
-const UserManagement = lazy(() => import('./pages/users/UserManagement'));
-const RegisterUser = lazy(() => import('./pages/users/RegisterUser'));
-const UserEdit = lazy(() => import('./pages/users/EditUser'));
-const TeamManagement = lazy(() => import('./pages/teams/TeamManagement'));
-const RegisterTeam = lazy(() => import('./pages/teams/RegisterTeam'));
-const EditTeam = lazy(() => import('./pages/teams/EditTeam'));
-const DepartmentManagement = lazy(() => import('./pages/departments/DepartmentManagement'));
-const RegisterDepartment = lazy(() => import('./pages/departments/RegisterDepartment'));
-const EditDepartment = lazy(() => import('./pages/departments/EditDepartment'));
-const Reports = lazy(() => import('./pages/reports/Reports'));
-const EvaluationDashboard = lazy(() => import('./pages/reports/EvaluationDashboard'));
-const Settings = lazy(() => import('./pages/settings/Settings'));
-const HelpPage = lazy(() => import('./pages/help/HelpPage'));
-const NotificationHistory = lazy(() => import('./pages/notifications/NotificationHistory'));
-const CycleManagement = lazy(() => import('./pages/management/CycleManagement'));
-const SalaryAdminPage = lazy(() => import('./pages/management/SalaryAdminPage'));
-const CodigoCultural = lazy(() => import('./pages/management/CodigoCultural'));
-const TrackPositionsPage = lazy(() => import('./pages/carrer/TrackPositionsPage'));
-const CareerTrackDetail = lazy(() => import('./pages/carrer/CareerTrackDetail'));
-const PdiManagement = lazy(() => import('./pages/pdi/PdiManagement'));
-const MyPdi = lazy(() => import('./pages/pdi/MyPdi'));
-const PdiCalendar = lazy(() => import('./pages/pdi/PdiCalendar'));
-const SatisfactionSurveys = lazy(() => import('./pages/satisfaction/SatisfactionSurveys'));
-const SatisfactionForm = lazy(() => import('./pages/satisfaction/SatisfactionForm'));
-const SatisfactionRespond = lazy(() => import('./pages/satisfaction/SatisfactionRespond'));
-const SatisfactionResults = lazy(() => import('./pages/satisfaction/SatisfactionResults'));
-const RecruitmentList = lazy(() => import('./pages/recruitment/RecruitmentList'));
-const RecruitmentForm = lazy(() => import('./pages/recruitment/RecruitmentForm'));
-const RecruitmentView = lazy(() => import('./pages/recruitment/RecruitmentView'));
-const InterviewList = lazy(() => import('./pages/interviews/InterviewList'));
-const InterviewForm = lazy(() => import('./pages/interviews/InterviewForm'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+const Login = lazyWithRetry(() => import('./pages/auth/Login'));
+const ForgotPassword = lazyWithRetry(() => import('./pages/auth/ForgotPassword'));
+const ResetPassword = lazyWithRetry(() => import('./pages/auth/ResetPassword'));
+const Dashboard = lazyWithRetry(() => import('./pages/home/Dashboard'));
+const SelfEvaluation = lazyWithRetry(() => import('./pages/evaluations/SelfEvaluation'));
+const LeaderEvaluation = lazyWithRetry(() => import('./pages/evaluations/LeaderEvaluation'));
+const NineBoxGuide = lazyWithRetry(() => import('./pages/evaluations/NineBoxGuide'));
+const NineBoxMatrix = lazyWithRetry(() => import('./pages/evaluations/NineBox'));
+const Consensus = lazyWithRetry(() => import('./pages/evaluations/Consensus'));
+const UserManagement = lazyWithRetry(() => import('./pages/users/UserManagement'));
+const RegisterUser = lazyWithRetry(() => import('./pages/users/RegisterUser'));
+const UserEdit = lazyWithRetry(() => import('./pages/users/EditUser'));
+const TeamManagement = lazyWithRetry(() => import('./pages/teams/TeamManagement'));
+const RegisterTeam = lazyWithRetry(() => import('./pages/teams/RegisterTeam'));
+const EditTeam = lazyWithRetry(() => import('./pages/teams/EditTeam'));
+const DepartmentManagement = lazyWithRetry(
+  () => import('./pages/departments/DepartmentManagement'),
+);
+const RegisterDepartment = lazyWithRetry(() => import('./pages/departments/RegisterDepartment'));
+const EditDepartment = lazyWithRetry(() => import('./pages/departments/EditDepartment'));
+const Reports = lazyWithRetry(() => import('./pages/reports/Reports'));
+const EvaluationDashboard = lazyWithRetry(() => import('./pages/reports/EvaluationDashboard'));
+const Settings = lazyWithRetry(() => import('./pages/settings/Settings'));
+const HelpPage = lazyWithRetry(() => import('./pages/help/HelpPage'));
+const NotificationHistory = lazyWithRetry(
+  () => import('./pages/notifications/NotificationHistory'),
+);
+const CycleManagement = lazyWithRetry(() => import('./pages/management/CycleManagement'));
+const SalaryAdminPage = lazyWithRetry(() => import('./pages/management/SalaryAdminPage'));
+const CodigoCultural = lazyWithRetry(() => import('./pages/management/CodigoCultural'));
+const TrackPositionsPage = lazyWithRetry(() => import('./pages/carrer/TrackPositionsPage'));
+const CareerTrackDetail = lazyWithRetry(() => import('./pages/carrer/CareerTrackDetail'));
+const PdiManagement = lazyWithRetry(() => import('./pages/pdi/PdiManagement'));
+const MyPdi = lazyWithRetry(() => import('./pages/pdi/MyPdi'));
+const PdiCalendar = lazyWithRetry(() => import('./pages/pdi/PdiCalendar'));
+const SatisfactionSurveys = lazyWithRetry(() => import('./pages/satisfaction/SatisfactionSurveys'));
+const SatisfactionForm = lazyWithRetry(() => import('./pages/satisfaction/SatisfactionForm'));
+const SatisfactionRespond = lazyWithRetry(() => import('./pages/satisfaction/SatisfactionRespond'));
+const SatisfactionResults = lazyWithRetry(() => import('./pages/satisfaction/SatisfactionResults'));
+const RecruitmentList = lazyWithRetry(() => import('./pages/recruitment/RecruitmentList'));
+const RecruitmentForm = lazyWithRetry(() => import('./pages/recruitment/RecruitmentForm'));
+const RecruitmentView = lazyWithRetry(() => import('./pages/recruitment/RecruitmentView'));
+const InterviewList = lazyWithRetry(() => import('./pages/interviews/InterviewList'));
+const InterviewForm = lazyWithRetry(() => import('./pages/interviews/InterviewForm'));
+const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
 
 function PageLoader() {
   return (
