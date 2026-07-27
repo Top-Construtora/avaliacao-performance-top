@@ -15,6 +15,20 @@ export const apiLimiter = rateLimit({
   },
 });
 
+// Limite para envio de resposta em pesquisa pública (link aberto, sem login).
+// Generoso o bastante para uma sala/treinamento inteiro atrás do mesmo IP (NAT),
+// mas ainda barra automação/spam.
+export const publicSubmitLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 100, // respostas por IP, por janela
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'Muitas respostas enviadas deste local. Tente novamente em alguns minutos.',
+  },
+});
+
 // Limite estrito para autenticação — barra brute-force de senha.
 // Não conta logins bem-sucedidos, para não punir o uso legítimo.
 export const authLimiter = rateLimit({

@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { supabaseAdmin } from '../config/supabase';
 import { notificationService } from '../services/notificationService';
@@ -279,6 +279,93 @@ export const satisfactionController = {
         .upsert({ survey_id: id, user_id: req.user?.id }, { onConflict: 'survey_id,user_id' });
 
       res.status(201).json({ success: true, data: response });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ===== PÚBLICO (link aberto, sem login) =====
+
+  // Carregar pesquisa pública — só se estiver ativa. Retorna apenas o necessário
+  // para responder (sem contagem de respostas nem dados internos).
+  async getPublicSurvey(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+
+      const { data: survey } = await supabaseAdmin
+        .from('satisfaction_surveys')
+        .select('id, title, description, is_anonymous, status')
+        .eq('id', id)
+        .single();
+
+      if (!survey || survey.status !== 'active') {
+        return res.status(404).json({ success: false, error: 'Pesquisa não disponível' });
+      }
+
+      const { data: questions } = await supabaseAdmin
+        .from('satisfaction_questions')
+        .select('id, question_text, question_type, order_index, required, rating_scale')
+        .eq('survey_id', id)
+        .order('order_index');
+
+      res.json({ success: true, data: { ...survey, questions: questions || [] } });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Enviar resposta pública — sempre anônima (respondent_id nulo). Sem login,
+  // não há como rastrear participação com segurança; a dedup fica no cliente.
+  async submitPublicResponse(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { answers } = req.body;
+
+      const { data: survey } = await supabaseAdmin
+        .from('satisfaction_surveys')
+        .select('id, status')
+        .eq('id', id)
+        .single();
+
+      if (!survey || survey.status !== 'active') {
+        return res.status(400).json({ success: false, error: 'Pesquisa não está ativa' });
+      }
+
+      // Só aceita respostas para perguntas que pertencem a esta pesquisa.
+      const { data: qs } = await supabaseAdmin
+        .from('satisfaction_questions')
+        .select('id')
+        .eq('survey_id', id);
+      const validIds = new Set((qs || []).map((q: any) => q.id));
+
+      const { data: response, error } = await supabaseAdmin
+        .from('satisfaction_responses')
+        .insert([{ survey_id: id, respondent_id: null }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (answers && Array.isArray(answers)) {
+        const answersData = answers
+          .filter((a: any) => validIds.has(a.question_id))
+          .map((a: any) => ({
+            response_id: response.id,
+            question_id: a.question_id,
+            rating_value: a.rating_value ?? null,
+            text_value: a.text_value ?? null,
+            boolean_value: a.boolean_value !== undefined ? a.boolean_value : null,
+          }));
+
+        if (answersData.length > 0) {
+          const { error: aError } = await supabaseAdmin
+            .from('satisfaction_answers')
+            .insert(answersData);
+          if (aError) throw aError;
+        }
+      }
+
+      res.status(201).json({ success: true, data: { id: response.id } });
     } catch (error) {
       next(error);
     }

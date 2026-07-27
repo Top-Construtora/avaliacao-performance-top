@@ -11,6 +11,7 @@ import interviewRoutes from './interviewRoutes';
 import satisfactionRoutes from './satisfactionRoutes';
 import recruitmentRoutes from './recruitmentRoutes';
 import notificationRoutes from './notificationRoutes';
+import publicRoutes from './publicRoutes';
 
 const router = Router();
 
@@ -20,9 +21,12 @@ router.get('/test', (req, res) => {
     success: true,
     message: 'API is working!',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   });
 });
+
+// Rotas públicas (sem login) — link aberto de pesquisa
+router.use('/public', publicRoutes);
 
 // Auth routes
 router.use('/auth', authRoutes);
@@ -45,7 +49,7 @@ router.get('/health', (req, res) => {
   res.json({
     success: true,
     status: 'healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 

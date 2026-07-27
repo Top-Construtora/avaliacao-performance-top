@@ -71,6 +71,7 @@ const SatisfactionSurveys = lazyWithRetry(() => import('./pages/satisfaction/Sat
 const SatisfactionForm = lazyWithRetry(() => import('./pages/satisfaction/SatisfactionForm'));
 const SatisfactionRespond = lazyWithRetry(() => import('./pages/satisfaction/SatisfactionRespond'));
 const SatisfactionResults = lazyWithRetry(() => import('./pages/satisfaction/SatisfactionResults'));
+const PublicSurveyRespond = lazyWithRetry(() => import('./pages/satisfaction/PublicSurveyRespond'));
 const RecruitmentList = lazyWithRetry(() => import('./pages/recruitment/RecruitmentList'));
 const RecruitmentForm = lazyWithRetry(() => import('./pages/recruitment/RecruitmentForm'));
 const RecruitmentView = lazyWithRetry(() => import('./pages/recruitment/RecruitmentView'));
@@ -140,6 +141,8 @@ function App() {
                       <Route path="/login" element={<Login />} />
                       <Route path="/forgot-password" element={<ForgotPassword />} />
                       <Route path="/reset-password" element={<ResetPassword />} />
+                      {/* Link público de pesquisa (sem login) */}
+                      <Route path="/p/:id" element={<PublicSurveyRespond />} />
 
                       <Route
                         path="/"
@@ -511,6 +514,8 @@ function App() {
                   <Toaster {...toasterConfig} />
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
+                      {/* Link público de pesquisa (sem login) */}
+                      <Route path="/p/:id" element={<PublicSurveyRespond />} />
                       <Route path="/" element={<Layout />}>
                         <Route index element={<Dashboard />} />
                         <Route path="self-evaluation" element={<SelfEvaluation />} />

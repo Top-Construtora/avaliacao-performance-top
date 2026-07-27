@@ -109,4 +109,23 @@ export const satisfactionService = {
   async deleteSurvey(id: string): Promise<void> {
     await api.delete(`/satisfaction/${id}`);
   },
+
+  // ===== PÚBLICO (sem login) =====
+  async getPublicSurvey(id: string): Promise<SatisfactionSurvey> {
+    const response = await api.get(`/public/satisfaction/${id}`);
+    return response.data || response;
+  },
+
+  async submitPublicResponse(
+    surveyId: string,
+    answers: {
+      question_id: string;
+      rating_value?: number;
+      text_value?: string;
+      boolean_value?: boolean;
+    }[],
+  ): Promise<any> {
+    const response = await api.post(`/public/satisfaction/${surveyId}/respond`, { answers });
+    return response.data || response;
+  },
 };

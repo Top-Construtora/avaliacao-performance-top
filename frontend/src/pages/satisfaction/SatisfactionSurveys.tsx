@@ -15,6 +15,7 @@ import {
   StopCircle,
   Send,
   Pencil,
+  Link2,
 } from 'lucide-react';
 import { satisfactionService, SatisfactionSurvey } from '../../services/satisfaction.service';
 import { useUserRole } from '../../context/AuthContext';
@@ -58,6 +59,19 @@ const SatisfactionSurveys = () => {
       toast.success(`Pesquisa ${newStatus === 'active' ? 'ativada' : 'encerrada'} com sucesso`);
     } catch (error) {
       toast.error('Erro ao atualizar status');
+    }
+  };
+
+  const copyPublicLink = (surveyId: string) => {
+    const url = `${window.location.origin}/p/${surveyId}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(
+        () => toast.success('Link público copiado!'),
+        () => toast.error('Não foi possível copiar o link'),
+      );
+    } else {
+      // Fallback: mostra a URL para cópia manual
+      toast(url, { duration: 8000 });
     }
   };
 
@@ -298,6 +312,16 @@ const SatisfactionSurveys = () => {
                         title="Encerrar pesquisa"
                       >
                         <StopCircle className="h-4 w-4" />
+                      </button>
+                    )}
+
+                    {canManage && (
+                      <button
+                        onClick={() => copyPublicLink(survey.id)}
+                        className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-lime-deep dark:hover:text-lime transition-colors"
+                        title="Copiar link público (sem login)"
+                      >
+                        <Link2 className="h-4 w-4" />
                       </button>
                     )}
 
