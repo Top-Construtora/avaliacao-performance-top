@@ -302,108 +302,110 @@ const SatisfactionSurveys = () => {
                     </p>
                   </div>
 
-                  <div className="relative flex-shrink-0">
-                    <button
-                      onClick={() => setOpenMenuId(openMenuId === survey.id ? null : survey.id)}
-                      className="p-2 rounded-lg hover:bg-accent text-muted-foreground transition-colors"
-                      title="Ações"
-                      aria-haspopup="menu"
-                      aria-expanded={openMenuId === survey.id}
-                    >
-                      <MoreVertical className="h-5 w-5" />
-                    </button>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {/* Ações diretas de acesso rápido */}
+                    {canManage && (
+                      <button
+                        onClick={() => navigate(`/satisfaction/${survey.id}/results`)}
+                        className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-lime-deep dark:hover:text-lime transition-colors"
+                        title="Ver resultados"
+                      >
+                        <BarChart3 className="h-4 w-4" />
+                      </button>
+                    )}
+                    {canManage && survey.status === 'active' && (
+                      <button
+                        onClick={() => handleStatusChange(survey.id, 'closed')}
+                        className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-destructive transition-colors"
+                        title="Encerrar pesquisa"
+                      >
+                        <StopCircle className="h-4 w-4" />
+                      </button>
+                    )}
 
-                    {openMenuId === survey.id && (
-                      <>
-                        <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                        <div className="absolute right-0 top-full mt-1 z-20 w-56 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-popover text-popover-foreground shadow-xl py-1">
-                          {survey.status === 'active' && (
-                            <MenuItem
-                              icon={Send}
-                              label="Responder"
-                              onClick={() => {
-                                setOpenMenuId(null);
-                                navigate(`/satisfaction/${survey.id}/respond`);
-                              }}
-                            />
-                          )}
-                          {canManage && (
-                            <MenuItem
-                              icon={BarChart3}
-                              label="Ver resultados"
-                              onClick={() => {
-                                setOpenMenuId(null);
-                                navigate(`/satisfaction/${survey.id}/results`);
-                              }}
-                            />
-                          )}
-                          {canManage && survey.status === 'draft' && (
-                            <MenuItem
-                              icon={PlayCircle}
-                              label="Ativar pesquisa"
-                              onClick={() => {
-                                setOpenMenuId(null);
-                                handleStatusChange(survey.id, 'active');
-                              }}
-                            />
-                          )}
-                          {canManage && survey.status === 'active' && (
-                            <MenuItem
-                              icon={StopCircle}
-                              label="Encerrar pesquisa"
-                              onClick={() => {
-                                setOpenMenuId(null);
-                                handleStatusChange(survey.id, 'closed');
-                              }}
-                            />
-                          )}
-                          {canManage && (
-                            <MenuItem
-                              icon={LogIn}
-                              label="Copiar link interno"
-                              onClick={() => {
-                                setOpenMenuId(null);
-                                copyInternalLink(survey.id);
-                              }}
-                            />
-                          )}
-                          {canManage && (
-                            <MenuItem
-                              icon={Link2}
-                              label="Copiar link público"
-                              onClick={() => {
-                                setOpenMenuId(null);
-                                copyPublicLink(survey.id);
-                              }}
-                            />
-                          )}
-                          {canManage && (
-                            <MenuItem
-                              icon={Pencil}
-                              label="Editar"
-                              onClick={() => {
-                                setOpenMenuId(null);
-                                navigate(`/satisfaction/${survey.id}/edit`);
-                              }}
-                            />
-                          )}
-                          {canManage && (
-                            <>
-                              <div className="my-1 border-t border-border" />
+                    <div className="relative">
+                      <button
+                        onClick={() => setOpenMenuId(openMenuId === survey.id ? null : survey.id)}
+                        className="p-2 rounded-lg hover:bg-accent text-muted-foreground transition-colors"
+                        title="Mais ações"
+                        aria-haspopup="menu"
+                        aria-expanded={openMenuId === survey.id}
+                      >
+                        <MoreVertical className="h-5 w-5" />
+                      </button>
+
+                      {openMenuId === survey.id && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                          <div className="absolute right-0 top-full mt-1 z-20 w-56 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-popover text-popover-foreground shadow-xl py-1">
+                            {survey.status === 'active' && (
                               <MenuItem
-                                icon={Trash2}
-                                label="Excluir"
-                                destructive
+                                icon={Send}
+                                label="Responder"
                                 onClick={() => {
                                   setOpenMenuId(null);
-                                  handleDelete(survey.id);
+                                  navigate(`/satisfaction/${survey.id}/respond`);
                                 }}
                               />
-                            </>
-                          )}
-                        </div>
-                      </>
-                    )}
+                            )}
+                            {canManage && survey.status === 'draft' && (
+                              <MenuItem
+                                icon={PlayCircle}
+                                label="Ativar pesquisa"
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  handleStatusChange(survey.id, 'active');
+                                }}
+                              />
+                            )}
+                            {canManage && (
+                              <MenuItem
+                                icon={LogIn}
+                                label="Copiar link interno"
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  copyInternalLink(survey.id);
+                                }}
+                              />
+                            )}
+                            {canManage && (
+                              <MenuItem
+                                icon={Link2}
+                                label="Copiar link público"
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  copyPublicLink(survey.id);
+                                }}
+                              />
+                            )}
+                            {canManage && (
+                              <MenuItem
+                                icon={Pencil}
+                                label="Editar"
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  navigate(`/satisfaction/${survey.id}/edit`);
+                                }}
+                              />
+                            )}
+                            {canManage && (
+                              <>
+                                <div className="my-1 border-t border-border" />
+                                <MenuItem
+                                  icon={Trash2}
+                                  label="Excluir"
+                                  destructive
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    handleDelete(survey.id);
+                                  }}
+                                />
+                              </>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </motion.div>
