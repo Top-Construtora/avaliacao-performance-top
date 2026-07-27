@@ -141,7 +141,7 @@ const SatisfactionForm = () => {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Mensagem de abertura da pesquisa (respeita quebras de linha)..."
+            placeholder="Mensagem de abertura da pesquisa..."
             rows={4}
             className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 resize-y"
           />
