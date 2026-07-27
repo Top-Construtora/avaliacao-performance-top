@@ -19,22 +19,31 @@ export const satisfactionController = {
       const { data, error } = await query;
       if (error) throw error;
 
-      // Adicionar contagem de respostas para cada pesquisa
-      const surveysWithCounts = await Promise.all(
-        (data || []).map(async (survey) => {
-          const { count } = await supabaseAdmin
-            .from('satisfaction_responses')
-            .select('*', { count: 'exact', head: true })
-            .eq('survey_id', survey.id);
+      const surveys = data || [];
+      if (surveys.length === 0) {
+        return res.json({ success: true, data: [] });
+      }
 
-          const { count: questionCount } = await supabaseAdmin
-            .from('satisfaction_questions')
-            .select('*', { count: 'exact', head: true })
-            .eq('survey_id', survey.id);
+      // Contagens em lote (evita N+1: antes eram 2 queries POR pesquisa)
+      const surveyIds = surveys.map((s: any) => s.id);
+      const [respRes, questRes] = await Promise.all([
+        supabaseAdmin.from('satisfaction_responses').select('survey_id').in('survey_id', surveyIds),
+        supabaseAdmin.from('satisfaction_questions').select('survey_id').in('survey_id', surveyIds),
+      ]);
 
-          return { ...survey, response_count: count || 0, question_count: questionCount || 0 };
-        }),
-      );
+      const countBySurvey = (rows: { survey_id: string }[] | null) => {
+        const map = new Map<string, number>();
+        for (const r of rows || []) map.set(r.survey_id, (map.get(r.survey_id) || 0) + 1);
+        return map;
+      };
+      const responseCounts = countBySurvey(respRes.data);
+      const questionCounts = countBySurvey(questRes.data);
+
+      const surveysWithCounts = surveys.map((survey: any) => ({
+        ...survey,
+        response_count: responseCounts.get(survey.id) || 0,
+        question_count: questionCounts.get(survey.id) || 0,
+      }));
 
       res.json({ success: true, data: surveysWithCounts });
     } catch (error) {
@@ -47,31 +56,32 @@ export const satisfactionController = {
     try {
       const { id } = req.params;
 
-      const { data: survey, error } = await supabaseAdmin
-        .from('satisfaction_surveys')
-        .select('*')
-        .eq('id', id)
-        .single();
+      // Queries independentes em paralelo (antes eram 3 sequenciais)
+      const [surveyRes, questionsRes, countRes] = await Promise.all([
+        supabaseAdmin.from('satisfaction_surveys').select('*').eq('id', id).single(),
+        supabaseAdmin
+          .from('satisfaction_questions')
+          .select('*')
+          .eq('survey_id', id)
+          .order('order_index'),
+        supabaseAdmin
+          .from('satisfaction_responses')
+          .select('*', { count: 'exact', head: true })
+          .eq('survey_id', id),
+      ]);
 
-      if (error) throw error;
-      if (!survey) {
+      if (surveyRes.error) throw surveyRes.error;
+      if (!surveyRes.data) {
         return res.status(404).json({ success: false, error: 'Pesquisa não encontrada' });
       }
 
-      const { data: questions } = await supabaseAdmin
-        .from('satisfaction_questions')
-        .select('*')
-        .eq('survey_id', id)
-        .order('order_index');
-
-      const { count: responseCount } = await supabaseAdmin
-        .from('satisfaction_responses')
-        .select('*', { count: 'exact', head: true })
-        .eq('survey_id', id);
-
       res.json({
         success: true,
-        data: { ...survey, questions: questions || [], response_count: responseCount || 0 },
+        data: {
+          ...surveyRes.data,
+          questions: questionsRes.data || [],
+          response_count: countRes.count || 0,
+        },
       });
     } catch (error) {
       next(error);
@@ -217,27 +227,29 @@ export const satisfactionController = {
       const { id } = req.params; // survey_id
       const { answers } = req.body;
 
-      // Verificar se a pesquisa está ativa
-      const { data: survey } = await supabaseAdmin
-        .from('satisfaction_surveys')
-        .select('id, status, is_anonymous')
-        .eq('id', id)
-        .single();
+      // Verificações independentes em paralelo: pesquisa ativa + já respondeu.
+      // A participação é rastreada em tabela própria, o que também funciona em
+      // pesquisas anônimas (onde respondent_id fica nulo).
+      const [surveyRes, participatedRes] = await Promise.all([
+        supabaseAdmin
+          .from('satisfaction_surveys')
+          .select('id, status, is_anonymous')
+          .eq('id', id)
+          .single(),
+        supabaseAdmin
+          .from('satisfaction_participants')
+          .select('id')
+          .eq('survey_id', id)
+          .eq('user_id', req.user?.id)
+          .maybeSingle(),
+      ]);
 
+      const survey = surveyRes.data;
       if (!survey || survey.status !== 'active') {
         return res.status(400).json({ success: false, error: 'Pesquisa não está ativa' });
       }
 
-      // Verificar se já respondeu — rastreado por participação, o que também
-      // funciona em pesquisas anônimas (onde respondent_id fica nulo).
-      const { data: participated } = await supabaseAdmin
-        .from('satisfaction_participants')
-        .select('id')
-        .eq('survey_id', id)
-        .eq('user_id', req.user?.id)
-        .maybeSingle();
-
-      if (participated) {
+      if (participatedRes.data) {
         return res.status(400).json({ success: false, error: 'Você já respondeu esta pesquisa' });
       }
 
@@ -376,30 +388,25 @@ export const satisfactionController = {
     try {
       const { id } = req.params;
 
-      // Pesquisa + perguntas
-      const { data: survey } = await supabaseAdmin
-        .from('satisfaction_surveys')
-        .select('*')
-        .eq('id', id)
-        .single();
+      // Pesquisa, perguntas e respostas em paralelo (independentes entre si);
+      // só as answers dependem dos IDs das respostas.
+      const [surveyRes, questionsRes, responsesRes] = await Promise.all([
+        supabaseAdmin.from('satisfaction_surveys').select('*').eq('id', id).single(),
+        supabaseAdmin
+          .from('satisfaction_questions')
+          .select('*')
+          .eq('survey_id', id)
+          .order('order_index'),
+        supabaseAdmin.from('satisfaction_responses').select('id').eq('survey_id', id),
+      ]);
 
+      const survey = surveyRes.data;
       if (!survey) {
         return res.status(404).json({ success: false, error: 'Pesquisa não encontrada' });
       }
 
-      const { data: questions } = await supabaseAdmin
-        .from('satisfaction_questions')
-        .select('*')
-        .eq('survey_id', id)
-        .order('order_index');
-
-      // Respostas
-      const { data: responses } = await supabaseAdmin
-        .from('satisfaction_responses')
-        .select('id')
-        .eq('survey_id', id);
-
-      const responseIds = (responses || []).map((r) => r.id);
+      const questions = questionsRes.data;
+      const responseIds = (responsesRes.data || []).map((r: any) => r.id);
 
       let answers: any[] = [];
       if (responseIds.length > 0) {

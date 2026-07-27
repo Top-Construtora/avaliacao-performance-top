@@ -14,11 +14,13 @@ export const recruitmentController = {
 
       let query = supabaseAdmin
         .from('job_openings')
-        .select(`
+        .select(
+          `
           *,
           department:departments!job_openings_department_id_fkey(id, name),
           requester:users!job_openings_requested_by_fkey(id, name, email, position)
-        `)
+        `,
+        )
         .order('created_at', { ascending: false });
 
       if (status) query = query.eq('status', status);
@@ -35,30 +37,40 @@ export const recruitmentController = {
       const { data, error } = await query;
       if (error) throw error;
 
-      // Adicionar contagens de candidatos por vaga
-      const openingsWithCounts = await Promise.all(
-        (data || []).map(async (opening) => {
-          const { count: candidateCount } = await supabaseAdmin
-            .from('job_candidates')
-            .select('*', { count: 'exact', head: true })
-            .eq('job_opening_id', opening.id);
+      const openings = data || [];
+      if (openings.length === 0) {
+        return res.json({ success: true, data: [] });
+      }
 
-          const { count: interviewCount } = await supabaseAdmin
-            .from('recruitment_interviews')
-            .select(`
-              *,
-              candidate:job_candidates!inner(job_opening_id)
-            `, { count: 'exact', head: true })
-            .eq('candidate.job_opening_id', opening.id)
-            .eq('status', 'completed');
+      // Contagens em lote (evita N+1: antes eram 2 queries POR vaga)
+      const openingIds = openings.map((o: any) => o.id);
+      const [candRes, intRes] = await Promise.all([
+        supabaseAdmin
+          .from('job_candidates')
+          .select('job_opening_id')
+          .in('job_opening_id', openingIds),
+        supabaseAdmin
+          .from('recruitment_interviews')
+          .select('id, candidate:job_candidates!inner(job_opening_id)')
+          .in('candidate.job_opening_id', openingIds)
+          .eq('status', 'completed'),
+      ]);
 
-          return {
-            ...opening,
-            candidate_count: candidateCount || 0,
-            interview_count: interviewCount || 0,
-          };
-        })
-      );
+      const candidateCounts = new Map<string, number>();
+      for (const r of (candRes.data as { job_opening_id: string }[] | null) || []) {
+        candidateCounts.set(r.job_opening_id, (candidateCounts.get(r.job_opening_id) || 0) + 1);
+      }
+      const interviewCounts = new Map<string, number>();
+      for (const r of (intRes.data as any[] | null) || []) {
+        const oid = r.candidate?.job_opening_id;
+        if (oid) interviewCounts.set(oid, (interviewCounts.get(oid) || 0) + 1);
+      }
+
+      const openingsWithCounts = openings.map((opening: any) => ({
+        ...opening,
+        candidate_count: candidateCounts.get(opening.id) || 0,
+        interview_count: interviewCounts.get(opening.id) || 0,
+      }));
 
       res.json({ success: true, data: openingsWithCounts });
     } catch (error) {
@@ -72,11 +84,13 @@ export const recruitmentController = {
 
       const { data: opening, error } = await supabaseAdmin
         .from('job_openings')
-        .select(`
+        .select(
+          `
           *,
           department:departments!job_openings_department_id_fkey(id, name),
           requester:users!job_openings_requested_by_fkey(id, name, email, position)
-        `)
+        `,
+        )
         .eq('id', id)
         .single();
 
@@ -92,7 +106,9 @@ export const recruitmentController = {
         const isOwner = opening.requested_by === user.id;
         const sameDept = !!user.department_id && opening.department_id === user.department_id;
         if (!isOwner && !sameDept) {
-          return res.status(403).json({ success: false, error: 'Você não tem permissão para visualizar esta vaga' });
+          return res
+            .status(403)
+            .json({ success: false, error: 'Você não tem permissão para visualizar esta vaga' });
         }
       }
 
@@ -112,11 +128,24 @@ export const recruitmentController = {
   async createJobOpening(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const {
-        title, description, department_id, positions_count, location,
-        contract_type, salary_range_min, salary_range_max, requirements,
-        benefits, priority, brief_reason, brief_expected_start,
-        brief_team_context, brief_key_activities, brief_required_skills,
-        brief_nice_to_have, brief_observations,
+        title,
+        description,
+        department_id,
+        positions_count,
+        location,
+        contract_type,
+        salary_range_min,
+        salary_range_max,
+        requirements,
+        benefits,
+        priority,
+        brief_reason,
+        brief_expected_start,
+        brief_team_context,
+        brief_key_activities,
+        brief_required_skills,
+        brief_nice_to_have,
+        brief_observations,
       } = req.body;
 
       if (!title) {
@@ -125,48 +154,54 @@ export const recruitmentController = {
 
       const { data, error } = await supabaseAdmin
         .from('job_openings')
-        .insert([{
-          title,
-          description,
-          department_id,
-          positions_count: positions_count || 1,
-          location,
-          contract_type,
-          salary_range_min,
-          salary_range_max,
-          requirements,
-          benefits,
-          priority: priority || 'normal',
-          requested_by: req.user?.id,
-          brief_reason,
-          brief_expected_start,
-          brief_team_context,
-          brief_key_activities,
-          brief_required_skills,
-          brief_nice_to_have,
-          brief_observations,
-          status: 'draft',
-        }])
-        .select(`
+        .insert([
+          {
+            title,
+            description,
+            department_id,
+            positions_count: positions_count || 1,
+            location,
+            contract_type,
+            salary_range_min,
+            salary_range_max,
+            requirements,
+            benefits,
+            priority: priority || 'normal',
+            requested_by: req.user?.id,
+            brief_reason,
+            brief_expected_start,
+            brief_team_context,
+            brief_key_activities,
+            brief_required_skills,
+            brief_nice_to_have,
+            brief_observations,
+            status: 'draft',
+          },
+        ])
+        .select(
+          `
           *,
           department:departments!job_openings_department_id_fkey(id, name),
           requester:users!job_openings_requested_by_fkey(id, name, email)
-        `)
+        `,
+        )
         .single();
 
       if (error) throw error;
 
       // Notificar diretores e admins sobre nova vaga
-      notificationService.send(supabaseAdmin, {
-        type: 'job_opening_created',
-        title: 'Nova vaga criada',
-        message: `Vaga "${title}" foi criada.`,
-        targets: [{ type: 'role', role: 'director' }],
-        actor_id: req.user?.id,
-        action_url: '/recruitment',
-        entity_type: 'job_opening',
-        entity_id: data?.id,
-      }).catch(err => console.error('Notification error:', err));
+      notificationService
+        .send(supabaseAdmin, {
+          type: 'job_opening_created',
+          title: 'Nova vaga criada',
+          message: `Vaga "${title}" foi criada.`,
+          targets: [{ type: 'role', role: 'director' }],
+          actor_id: req.user?.id,
+          action_url: '/recruitment',
+          entity_type: 'job_opening',
+          entity_id: data?.id,
+        })
+        .catch((err) => console.error('Notification error:', err));
 
       res.status(201).json({ success: true, data });
     } catch (error) {
@@ -248,7 +283,8 @@ export const recruitmentController = {
 
   async createCandidate(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { job_opening_id, name, email, phone, resume_url, linkedin_url, source, observations } = req.body;
+      const { job_opening_id, name, email, phone, resume_url, linkedin_url, source, observations } =
+        req.body;
 
       if (!job_opening_id || !name) {
         return res.status(400).json({ success: false, error: 'Vaga e nome são obrigatórios' });
@@ -256,7 +292,19 @@ export const recruitmentController = {
 
       const { data, error } = await supabaseAdmin
         .from('job_candidates')
-        .insert([{ job_opening_id, name, email, phone, resume_url, linkedin_url, source, observations, status: 'received' }])
+        .insert([
+          {
+            job_opening_id,
+            name,
+            email,
+            phone,
+            resume_url,
+            linkedin_url,
+            source,
+            observations,
+            status: 'received',
+          },
+        ])
         .select()
         .single();
 
@@ -271,18 +319,20 @@ export const recruitmentController = {
           .single();
 
         if (opening?.requested_by) {
-          notificationService.send(supabaseAdmin, {
-            type: 'candidate_registered',
-            title: 'Novo candidato cadastrado',
-            message: `${name} se candidatou para a vaga "${opening.title}".`,
-            targets: [{ type: 'user', user_id: opening.requested_by }],
-            actor_id: req.user?.id,
-            action_url: `/recruitment/${job_opening_id}`,
-            entity_type: 'job_candidate',
-            entity_id: data?.id,
-            group_key: `candidate_${job_opening_id}`,
-            anti_spam: 'aggregate',
-          }).catch(err => console.error('Notification error:', err));
+          notificationService
+            .send(supabaseAdmin, {
+              type: 'candidate_registered',
+              title: 'Novo candidato cadastrado',
+              message: `${name} se candidatou para a vaga "${opening.title}".`,
+              targets: [{ type: 'user', user_id: opening.requested_by }],
+              actor_id: req.user?.id,
+              action_url: `/recruitment/${job_opening_id}`,
+              entity_type: 'job_candidate',
+              entity_id: data?.id,
+              group_key: `candidate_${job_opening_id}`,
+              anti_spam: 'aggregate',
+            })
+            .catch((err) => console.error('Notification error:', err));
         }
       }
 
@@ -315,20 +365,22 @@ export const recruitmentController = {
           .single();
 
         if (opening?.requested_by) {
-          notificationService.send(supabaseAdmin, {
-            type: 'candidate_hired',
-            title: 'Candidato contratado!',
-            message: `${data.name} foi contratado para a vaga "${opening.title}".`,
-            targets: [
-              { type: 'user', user_id: opening.requested_by },
-              { type: 'role', role: 'director' },
-            ],
-            actor_id: req.user?.id,
-            priority: 'high',
-            action_url: `/recruitment/${data.job_opening_id}`,
-            entity_type: 'job_candidate',
-            entity_id: id,
-          }).catch(err => console.error('Notification error:', err));
+          notificationService
+            .send(supabaseAdmin, {
+              type: 'candidate_hired',
+              title: 'Candidato contratado!',
+              message: `${data.name} foi contratado para a vaga "${opening.title}".`,
+              targets: [
+                { type: 'user', user_id: opening.requested_by },
+                { type: 'role', role: 'director' },
+              ],
+              actor_id: req.user?.id,
+              priority: 'high',
+              action_url: `/recruitment/${data.job_opening_id}`,
+              entity_type: 'job_candidate',
+              entity_id: id,
+            })
+            .catch((err) => console.error('Notification error:', err));
         }
       }
 
@@ -361,13 +413,15 @@ export const recruitmentController = {
 
       const { data, error } = await supabaseAdmin
         .from('recruitment_interviews')
-        .insert([{
-          candidate_id,
-          interviewer_id: interviewer_id || req.user?.id,
-          scheduled_date,
-          interview_type: interview_type || 'online',
-          status: 'scheduled',
-        }])
+        .insert([
+          {
+            candidate_id,
+            interviewer_id: interviewer_id || req.user?.id,
+            scheduled_date,
+            interview_type: interview_type || 'online',
+            status: 'scheduled',
+          },
+        ])
         .select()
         .single();
 
@@ -419,27 +473,31 @@ export const recruitmentController = {
     try {
       const { data: openings } = await supabaseAdmin.from('job_openings').select('id, status');
       const { data: candidates } = await supabaseAdmin.from('job_candidates').select('id, status');
-      const { data: interviews } = await supabaseAdmin.from('recruitment_interviews').select('id, status');
+      const { data: interviews } = await supabaseAdmin
+        .from('recruitment_interviews')
+        .select('id, status');
 
       res.json({
         success: true,
         data: {
           openings: {
             total: openings?.length || 0,
-            open: openings?.filter(o => o.status === 'open').length || 0,
-            in_progress: openings?.filter(o => o.status === 'in_progress').length || 0,
-            closed: openings?.filter(o => o.status === 'closed').length || 0,
+            open: openings?.filter((o) => o.status === 'open').length || 0,
+            in_progress: openings?.filter((o) => o.status === 'in_progress').length || 0,
+            closed: openings?.filter((o) => o.status === 'closed').length || 0,
           },
           candidates: {
             total: candidates?.length || 0,
-            received: candidates?.filter(c => c.status === 'received').length || 0,
-            interviewing: candidates?.filter(c => ['interview_scheduled', 'interviewed'].includes(c.status)).length || 0,
-            hired: candidates?.filter(c => c.status === 'hired').length || 0,
+            received: candidates?.filter((c) => c.status === 'received').length || 0,
+            interviewing:
+              candidates?.filter((c) => ['interview_scheduled', 'interviewed'].includes(c.status))
+                .length || 0,
+            hired: candidates?.filter((c) => c.status === 'hired').length || 0,
           },
           interviews: {
             total: interviews?.length || 0,
-            completed: interviews?.filter(i => i.status === 'completed').length || 0,
-            scheduled: interviews?.filter(i => i.status === 'scheduled').length || 0,
+            completed: interviews?.filter((i) => i.status === 'completed').length || 0,
+            scheduled: interviews?.filter((i) => i.status === 'scheduled').length || 0,
           },
         },
       });
