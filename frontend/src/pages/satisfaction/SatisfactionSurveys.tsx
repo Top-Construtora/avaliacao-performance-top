@@ -68,7 +68,18 @@ const SatisfactionSurveys = () => {
       return;
     }
 
-    const validQuestions = newQuestions.filter((q) => q.question_text.trim());
+    const validQuestions = newQuestions
+      .filter((q) => q.question_text.trim())
+      .map((q) => {
+        // 'rating_10' é um pseudo-tipo só da UI: vira 'rating' com escala 10.
+        if (q.question_type === 'rating_10') {
+          return { question_text: q.question_text, question_type: 'rating', rating_scale: 10 };
+        }
+        if (q.question_type === 'rating') {
+          return { question_text: q.question_text, question_type: 'rating', rating_scale: 5 };
+        }
+        return { question_text: q.question_text, question_type: q.question_type };
+      });
     if (validQuestions.length === 0) {
       toast.error('Adicione pelo menos uma pergunta');
       return;
@@ -457,9 +468,10 @@ const SatisfactionSurveys = () => {
                                 updated[index].question_type = e.target.value;
                                 setNewQuestions(updated);
                               }}
-                              className="w-28 rounded-xl border border-border bg-secondary text-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm"
+                              className="w-32 rounded-xl border border-border bg-secondary text-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm"
                             >
                               <option value="rating">Nota 1-5</option>
+                              <option value="rating_10">Nota 1-10</option>
                               <option value="text">Texto</option>
                               <option value="yes_no">Sim/Não</option>
                             </select>

@@ -33,7 +33,7 @@ export const satisfactionController = {
             .eq('survey_id', survey.id);
 
           return { ...survey, response_count: count || 0, question_count: questionCount || 0 };
-        })
+        }),
       );
 
       res.json({ success: true, data: surveysWithCounts });
@@ -89,15 +89,17 @@ export const satisfactionController = {
 
       const { data: survey, error } = await supabaseAdmin
         .from('satisfaction_surveys')
-        .insert([{
-          title,
-          description,
-          is_anonymous: is_anonymous !== false,
-          start_date,
-          end_date,
-          status: 'draft',
-          created_by: req.user?.id,
-        }])
+        .insert([
+          {
+            title,
+            description,
+            is_anonymous: is_anonymous !== false,
+            start_date,
+            end_date,
+            status: 'draft',
+            created_by: req.user?.id,
+          },
+        ])
         .select()
         .single();
 
@@ -111,6 +113,7 @@ export const satisfactionController = {
           question_type: q.question_type || 'rating',
           order_index: index,
           required: q.required !== false,
+          rating_scale: Number(q.rating_scale) === 10 ? 10 : 5,
         }));
 
         const { error: qError } = await supabaseAdmin
@@ -130,7 +133,8 @@ export const satisfactionController = {
   async updateSurvey(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const { title, description, status, is_anonymous, start_date, end_date, questions } = req.body;
+      const { title, description, status, is_anonymous, start_date, end_date, questions } =
+        req.body;
 
       const updates: Record<string, any> = { updated_at: new Date().toISOString() };
       if (title !== undefined) updates.title = title;
@@ -162,6 +166,7 @@ export const satisfactionController = {
             question_type: q.question_type || 'rating',
             order_index: index,
             required: q.required !== false,
+            rating_scale: Number(q.rating_scale) === 10 ? 10 : 5,
           }));
 
           await supabaseAdmin.from('satisfaction_questions').insert(questionsData);
@@ -170,30 +175,34 @@ export const satisfactionController = {
 
       // Notificar quando pesquisa é ativada
       if (status === 'active') {
-        notificationService.send(supabaseAdmin, {
-          type: 'survey_available',
-          title: 'Nova pesquisa disponível',
-          message: `A pesquisa "${data?.title}" está disponível para resposta.`,
-          targets: [{ type: 'all' }],
-          actor_id: req.user?.id,
-          action_url: `/satisfaction/${id}/respond`,
-          entity_type: 'satisfaction_survey',
-          entity_id: id,
-        }).catch(err => console.error('Notification error:', err));
+        notificationService
+          .send(supabaseAdmin, {
+            type: 'survey_available',
+            title: 'Nova pesquisa disponível',
+            message: `A pesquisa "${data?.title}" está disponível para resposta.`,
+            targets: [{ type: 'all' }],
+            actor_id: req.user?.id,
+            action_url: `/satisfaction/${id}/respond`,
+            entity_type: 'satisfaction_survey',
+            entity_id: id,
+          })
+          .catch((err) => console.error('Notification error:', err));
       }
 
       // Notificar quando pesquisa é encerrada
       if (status === 'closed') {
-        notificationService.send(supabaseAdmin, {
-          type: 'survey_closed',
-          title: 'Pesquisa encerrada',
-          message: `A pesquisa "${data?.title}" foi encerrada.`,
-          targets: [{ type: 'role', role: 'director' }],
-          actor_id: req.user?.id,
-          action_url: `/satisfaction/${id}/results`,
-          entity_type: 'satisfaction_survey',
-          entity_id: id,
-        }).catch(err => console.error('Notification error:', err));
+        notificationService
+          .send(supabaseAdmin, {
+            type: 'survey_closed',
+            title: 'Pesquisa encerrada',
+            message: `A pesquisa "${data?.title}" foi encerrada.`,
+            targets: [{ type: 'role', role: 'director' }],
+            actor_id: req.user?.id,
+            action_url: `/satisfaction/${id}/results`,
+            entity_type: 'satisfaction_survey',
+            entity_id: id,
+          })
+          .catch((err) => console.error('Notification error:', err));
       }
 
       res.json({ success: true, data });
@@ -234,10 +243,12 @@ export const satisfactionController = {
       // Criar response
       const { data: response, error } = await supabaseAdmin
         .from('satisfaction_responses')
-        .insert([{
-          survey_id: id,
-          respondent_id: survey.is_anonymous ? null : req.user?.id,
-        }])
+        .insert([
+          {
+            survey_id: id,
+            respondent_id: survey.is_anonymous ? null : req.user?.id,
+          },
+        ])
         .select()
         .single();
 
@@ -294,7 +305,7 @@ export const satisfactionController = {
         .select('id')
         .eq('survey_id', id);
 
-      const responseIds = (responses || []).map(r => r.id);
+      const responseIds = (responses || []).map((r) => r.id);
 
       let answers: any[] = [];
       if (responseIds.length > 0) {
@@ -306,25 +317,32 @@ export const satisfactionController = {
       }
 
       // Calcular resultados por pergunta
-      const results = (questions || []).map(question => {
-        const questionAnswers = answers.filter(a => a.question_id === question.id);
+      const results = (questions || []).map((question) => {
+        const questionAnswers = answers.filter((a) => a.question_id === question.id);
 
         if (question.question_type === 'rating') {
-          const ratings = questionAnswers.filter(a => a.rating_value != null).map(a => a.rating_value);
-          const average = ratings.length > 0
-            ? ratings.reduce((sum: number, r: number) => sum + r, 0) / ratings.length
-            : 0;
-          const distribution = [1, 2, 3, 4, 5].map(r => ratings.filter((v: number) => v === r).length);
+          const scale = Number(question.rating_scale) === 10 ? 10 : 5;
+          const ratings = questionAnswers
+            .filter((a) => a.rating_value != null)
+            .map((a) => a.rating_value);
+          const average =
+            ratings.length > 0
+              ? ratings.reduce((sum: number, r: number) => sum + r, 0) / ratings.length
+              : 0;
+          const distribution = Array.from({ length: scale }, (_, i) => i + 1).map(
+            (r) => ratings.filter((v: number) => v === r).length,
+          );
 
           return {
             ...question,
+            rating_scale: scale,
             total_answers: ratings.length,
             average: Math.round(average * 100) / 100,
             distribution,
           };
         } else if (question.question_type === 'yes_no') {
-          const boolAnswers = questionAnswers.filter(a => a.boolean_value !== null);
-          const yesCount = boolAnswers.filter(a => a.boolean_value === true).length;
+          const boolAnswers = questionAnswers.filter((a) => a.boolean_value !== null);
+          const yesCount = boolAnswers.filter((a) => a.boolean_value === true).length;
           return {
             ...question,
             total_answers: boolAnswers.length,
@@ -335,16 +353,17 @@ export const satisfactionController = {
           return {
             ...question,
             total_answers: questionAnswers.length,
-            text_answers: questionAnswers.filter(a => a.text_value).map(a => a.text_value),
+            text_answers: questionAnswers.filter((a) => a.text_value).map((a) => a.text_value),
           };
         }
       });
 
       // Média geral (apenas perguntas de rating)
-      const ratingResults = results.filter(r => r.average !== undefined);
-      const overallAverage = ratingResults.length > 0
-        ? ratingResults.reduce((sum, r) => sum + (r.average || 0), 0) / ratingResults.length
-        : 0;
+      const ratingResults = results.filter((r) => r.average !== undefined);
+      const overallAverage =
+        ratingResults.length > 0
+          ? ratingResults.reduce((sum, r) => sum + (r.average || 0), 0) / ratingResults.length
+          : 0;
 
       res.json({
         success: true,
@@ -383,10 +402,7 @@ export const satisfactionController = {
     try {
       const { id } = req.params;
 
-      const { error } = await supabaseAdmin
-        .from('satisfaction_surveys')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabaseAdmin.from('satisfaction_surveys').delete().eq('id', id);
 
       if (error) throw error;
 

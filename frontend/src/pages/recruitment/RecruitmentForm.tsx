@@ -14,15 +14,20 @@ const TextareaField = ({
   onChange,
   placeholder,
   rows = 3,
+  required = false,
 }: {
   label: string;
   value: string;
   onChange: (val: string) => void;
   placeholder?: string;
   rows?: number;
+  required?: boolean;
 }) => (
   <div>
-    <label className="block text-sm font-semibold text-muted-foreground mb-2">{label}</label>
+    <label className="block text-sm font-semibold text-muted-foreground mb-2">
+      {label}
+      {required && <span className="text-red-500 ml-0.5">*</span>}
+    </label>
     <textarea
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -103,6 +108,21 @@ const RecruitmentForm = () => {
   const handleSave = async () => {
     if (!title.trim()) {
       toast.error('Título da vaga é obrigatório');
+      return;
+    }
+
+    // Campos essenciais do Brief do Gestor — obrigatórios para incentivar
+    // o preenchimento completo das informações da vaga.
+    const requiredBriefFields: { value: string; label: string }[] = [
+      { value: briefReason, label: 'Motivo da abertura da vaga' },
+      { value: briefExpectedStart, label: 'Previsão de início' },
+      { value: briefTeamContext, label: 'Contexto da equipe' },
+      { value: briefKeyActivities, label: 'Atividades principais do cargo' },
+      { value: briefRequiredSkills, label: 'Habilidades e competências necessárias' },
+    ];
+    const missingBrief = requiredBriefFields.find((f) => !f.value.trim());
+    if (missingBrief) {
+      toast.error(`Preencha o campo "${missingBrief.label}" no Brief do Gestor`);
       return;
     }
 
@@ -355,11 +375,13 @@ const RecruitmentForm = () => {
               value={briefReason}
               onChange={setBriefReason}
               placeholder="Ex: Expansão da equipe, substituição, novo projeto..."
+              required
             />
 
             <div>
               <label className="block text-sm font-semibold text-muted-foreground mb-2">
                 Previsão de início
+                <span className="text-red-500 ml-0.5">*</span>
               </label>
               <input
                 type="date"
@@ -374,18 +396,21 @@ const RecruitmentForm = () => {
               value={briefTeamContext}
               onChange={setBriefTeamContext}
               placeholder="Tamanho da equipe, dinâmica, projetos em andamento..."
+              required
             />
             <TextareaField
               label="Atividades principais do cargo"
               value={briefKeyActivities}
               onChange={setBriefKeyActivities}
               placeholder="Quais serão as principais responsabilidades?"
+              required
             />
             <TextareaField
               label="Habilidades e competências necessárias"
               value={briefRequiredSkills}
               onChange={setBriefRequiredSkills}
               placeholder="Hard skills e soft skills obrigatórias..."
+              required
             />
             <TextareaField
               label="Diferenciais desejáveis"

@@ -23,6 +23,7 @@ export interface SatisfactionQuestion {
   question_type: 'rating' | 'text' | 'yes_no';
   order_index: number;
   required: boolean;
+  rating_scale?: number; // 5 (padrão) ou 10 — só relevante para 'rating'
 }
 
 export interface SurveyResults {
@@ -36,6 +37,7 @@ export interface QuestionResult {
   id: string;
   question_text: string;
   question_type: string;
+  rating_scale?: number;
   total_answers: number;
   average?: number;
   distribution?: number[];
@@ -62,23 +64,34 @@ export const satisfactionService = {
     is_anonymous?: boolean;
     start_date?: string;
     end_date?: string;
-    questions?: { question_text: string; question_type: string; required?: boolean }[];
+    questions?: {
+      question_text: string;
+      question_type: string;
+      required?: boolean;
+      rating_scale?: number;
+    }[];
   }): Promise<SatisfactionSurvey> {
     const response = await api.post('/satisfaction', data);
     return response.data || response;
   },
 
-  async updateSurvey(id: string, data: Partial<SatisfactionSurvey> & { questions?: any[] }): Promise<SatisfactionSurvey> {
+  async updateSurvey(
+    id: string,
+    data: Partial<SatisfactionSurvey> & { questions?: any[] },
+  ): Promise<SatisfactionSurvey> {
     const response = await api.put(`/satisfaction/${id}`, data);
     return response.data || response;
   },
 
-  async submitResponse(surveyId: string, answers: {
-    question_id: string;
-    rating_value?: number;
-    text_value?: string;
-    boolean_value?: boolean;
-  }[]): Promise<any> {
+  async submitResponse(
+    surveyId: string,
+    answers: {
+      question_id: string;
+      rating_value?: number;
+      text_value?: string;
+      boolean_value?: boolean;
+    }[],
+  ): Promise<any> {
     const response = await api.post(`/satisfaction/${surveyId}/respond`, { answers });
     return response.data || response;
   },

@@ -156,29 +156,41 @@ const SatisfactionRespond = () => {
               </div>
             </div>
 
-            {question.question_type === 'rating' && (
-              <div className="flex items-center gap-2 ml-10">
-                {[1, 2, 3, 4, 5].map((rating) => (
-                  <button
-                    key={rating}
-                    onClick={() =>
-                      setAnswers((prev) => ({ ...prev, [question.id]: { rating_value: rating } }))
-                    }
-                    className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 transition-all text-lg font-bold ${
-                      answers[question.id]?.rating_value === rating
-                        ? 'border-[#D2FF00] bg-lime text-obsidian shadow-md scale-110'
-                        : 'border-border bg-secondary text-muted-foreground hover:border-[#D2FF00]'
-                    }`}
-                  >
-                    {rating}
-                  </button>
-                ))}
-                <div className="ml-3 flex justify-between text-[10px] text-muted-foreground w-full max-w-[120px]">
-                  <span>Insatisfeito</span>
-                  <span>Satisfeito</span>
-                </div>
-              </div>
-            )}
+            {question.question_type === 'rating' &&
+              (() => {
+                const scale = question.rating_scale === 10 ? 10 : 5;
+                const values = Array.from({ length: scale }, (_, i) => i + 1);
+                return (
+                  <div className="ml-10">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {values.map((rating) => (
+                        <button
+                          key={rating}
+                          onClick={() =>
+                            setAnswers((prev) => ({
+                              ...prev,
+                              [question.id]: { rating_value: rating },
+                            }))
+                          }
+                          className={`flex items-center justify-center rounded-xl border-2 transition-all font-bold ${
+                            scale === 10 ? 'w-10 h-10 text-base' : 'w-12 h-12 text-lg'
+                          } ${
+                            answers[question.id]?.rating_value === rating
+                              ? 'border-[#D2FF00] bg-lime text-obsidian shadow-md scale-110'
+                              : 'border-border bg-secondary text-muted-foreground hover:border-[#D2FF00]'
+                          }`}
+                        >
+                          {rating}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-2 flex justify-between text-[10px] text-muted-foreground max-w-[220px]">
+                      <span>Insatisfeito</span>
+                      <span>Satisfeito</span>
+                    </div>
+                  </div>
+                );
+              })()}
 
             {question.question_type === 'text' && (
               <div className="ml-10">
