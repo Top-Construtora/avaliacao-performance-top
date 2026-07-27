@@ -26,6 +26,29 @@ export default function Layout() {
     }
   }, [profile?.must_change_password]);
 
+  // Consumir destino pendente após login. Cobre o OAuth (Microsoft), que
+  // retorna direto para "/" sem passar pela tela de Login. A chave é gravada
+  // no Login (post_login_redirect) a partir do location.state.from do ProtectedRoute.
+  useEffect(() => {
+    if (loading || !user) return;
+    const stored = sessionStorage.getItem('post_login_redirect');
+    if (!stored) return;
+    sessionStorage.removeItem('post_login_redirect');
+    try {
+      const loc = JSON.parse(stored);
+      const target =
+        typeof loc === 'string'
+          ? loc
+          : (loc.pathname || '/') + (loc.search || '') + (loc.hash || '');
+      if (target && target !== '/' && !target.startsWith('/login')) {
+        navigate(target, { replace: true });
+      }
+    } catch {
+      /* valor inválido — ignora */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user]);
+
   // Persistir estado da sidebar no localStorage
   useEffect(() => {
     localStorage.setItem('sidebarCollapsed', JSON.stringify(isSidebarCollapsed));

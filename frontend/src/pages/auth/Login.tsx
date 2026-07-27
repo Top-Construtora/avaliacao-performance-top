@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import gioWordmark from '@/assets/images/gio-wordmark.png';
@@ -10,9 +10,36 @@ import { devLog } from '../../utils/logger';
 // Marca GIO (wordmark) sobre obsidian; CTA lime; card com vidro.
 const INVERT_TO_WHITE = 'invert(1) brightness(1.1)';
 
+const REDIRECT_KEY = 'post_login_redirect';
+
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signIn, signInWithMicrosoft, isAuthenticated, loading, sessionExpired } = useAuth();
+
+  // Guarda o destino de origem (enviado pelo ProtectedRoute) para voltar após
+  // o login — inclusive sobrevivendo ao redirect do OAuth (via sessionStorage).
+  useEffect(() => {
+    const from = (location.state as any)?.from;
+    if (from) sessionStorage.setItem(REDIRECT_KEY, JSON.stringify(from));
+  }, [location.state]);
+
+  const redirectAfterLogin = () => {
+    const from = (location.state as any)?.from;
+    const stored = sessionStorage.getItem(REDIRECT_KEY);
+    const loc = from || (stored ? JSON.parse(stored) : null);
+    sessionStorage.removeItem(REDIRECT_KEY);
+    let target = '/';
+    if (loc) {
+      target =
+        typeof loc === 'string'
+          ? loc
+          : (loc.pathname || '/') + (loc.search || '') + (loc.hash || '');
+    }
+    // Nunca voltar para as próprias telas de auth.
+    if (target.startsWith('/login')) target = '/';
+    navigate(target, { replace: true });
+  };
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,10 +52,11 @@ export default function Login() {
   // Redirecionar se já estiver autenticado
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      devLog('✅ Usuário já autenticado, redirecionando para home...');
-      navigate('/', { replace: true });
+      devLog('✅ Usuário já autenticado, redirecionando...');
+      redirectAfterLogin();
     }
-  }, [isAuthenticated, loading, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +77,7 @@ export default function Login() {
 
       if (success) {
         devLog('✅ Login bem-sucedido, redirecionando...');
-        navigate('/');
+        redirectAfterLogin();
       } else {
         devLog('❌ Login falhou');
         setError('Email ou senha inválidos');

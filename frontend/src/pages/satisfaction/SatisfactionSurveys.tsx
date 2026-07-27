@@ -16,6 +16,7 @@ import {
   Send,
   Pencil,
   Link2,
+  LogIn,
 } from 'lucide-react';
 import { satisfactionService, SatisfactionSurvey } from '../../services/satisfaction.service';
 import { useUserRole } from '../../context/AuthContext';
@@ -62,11 +63,10 @@ const SatisfactionSurveys = () => {
     }
   };
 
-  const copyPublicLink = (surveyId: string) => {
-    const url = `${window.location.origin}/p/${surveyId}`;
+  const copyLink = (url: string, label: string) => {
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(
-        () => toast.success('Link público copiado!'),
+        () => toast.success(`${label} copiado!`),
         () => toast.error('Não foi possível copiar o link'),
       );
     } else {
@@ -74,6 +74,12 @@ const SatisfactionSurveys = () => {
       toast(url, { duration: 8000 });
     }
   };
+
+  const copyPublicLink = (surveyId: string) =>
+    copyLink(`${window.location.origin}/p/${surveyId}`, 'Link público');
+
+  const copyInternalLink = (surveyId: string) =>
+    copyLink(`${window.location.origin}/satisfaction/${surveyId}/respond`, 'Link interno');
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Tem certeza que deseja excluir esta pesquisa e todas as respostas?'))
@@ -312,6 +318,16 @@ const SatisfactionSurveys = () => {
                         title="Encerrar pesquisa"
                       >
                         <StopCircle className="h-4 w-4" />
+                      </button>
+                    )}
+
+                    {canManage && (
+                      <button
+                        onClick={() => copyInternalLink(survey.id)}
+                        className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-lime-deep dark:hover:text-lime transition-colors"
+                        title="Copiar link interno (com login)"
+                      >
+                        <LogIn className="h-4 w-4" />
                       </button>
                     )}
 
