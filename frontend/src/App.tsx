@@ -42,6 +42,7 @@ const PdiManagement = lazy(() => import('./pages/pdi/PdiManagement'));
 const MyPdi = lazy(() => import('./pages/pdi/MyPdi'));
 const PdiCalendar = lazy(() => import('./pages/pdi/PdiCalendar'));
 const SatisfactionSurveys = lazy(() => import('./pages/satisfaction/SatisfactionSurveys'));
+const SatisfactionForm = lazy(() => import('./pages/satisfaction/SatisfactionForm'));
 const SatisfactionRespond = lazy(() => import('./pages/satisfaction/SatisfactionRespond'));
 const SatisfactionResults = lazy(() => import('./pages/satisfaction/SatisfactionResults'));
 const RecruitmentList = lazy(() => import('./pages/recruitment/RecruitmentList'));
@@ -401,6 +402,14 @@ function App() {
 
                         {/* Satisfação */}
                         <Route path="satisfaction" element={<SatisfactionSurveys />} />
+                        <Route
+                          path="satisfaction/new"
+                          element={
+                            <ProtectedRoute allowedRoles={['director']}>
+                              <SatisfactionForm />
+                            </ProtectedRoute>
+                          }
+                        />
                         <Route path="satisfaction/:id/respond" element={<SatisfactionRespond />} />
                         <Route
                           path="satisfaction/:id/results"

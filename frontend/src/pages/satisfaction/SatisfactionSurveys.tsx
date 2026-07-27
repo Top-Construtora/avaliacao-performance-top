@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -10,12 +10,10 @@ import {
   Search,
   Trash2,
   BarChart3,
-  Users,
   FileText,
   PlayCircle,
   StopCircle,
   Send,
-  X,
 } from 'lucide-react';
 import { satisfactionService, SatisfactionSurvey } from '../../services/satisfaction.service';
 import { useUserRole } from '../../context/AuthContext';
@@ -36,16 +34,6 @@ const SatisfactionSurveys = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // Modal de criação rápida
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newDescription, setNewDescription] = useState('');
-  const [newAnonymous, setNewAnonymous] = useState(true);
-  const [newQuestions, setNewQuestions] = useState<
-    { question_text: string; question_type: string }[]
-  >([{ question_text: '', question_type: 'rating' }]);
-  const [creating, setCreating] = useState(false);
-
   useEffect(() => {
     loadSurveys();
   }, []);
@@ -59,50 +47,6 @@ const SatisfactionSurveys = () => {
       toast.error('Erro ao carregar pesquisas');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleCreate = async () => {
-    if (!newTitle.trim()) {
-      toast.error('Título é obrigatório');
-      return;
-    }
-
-    const validQuestions = newQuestions
-      .filter((q) => q.question_text.trim())
-      .map((q) => {
-        // 'rating_10' é um pseudo-tipo só da UI: vira 'rating' com escala 10.
-        if (q.question_type === 'rating_10') {
-          return { question_text: q.question_text, question_type: 'rating', rating_scale: 10 };
-        }
-        if (q.question_type === 'rating') {
-          return { question_text: q.question_text, question_type: 'rating', rating_scale: 5 };
-        }
-        return { question_text: q.question_text, question_type: q.question_type };
-      });
-    if (validQuestions.length === 0) {
-      toast.error('Adicione pelo menos uma pergunta');
-      return;
-    }
-
-    try {
-      setCreating(true);
-      await satisfactionService.createSurvey({
-        title: newTitle,
-        description: newDescription,
-        is_anonymous: newAnonymous,
-        questions: validQuestions,
-      });
-      toast.success('Pesquisa criada com sucesso!');
-      setShowCreateModal(false);
-      setNewTitle('');
-      setNewDescription('');
-      setNewQuestions([{ question_text: '', question_type: 'rating' }]);
-      loadSurveys();
-    } catch (error) {
-      toast.error('Erro ao criar pesquisa');
-    } finally {
-      setCreating(false);
     }
   };
 
@@ -140,16 +84,6 @@ const SatisfactionSurveys = () => {
       return true;
     });
   }, [surveys, statusFilter, searchTerm]);
-
-  const stats = useMemo(
-    () => ({
-      total: surveys.length,
-      active: surveys.filter((s) => s.status === 'active').length,
-      totalResponses: surveys.reduce((sum, s) => sum + (s.response_count || 0), 0),
-      closed: surveys.filter((s) => s.status === 'closed').length,
-    }),
-    [surveys],
-  );
 
   if (loading) return <LoadingSpinner />;
 
@@ -239,48 +173,13 @@ const SatisfactionSurveys = () => {
           {canManage && (
             <Button
               variant="primary"
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => navigate('/satisfaction/new')}
               icon={<Plus size={18} />}
               size="lg"
             >
               Nova Pesquisa
             </Button>
           )}
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-              <p className="text-sm text-muted-foreground font-medium">Total</p>
-            </div>
-            <FileText className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
-          </div>
-
-          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-foreground">{stats.active}</p>
-              <p className="text-sm text-muted-foreground font-medium">Ativas</p>
-            </div>
-            <PlayCircle className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
-          </div>
-
-          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-foreground">{stats.totalResponses}</p>
-              <p className="text-sm text-muted-foreground font-medium">Respostas</p>
-            </div>
-            <Users className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
-          </div>
-
-          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-foreground">{stats.closed}</p>
-              <p className="text-sm text-muted-foreground font-medium">Encerradas</p>
-            </div>
-            <StopCircle className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
-          </div>
         </div>
       </motion.div>
 
@@ -427,159 +326,6 @@ const SatisfactionSurveys = () => {
           </div>
         )}
       </div>
-
-      {/* Modal de criação */}
-      <AnimatePresence>
-        {showCreateModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowCreateModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-popover text-popover-foreground rounded-2xl shadow-xl border border-border w-full max-w-2xl max-h-[85vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-foreground">Nova Pesquisa de Satisfação</h2>
-                  <button
-                    onClick={() => setShowCreateModal(false)}
-                    className="p-2 hover:bg-accent rounded-lg"
-                  >
-                    <X className="h-5 w-5 text-muted-foreground" />
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-muted-foreground mb-2">
-                      Título
-                    </label>
-                    <input
-                      type="text"
-                      value={newTitle}
-                      onChange={(e) => setNewTitle(e.target.value)}
-                      placeholder="Ex: Pesquisa de Satisfação Q1 2026"
-                      className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-muted-foreground mb-2">
-                      Descrição
-                    </label>
-                    <textarea
-                      value={newDescription}
-                      onChange={(e) => setNewDescription(e.target.value)}
-                      placeholder="Descrição opcional..."
-                      rows={2}
-                      className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 resize-none"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setNewAnonymous(!newAnonymous)}
-                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 transition-colors ${
-                        newAnonymous ? 'bg-lime border-[#D2FF00]' : 'bg-secondary border-border'
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform ${
-                          newAnonymous ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                    <span className="text-sm text-muted-foreground font-medium">
-                      Pesquisa anônima
-                    </span>
-                  </div>
-
-                  {/* Perguntas */}
-                  <div>
-                    <label className="block text-sm font-semibold text-muted-foreground mb-3">
-                      Perguntas
-                    </label>
-                    <div className="space-y-3">
-                      {newQuestions.map((q, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <span className="mt-3 text-sm font-bold text-muted-foreground w-6 text-center flex-shrink-0">
-                            {index + 1}
-                          </span>
-                          <div className="flex-1 flex gap-2">
-                            <input
-                              type="text"
-                              value={q.question_text}
-                              onChange={(e) => {
-                                const updated = [...newQuestions];
-                                updated[index].question_text = e.target.value;
-                                setNewQuestions(updated);
-                              }}
-                              placeholder="Digite a pergunta..."
-                              className="flex-1 rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm"
-                            />
-                            <select
-                              value={q.question_type}
-                              onChange={(e) => {
-                                const updated = [...newQuestions];
-                                updated[index].question_type = e.target.value;
-                                setNewQuestions(updated);
-                              }}
-                              className="w-32 rounded-xl border border-border bg-secondary text-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm"
-                            >
-                              <option value="rating">Nota 1-5</option>
-                              <option value="rating_10">Nota 1-10</option>
-                              <option value="text">Texto</option>
-                              <option value="yes_no">Sim/Não</option>
-                            </select>
-                          </div>
-                          {newQuestions.length > 1 && (
-                            <button
-                              onClick={() =>
-                                setNewQuestions((prev) => prev.filter((_, i) => i !== index))
-                              }
-                              className="mt-2 p-1 text-muted-foreground hover:text-destructive transition-colors"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      onClick={() =>
-                        setNewQuestions((prev) => [
-                          ...prev,
-                          { question_text: '', question_type: 'rating' },
-                        ])
-                      }
-                      className="mt-3 text-sm text-lime-deep dark:text-lime hover:text-lime-deep font-medium flex items-center gap-1"
-                    >
-                      <Plus className="h-4 w-4" /> Adicionar pergunta
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-border">
-                  <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-                    Cancelar
-                  </Button>
-                  <Button variant="primary" onClick={handleCreate} disabled={creating}>
-                    {creating ? 'Criando...' : 'Criar Pesquisa'}
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
