@@ -4,7 +4,8 @@ import { AuthRequest } from '../middleware/auth';
 import { PDIUtils } from '../utils/pdiUtils';
 import { notificationService } from '../services/notificationService';
 import { auditService } from '../services/auditService';
-import { assertCanAccessEmployeeData } from '../utils/accessControl';
+import { assertCanAccessEmployeeData, isPrivileged } from '../utils/accessControl';
+import { pdiActionsService } from '../services/pdiActionsService';
 
 export const pdiController = {
   // Salvar PDI
@@ -88,6 +89,44 @@ export const pdiController = {
       });
     } catch (error) {
       console.error('Erro ao salvar PDI:', error);
+      next(error);
+    }
+  },
+
+  // ===== AÇÕES NORMALIZADAS (fase 5C) =====
+
+  async getMyActions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const result = await pdiActionsService.myActions(authReq.supabase, authReq.user!.id);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async updateAction(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { planId, actionId } = req.params;
+      const { status, due_date, course_id } = req.body || {};
+
+      const canManageOthers = isPrivileged(authReq.user) || !!authReq.user?.is_leader;
+      const action = await pdiActionsService.updateAction(
+        authReq.supabase,
+        planId,
+        actionId,
+        authReq.user!.id,
+        {
+          ...(status !== undefined ? { status: String(status) } : {}),
+          ...(due_date !== undefined ? { due_date: due_date || null } : {}),
+          ...(course_id !== undefined ? { course_id: course_id || null } : {}),
+        },
+        canManageOthers,
+      );
+
+      res.json({ success: true, data: action });
+    } catch (error) {
       next(error);
     }
   },

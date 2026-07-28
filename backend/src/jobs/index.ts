@@ -9,6 +9,8 @@ import {
   remindMeetingsTomorrow,
   materializeOverdueRecurrences,
   remindCourseDeadline,
+  remindPdiActionDeadlines,
+  resyncPdiActions,
   autoCloseExpired,
 } from './reminderJobs';
 import { auditService } from '../services/auditService';
@@ -43,10 +45,15 @@ export function startJobs(): void {
 
   const timezone = 'America/Sao_Paulo';
 
-  // 00:10 — encerramentos automáticos por data vencida
-  cron.schedule('10 0 * * *', () => void runSafely('autoCloseExpired', autoCloseExpired), {
-    timezone,
-  });
+  // 00:10 — encerramentos automáticos por data vencida + reconciliação do PDI
+  cron.schedule(
+    '10 0 * * *',
+    async () => {
+      await runSafely('autoCloseExpired', autoCloseExpired);
+      await runSafely('resyncPdiActions', resyncPdiActions);
+    },
+    { timezone },
+  );
 
   // 09:00 — lembretes diários
   cron.schedule(
@@ -58,6 +65,7 @@ export function startJobs(): void {
       await runSafely('remindMeetingsTomorrow', remindMeetingsTomorrow);
       await runSafely('materializeOverdueRecurrences', materializeOverdueRecurrences);
       await runSafely('remindCourseDeadline', remindCourseDeadline);
+      await runSafely('remindPdiActionDeadlines', remindPdiActionDeadlines);
       await runSafely('remindStalePdis', remindStalePdis);
     },
     { timezone },

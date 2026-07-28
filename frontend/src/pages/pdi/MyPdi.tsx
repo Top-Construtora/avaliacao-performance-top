@@ -1,10 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { BookOpen, Calendar, Info, FileText, TrendingUp, Target } from 'lucide-react';
+import {
+  BookOpen,
+  Calendar,
+  Info,
+  FileText,
+  TrendingUp,
+  Target,
+  GraduationCap,
+  CalendarClock,
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../config/api';
 import LoadingSpinner from '../../components/LoadingSpinner';
+
+/** Ação normalizada (fase 5C) — casa com o item do JSONB pelo id. */
+interface PdiActionRow {
+  id: string;
+  status: string;
+  due_date: string | null;
+  course: { id: string; title: string } | null;
+}
 
 interface ActionItem {
   id: string;
@@ -44,6 +61,51 @@ const MyPdi: React.FC = () => {
   const { user, profile } = useAuth();
   const [pdiData, setPdiData] = useState<PdiData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [planId, setPlanId] = useState<string | null>(null);
+  const [actionRows, setActionRows] = useState<Map<string, PdiActionRow>>(new Map());
+
+  const loadActions = async () => {
+    try {
+      const response = await api.get('/pdi/actions/mine');
+      const result = response.data || response;
+      setPlanId(result?.plan_id || null);
+      const map = new Map<string, PdiActionRow>();
+      (result?.actions || []).forEach((a: any) =>
+        map.set(a.id, { id: a.id, status: a.status, due_date: a.due_date, course: a.course }),
+      );
+      setActionRows(map);
+    } catch {
+      /* controles ficam ocultos se a consulta falhar */
+    }
+  };
+
+  const patchAction = async (
+    actionId: string,
+    changes: { status?: string; due_date?: string | null },
+  ) => {
+    if (!planId) return;
+    try {
+      await api.patch(`/pdi/${planId}/actions/${actionId}`, changes);
+      loadActions();
+      if (changes.status) {
+        // Espelha no card imediatamente
+        setPdiData((prev) => {
+          if (!prev) return prev;
+          const patch = (items: ActionItem[]) =>
+            items.map((i) => (i.id === actionId ? { ...i, status: changes.status as any } : i));
+          return {
+            ...prev,
+            curtosPrazos: patch(prev.curtosPrazos),
+            mediosPrazos: patch(prev.mediosPrazos),
+            longosPrazos: patch(prev.longosPrazos),
+          };
+        });
+      }
+      toast.success('Ação atualizada');
+    } catch {
+      toast.error('Erro ao atualizar ação');
+    }
+  };
 
   useEffect(() => {
     const fetchPdi = async () => {
@@ -111,6 +173,8 @@ const MyPdi: React.FC = () => {
     };
 
     fetchPdi();
+    loadActions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, profile]);
 
   const renderActionItems = (items: ActionItem[], prazo: string) => {
@@ -183,6 +247,42 @@ const MyPdi: React.FC = () => {
                   <p className="text-muted-foreground text-sm bg-secondary p-3 rounded-lg">
                     {item.observacao}
                   </p>
+                </div>
+              )}
+
+              {/* Controles da ação (fase 5C): status, prazo real e curso */}
+              {planId && actionRows.has(item.id) && (
+                <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-border">
+                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    Status
+                    <select
+                      value={actionRows.get(item.id)!.status}
+                      onChange={(e) => patchAction(item.id, { status: e.target.value })}
+                      className="px-2 py-1.5 rounded-lg border border-border bg-background text-foreground text-xs"
+                    >
+                      <option value="1">Não iniciado</option>
+                      <option value="2">Em andamento</option>
+                      <option value="3">Pausado</option>
+                      <option value="4">Concluído</option>
+                      <option value="5">Cancelado</option>
+                    </select>
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <CalendarClock className="h-3.5 w-3.5" />
+                    Prazo
+                    <input
+                      type="date"
+                      value={actionRows.get(item.id)!.due_date || ''}
+                      onChange={(e) => patchAction(item.id, { due_date: e.target.value || null })}
+                      className="px-2 py-1.5 rounded-lg border border-border bg-background text-foreground text-xs"
+                    />
+                  </label>
+                  {actionRows.get(item.id)!.course && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-lime/20 text-lime-deep dark:text-lime">
+                      <GraduationCap className="h-3.5 w-3.5" />
+                      {actionRows.get(item.id)!.course!.title}
+                    </span>
+                  )}
                 </div>
               )}
             </div>

@@ -37,6 +37,15 @@ import {
 } from '../../services/learning.service';
 import { userService } from '../../services/user.service';
 import { satisfactionService } from '../../services/satisfaction.service';
+import { api } from '../../config/api';
+
+interface MyPdiAction {
+  id: string;
+  competencia: string;
+  prazo: string;
+  status: string;
+  course: { id: string; title: string } | null;
+}
 
 type Tab = 'mine' | 'catalog' | 'external' | 'admin';
 
@@ -100,6 +109,11 @@ const Learning = () => {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  // Vínculo curso↔PDI (5C)
+  const [pdiPlanId, setPdiPlanId] = useState<string | null>(null);
+  const [pdiActions, setPdiActions] = useState<MyPdiAction[]>([]);
+  const [pdiLinkTarget, setPdiLinkTarget] = useState<Enrollment | null>(null);
+
   // Trilhas (5B)
   const [myTracks, setMyTracks] = useState<MyTrack[]>([]);
   const [tracks, setTracks] = useState<LearningTrack[]>([]);
@@ -121,6 +135,15 @@ const Learning = () => {
           ]);
           setEnrollments(mine);
           setMyTracks(tracksMine);
+          // Ações do PDI ativo (para o vínculo curso↔ação)
+          api
+            .get('/pdi/actions/mine')
+            .then((response: any) => {
+              const result = response.data || response;
+              setPdiPlanId(result?.plan_id || null);
+              setPdiActions(result?.actions || []);
+            })
+            .catch(() => undefined);
         } else if (targetTab === 'catalog') {
           setCatalog(await learningApiService.catalog());
         } else if (targetTab === 'external') {
@@ -434,6 +457,31 @@ const Learning = () => {
                         {course?.description && (
                           <p className="text-sm text-muted-foreground">{course.description}</p>
                         )}
+
+                        {/* Vínculo curso↔PDI (5C) */}
+                        {pdiPlanId &&
+                          (() => {
+                            const linked = pdiActions.find((a) => a.course?.id === course?.id);
+                            return (
+                              <div className="flex flex-wrap items-center gap-2">
+                                {linked ? (
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-lime/20 text-lime-deep dark:text-lime">
+                                    <GraduationCap className="h-3.5 w-3.5" />
+                                    Vinculado à ação do PDI: {linked.competencia}
+                                  </span>
+                                ) : (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPdiLinkTarget(enrollment)}
+                                  >
+                                    Vincular a uma ação do meu PDI
+                                  </Button>
+                                )}
+                              </div>
+                            );
+                          })()}
+
                         {sections.map((section) => (
                           <div key={section || '_default'}>
                             {section && (
@@ -1458,6 +1506,63 @@ const Learning = () => {
       )}
 
       {/* Modal: inscrever na trilha */}
+      {/* Modal: vincular curso a uma ação do PDI (5C) */}
+      {pdiLinkTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-popover text-popover-foreground border border-border rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-lg font-bold text-foreground mb-1">Vincular ao PDI</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Escolha a ação do seu PDI que este curso desenvolve. Ao concluir o curso, a ação será
+              marcada como concluída automaticamente.
+            </p>
+            <div className="max-h-64 overflow-y-auto space-y-2">
+              {pdiActions.filter((a) => !['4', '5'].includes(a.status)).length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Seu PDI não tem ações em aberto para vincular.
+                </p>
+              ) : (
+                pdiActions
+                  .filter((a) => !['4', '5'].includes(a.status))
+                  .map((action) => (
+                    <button
+                      key={action.id}
+                      type="button"
+                      disabled={busy}
+                      onClick={async () => {
+                        setBusy(true);
+                        try {
+                          await api.patch(`/pdi/${pdiPlanId}/actions/${action.id}`, {
+                            course_id: pdiLinkTarget.class?.course?.id,
+                          });
+                          toast.success('Curso vinculado à ação do PDI!');
+                          setPdiLinkTarget(null);
+                          loadTab('mine');
+                        } catch {
+                          toast.error('Erro ao vincular');
+                        } finally {
+                          setBusy(false);
+                        }
+                      }}
+                      className="w-full text-left bg-secondary hover:bg-accent rounded-lg px-3 py-2.5 transition-colors"
+                    >
+                      <p className="text-sm font-medium text-foreground">{action.competencia}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Prazo {action.prazo}
+                        {action.course ? ` · já vinculada a ${action.course.title}` : ''}
+                      </p>
+                    </button>
+                  ))
+              )}
+            </div>
+            <div className="flex justify-end mt-5">
+              <Button variant="outline" onClick={() => setPdiLinkTarget(null)} disabled={busy}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {trackEnrollTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-popover text-popover-foreground border border-border rounded-2xl shadow-xl max-w-md w-full p-6">

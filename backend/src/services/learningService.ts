@@ -334,7 +334,7 @@ export const learningService = {
       unlockedCourse = await this.advanceTracks(supabase, userId, courseId);
     }
 
-    return { progress, completed, justCompleted, surveyId, unlockedCourse };
+    return { progress, completed, justCompleted, surveyId, unlockedCourse, courseId };
   },
 
   // ===== TRILHAS =====

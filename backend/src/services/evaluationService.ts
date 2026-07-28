@@ -751,6 +751,10 @@ export const evaluationService = {
         if (pdiError) {
           console.error('Error saving PDI:', pdiError);
           // Não vamos falhar a avaliação se o PDI falhar
+        } else if (pdiData?.id) {
+          // Fase 5C: espelha na tabela normalizada (nunca falha o fluxo)
+          const { pdiActionsService } = await import('./pdiActionsService');
+          await pdiActionsService.syncFromItems(supabase, pdiData.id, items as any);
         }
       }
 
