@@ -13,16 +13,32 @@ export interface NotificationEmailInput {
 let transporter: Transporter | null = null;
 
 /**
- * E-mail ligado exige EMAIL_ENABLED=true + credenciais SMTP completas.
- * Sem isso o serviço vira no-op silencioso (dev/staging funcionam sem SMTP).
+ * Provedor de envio ativo.
+ *
+ * `brevo` (HTTP/443) tem prioridade sobre `smtp` porque muitos PaaS — o
+ * Render entre eles — descartam tráfego de saída nas portas de SMTP
+ * (25/465/587), o que faz a conexão ficar pendurada até estourar o tempo.
+ * A saída HTTPS sempre funciona (é por ela que falamos com o Supabase).
+ */
+export type EmailProvider = 'brevo' | 'smtp' | 'none';
+
+export function getEmailProvider(): EmailProvider {
+  if (process.env.EMAIL_ENABLED !== 'true') return 'none';
+  if (process.env.BREVO_API_KEY) return 'brevo';
+  if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASS) return 'smtp';
+  return 'none';
+}
+
+/**
+ * E-mail ligado exige EMAIL_ENABLED=true e um provedor configurado.
+ * Sem isso o serviço vira no-op silencioso (dev/staging rodam sem e-mail).
  */
 export function isEmailEnabled(): boolean {
-  return (
-    process.env.EMAIL_ENABLED === 'true' &&
-    !!process.env.EMAIL_HOST &&
-    !!process.env.EMAIL_USER &&
-    !!process.env.EMAIL_PASS
-  );
+  return getEmailProvider() !== 'none';
+}
+
+function senderAddress(): string {
+  return process.env.EMAIL_FROM || process.env.EMAIL_USER || '';
 }
 
 function getTransporter(): Transporter {
@@ -55,23 +71,95 @@ export function resetTransporter(): void {
   transporter = null;
 }
 
+/** Envia via API HTTP da Brevo (porta 443). */
+async function sendViaBrevo(
+  to: string,
+  subject: string,
+  html: string,
+): Promise<{ sent: boolean; error?: string }> {
+  try {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': process.env.BREVO_API_KEY as string,
+        'content-type': 'application/json',
+        accept: 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { email: senderAddress(), name: 'GIO — Gente & Gestão' },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+        ...(process.env.EMAIL_REPLY_TO ? { replyTo: { email: process.env.EMAIL_REPLY_TO } } : {}),
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!response.ok) {
+      const detail = (await response.text()).slice(0, 300);
+      return { sent: false, error: `Brevo respondeu ${response.status}: ${detail}` };
+    }
+    return { sent: true };
+  } catch (error: any) {
+    return { sent: false, error: error?.message || String(error) };
+  }
+}
+
 /**
- * Testa a conexão e a autenticação SMTP sem enviar mensagem.
- * Usado no diagnóstico para separar "não conecta" de "não envia".
+ * Testa o provedor ativo sem enviar mensagem: chave da API (Brevo) ou
+ * conexão + autenticação (SMTP). Separa "não conecta" de "não envia".
  */
-export async function verifySmtp(): Promise<{ ok: boolean; error?: string; ms: number }> {
-  if (!isEmailEnabled()) return { ok: false, error: 'Serviço de e-mail desligado', ms: 0 };
+export async function verifySmtp(): Promise<{
+  ok: boolean;
+  error?: string;
+  ms: number;
+  provider: EmailProvider;
+}> {
+  const provider = getEmailProvider();
+  if (provider === 'none') {
+    return { ok: false, error: 'Serviço de e-mail desligado', ms: 0, provider };
+  }
+
   const started = Date.now();
+
+  if (provider === 'brevo') {
+    try {
+      const response = await fetch('https://api.brevo.com/v3/account', {
+        headers: { 'api-key': process.env.BREVO_API_KEY as string, accept: 'application/json' },
+        signal: AbortSignal.timeout(15_000),
+      });
+      const ms = Date.now() - started;
+      if (!response.ok) {
+        const detail = (await response.text()).slice(0, 200);
+        return {
+          ok: false,
+          error: `chave rejeitada (${response.status}): ${detail}`,
+          ms,
+          provider,
+        };
+      }
+      emailLogger.info({ ms }, 'Brevo autenticada');
+      return { ok: true, ms, provider };
+    } catch (error: any) {
+      return {
+        ok: false,
+        error: error?.message || String(error),
+        ms: Date.now() - started,
+        provider,
+      };
+    }
+  }
+
   try {
     await getTransporter().verify();
     const ms = Date.now() - started;
     emailLogger.info({ ms }, 'Handshake SMTP concluído');
-    return { ok: true, ms };
+    return { ok: true, ms, provider };
   } catch (error: any) {
     const ms = Date.now() - started;
     resetTransporter();
     emailLogger.warn({ ms, err: error?.message }, 'Handshake SMTP falhou');
-    return { ok: false, error: error?.message || String(error), ms };
+    return { ok: false, error: error?.message || String(error), ms, provider };
   }
 }
 
@@ -152,7 +240,18 @@ export const emailService = {
     subject: string,
     html: string,
   ): Promise<{ sent: boolean; error?: string }> {
-    if (!isEmailEnabled()) return { sent: false, error: 'Serviço de e-mail desligado' };
+    const provider = getEmailProvider();
+    if (provider === 'none') return { sent: false, error: 'Serviço de e-mail desligado' };
+
+    if (provider === 'brevo') {
+      const result = await sendViaBrevo(to, subject, html);
+      if (result.sent) {
+        emailLogger.info({ to, subject }, 'E-mail enviado (Brevo)');
+      } else {
+        emailLogger.warn({ to, subject, err: result.error }, 'Falha ao enviar (Brevo)');
+      }
+      return result;
+    }
 
     const mail = {
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER,

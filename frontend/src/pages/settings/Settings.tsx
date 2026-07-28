@@ -569,6 +569,16 @@ const Settings = () => {
                         {String(emailDiagnostics.config?.jobs_enabled)}
                       </strong>
                     </span>
+                    <span>
+                      Provedor:{' '}
+                      <strong className="text-foreground">
+                        {emailDiagnostics.config?.provider === 'brevo'
+                          ? 'Brevo (HTTPS)'
+                          : emailDiagnostics.config?.provider === 'smtp'
+                            ? 'SMTP'
+                            : 'nenhum'}
+                      </strong>
+                    </span>
                     <span>Servidor: {emailDiagnostics.config?.host || '—'}</span>
                     <span>
                       Porta: {emailDiagnostics.config?.port} (TLS:{' '}
