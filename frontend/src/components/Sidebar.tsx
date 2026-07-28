@@ -261,7 +261,7 @@ export default function Sidebar({
               allowedRoles: ['admin', 'director', 'leader'],
             },
             {
-              label: 'Onboard e Offboard',
+              label: 'Entrevistas',
               icon: ClipboardList,
               path: '/interviews',
               allowedRoles: ['admin', 'director', 'leader'],
