@@ -1,7 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { notificationService } from '../services/notificationService';
-import { emailService, isEmailEnabled, renderNotificationEmail } from '../services/emailService';
+import {
+  emailService,
+  isEmailEnabled,
+  renderNotificationEmail,
+  verifySmtp,
+} from '../services/emailService';
 import { AuthRequest } from '../middleware/auth';
 
 const updatePreferencesSchema = z.object({
@@ -78,6 +83,21 @@ export const notificationController = {
       }
       const to = parsedTo.data;
 
+      // Etapa 1: conexão + autenticação (separa "não conecta" de "não envia")
+      const handshake = await verifySmtp();
+      if (!handshake.ok) {
+        return res.json({
+          success: true,
+          data: {
+            sent: false,
+            to,
+            reason: `Não foi possível conectar ao servidor SMTP: ${handshake.error}`,
+            config: { ...config, smtp_handshake: false },
+          },
+        });
+      }
+
+      // Etapa 2: envio
       const html = renderNotificationEmail({
         title: 'Teste de configuração de e-mail',
         message:
@@ -86,15 +106,19 @@ export const notificationController = {
         actionLabel: 'Abrir notificações',
       });
 
-      const sent = await emailService.send(to, 'GIO — Teste de configuração de e-mail', html);
+      const result = await emailService.sendWithResult(
+        to,
+        'GIO — Teste de configuração de e-mail',
+        html,
+      );
 
       res.json({
         success: true,
         data: {
-          sent,
+          sent: result.sent,
           to,
-          reason: sent ? null : 'O envio falhou. Veja os logs do backend (module: email).',
-          config,
+          reason: result.sent ? null : `Conexão OK, mas o envio falhou: ${result.error}`,
+          config: { ...config, smtp_handshake: true },
         },
       });
     } catch (error) {
