@@ -52,7 +52,7 @@ const PAGE_TITLES: Array<{ match: (p: string) => boolean; title: string }> = [
   { match: (p) => p.startsWith('/pdi'), title: 'Gerenciar PDI' },
   { match: (p) => p.startsWith('/reports'), title: 'Relatórios' },
   { match: (p) => p.startsWith('/recruitment'), title: 'Recrutamento' },
-  { match: (p) => p.startsWith('/interviews'), title: 'Onboard e Offboard' },
+  { match: (p) => p.startsWith('/interviews'), title: 'Entrevistas' },
   { match: (p) => p.startsWith('/satisfaction'), title: 'Pesquisas' },
   { match: (p) => p.startsWith('/notifications'), title: 'Notificações' },
   { match: (p) => p.startsWith('/settings'), title: 'Configurações' },

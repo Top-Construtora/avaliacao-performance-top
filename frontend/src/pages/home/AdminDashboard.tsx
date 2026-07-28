@@ -255,7 +255,7 @@ const AdminDashboard = () => {
         { icon: Briefcase, title: 'Vagas', action: 'Ver vagas', path: '/recruitment' },
         {
           icon: ClipboardList,
-          title: 'Onboard e Offboard',
+          title: 'Entrevistas',
           action: 'Ver entrevistas',
           path: '/interviews',
         },
