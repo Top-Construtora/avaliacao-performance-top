@@ -53,6 +53,17 @@ export const notificationApiService = {
     await api.put('/notifications/preferences', { preferences });
   },
 
+  /** Diagnóstico de e-mail (admin/diretoria): dispara teste e devolve a config. */
+  async testEmail(): Promise<{
+    sent: boolean;
+    to?: string;
+    reason?: string | null;
+    config?: Record<string, unknown>;
+  }> {
+    const response = await api.post('/notifications/test-email', {});
+    return response.data || response;
+  },
+
   async getNotifications(
     params: {
       page?: number;

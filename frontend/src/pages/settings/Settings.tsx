@@ -68,6 +68,27 @@ const Settings = () => {
       .finally(() => setPreferencesLoading(false));
   }, [activeSection, emailPreferences.length]);
 
+  // Diagnóstico de e-mail (admin/diretoria)
+  const [testingEmail, setTestingEmail] = useState(false);
+  const [emailDiagnostics, setEmailDiagnostics] = useState<any>(null);
+
+  const handleTestEmail = async () => {
+    setTestingEmail(true);
+    try {
+      const result = await notificationApiService.testEmail();
+      setEmailDiagnostics(result);
+      if (result.sent) {
+        toast.success('E-mail de teste enviado! Confira sua caixa de entrada.');
+      } else {
+        toast.error(result.reason || 'Não foi possível enviar');
+      }
+    } catch {
+      toast.error('Erro ao executar o diagnóstico');
+    } finally {
+      setTestingEmail(false);
+    }
+  };
+
   const handleTogglePreference = async (category: string) => {
     const updated = emailPreferences.map((p) =>
       p.category === category ? { ...p, email_enabled: !p.email_enabled } : p,
@@ -457,6 +478,79 @@ const Settings = () => {
                 </button>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Diagnóstico de e-mail (admin/diretoria) */}
+        {(profile?.is_admin || profile?.is_director) && (
+          <div className="mt-8 pt-6 border-t border-border">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Diagnóstico de envio
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Dispara um e-mail de teste para você e mostra como o servidor está configurado. Use
+              depois de alterar as variáveis de ambiente.
+            </p>
+            <Button
+              variant="outline"
+              onClick={handleTestEmail}
+              disabled={testingEmail}
+              icon={
+                testingEmail ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail size={16} />
+              }
+            >
+              {testingEmail ? 'Enviando...' : 'Enviar e-mail de teste'}
+            </Button>
+
+            {emailDiagnostics && (
+              <div className="mt-4 bg-secondary rounded-lg p-4 text-sm space-y-1">
+                <p className="text-foreground font-medium mb-2">
+                  {emailDiagnostics.sent
+                    ? `E-mail enviado para ${emailDiagnostics.to}`
+                    : 'Nenhum e-mail enviado'}
+                </p>
+                {emailDiagnostics.reason && (
+                  <p className="text-warning mb-2">{emailDiagnostics.reason}</p>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs text-muted-foreground">
+                  <span>
+                    EMAIL_ENABLED:{' '}
+                    <strong
+                      className={
+                        emailDiagnostics.config?.email_enabled_flag
+                          ? 'text-success'
+                          : 'text-destructive'
+                      }
+                    >
+                      {String(emailDiagnostics.config?.email_enabled_flag)}
+                    </strong>
+                  </span>
+                  <span>
+                    ENABLE_JOBS:{' '}
+                    <strong
+                      className={
+                        emailDiagnostics.config?.jobs_enabled ? 'text-success' : 'text-destructive'
+                      }
+                    >
+                      {String(emailDiagnostics.config?.jobs_enabled)}
+                    </strong>
+                  </span>
+                  <span>Servidor: {emailDiagnostics.config?.host || '—'}</span>
+                  <span>
+                    Porta: {emailDiagnostics.config?.port} (TLS:{' '}
+                    {String(emailDiagnostics.config?.secure_tls)})
+                  </span>
+                  <span>Remetente: {emailDiagnostics.config?.from || '—'}</span>
+                  <span>
+                    Senha configurada: {String(emailDiagnostics.config?.password_present)}
+                  </span>
+                  <span className="sm:col-span-2">
+                    URL do sistema (botões do e-mail):{' '}
+                    {emailDiagnostics.config?.frontend_url || '— não configurada'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
