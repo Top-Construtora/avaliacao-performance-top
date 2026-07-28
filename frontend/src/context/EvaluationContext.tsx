@@ -137,8 +137,11 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Carregar dados do Supabase com as novas tabelas
+  // Carregar dados do Supabase com as novas tabelas.
+  // Só depois de autenticado: antes do login as queries iriam como `anon`
+  // e o banco nega acesso (permission denied no log do Supabase).
   useEffect(() => {
+    if (!isAuthenticated) return;
     const loadData = async () => {
       try {
         // Carregar competências técnicas e comportamentais do Supabase (se existirem)
@@ -264,7 +267,8 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     };
 
     loadData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // Update stats whenever evaluations change
   useEffect(() => {
