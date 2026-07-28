@@ -301,6 +301,83 @@ export async function materializeOverdueRecurrences(): Promise<void> {
   }
 }
 
+/**
+ * Reconciliação diária JSONB → pdi_actions (fase 5C). Cobre planos editados
+ * por código antigo (sem dual-write) ou qualquer divergência: reespelha os
+ * itens preservando due_date/course_id, que vivem só na tabela.
+ */
+export async function resyncPdiActions(): Promise<void> {
+  const { data: plans, error } = await supabaseAdmin
+    .from('development_plans')
+    .select('id, items')
+    .eq('status', 'active');
+
+  if (error) {
+    jobLogger.error({ err: error.message }, 'resyncPdiActions: erro ao buscar planos');
+    return;
+  }
+
+  const { pdiActionsService } = await import('../services/pdiActionsService');
+  let synced = 0;
+  for (const plan of plans || []) {
+    if (!Array.isArray(plan.items)) continue;
+    // Itens sem id (salvos por código antigo) ganham id e voltam ao JSONB
+    const withIds = pdiActionsService.ensureItemIds(plan.items as any);
+    const changed = withIds.some(
+      (item: any, index: number) => item.id !== (plan.items as any)[index]?.id,
+    );
+    if (changed) {
+      await supabaseAdmin.from('development_plans').update({ items: withIds }).eq('id', plan.id);
+    }
+    await pdiActionsService.syncFromItems(supabaseAdmin, plan.id, withIds);
+    synced++;
+  }
+
+  jobLogger.info({ synced }, 'Reconciliação de ações do PDI concluída');
+}
+
+/** Ações do PDI com prazo em até 7 dias (fase 5C): lembra o colaborador. */
+export async function remindPdiActionDeadlines(): Promise<void> {
+  const today = toDateOnly(new Date());
+  const limit = toDateOnly(daysFromNow(7));
+
+  const { data: actions, error } = await supabaseAdmin
+    .from('pdi_actions')
+    .select(
+      'id, competencia, due_date, development_plan_id, plan:development_plans!pdi_actions_development_plan_id_fkey(id, employee_id, status)',
+    )
+    .not('due_date', 'is', null)
+    .gte('due_date', today)
+    .lte('due_date', limit)
+    .not('status', 'in', '("4","5")');
+
+  if (error) {
+    jobLogger.error({ err: error.message }, 'remindPdiActionDeadlines: erro ao buscar ações');
+    return;
+  }
+
+  const active = (actions || []).filter((a: any) => a.plan?.status === 'active');
+  for (const action of active) {
+    const dueLabel = new Date(`${action.due_date}T00:00:00`).toLocaleDateString('pt-BR');
+    await notificationService.send(supabaseAdmin, {
+      type: 'pdi_deadline_approaching',
+      title: 'Ação do PDI perto do prazo',
+      message: `A ação "${action.competencia}" do seu PDI vence em ${dueLabel}.`,
+      targets: [{ type: 'user', user_id: (action as any).plan.employee_id }],
+      action_url: '/my-pdi',
+      entity_type: 'development_plan',
+      entity_id: action.development_plan_id,
+      group_key: `pdi_action_due:${action.development_plan_id}:${action.id}`,
+      anti_spam: 'cooldown',
+      cooldown_minutes: 3 * 24 * 60, // no máximo a cada 3 dias por ação
+    });
+  }
+
+  if (active.length > 0) {
+    jobLogger.info({ count: active.length }, 'Lembretes de prazo de ação de PDI enviados');
+  }
+}
+
 /** Turmas com prazo em até 3 dias: cobra inscritos que não concluíram. */
 export async function remindCourseDeadline(): Promise<void> {
   const today = toDateOnly(new Date());

@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { ApiError } from '../middleware/errorHandler';
 import { PDIData, PDIItem } from '../types/pdi.types';
+import { pdiActionsService } from './pdiActionsService';
 
 export const pdiService = {
   // Salvar ou atualizar PDI
@@ -12,13 +13,19 @@ export const pdiService = {
       }
 
       // Verificar se há pelo menos um item em algum prazo
-      const hasItems = pdiData.items.some(item =>
-        ['curto', 'medio', 'longo'].includes(item.prazo)
+      const hasItems = pdiData.items.some((item) =>
+        ['curto', 'medio', 'longo'].includes(item.prazo),
       );
 
       if (!hasItems) {
-        throw new ApiError(400, 'O PDI deve conter pelo menos um item em algum prazo (curto, médio ou longo)');
+        throw new ApiError(
+          400,
+          'O PDI deve conter pelo menos um item em algum prazo (curto, médio ou longo)',
+        );
       }
+
+      // Fase 5C: id estável em todos os itens (compartilhado com pdi_actions)
+      pdiData.items = pdiActionsService.ensureItemIds(pdiData.items);
 
       // Verificar se existe PDI ativo
       const { data: existingPDI } = await supabase
@@ -33,10 +40,11 @@ export const pdiService = {
         const updateData = {
           items: pdiData.items,
           cycle_id: pdiData.cycleId || existingPDI.cycle_id || null,
-          leader_evaluation_id: pdiData.leaderEvaluationId || existingPDI.leader_evaluation_id || null,
+          leader_evaluation_id:
+            pdiData.leaderEvaluationId || existingPDI.leader_evaluation_id || null,
           periodo: pdiData.periodo || existingPDI.periodo || 'Anual',
           timeline: pdiData.periodo || existingPDI.timeline || 'Anual',
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         };
 
         const { data, error } = await supabase
@@ -50,6 +58,9 @@ export const pdiService = {
           console.error('Erro ao atualizar PDI:', error);
           throw new ApiError(500, error.message);
         }
+
+        // Fase 5C: espelha na tabela normalizada (nunca falha o fluxo)
+        await pdiActionsService.syncFromItems(supabase, existingPDI.id, pdiData.items);
         return data;
       } else {
         // Criar novo PDI
@@ -63,7 +74,7 @@ export const pdiService = {
           status: 'active',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          created_by: pdiData.createdBy || null
+          created_by: pdiData.createdBy || null,
         };
 
         const { data, error } = await supabase
@@ -75,6 +86,11 @@ export const pdiService = {
         if (error) {
           console.error('Erro ao criar PDI:', error);
           throw new ApiError(500, error.message);
+        }
+
+        // Fase 5C: espelha na tabela normalizada (nunca falha o fluxo)
+        if (data?.id) {
+          await pdiActionsService.syncFromItems(supabase, data.id, pdiData.items);
         }
         return data;
       }
@@ -91,10 +107,12 @@ export const pdiService = {
     try {
       const { data, error } = await supabase
         .from('development_plans')
-        .select(`
+        .select(
+          `
           *,
           employee:users!employee_id(id, name, position)
-        `)
+        `,
+        )
         .eq('employee_id', employeeId)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
@@ -119,10 +137,12 @@ export const pdiService = {
     try {
       const { data, error } = await supabase
         .from('development_plans')
-        .select(`
+        .select(
+          `
           *,
           employee:users!employee_id(id, name, position, department)
-        `)
+        `,
+        )
         .eq('cycle_id', cycleId)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
@@ -154,5 +174,5 @@ export const pdiService = {
         ['curto', 'medio', 'longo'].includes(item.prazo)
       );
     });
-  }
+  },
 };

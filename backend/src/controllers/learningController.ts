@@ -320,29 +320,52 @@ export const learningController = {
             .catch((err) => console.error('Notification error:', err));
         }
 
-        // Se há PDI ativo, sugere atualizar a ação correspondente
-        const { data: activePdi } = await authReq.supabase
-          .from('development_plans')
-          .select('id')
-          .eq('employee_id', userId)
-          .eq('status', 'active')
-          .limit(1);
-        if (activePdi?.length) {
+        // Fase 5C: ações do PDI vinculadas a este curso são concluídas
+        // automaticamente; sem vínculo, cai na sugestão genérica
+        const { pdiActionsService } = await import('../services/pdiActionsService');
+        const completedActions = await pdiActionsService
+          .completeActionsForCourse(authReq.supabase, userId, result.courseId)
+          .catch(() => []);
+
+        if (completedActions.length > 0) {
           notificationService
             .send(authReq.supabase, {
               type: 'pdi_updated',
-              title: 'Curso concluído — atualize seu PDI',
-              message:
-                'Se este curso fazia parte de uma ação do seu PDI, aproveite para atualizar o status dela.',
+              title: 'Ação do PDI concluída automaticamente',
+              message: `A conclusão do curso marcou como concluída ${
+                completedActions.length === 1
+                  ? `a ação "${completedActions[0].competencia}"`
+                  : `${completedActions.length} ações`
+              } do seu PDI.`,
               targets: [{ type: 'user', user_id: userId }],
               action_url: '/my-pdi',
               entity_type: 'development_plan',
-              entity_id: activePdi[0].id,
-              group_key: `pdi_course_done:${activePdi[0].id}`,
-              anti_spam: 'cooldown',
-              cooldown_minutes: 24 * 60,
             })
             .catch((err) => console.error('Notification error:', err));
+        } else {
+          const { data: activePdi } = await authReq.supabase
+            .from('development_plans')
+            .select('id')
+            .eq('employee_id', userId)
+            .eq('status', 'active')
+            .limit(1);
+          if (activePdi?.length) {
+            notificationService
+              .send(authReq.supabase, {
+                type: 'pdi_updated',
+                title: 'Curso concluído — atualize seu PDI',
+                message:
+                  'Se este curso fazia parte de uma ação do seu PDI, aproveite para atualizar o status dela ou vincule o curso à ação.',
+                targets: [{ type: 'user', user_id: userId }],
+                action_url: '/my-pdi',
+                entity_type: 'development_plan',
+                entity_id: activePdi[0].id,
+                group_key: `pdi_course_done:${activePdi[0].id}`,
+                anti_spam: 'cooldown',
+                cooldown_minutes: 24 * 60,
+              })
+              .catch((err) => console.error('Notification error:', err));
+          }
         }
       }
 

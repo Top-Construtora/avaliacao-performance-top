@@ -14,6 +14,11 @@ const requireManager = authorizeRoles(['director', 'leader']) as any;
 router.post('/', pdiController.savePDI); // ownership validado no controller
 router.get('/all', requireManager, pdiController.getAllPDIs);
 router.get('/cycle/:cycleId', requireManager, pdiController.getPDIsByCycle);
+
+// Ações normalizadas (fase 5C)
+router.get('/actions/mine', pdiController.getMyActions);
+router.patch('/:planId/actions/:actionId', pdiController.updateAction);
+
 router.get('/:employeeId', pdiController.getPDI); // ownership validado no controller
 
 export default router;
