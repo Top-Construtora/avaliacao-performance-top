@@ -579,6 +579,14 @@ const Settings = () => {
                             : 'nenhum'}
                       </strong>
                     </span>
+                    {emailDiagnostics.config?.brevo_key && (
+                      <span className="sm:col-span-2">
+                        Chave Brevo:{' '}
+                        <strong className="text-foreground">
+                          {emailDiagnostics.config.brevo_key}
+                        </strong>
+                      </span>
+                    )}
                     <span>Servidor: {emailDiagnostics.config?.host || '—'}</span>
                     <span>
                       Porta: {emailDiagnostics.config?.port} (TLS:{' '}

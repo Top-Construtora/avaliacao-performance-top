@@ -22,9 +22,30 @@ let transporter: Transporter | null = null;
  */
 export type EmailProvider = 'brevo' | 'smtp' | 'none';
 
+/**
+ * Chave da Brevo já higienizada: valores colados em painel de hospedagem
+ * costumam vir com espaço ou quebra de linha no fim.
+ */
+export function brevoApiKey(): string {
+  return (process.env.BREVO_API_KEY || '').trim();
+}
+
+/**
+ * Descreve a chave sem expor o valor — o suficiente para diagnosticar
+ * credencial trocada (a da aba SMTP não serve) ou cópia incompleta.
+ */
+export function describeBrevoKey(): string | null {
+  const key = brevoApiKey();
+  if (!key) return null;
+  const prefixoEsperado = key.startsWith('xkeysib-');
+  return `${key.slice(0, 8)}... (${key.length} caracteres${
+    prefixoEsperado ? '' : ' - deveria comecar com "xkeysib-"'
+  })`;
+}
+
 export function getEmailProvider(): EmailProvider {
   if (process.env.EMAIL_ENABLED !== 'true') return 'none';
-  if (process.env.BREVO_API_KEY) return 'brevo';
+  if (brevoApiKey()) return 'brevo';
   if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASS) return 'smtp';
   return 'none';
 }
@@ -81,7 +102,7 @@ async function sendViaBrevo(
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
-        'api-key': process.env.BREVO_API_KEY as string,
+        'api-key': brevoApiKey(),
         'content-type': 'application/json',
         accept: 'application/json',
       },
@@ -125,7 +146,7 @@ export async function verifySmtp(): Promise<{
   if (provider === 'brevo') {
     try {
       const response = await fetch('https://api.brevo.com/v3/account', {
-        headers: { 'api-key': process.env.BREVO_API_KEY as string, accept: 'application/json' },
+        headers: { 'api-key': brevoApiKey(), accept: 'application/json' },
         signal: AbortSignal.timeout(15_000),
       });
       const ms = Date.now() - started;
