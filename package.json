@@ -27,6 +27,7 @@
     "db:lint": "supabase db lint"
   },
   "devDependencies": {
+    "@types/nodemailer": "^8.0.1",
     "concurrently": "^8.2.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
