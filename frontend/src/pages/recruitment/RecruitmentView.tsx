@@ -19,8 +19,12 @@ import {
   Phone,
   Pencil,
   Trash2,
+  ChevronDown,
+  Star,
+  Linkedin,
+  ExternalLink,
 } from 'lucide-react';
-import { recruitmentService, JobOpening } from '../../services/recruitment.service';
+import { recruitmentService, JobOpening, JobCandidate } from '../../services/recruitment.service';
 import { formatDateBR } from '../../utils/date';
 
 const candidateStatusConfig: Record<string, { label: string; color: string }> = {
@@ -102,6 +106,11 @@ const RecruitmentView = () => {
   const [newSource, setNewSource] = useState('');
   const [adding, setAdding] = useState(false);
 
+  // Painel de detalhes/edição do candidato
+  const [expandedCandId, setExpandedCandId] = useState<string | null>(null);
+  const [candDraft, setCandDraft] = useState<Partial<JobCandidate> | null>(null);
+  const [savingCand, setSavingCand] = useState(false);
+
   useEffect(() => {
     if (id) loadOpening();
   }, [id]);
@@ -163,6 +172,39 @@ const RecruitmentView = () => {
       toast.success('Status atualizado');
     } catch {
       toast.error('Erro ao atualizar');
+    }
+  };
+
+  const handleSaveCandidate = async (candidateId: string) => {
+    if (!candDraft) return;
+    try {
+      setSavingCand(true);
+      const updates = {
+        email: candDraft.email?.trim() || null,
+        phone: candDraft.phone?.trim() || null,
+        source: candDraft.source || null,
+        linkedin_url: candDraft.linkedin_url?.trim() || null,
+        resume_url: candDraft.resume_url?.trim() || null,
+        rating: candDraft.rating ?? null,
+        observations: candDraft.observations?.trim() || null,
+      };
+      await recruitmentService.updateCandidate(candidateId, updates as any);
+      setOpening((prev) =>
+        prev
+          ? {
+              ...prev,
+              candidates: prev.candidates?.map((c) =>
+                c.id === candidateId ? { ...c, ...updates } : c,
+              ),
+            }
+          : null,
+      );
+      setCandDraft(null);
+      toast.success('Candidato atualizado');
+    } catch {
+      toast.error('Erro ao salvar candidato');
+    } finally {
+      setSavingCand(false);
     }
   };
 
@@ -475,53 +517,303 @@ const RecruitmentView = () => {
               candidates.map((candidate) => {
                 const statusInfo =
                   candidateStatusConfig[candidate.status] || candidateStatusConfig.received;
+                const isExpanded = expandedCandId === candidate.id;
+                const isEditingCand = isExpanded && candDraft !== null;
                 return (
                   <div
                     key={candidate.id}
-                    className="group flex items-center gap-3 p-3 bg-secondary rounded-xl border border-border hover:border-border transition-colors"
+                    className="bg-secondary rounded-xl border border-border transition-colors"
                   >
-                    <div className="h-9 w-9 rounded-lg bg-lime text-obsidian flex items-center justify-center font-bold text-xs flex-shrink-0">
-                      {candidate.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .toUpperCase()
-                        .slice(0, 2)}
+                    <div className="group flex items-center gap-3 p-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setExpandedCandId(isExpanded ? null : candidate.id);
+                          setCandDraft(null);
+                        }}
+                        className="flex flex-1 items-center gap-3 min-w-0 text-left"
+                      >
+                        <div className="h-9 w-9 rounded-lg bg-lime text-obsidian flex items-center justify-center font-bold text-xs flex-shrink-0">
+                          {candidate.name
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .toUpperCase()
+                            .slice(0, 2)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">
+                            {candidate.name}
+                          </p>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground truncate">
+                            {candidate.email && (
+                              <span className="flex items-center gap-1 truncate">
+                                <Mail className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">{candidate.email}</span>
+                              </span>
+                            )}
+                            {candidate.rating != null && (
+                              <span className="flex items-center gap-0.5 flex-shrink-0 text-warning">
+                                <Star className="h-3 w-3 fill-current" />
+                                {candidate.rating}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <ChevronDown
+                          className={`h-4 w-4 text-muted-foreground flex-shrink-0 transition-transform ${
+                            isExpanded ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </button>
+                      <select
+                        value={candidate.status}
+                        onChange={(e) => handleCandidateStatus(candidate.id, e.target.value)}
+                        className={`text-xs rounded-lg border-0 font-medium px-2 py-1 focus:ring-2 focus:ring-[#D2FF00]/20 ${statusInfo.color}`}
+                      >
+                        {Object.entries(candidateStatusConfig).map(([key, config]) => (
+                          <option key={key} value={key}>
+                            {config.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => handleDeleteCandidate(candidate.id)}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/15 opacity-0 group-hover:opacity-100 transition-all"
+                        title="Remover"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">
-                        {candidate.name}
-                      </p>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground truncate">
-                        {candidate.email && (
-                          <span className="flex items-center gap-1 truncate">
-                            <Mail className="h-3 w-3 flex-shrink-0" />
-                            <span className="truncate">{candidate.email}</span>
-                          </span>
+
+                    {/* Painel de detalhes do candidato */}
+                    {isExpanded && !isEditingCand && (
+                      <div className="px-4 pb-4 pt-1 border-t border-border">
+                        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                          <InfoRow
+                            label="Email"
+                            value={
+                              candidate.email ? (
+                                <a
+                                  href={`mailto:${candidate.email}`}
+                                  className="text-lime-deep dark:text-lime hover:underline break-all"
+                                >
+                                  {candidate.email}
+                                </a>
+                              ) : null
+                            }
+                          />
+                          <InfoRow
+                            label="Telefone"
+                            value={
+                              candidate.phone ? (
+                                <a
+                                  href={`tel:${candidate.phone.replace(/\D/g, '')}`}
+                                  className="text-lime-deep dark:text-lime hover:underline"
+                                >
+                                  {candidate.phone}
+                                </a>
+                              ) : null
+                            }
+                          />
+                          <InfoRow
+                            label="Fonte"
+                            value={
+                              candidate.source ? (
+                                <span className="capitalize">{candidate.source}</span>
+                              ) : null
+                            }
+                          />
+                          <InfoRow
+                            label="Avaliação"
+                            value={
+                              candidate.rating != null ? (
+                                <span className="flex items-center gap-0.5 text-warning">
+                                  {[1, 2, 3, 4, 5].map((s) => (
+                                    <Star
+                                      key={s}
+                                      className={`h-4 w-4 ${
+                                        s <= (candidate.rating || 0) ? 'fill-current' : 'opacity-30'
+                                      }`}
+                                    />
+                                  ))}
+                                </span>
+                              ) : null
+                            }
+                          />
+                        </dl>
+                        {(candidate.linkedin_url || candidate.resume_url) && (
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {candidate.linkedin_url && (
+                              <a
+                                href={candidate.linkedin_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-xs font-medium text-foreground hover:border-[#D2FF00] transition-colors"
+                              >
+                                <Linkedin className="h-3.5 w-3.5" /> LinkedIn
+                                <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                              </a>
+                            )}
+                            {candidate.resume_url && (
+                              <a
+                                href={candidate.resume_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-xs font-medium text-foreground hover:border-[#D2FF00] transition-colors"
+                              >
+                                <FileText className="h-3.5 w-3.5" /> Currículo
+                                <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                              </a>
+                            )}
+                          </div>
                         )}
-                        {candidate.source && (
-                          <span className="capitalize flex-shrink-0">{candidate.source}</span>
+                        {candidate.observations && (
+                          <div className="mt-3">
+                            <InfoBlock label="Observações" value={candidate.observations} />
+                          </div>
                         )}
+                        <div className="flex justify-end mt-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            icon={<Pencil size={13} />}
+                            onClick={() => setCandDraft({ ...candidate })}
+                          >
+                            Editar informações
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <select
-                      value={candidate.status}
-                      onChange={(e) => handleCandidateStatus(candidate.id, e.target.value)}
-                      className={`text-xs rounded-lg border-0 font-medium px-2 py-1 focus:ring-2 focus:ring-[#D2FF00]/20 ${statusInfo.color}`}
-                    >
-                      {Object.entries(candidateStatusConfig).map(([key, config]) => (
-                        <option key={key} value={key}>
-                          {config.label}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={() => handleDeleteCandidate(candidate.id)}
-                      className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/15 opacity-0 group-hover:opacity-100 transition-all"
-                      title="Remover"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    )}
+
+                    {/* Edição do candidato */}
+                    {isEditingCand && candDraft && (
+                      <div className="px-4 pb-4 pt-1 border-t border-border">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                              Email
+                            </label>
+                            <input
+                              type="email"
+                              value={candDraft.email || ''}
+                              onChange={(e) =>
+                                setCandDraft((d) => ({ ...d, email: e.target.value }))
+                              }
+                              className={inputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                              Telefone
+                            </label>
+                            <input
+                              type="tel"
+                              value={candDraft.phone || ''}
+                              onChange={(e) =>
+                                setCandDraft((d) => ({ ...d, phone: e.target.value }))
+                              }
+                              className={inputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                              Fonte
+                            </label>
+                            <select
+                              value={candDraft.source || ''}
+                              onChange={(e) =>
+                                setCandDraft((d) => ({ ...d, source: e.target.value }))
+                              }
+                              className={inputClass}
+                            >
+                              <option value="">Selecione</option>
+                              <option value="linkedin">LinkedIn</option>
+                              <option value="indicacao">Indicação</option>
+                              <option value="site">Site</option>
+                              <option value="outro">Outro</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                              Avaliação (1–5)
+                            </label>
+                            <select
+                              value={candDraft.rating ?? ''}
+                              onChange={(e) =>
+                                setCandDraft((d) => ({
+                                  ...d,
+                                  rating: e.target.value ? Number(e.target.value) : null,
+                                }))
+                              }
+                              className={inputClass}
+                            >
+                              <option value="">Sem avaliação</option>
+                              {[1, 2, 3, 4, 5].map((n) => (
+                                <option key={n} value={n}>
+                                  {n}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                              LinkedIn (URL)
+                            </label>
+                            <input
+                              type="url"
+                              value={candDraft.linkedin_url || ''}
+                              onChange={(e) =>
+                                setCandDraft((d) => ({ ...d, linkedin_url: e.target.value }))
+                              }
+                              placeholder="https://linkedin.com/in/..."
+                              className={inputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                              Currículo (URL)
+                            </label>
+                            <input
+                              type="url"
+                              value={candDraft.resume_url || ''}
+                              onChange={(e) =>
+                                setCandDraft((d) => ({ ...d, resume_url: e.target.value }))
+                              }
+                              placeholder="https://..."
+                              className={inputClass}
+                            />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                              Observações
+                            </label>
+                            <textarea
+                              value={candDraft.observations || ''}
+                              onChange={(e) =>
+                                setCandDraft((d) => ({ ...d, observations: e.target.value }))
+                              }
+                              rows={3}
+                              placeholder="Anotações sobre o candidato..."
+                              className={`${inputClass} resize-none`}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2 mt-3">
+                          <Button variant="outline" size="sm" onClick={() => setCandDraft(null)}>
+                            Cancelar
+                          </Button>
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            disabled={savingCand}
+                            onClick={() => handleSaveCandidate(candidate.id)}
+                          >
+                            {savingCand ? 'Salvando...' : 'Salvar'}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })
