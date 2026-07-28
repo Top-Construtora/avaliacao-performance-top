@@ -247,12 +247,15 @@ export default function Sidebar({
           path: '/reports',
           allowedRoles: ['admin', 'director'],
         },
-        {
-          label: 'Auditoria',
-          icon: ScrollText,
-          path: '/audit',
-          allowedRoles: ['admin', 'director'],
-        },
+        // Auditoria: ocultada do menu temporariamente a pedido do RH.
+        // A rota /audit e a API continuam funcionando, e a trilha segue
+        // sendo gravada — para reexibir, basta descomentar este item.
+        // {
+        //   label: 'Auditoria',
+        //   icon: ScrollText,
+        //   path: '/audit',
+        //   allowedRoles: ['admin', 'director'],
+        // },
       ],
     },
     {
@@ -289,11 +292,14 @@ export default function Sidebar({
           icon: MessagesSquare,
           path: '/feedbacks',
         },
-        {
-          label: 'Reuniões',
-          icon: CalendarClock,
-          path: '/meetings',
-        },
+        // Reuniões: ocultado do menu temporariamente a pedido do RH.
+        // A rota /meetings e a API continuam funcionando — para reexibir,
+        // basta descomentar este item.
+        // {
+        //   label: 'Reuniões',
+        //   icon: CalendarClock,
+        //   path: '/meetings',
+        // },
         {
           label: 'Aprendizado',
           icon: GraduationCap,
