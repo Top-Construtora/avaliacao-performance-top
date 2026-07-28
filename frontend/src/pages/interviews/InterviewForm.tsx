@@ -4,10 +4,23 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { ArrowLeft, Save, UserCheck, UserMinus, CheckCircle, MessageSquare } from 'lucide-react';
+import {
+  ArrowLeft,
+  Save,
+  UserCheck,
+  UserMinus,
+  CheckCircle,
+  MessageSquare,
+  Video,
+  Link2,
+  ClipboardList,
+  Clock,
+} from 'lucide-react';
 import {
   interviewService,
   Interview,
+  InterviewType,
+  INTERVIEW_TYPE_LABELS,
   NinetyDaysAnswers,
   ExitAnswers,
 } from '../../services/interview.service';
@@ -81,10 +94,12 @@ const InterviewForm = () => {
   const [interview, setInterview] = useState<Interview | null>(null);
 
   // Create form
-  const [type, setType] = useState<'ninety_days' | 'exit'>('ninety_days');
+  const [type, setType] = useState<InterviewType>('ninety_days');
   const [employeeId, setEmployeeId] = useState('');
   const [interviewerId, setInterviewerId] = useState(profile?.id || '');
   const [scheduledDate, setScheduledDate] = useState('');
+  const [meetingUrl, setMeetingUrl] = useState('');
+  const [observations, setObservations] = useState('');
 
   // 90 days answers
   const [ninetyDaysAnswers, setNinetyDaysAnswers] = useState<NinetyDaysAnswers>({
@@ -144,6 +159,8 @@ const InterviewForm = () => {
       setEmployeeId(data.employee_id);
       setInterviewerId(data.interviewer_id);
       setScheduledDate(data.scheduled_date || '');
+      setMeetingUrl(data.meeting_url || '');
+      setObservations(data.observations || '');
 
       if (data.answers) {
         if (data.type === 'ninety_days') {
@@ -173,9 +190,10 @@ const InterviewForm = () => {
         employee_id: employeeId,
         interviewer_id: interviewerId,
         scheduled_date: scheduledDate || undefined,
+        meeting_url: meetingUrl.trim() || undefined,
       });
-      toast.success('Entrevista criada com sucesso!');
-      navigate(`/interviews/${data.id}/edit`);
+      toast.success('Entrevista criada! Copie o link e envie ao colaborador.');
+      navigate(`/interviews/${data.id}`);
     } catch (error) {
       toast.error('Erro ao criar entrevista');
     } finally {
@@ -222,6 +240,60 @@ const InterviewForm = () => {
     }
   };
 
+  // Entrevistas novas carregam um snapshot de perguntas (modelo personalizável);
+  // as antigas usam os formulários fixos legados de 90 dias/desligamento.
+  const hasGenericQuestions = (interview?.questions?.length || 0) > 0;
+  const answersByQuestion = new Map(
+    (interview?.question_answers || []).map((a) => [a.question_id, a]),
+  );
+
+  const copyExternalLink = () => {
+    if (!interview?.public_token) return;
+    const url = `${window.location.origin}/i/${interview.public_token}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(
+        () => toast.success('Link copiado! Envie ao colaborador.'),
+        () => toast.error('Não foi possível copiar o link'),
+      );
+    } else {
+      toast(url, { duration: 8000 });
+    }
+  };
+
+  const handleSaveDetails = async () => {
+    if (!id) return;
+    try {
+      setSaving(true);
+      await interviewService.updateInterview(id, {
+        observations,
+        meeting_url: meetingUrl.trim() || null,
+      } as any);
+      toast.success('Dados salvos');
+    } catch {
+      toast.error('Erro ao salvar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCompleteGeneric = async () => {
+    if (!id) return;
+    try {
+      setSaving(true);
+      await interviewService.updateInterview(id, {
+        status: 'completed',
+        observations,
+        meeting_url: meetingUrl.trim() || null,
+      } as any);
+      toast.success('Entrevista concluída!');
+      navigate('/interviews');
+    } catch {
+      toast.error('Erro ao concluir entrevista');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const activeUsers = users.filter((u) => u.active !== false && !u.is_admin);
   const leadersAndDirectors = users.filter(
     (u) => (u.is_leader || u.is_director) && u.active !== false,
@@ -248,17 +320,10 @@ const InterviewForm = () => {
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center">
                 {isEditing ? (
-                  type === 'ninety_days' ? (
-                    <>
-                      <UserCheck className="h-6 w-6 text-lime-deep dark:text-lime mr-2" />{' '}
-                      Entrevista de 90 Dias
-                    </>
-                  ) : (
-                    <>
-                      <UserMinus className="h-6 w-6 text-muted-foreground mr-2" /> Entrevista de
-                      Desligamento
-                    </>
-                  )
+                  <>
+                    <ClipboardList className="h-6 w-6 text-lime-deep dark:text-lime mr-2" />
+                    Entrevista de {INTERVIEW_TYPE_LABELS[type] || type}
+                  </>
                 ) : (
                   'Nova Entrevista'
                 )}
@@ -287,31 +352,29 @@ const InterviewForm = () => {
               <label className="block text-sm font-semibold text-muted-foreground mb-2">
                 Tipo de Entrevista
               </label>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setType('ninety_days')}
-                  className={`flex-1 p-4 rounded-xl border-2 transition-all text-center ${
-                    type === 'ninety_days'
-                      ? 'border-[#D2FF00] bg-lime/20 text-lime-deep dark:text-lime'
-                      : 'border-border text-muted-foreground hover:border-[#D2FF00]/50'
-                  }`}
-                >
-                  <UserCheck className="h-6 w-6 mx-auto mb-2" />
-                  <span className="text-sm font-medium">90 Dias</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setType('exit')}
-                  className={`flex-1 p-4 rounded-xl border-2 transition-all text-center ${
-                    type === 'exit'
-                      ? 'border-[#D2FF00] bg-secondary text-foreground'
-                      : 'border-border text-muted-foreground hover:border-[#D2FF00]/50'
-                  }`}
-                >
-                  <UserMinus className="h-6 w-6 mx-auto mb-2" />
-                  <span className="text-sm font-medium">Desligamento</span>
-                </button>
+              <div className="grid grid-cols-2 gap-3">
+                {(
+                  [
+                    { key: 'onboarding', icon: UserCheck },
+                    { key: 'sixty_days', icon: Clock },
+                    { key: 'ninety_days', icon: CheckCircle },
+                    { key: 'exit', icon: UserMinus },
+                  ] as { key: InterviewType; icon: typeof UserCheck }[]
+                ).map(({ key, icon: TypeIcon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setType(key)}
+                    className={`p-4 rounded-xl border-2 transition-all text-center ${
+                      type === key
+                        ? 'border-[#D2FF00] bg-lime/20 text-lime-deep dark:text-lime'
+                        : 'border-border text-muted-foreground hover:border-[#D2FF00]/50'
+                    }`}
+                  >
+                    <TypeIcon className="h-6 w-6 mx-auto mb-2" />
+                    <span className="text-sm font-medium">{INTERVIEW_TYPE_LABELS[key]}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -362,6 +425,22 @@ const InterviewForm = () => {
                 ))}
               </select>
             </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-muted-foreground mb-2">
+                Link da reunião (Teams, Google Meet...)
+              </label>
+              <div className="relative">
+                <Video className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <input
+                  type="url"
+                  value={meetingUrl}
+                  onChange={(e) => setMeetingUrl(e.target.value)}
+                  placeholder="https://teams.microsoft.com/... ou https://meet.google.com/..."
+                  className="w-full pl-10 rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end mt-8">
@@ -378,8 +457,168 @@ const InterviewForm = () => {
         </motion.div>
       )}
 
-      {/* Edit Form - 90 Days */}
-      {isEditing && type === 'ninety_days' && (
+      {/* Entrevista nova (modelo personalizável): link externo, reunião e respostas */}
+      {isEditing && hasGenericQuestions && interview && (
+        <>
+          {/* Link externo + reunião */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card rounded-2xl shadow-sm border border-border p-6"
+          >
+            <h2 className="text-lg font-bold text-foreground mb-4 flex items-center">
+              <Link2 className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
+              Link do colaborador
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Envie este link ao colaborador para ele responder as perguntas — não precisa de login.
+              Cada entrevista tem um link único.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button variant="primary" icon={<Link2 size={16} />} onClick={copyExternalLink}>
+                Copiar link de resposta
+              </Button>
+              {interview.meeting_url && (
+                <a
+                  href={interview.meeting_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-secondary text-sm font-semibold text-foreground hover:border-[#D2FF00] transition-colors"
+                >
+                  <Video className="h-4 w-4" /> Entrar na reunião
+                </a>
+              )}
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-semibold text-muted-foreground mb-2">
+                Link da reunião (Teams, Google Meet...)
+              </label>
+              <input
+                type="url"
+                value={meetingUrl}
+                onChange={(e) => setMeetingUrl(e.target.value)}
+                placeholder="https://teams.microsoft.com/... ou https://meet.google.com/..."
+                className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm"
+              />
+            </div>
+          </motion.div>
+
+          {/* Respostas do colaborador */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="bg-card rounded-2xl shadow-sm border border-border p-6"
+          >
+            <h2 className="text-lg font-bold text-foreground mb-4 flex items-center">
+              <MessageSquare className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
+              Respostas do colaborador
+            </h2>
+            {(interview.question_answers?.length || 0) === 0 ? (
+              <div className="text-center py-10 text-muted-foreground border-2 border-dashed border-border rounded-xl">
+                <Clock className="h-8 w-8 mx-auto mb-2" />
+                <p className="text-sm">Aguardando respostas do colaborador</p>
+                <p className="text-xs mt-1">Envie o link de resposta acima</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {(interview.questions || []).map((q, index) => {
+                  const answer = answersByQuestion.get(q.id);
+                  return (
+                    <div key={q.id} className="p-4 bg-secondary rounded-xl border border-border">
+                      <p className="text-sm font-semibold text-foreground mb-2">
+                        {index + 1}. {q.question_text}
+                      </p>
+                      {q.question_type === 'rating' && (
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold ${
+                            answer?.rating_value != null
+                              ? 'bg-lime/20 text-lime-deep dark:text-lime'
+                              : 'bg-secondary text-muted-foreground'
+                          }`}
+                        >
+                          {answer?.rating_value != null
+                            ? `${answer.rating_value} / ${q.rating_scale === 10 ? 10 : 5}`
+                            : 'Sem resposta'}
+                        </span>
+                      )}
+                      {q.question_type === 'yes_no' && (
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold ${
+                            answer?.boolean_value === true
+                              ? 'bg-success/15 text-success'
+                              : answer?.boolean_value === false
+                                ? 'bg-destructive/15 text-destructive'
+                                : 'bg-secondary text-muted-foreground'
+                          }`}
+                        >
+                          {answer?.boolean_value === true
+                            ? 'Sim'
+                            : answer?.boolean_value === false
+                              ? 'Não'
+                              : 'Sem resposta'}
+                        </span>
+                      )}
+                      {q.question_type === 'text' && (
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {answer?.text_value?.trim() || 'Sem resposta'}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
+
+          {/* Observações + concluir */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-card rounded-2xl shadow-sm border border-border p-6"
+          >
+            <label className="block text-sm font-semibold text-muted-foreground mb-2">
+              Observações do entrevistador
+            </label>
+            <textarea
+              value={observations}
+              onChange={(e) => setObservations(e.target.value)}
+              placeholder="Anotações da conversa, pontos de atenção..."
+              rows={4}
+              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm resize-y"
+            />
+            <div className="flex justify-between mt-6 pt-4 border-t border-border">
+              <Button variant="outline" onClick={() => navigate('/interviews')}>
+                Voltar
+              </Button>
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={handleSaveDetails}
+                  disabled={saving}
+                  icon={<Save size={18} />}
+                >
+                  {saving ? 'Salvando...' : 'Salvar'}
+                </Button>
+                {interview.status !== 'completed' && (
+                  <Button
+                    variant="primary"
+                    onClick={handleCompleteGeneric}
+                    disabled={saving}
+                    icon={<CheckCircle size={18} />}
+                  >
+                    Concluir Entrevista
+                  </Button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+
+      {/* Edit Form - 90 Days (legado, entrevistas antigas sem snapshot) */}
+      {isEditing && !hasGenericQuestions && type === 'ninety_days' && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -610,8 +849,8 @@ const InterviewForm = () => {
         </motion.div>
       )}
 
-      {/* Edit Form - Exit */}
-      {isEditing && type === 'exit' && (
+      {/* Edit Form - Exit (legado, entrevistas antigas sem snapshot) */}
+      {isEditing && !hasGenericQuestions && type === 'exit' && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

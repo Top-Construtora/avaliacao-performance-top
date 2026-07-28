@@ -1,17 +1,55 @@
 import { api } from '../config/api';
 
+export type InterviewType = 'onboarding' | 'sixty_days' | 'ninety_days' | 'exit';
+
+export const INTERVIEW_TYPE_LABELS: Record<InterviewType, string> = {
+  onboarding: 'Integração',
+  sixty_days: '60 dias',
+  ninety_days: '90 dias',
+  exit: 'Desligamento',
+};
+
+export interface InterviewQuestion {
+  id: string;
+  question_text: string;
+  question_type: 'rating' | 'text' | 'yes_no';
+  rating_scale: number;
+  order_index: number;
+  required: boolean;
+}
+
+export interface InterviewAnswer {
+  id?: string;
+  question_id: string;
+  rating_value?: number | null;
+  text_value?: string | null;
+  boolean_value?: boolean | null;
+}
+
+export interface InterviewTemplate {
+  id: string;
+  type: InterviewType;
+  name: string;
+  description: string | null;
+  questions: InterviewQuestion[];
+}
+
 export interface Interview {
   id: string;
-  type: 'ninety_days' | 'exit';
+  type: InterviewType;
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
   employee_id: string;
   interviewer_id: string;
   scheduled_date: string | null;
   completed_date: string | null;
   observations: string | null;
+  meeting_url: string | null;
+  public_token: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  questions?: InterviewQuestion[];
+  question_answers?: InterviewAnswer[];
   employee?: {
     id: string;
     name: string;
@@ -77,21 +115,36 @@ export interface ExitAnswers {
 
 export interface InterviewStats {
   total: number;
+  onboarding?: { total: number; scheduled: number; completed: number };
+  sixty_days?: { total: number; scheduled: number; completed: number };
   ninety_days: { total: number; scheduled: number; completed: number };
   exit: { total: number; scheduled: number; completed: number };
 }
 
+export interface PublicInterview {
+  type: InterviewType;
+  type_label: string;
+  scheduled_date: string | null;
+  meeting_url: string | null;
+  employee_name: string | null;
+  questions: InterviewQuestion[];
+  has_responded: boolean;
+}
+
 export const interviewService = {
   async getInterviews(filters?: {
-    type?: 'ninety_days' | 'exit';
+    type?: InterviewType;
     status?: string;
     employee_id?: string;
   }): Promise<Interview[]> {
     const params = new URLSearchParams(
-      Object.entries(filters || {}).reduce((acc, [key, value]) => {
-        if (value !== undefined) acc[key] = String(value);
-        return acc;
-      }, {} as Record<string, string>)
+      Object.entries(filters || {}).reduce(
+        (acc, [key, value]) => {
+          if (value !== undefined) acc[key] = String(value);
+          return acc;
+        },
+        {} as Record<string, string>,
+      ),
     ).toString();
 
     const response = await api.get(`/interviews?${params}`);
@@ -104,13 +157,46 @@ export const interviewService = {
   },
 
   async createInterview(data: {
-    type: 'ninety_days' | 'exit';
+    type: InterviewType;
     employee_id: string;
     interviewer_id: string;
     scheduled_date?: string;
+    meeting_url?: string;
   }): Promise<Interview> {
     const response = await api.post('/interviews', data);
     return response.data || response;
+  },
+
+  // ===== Modelos (perguntas personalizáveis) =====
+  async getTemplates(): Promise<InterviewTemplate[]> {
+    const response = await api.get('/interviews/templates');
+    return response.data || response || [];
+  },
+
+  async updateTemplate(
+    type: InterviewType,
+    data: {
+      name?: string;
+      description?: string;
+      questions: {
+        question_text: string;
+        question_type: string;
+        rating_scale?: number;
+        required?: boolean;
+      }[];
+    },
+  ): Promise<void> {
+    await api.put(`/interviews/templates/${type}`, data);
+  },
+
+  // ===== Público (link externo, sem login) =====
+  async getPublicInterview(token: string): Promise<PublicInterview> {
+    const response = await api.get(`/public/interviews/${token}`);
+    return response.data || response;
+  },
+
+  async submitPublicInterview(token: string, answers: InterviewAnswer[]): Promise<void> {
+    await api.post(`/public/interviews/${token}/respond`, { answers });
   },
 
   async updateInterview(id: string, data: Partial<Interview>): Promise<Interview> {

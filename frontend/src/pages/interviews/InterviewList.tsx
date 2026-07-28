@@ -12,17 +12,21 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Edit,
   Trash2,
   Eye,
-  UserMinus,
-  UserCheck,
+  Link2,
+  Settings2,
 } from 'lucide-react';
-import { interviewService, Interview } from '../../services/interview.service';
+import {
+  interviewService,
+  Interview,
+  InterviewType,
+  INTERVIEW_TYPE_LABELS,
+} from '../../services/interview.service';
 import { useAuth } from '../../context/AuthContext';
 import { formatDateBR } from '../../utils/date';
 
-type TabFilter = 'all' | 'ninety_days' | 'exit';
+type TabFilter = 'all' | InterviewType;
 type StatusFilter = 'all' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
 
 const statusConfig = {
@@ -81,6 +85,22 @@ const InterviewList = () => {
     }
   };
 
+  const copyExternalLink = (interview: Interview) => {
+    if (!interview.public_token) {
+      toast.error('Esta entrevista não tem link externo');
+      return;
+    }
+    const url = `${window.location.origin}/i/${interview.public_token}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(
+        () => toast.success('Link copiado! Envie ao colaborador.'),
+        () => toast.error('Não foi possível copiar o link'),
+      );
+    } else {
+      toast(url, { duration: 8000 });
+    }
+  };
+
   const filteredInterviews = useMemo(() => {
     return interviews.filter((interview) => {
       if (tabFilter !== 'all' && interview.type !== tabFilter) return false;
@@ -97,17 +117,6 @@ const InterviewList = () => {
     });
   }, [interviews, tabFilter, statusFilter, searchTerm]);
 
-  const stats = useMemo(
-    () => ({
-      total: interviews.length,
-      ninetyDays: interviews.filter((i) => i.type === 'ninety_days').length,
-      exit: interviews.filter((i) => i.type === 'exit').length,
-      scheduled: interviews.filter((i) => i.status === 'scheduled').length,
-      completed: interviews.filter((i) => i.status === 'completed').length,
-    }),
-    [interviews],
-  );
-
   if (loading) return <LoadingSpinner />;
 
   return (
@@ -118,67 +127,33 @@ const InterviewList = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-card rounded-2xl shadow-sm border border-border p-8"
       >
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
               <ClipboardList className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-lime-deep dark:text-lime mr-2 sm:mr-3 flex-shrink-0" />
-              90 Dias e Desligamento
+              Entrevistas
             </h1>
             <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-              Entrevistas de acompanhamento de 90 dias e de desligamento
+              Integração, 60 dias, 90 dias e desligamento
             </p>
           </div>
 
-          <Button
-            variant="primary"
-            onClick={() => navigate('/interviews/new')}
-            icon={<Plus size={18} />}
-            size="lg"
-          >
-            Nova Entrevista
-          </Button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-              <p className="text-sm text-muted-foreground font-medium">Total</p>
-            </div>
-            <ClipboardList className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
-          </div>
-
-          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-foreground">{stats.ninetyDays}</p>
-              <p className="text-sm text-muted-foreground font-medium">90 Dias</p>
-            </div>
-            <UserCheck className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
-          </div>
-
-          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-foreground">{stats.exit}</p>
-              <p className="text-sm text-muted-foreground font-medium">Desligamento</p>
-            </div>
-            <UserMinus className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
-          </div>
-
-          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-foreground">{stats.scheduled}</p>
-              <p className="text-sm text-muted-foreground font-medium">Agendadas</p>
-            </div>
-            <Calendar className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
-          </div>
-
-          <div className="relative overflow-hidden bg-card border border-border rounded-xl p-4 text-center shadow-lg">
-            <div className="relative z-10">
-              <p className="text-2xl font-bold text-foreground">{stats.completed}</p>
-              <p className="text-sm text-muted-foreground font-medium">Concluídas</p>
-            </div>
-            <CheckCircle className="absolute -bottom-2 -right-2 h-16 w-16 text-muted-foreground opacity-50" />
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/interviews/templates')}
+              icon={<Settings2 size={18} />}
+            >
+              Modelos
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => navigate('/interviews/new')}
+              icon={<Plus size={18} />}
+              size="lg"
+            >
+              Nova Entrevista
+            </Button>
           </div>
         </div>
       </motion.div>
@@ -188,37 +163,25 @@ const InterviewList = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-3">
             {/* Tabs de tipo */}
-            <div className="flex items-center bg-secondary backdrop-blur-sm rounded-xl p-1.5">
-              <button
-                onClick={() => setTabFilter('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  tabFilter === 'all'
-                    ? 'bg-card text-lime-deep dark:text-lime shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Todas
-              </button>
-              <button
-                onClick={() => setTabFilter('ninety_days')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  tabFilter === 'ninety_days'
-                    ? 'bg-card text-lime-deep dark:text-lime shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                90 Dias
-              </button>
-              <button
-                onClick={() => setTabFilter('exit')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  tabFilter === 'exit'
-                    ? 'bg-card text-lime-deep dark:text-lime shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Desligamento
-              </button>
+            <div className="flex flex-wrap items-center bg-secondary backdrop-blur-sm rounded-xl p-1.5">
+              {(
+                [['all', 'Todas'], ...Object.entries(INTERVIEW_TYPE_LABELS)] as [
+                  TabFilter,
+                  string,
+                ][]
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setTabFilter(key)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    tabFilter === key
+                      ? 'bg-card text-lime-deep dark:text-lime shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
 
             {/* Filtro de status */}
@@ -263,22 +226,8 @@ const InterviewList = () => {
               >
                 <div className="flex items-center p-4 gap-4">
                   {/* Tipo badge */}
-                  <div
-                    className={`flex-shrink-0 p-2.5 rounded-xl ${
-                      interview.type === 'ninety_days' ? 'bg-lime/20' : 'bg-secondary'
-                    }`}
-                  >
-                    {interview.type === 'ninety_days' ? (
-                      <UserCheck
-                        className={`h-5 w-5 ${
-                          interview.type === 'ninety_days'
-                            ? 'text-lime-deep dark:text-lime'
-                            : 'text-muted-foreground'
-                        }`}
-                      />
-                    ) : (
-                      <UserMinus className="h-5 w-5 text-muted-foreground" />
-                    )}
+                  <div className="flex-shrink-0 p-2.5 rounded-xl bg-lime/20">
+                    <ClipboardList className="h-5 w-5 text-lime-deep dark:text-lime" />
                   </div>
 
                   {/* Info do colaborador */}
@@ -287,14 +236,8 @@ const InterviewList = () => {
                       <h3 className="font-semibold text-foreground truncate">
                         {interview.employee?.name || 'Colaborador'}
                       </h3>
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                          interview.type === 'ninety_days'
-                            ? 'bg-lime/20 text-lime-deep dark:text-lime'
-                            : 'bg-secondary text-muted-foreground'
-                        }`}
-                      >
-                        {interview.type === 'ninety_days' ? '90 Dias' : 'Desligamento'}
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-lime/20 text-lime-deep dark:text-lime">
+                        {INTERVIEW_TYPE_LABELS[interview.type] || interview.type}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -332,15 +275,17 @@ const InterviewList = () => {
                     >
                       <Eye className="h-4 w-4" />
                     </button>
-                    {interview.status !== 'completed' && interview.status !== 'cancelled' && (
-                      <button
-                        onClick={() => navigate(`/interviews/${interview.id}/edit`)}
-                        className="p-2 rounded-lg transition-colors hover:bg-accent text-muted-foreground hover:text-lime-deep dark:hover:text-lime"
-                        title="Preencher entrevista"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                    )}
+                    {interview.public_token &&
+                      interview.status !== 'completed' &&
+                      interview.status !== 'cancelled' && (
+                        <button
+                          onClick={() => copyExternalLink(interview)}
+                          className="p-2 rounded-lg transition-colors hover:bg-accent text-muted-foreground hover:text-lime-deep dark:hover:text-lime"
+                          title="Copiar link de resposta (colaborador)"
+                        >
+                          <Link2 className="h-4 w-4" />
+                        </button>
+                      )}
                     <button
                       onClick={() => handleDelete(interview.id)}
                       className="p-2 rounded-lg transition-colors hover:bg-destructive/15 text-muted-foreground hover:text-destructive"

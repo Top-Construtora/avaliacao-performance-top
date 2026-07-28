@@ -1,9 +1,202 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { supabaseAdmin } from '../config/supabase';
 import { notificationService } from '../services/notificationService';
 
+export const INTERVIEW_TYPE_LABELS: Record<string, string> = {
+  onboarding: 'Integração',
+  sixty_days: '60 dias',
+  ninety_days: '90 dias',
+  exit: 'Desligamento',
+};
+
 export const interviewController = {
+  // ===== MODELOS (perguntas personalizáveis por tipo) =====
+
+  async getTemplates(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const [templatesRes, questionsRes] = await Promise.all([
+        supabaseAdmin.from('interview_templates').select('*').order('type'),
+        supabaseAdmin.from('interview_template_questions').select('*').order('order_index'),
+      ]);
+      if (templatesRes.error) throw templatesRes.error;
+
+      const questionsByTemplate = new Map<string, any[]>();
+      for (const q of questionsRes.data || []) {
+        const list = questionsByTemplate.get(q.template_id) || [];
+        list.push(q);
+        questionsByTemplate.set(q.template_id, list);
+      }
+
+      const data = (templatesRes.data || []).map((t: any) => ({
+        ...t,
+        questions: questionsByTemplate.get(t.id) || [],
+      }));
+
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async updateTemplate(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { type } = req.params;
+      const { name, description, questions } = req.body;
+
+      const { data: template, error } = await supabaseAdmin
+        .from('interview_templates')
+        .select('id')
+        .eq('type', type)
+        .maybeSingle();
+      if (error) throw error;
+      if (!template) {
+        return res.status(404).json({ success: false, error: 'Modelo não encontrado' });
+      }
+
+      const updates: Record<string, any> = { updated_at: new Date().toISOString() };
+      if (name !== undefined) updates.name = name;
+      if (description !== undefined) updates.description = description;
+      await supabaseAdmin.from('interview_templates').update(updates).eq('id', template.id);
+
+      // Substituir perguntas é seguro: cada entrevista criada carrega um
+      // SNAPSHOT das perguntas, então editar o modelo não afeta as antigas.
+      if (Array.isArray(questions)) {
+        await supabaseAdmin
+          .from('interview_template_questions')
+          .delete()
+          .eq('template_id', template.id);
+
+        if (questions.length > 0) {
+          const rows = questions.map((q: any, index: number) => ({
+            template_id: template.id,
+            question_text: q.question_text,
+            question_type: q.question_type || 'rating',
+            rating_scale: Number(q.rating_scale) === 10 ? 10 : 5,
+            order_index: index,
+            required: q.required !== false,
+          }));
+          const { error: qError } = await supabaseAdmin
+            .from('interview_template_questions')
+            .insert(rows);
+          if (qError) throw qError;
+        }
+      }
+
+      res.json({ success: true, message: 'Modelo atualizado' });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ===== PÚBLICO (link externo do colaborador, sem login) =====
+
+  async getPublicInterview(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token } = req.params;
+
+      const { data: interview } = await supabaseAdmin
+        .from('interviews')
+        .select(
+          'id, type, status, scheduled_date, meeting_url, employee:users!interviews_employee_id_fkey(name)',
+        )
+        .eq('public_token', token)
+        .maybeSingle();
+
+      if (!interview || interview.status === 'cancelled') {
+        return res.status(404).json({ success: false, error: 'Entrevista não disponível' });
+      }
+
+      const [questionsRes, answeredRes] = await Promise.all([
+        supabaseAdmin
+          .from('interview_questions')
+          .select('id, question_text, question_type, rating_scale, order_index, required')
+          .eq('interview_id', interview.id)
+          .order('order_index'),
+        supabaseAdmin
+          .from('interview_answers')
+          .select('id')
+          .eq('interview_id', interview.id)
+          .limit(1),
+      ]);
+
+      res.json({
+        success: true,
+        data: {
+          type: interview.type,
+          type_label: INTERVIEW_TYPE_LABELS[interview.type] || interview.type,
+          scheduled_date: interview.scheduled_date,
+          meeting_url: interview.meeting_url,
+          employee_name: (interview as any).employee?.name || null,
+          questions: questionsRes.data || [],
+          has_responded: (answeredRes.data || []).length > 0,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async submitPublicInterview(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token } = req.params;
+      const { answers } = req.body;
+
+      const { data: interview } = await supabaseAdmin
+        .from('interviews')
+        .select('id, status')
+        .eq('public_token', token)
+        .maybeSingle();
+
+      if (!interview || interview.status === 'cancelled') {
+        return res.status(400).json({ success: false, error: 'Entrevista não disponível' });
+      }
+
+      const { data: existing } = await supabaseAdmin
+        .from('interview_answers')
+        .select('id')
+        .eq('interview_id', interview.id)
+        .limit(1);
+      if ((existing || []).length > 0) {
+        return res.status(400).json({ success: false, error: 'Esta entrevista já foi respondida' });
+      }
+
+      // Só aceita respostas de perguntas desta entrevista
+      const { data: qs } = await supabaseAdmin
+        .from('interview_questions')
+        .select('id')
+        .eq('interview_id', interview.id);
+      const validIds = new Set((qs || []).map((q: any) => q.id));
+
+      if (Array.isArray(answers)) {
+        const rows = answers
+          .filter((a: any) => validIds.has(a.question_id))
+          .map((a: any) => ({
+            interview_id: interview.id,
+            question_id: a.question_id,
+            rating_value: a.rating_value ?? null,
+            text_value: a.text_value ?? null,
+            boolean_value: a.boolean_value !== undefined ? a.boolean_value : null,
+          }));
+        if (rows.length > 0) {
+          const { error: aError } = await supabaseAdmin.from('interview_answers').insert(rows);
+          if (aError) throw aError;
+        }
+      }
+
+      // Respondida pelo colaborador → entra em andamento (RH conclui depois)
+      await supabaseAdmin
+        .from('interviews')
+        .update({ status: 'in_progress', updated_at: new Date().toISOString() })
+        .eq('id', interview.id)
+        .eq('status', 'scheduled');
+
+      res.status(201).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   // Listar entrevistas com filtros
   async getInterviews(req: AuthRequest, res: Response, next: NextFunction) {
     try {
@@ -55,25 +248,42 @@ export const interviewController = {
         return res.status(404).json({ success: false, error: 'Entrevista não encontrada' });
       }
 
-      // Buscar respostas conforme o tipo
-      let answers = null;
-      if (interview.type === 'ninety_days') {
-        const { data } = await supabaseAdmin
-          .from('interview_ninety_days_answers')
+      // Perguntas/respostas genéricas (entrevistas novas, via snapshot) e
+      // respostas legadas (formulários fixos antigos de 90 dias/desligamento)
+      const [questionsRes, genericAnswersRes, legacyNinetyRes, legacyExitRes] = await Promise.all([
+        supabaseAdmin
+          .from('interview_questions')
           .select('*')
           .eq('interview_id', id)
-          .single();
-        answers = data;
-      } else if (interview.type === 'exit') {
-        const { data } = await supabaseAdmin
-          .from('interview_exit_answers')
-          .select('*')
-          .eq('interview_id', id)
-          .single();
-        answers = data;
-      }
+          .order('order_index'),
+        supabaseAdmin.from('interview_answers').select('*').eq('interview_id', id),
+        interview.type === 'ninety_days'
+          ? supabaseAdmin
+              .from('interview_ninety_days_answers')
+              .select('*')
+              .eq('interview_id', id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        interview.type === 'exit'
+          ? supabaseAdmin
+              .from('interview_exit_answers')
+              .select('*')
+              .eq('interview_id', id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
 
-      res.json({ success: true, data: { ...interview, answers } });
+      const answers = legacyNinetyRes.data || legacyExitRes.data || null;
+
+      res.json({
+        success: true,
+        data: {
+          ...interview,
+          answers,
+          questions: questionsRes.data || [],
+          question_answers: genericAnswersRes.data || [],
+        },
+      });
     } catch (error) {
       next(error);
     }
@@ -82,7 +292,7 @@ export const interviewController = {
   // Criar entrevista
   async createInterview(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { type, employee_id, interviewer_id, scheduled_date } = req.body;
+      const { type, employee_id, interviewer_id, scheduled_date, meeting_url } = req.body;
 
       if (!type || !employee_id || !interviewer_id) {
         return res.status(400).json({
@@ -99,6 +309,7 @@ export const interviewController = {
             employee_id,
             interviewer_id,
             scheduled_date,
+            meeting_url: meeting_url || null,
             created_by: req.user?.id,
             status: 'scheduled',
           },
@@ -114,13 +325,33 @@ export const interviewController = {
 
       if (error) throw error;
 
+      // SNAPSHOT das perguntas do modelo para esta entrevista: editar o modelo
+      // depois não muda entrevistas já agendadas/respondidas.
+      const { data: template } = await supabaseAdmin
+        .from('interview_templates')
+        .select('id')
+        .eq('type', type)
+        .maybeSingle();
+      if (template) {
+        const { data: templateQuestions } = await supabaseAdmin
+          .from('interview_template_questions')
+          .select('question_text, question_type, rating_scale, order_index, required')
+          .eq('template_id', template.id)
+          .order('order_index');
+        if (templateQuestions && templateQuestions.length > 0) {
+          const { error: snapError } = await supabaseAdmin
+            .from('interview_questions')
+            .insert(templateQuestions.map((q: any) => ({ ...q, interview_id: data.id })));
+          if (snapError) console.error('Snapshot de perguntas falhou:', snapError.message);
+        }
+      }
+
       // Notifica os envolvidos na entrevista: entrevistador, colaborador
       // entrevistado e quem criou/agendou. O notificationService remove o
       // actor (quem disparou a ação) da lista de destinatários, então quem
       // agenda não é notificado da própria entrevista que criou.
       const notifType = type === 'exit' ? 'interview_exit_scheduled' : 'interview_90day_scheduled';
-      const notifTitle =
-        type === 'exit' ? 'Entrevista de desligamento agendada' : 'Entrevista de 90 dias agendada';
+      const notifTitle = `Entrevista de ${INTERVIEW_TYPE_LABELS[type] || type} agendada`;
       const dateStr = scheduled_date ? new Date(scheduled_date).toLocaleDateString('pt-BR') : '';
 
       notificationService
@@ -151,13 +382,14 @@ export const interviewController = {
   async updateInterview(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const { status, scheduled_date, observations, interviewer_id } = req.body;
+      const { status, scheduled_date, observations, interviewer_id, meeting_url } = req.body;
 
       const updates: Record<string, any> = { updated_at: new Date().toISOString() };
       if (status) updates.status = status;
       if (scheduled_date) updates.scheduled_date = scheduled_date;
       if (observations !== undefined) updates.observations = observations;
       if (interviewer_id) updates.interviewer_id = interviewer_id;
+      if (meeting_url !== undefined) updates.meeting_url = meeting_url || null;
 
       if (status === 'completed') {
         updates.completed_date = new Date().toISOString();
@@ -181,7 +413,7 @@ export const interviewController = {
           .send(supabaseAdmin, {
             type: 'interview_completed',
             title: 'Entrevista concluída',
-            message: `A entrevista ${data.type === 'exit' ? 'de desligamento' : 'de 90 dias'} foi concluída.`,
+            message: `A entrevista de ${INTERVIEW_TYPE_LABELS[data.type] || data.type} foi concluída.`,
             targets: [{ type: 'user', user_id: data.interviewer_id }],
             actor_id: req.user?.id,
             action_url: `/interviews/${data.id}`,
@@ -359,24 +591,20 @@ export const interviewController = {
 
       if (error) throw error;
 
+      const byType = (type: string) => ({
+        total: interviews?.filter((i) => i.type === type).length || 0,
+        scheduled:
+          interviews?.filter((i) => i.type === type && i.status === 'scheduled').length || 0,
+        completed:
+          interviews?.filter((i) => i.type === type && i.status === 'completed').length || 0,
+      });
+
       const stats = {
         total: interviews?.length || 0,
-        ninety_days: {
-          total: interviews?.filter((i) => i.type === 'ninety_days').length || 0,
-          scheduled:
-            interviews?.filter((i) => i.type === 'ninety_days' && i.status === 'scheduled')
-              .length || 0,
-          completed:
-            interviews?.filter((i) => i.type === 'ninety_days' && i.status === 'completed')
-              .length || 0,
-        },
-        exit: {
-          total: interviews?.filter((i) => i.type === 'exit').length || 0,
-          scheduled:
-            interviews?.filter((i) => i.type === 'exit' && i.status === 'scheduled').length || 0,
-          completed:
-            interviews?.filter((i) => i.type === 'exit' && i.status === 'completed').length || 0,
-        },
+        onboarding: byType('onboarding'),
+        sixty_days: byType('sixty_days'),
+        ninety_days: byType('ninety_days'),
+        exit: byType('exit'),
       };
 
       res.json({ success: true, data: stats });
