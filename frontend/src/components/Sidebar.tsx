@@ -31,6 +31,7 @@ import {
   Sparkles,
   ScrollText,
   MessagesSquare,
+  CalendarClock,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import { usePeopleCommitteePermission } from '../hooks/usePeopleCommittee';
@@ -286,6 +287,11 @@ export default function Sidebar({
           label: 'Feedbacks',
           icon: MessagesSquare,
           path: '/feedbacks',
+        },
+        {
+          label: 'Reuniões',
+          icon: CalendarClock,
+          path: '/meetings',
         },
         {
           label: 'Pesquisas',

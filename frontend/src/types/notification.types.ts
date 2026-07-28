@@ -24,7 +24,9 @@ export type NotificationType =
   | 'team_member_moved'
   | 'feedback_received'
   | 'feedback_request_received'
-  | 'feedback_acknowledged';
+  | 'feedback_acknowledged'
+  | 'meeting_scheduled'
+  | 'meeting_cancelled';
 
 export type DisplayCategory = 'success' | 'info' | 'warning' | 'alert' | 'achievement';
 
@@ -73,4 +75,6 @@ export const NOTIFICATION_DISPLAY_MAP: Record<NotificationType, DisplayCategory>
   feedback_received: 'info',
   feedback_request_received: 'info',
   feedback_acknowledged: 'success',
+  meeting_scheduled: 'info',
+  meeting_cancelled: 'alert',
 };

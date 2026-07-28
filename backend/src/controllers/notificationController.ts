@@ -16,6 +16,7 @@ const updatePreferencesSchema = z.object({
           'recrutamento',
           'equipe',
           'feedbacks',
+          'reunioes',
         ]),
         email_enabled: z.boolean(),
       }),
