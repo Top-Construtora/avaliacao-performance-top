@@ -8,6 +8,7 @@ import {
   remindInterviewsTomorrow,
   remindMeetingsTomorrow,
   materializeOverdueRecurrences,
+  remindCourseDeadline,
   autoCloseExpired,
 } from './reminderJobs';
 import { auditService } from '../services/auditService';
@@ -56,6 +57,7 @@ export function startJobs(): void {
       await runSafely('remindInterviewsTomorrow', remindInterviewsTomorrow);
       await runSafely('remindMeetingsTomorrow', remindMeetingsTomorrow);
       await runSafely('materializeOverdueRecurrences', materializeOverdueRecurrences);
+      await runSafely('remindCourseDeadline', remindCourseDeadline);
       await runSafely('remindStalePdis', remindStalePdis);
     },
     { timezone },

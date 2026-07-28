@@ -26,7 +26,11 @@ export type NotificationType =
   | 'feedback_request_received'
   | 'feedback_acknowledged'
   | 'meeting_scheduled'
-  | 'meeting_cancelled';
+  | 'meeting_cancelled'
+  | 'course_enrolled'
+  | 'course_deadline_approaching'
+  | 'external_course_submitted'
+  | 'external_course_reviewed';
 
 export type DisplayCategory = 'success' | 'info' | 'warning' | 'alert' | 'achievement';
 
@@ -77,4 +81,8 @@ export const NOTIFICATION_DISPLAY_MAP: Record<NotificationType, DisplayCategory>
   feedback_acknowledged: 'success',
   meeting_scheduled: 'info',
   meeting_cancelled: 'alert',
+  course_enrolled: 'info',
+  course_deadline_approaching: 'warning',
+  external_course_submitted: 'info',
+  external_course_reviewed: 'success',
 };

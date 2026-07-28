@@ -26,7 +26,11 @@ export type NotificationType =
   | 'feedback_request_received'
   | 'feedback_acknowledged'
   | 'meeting_scheduled'
-  | 'meeting_cancelled';
+  | 'meeting_cancelled'
+  | 'course_enrolled'
+  | 'course_deadline_approaching'
+  | 'external_course_submitted'
+  | 'external_course_reviewed';
 
 export type NotificationPriority = 'low' | 'medium' | 'high';
 
@@ -43,7 +47,8 @@ export type NotificationCategory =
   | 'recrutamento'
   | 'equipe'
   | 'feedbacks'
-  | 'reunioes';
+  | 'reunioes'
+  | 'learning';
 
 export const NOTIFICATION_CATEGORY_LABELS: Record<NotificationCategory, string> = {
   avaliacoes: 'Avaliações de desempenho',
@@ -55,6 +60,7 @@ export const NOTIFICATION_CATEGORY_LABELS: Record<NotificationCategory, string> 
   equipe: 'Times e equipe',
   feedbacks: 'Feedbacks',
   reunioes: 'Reuniões',
+  learning: 'Cursos e aprendizado',
 };
 
 export type AntiSpamStrategy = 'always' | 'aggregate' | 'cooldown';
@@ -250,6 +256,30 @@ export const NOTIFICATION_TYPE_CONFIG: Record<
     defaultPriority: 'medium',
     displayCategory: 'alert',
     category: 'reunioes',
+    email: true,
+  },
+  course_enrolled: {
+    defaultPriority: 'medium',
+    displayCategory: 'info',
+    category: 'learning',
+    email: true,
+  },
+  course_deadline_approaching: {
+    defaultPriority: 'high',
+    displayCategory: 'warning',
+    category: 'learning',
+    email: true,
+  },
+  external_course_submitted: {
+    defaultPriority: 'low',
+    displayCategory: 'info',
+    category: 'learning',
+    email: false,
+  },
+  external_course_reviewed: {
+    defaultPriority: 'medium',
+    displayCategory: 'success',
+    category: 'learning',
     email: true,
   },
 };

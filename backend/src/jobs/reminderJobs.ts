@@ -301,6 +301,53 @@ export async function materializeOverdueRecurrences(): Promise<void> {
   }
 }
 
+/** Turmas com prazo em até 3 dias: cobra inscritos que não concluíram. */
+export async function remindCourseDeadline(): Promise<void> {
+  const today = toDateOnly(new Date());
+  const limit = toDateOnly(daysFromNow(3));
+
+  const { data: classes, error } = await supabaseAdmin
+    .from('course_classes')
+    .select('id, name, end_date, course:courses!course_classes_course_id_fkey(title)')
+    .eq('active', true)
+    .not('end_date', 'is', null)
+    .gte('end_date', today)
+    .lte('end_date', limit);
+
+  if (error) {
+    jobLogger.error({ err: error.message }, 'remindCourseDeadline: erro ao buscar turmas');
+    return;
+  }
+
+  for (const cls of classes || []) {
+    const { data: pending } = await supabaseAdmin
+      .from('class_enrollments')
+      .select('user_id')
+      .eq('class_id', cls.id)
+      .is('completed_at', null);
+
+    const pendingIds = (pending || []).map((e: any) => e.user_id);
+    if (pendingIds.length === 0) continue;
+
+    const courseTitle = (cls as any).course?.title || cls.name;
+
+    await notificationService.send(supabaseAdmin, {
+      type: 'course_deadline_approaching',
+      title: 'Prazo de curso se aproximando',
+      message: `O prazo da turma "${cls.name}" do curso "${courseTitle}" termina em breve. Conclua os conteúdos pendentes.`,
+      targets: pendingIds.map((id) => ({ type: 'user' as const, user_id: id })),
+      action_url: '/learning',
+      entity_type: 'course_class',
+      entity_id: cls.id,
+      group_key: `course_deadline:${cls.id}`,
+      anti_spam: 'cooldown',
+      cooldown_minutes: 20 * 60,
+    });
+
+    jobLogger.info({ classId: cls.id, pending: pendingIds.length }, 'Lembrete de curso enviado');
+  }
+}
+
 /** Encerra automaticamente ciclos e pesquisas com data final vencida. */
 export async function autoCloseExpired(): Promise<void> {
   const today = toDateOnly(new Date());
