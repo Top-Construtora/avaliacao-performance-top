@@ -21,7 +21,10 @@ export type NotificationType =
   | 'survey_deadline_approaching'
   | 'survey_closed'
   | 'team_member_added'
-  | 'team_member_moved';
+  | 'team_member_moved'
+  | 'feedback_received'
+  | 'feedback_request_received'
+  | 'feedback_acknowledged';
 
 export type NotificationPriority = 'low' | 'medium' | 'high';
 
@@ -36,7 +39,8 @@ export type NotificationCategory =
   | 'entrevistas'
   | 'carreira'
   | 'recrutamento'
-  | 'equipe';
+  | 'equipe'
+  | 'feedbacks';
 
 export const NOTIFICATION_CATEGORY_LABELS: Record<NotificationCategory, string> = {
   avaliacoes: 'Avaliações de desempenho',
@@ -46,6 +50,7 @@ export const NOTIFICATION_CATEGORY_LABELS: Record<NotificationCategory, string> 
   carreira: 'Carreira e salários',
   recrutamento: 'Recrutamento',
   equipe: 'Times e equipe',
+  feedbacks: 'Feedbacks',
 };
 
 export type AntiSpamStrategy = 'always' | 'aggregate' | 'cooldown';
@@ -211,6 +216,24 @@ export const NOTIFICATION_TYPE_CONFIG: Record<
     defaultPriority: 'low',
     displayCategory: 'info',
     category: 'equipe',
+    email: false,
+  },
+  feedback_received: {
+    defaultPriority: 'medium',
+    displayCategory: 'info',
+    category: 'feedbacks',
+    email: true,
+  },
+  feedback_request_received: {
+    defaultPriority: 'medium',
+    displayCategory: 'info',
+    category: 'feedbacks',
+    email: true,
+  },
+  feedback_acknowledged: {
+    defaultPriority: 'low',
+    displayCategory: 'success',
+    category: 'feedbacks',
     email: false,
   },
 };

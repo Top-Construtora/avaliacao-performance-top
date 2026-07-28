@@ -30,6 +30,7 @@ import {
   Briefcase,
   Sparkles,
   ScrollText,
+  MessagesSquare,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import { usePeopleCommitteePermission } from '../hooks/usePeopleCommittee';
@@ -281,6 +282,11 @@ export default function Sidebar({
     {
       title: 'Engajamento',
       items: [
+        {
+          label: 'Feedbacks',
+          icon: MessagesSquare,
+          path: '/feedbacks',
+        },
         {
           label: 'Pesquisas',
           icon: SmilePlus,
