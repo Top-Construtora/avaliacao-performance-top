@@ -11,6 +11,7 @@ import interviewRoutes from './interviewRoutes';
 import satisfactionRoutes from './satisfactionRoutes';
 import recruitmentRoutes from './recruitmentRoutes';
 import notificationRoutes from './notificationRoutes';
+import auditRoutes from './auditRoutes';
 import publicRoutes from './publicRoutes';
 import culturalCodeRoutes from './culturalCodeRoutes';
 
@@ -44,6 +45,7 @@ router.use('/interviews', interviewRoutes);
 router.use('/satisfaction', satisfactionRoutes);
 router.use('/recruitment', recruitmentRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/audit', auditRoutes);
 router.use('/cultural-code', culturalCodeRoutes);
 
 // Health check

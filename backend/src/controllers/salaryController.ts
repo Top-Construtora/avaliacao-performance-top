@@ -3,6 +3,7 @@ import { salaryService } from '../services/salaryService';
 import { exportService } from '../services/exportService';
 import { AuthRequest } from '../middleware/auth';
 import { notificationService } from '../services/notificationService';
+import { auditService } from '../services/auditService';
 import { isPrivileged, isDirectLeaderOf } from '../utils/accessControl';
 import { AppError } from '../errors/AppError';
 
@@ -358,6 +359,22 @@ export const salaryController = {
         reason,
         approvedBy: req.user?.id,
       });
+
+      auditService.log(
+        req,
+        'salary.progression',
+        'progression_history',
+        progression?.history?.id ?? null,
+        {
+          new: {
+            user_id: userId,
+            to_track_position_id: toTrackPositionId,
+            to_salary_level_id: toSalaryLevelId,
+            progression_type: progressionType,
+            reason,
+          },
+        },
+      );
 
       // Notificar o colaborador sobre progressão de carreira
       notificationService

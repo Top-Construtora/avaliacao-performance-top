@@ -41,6 +41,7 @@ const LeaderEvaluation = lazyWithRetry(() => import('./pages/evaluations/LeaderE
 const NineBoxGuide = lazyWithRetry(() => import('./pages/evaluations/NineBoxGuide'));
 const NineBoxMatrix = lazyWithRetry(() => import('./pages/evaluations/NineBox'));
 const Consensus = lazyWithRetry(() => import('./pages/evaluations/Consensus'));
+const AuditLog = lazyWithRetry(() => import('./pages/management/AuditLog'));
 const UserManagement = lazyWithRetry(() => import('./pages/users/UserManagement'));
 const RegisterUser = lazyWithRetry(() => import('./pages/users/RegisterUser'));
 const UserEdit = lazyWithRetry(() => import('./pages/users/EditUser'));
@@ -228,6 +229,15 @@ function App() {
                           element={
                             <ProtectedRoute allowedRoles={['director']}>
                               <Reports />
+                            </ProtectedRoute>
+                          }
+                        />
+
+                        <Route
+                          path="audit"
+                          element={
+                            <ProtectedRoute allowedRoles={['director']}>
+                              <AuditLog />
                             </ProtectedRoute>
                           }
                         />

@@ -29,6 +29,7 @@ import {
   SmilePlus,
   Briefcase,
   Sparkles,
+  ScrollText,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import { usePeopleCommitteePermission } from '../hooks/usePeopleCommittee';
@@ -241,6 +242,12 @@ export default function Sidebar({
           label: 'Relatórios',
           icon: PieChart,
           path: '/reports',
+          allowedRoles: ['admin', 'director'],
+        },
+        {
+          label: 'Auditoria',
+          icon: ScrollText,
+          path: '/audit',
           allowedRoles: ['admin', 'director'],
         },
       ],

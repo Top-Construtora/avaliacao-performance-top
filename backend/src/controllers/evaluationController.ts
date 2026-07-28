@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { evaluationService } from '../services/evaluationService';
 import { AuthRequest } from '../middleware/auth';
 import { notificationService } from '../services/notificationService';
+import { auditService } from '../services/auditService';
 import { assertCanAccessEmployeeData, isPrivileged } from '../utils/accessControl';
 import { AppError } from '../errors/AppError';
 
@@ -73,6 +74,10 @@ export const evaluationController = {
 
       const updatedCycle = await evaluationService.updateCycleStatus(authReq.supabase, id, 'open');
 
+      auditService.log(authReq, 'cycle.opened', 'evaluation_cycles', id, {
+        new: { status: 'open', title: updatedCycle?.title },
+      });
+
       // Notificar todos os colaboradores
       notificationService
         .send(authReq.supabase, {
@@ -109,6 +114,10 @@ export const evaluationController = {
         id,
         'closed',
       );
+
+      auditService.log(authReq, 'cycle.closed', 'evaluation_cycles', id, {
+        new: { status: 'closed', title: updatedCycle?.title },
+      });
 
       // Notificar todos os colaboradores
       notificationService
@@ -545,6 +554,17 @@ export const evaluationController = {
     try {
       const authReq = req as AuthRequest;
       const consensus = await evaluationService.createConsensus(authReq.supabase, req.body);
+
+      auditService.log(
+        authReq,
+        'consensus.created',
+        'consensus_evaluations',
+        consensus?.id ?? null,
+        {
+          new: { employee_id: req.body?.employeeId, cycle_id: req.body?.cycleId },
+        },
+      );
+
       res.status(201).json({ success: true, data: consensus });
     } catch (error) {
       console.error('Controller error:', error);
@@ -581,6 +601,10 @@ export const evaluationController = {
         promotedPotentialQuadrant,
         promotedBy,
       );
+
+      auditService.log(authReq, 'ninebox.promoted', 'consensus_evaluations', consensusId, {
+        new: { promoted_potential_quadrant: promotedPotentialQuadrant },
+      });
 
       res.json({
         success: true,
@@ -626,6 +650,13 @@ export const evaluationController = {
         authReq.supabase,
         consensusId,
         deliberations,
+      );
+
+      auditService.log(
+        authReq,
+        'consensus.deliberations_saved',
+        'consensus_evaluations',
+        consensusId,
       );
 
       res.json({

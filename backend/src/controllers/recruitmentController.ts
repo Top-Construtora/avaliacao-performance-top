@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { supabaseAdmin } from '../config/supabase';
 import { notificationService } from '../services/notificationService';
+import { auditService } from '../services/auditService';
 
 export const recruitmentController = {
   // === VAGAS ===
@@ -355,6 +356,13 @@ export const recruitmentController = {
         .single();
 
       if (error) throw error;
+
+      // Contratação é decisão de negócio relevante — auditar
+      if (updates.status === 'hired') {
+        auditService.log(req, 'candidate.hired', 'job_candidates', id, {
+          new: { name: data?.name, job_opening_id: data?.job_opening_id },
+        });
+      }
 
       // Notificar quando candidato é contratado
       if (updates.status === 'hired' && data?.job_opening_id) {
