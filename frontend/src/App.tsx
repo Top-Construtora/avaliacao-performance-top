@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
 import { EvaluationProvider } from './context/EvaluationContext';
@@ -390,14 +390,19 @@ function App() {
                           }
                         />
 
-                        {/* Código Cultural (Organizational Competencies) */}
+                        {/* Competências Organizacionais */}
                         <Route
-                          path="codigo-cultural"
+                          path="competencias-organizacionais"
                           element={
                             <ProtectedRoute allowedRoles={['director']}>
                               <CodigoCultural />
                             </ProtectedRoute>
                           }
+                        />
+                        {/* Redirect da rota antiga (links/notificações salvos) */}
+                        <Route
+                          path="codigo-cultural"
+                          element={<Navigate to="/competencias-organizacionais" replace />}
                         />
 
                         {/* Recrutamento e Seleção */}
@@ -569,8 +574,12 @@ function App() {
                         <Route path="my-pdi" element={<MyPdi />} />
                         {/* PDI Management (New Route) */}
                         <Route path="pdi-management" element={<PdiManagement />} />
-                        {/* Código Cultural */}
-                        <Route path="codigo-cultural" element={<CodigoCultural />} />
+                        {/* Competências Organizacionais */}
+                        <Route path="competencias-organizacionais" element={<CodigoCultural />} />
+                        <Route
+                          path="codigo-cultural"
+                          element={<Navigate to="/competencias-organizacionais" replace />}
+                        />
                       </Route>
                       <Route path="*" element={<NotFound />} />
                     </Routes>

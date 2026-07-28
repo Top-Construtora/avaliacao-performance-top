@@ -241,7 +241,12 @@ const AdminDashboard = () => {
         { icon: Grid3X3, title: 'Comitê de Gente', action: 'Ver matriz', path: '/nine-box' },
         { icon: BookOpen, title: 'PDI', action: 'Gerenciar', path: '/pdi' },
         { icon: PieChart, title: 'Relatórios', action: 'Ver', path: '/reports' },
-        { icon: Award, title: 'Código Cultural', action: 'Configurar', path: '/codigo-cultural' },
+        {
+          icon: Award,
+          title: 'Competências Organizacionais',
+          action: 'Configurar',
+          path: '/competencias-organizacionais',
+        },
       ],
     },
     {

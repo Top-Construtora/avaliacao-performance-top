@@ -87,7 +87,7 @@ const FuncionalidadesContent = ({
       { title: 'Gerenciar Usuários', desc: 'Cadastrar e editar colaboradores, líderes e times' },
       { title: 'Gerenciar Ciclos', desc: 'Criar e configurar ciclos de avaliação' },
       { title: 'Trilhas de Carreira', desc: 'Configurar trilhas, cargos e estrutura salarial' },
-      { title: 'Código Cultural', desc: 'Gerenciar critérios de avaliação' },
+      { title: 'Competências Organizacionais', desc: 'Gerenciar critérios de avaliação' },
       { title: 'Configurações', desc: 'Configurar preferências do sistema' },
     ];
 

@@ -193,7 +193,7 @@ const CodigoCultural = () => {
           <div className="flex-1">
             <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-3">
               <Award className="h-7 w-7 lg:h-8 lg:w-8 text-lime-deep dark:text-lime" />
-              Código Cultural
+              Competências Organizacionais
             </h1>
             <p className="text-muted-foreground mt-2">
               Gerencie as competências organizacionais que definem a cultura da empresa

@@ -37,7 +37,10 @@ const PAGE_TITLES: Array<{ match: (p: string) => boolean; title: string }> = [
   { match: (p) => p.startsWith('/departments'), title: 'Gerenciar Departamentos' },
   { match: (p) => p.startsWith('/salary'), title: 'Cargos e Salários' },
   { match: (p) => p.startsWith('/cycle'), title: 'Gerenciar Ciclos' },
-  { match: (p) => p.startsWith('/codigo-cultural'), title: 'Código Cultural' },
+  {
+    match: (p) => p.startsWith('/competencias-organizacionais') || p.startsWith('/codigo-cultural'),
+    title: 'Competências Organizacionais',
+  },
   { match: (p) => p.startsWith('/self-evaluation'), title: 'Autoavaliação' },
   { match: (p) => p.startsWith('/leader-evaluation'), title: 'Avaliação do Líder' },
   { match: (p) => p.startsWith('/consensus'), title: 'Consenso' },

@@ -158,9 +158,9 @@ export default function Sidebar({
               allowedRoles: ['admin', 'director'],
             },
             {
-              label: 'Código Cultural',
+              label: 'Competências Organizacionais',
               icon: Award,
-              path: '/codigo-cultural',
+              path: '/competencias-organizacionais',
               allowedRoles: ['admin', 'director'],
             },
           ],
