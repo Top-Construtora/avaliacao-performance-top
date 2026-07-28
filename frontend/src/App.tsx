@@ -42,6 +42,7 @@ const NineBoxGuide = lazyWithRetry(() => import('./pages/evaluations/NineBoxGuid
 const NineBoxMatrix = lazyWithRetry(() => import('./pages/evaluations/NineBox'));
 const Consensus = lazyWithRetry(() => import('./pages/evaluations/Consensus'));
 const AuditLog = lazyWithRetry(() => import('./pages/management/AuditLog'));
+const Feedbacks = lazyWithRetry(() => import('./pages/feedbacks/Feedbacks'));
 const UserManagement = lazyWithRetry(() => import('./pages/users/UserManagement'));
 const RegisterUser = lazyWithRetry(() => import('./pages/users/RegisterUser'));
 const UserEdit = lazyWithRetry(() => import('./pages/users/EditUser'));
@@ -245,6 +246,7 @@ function App() {
                         <Route path="settings" element={<Settings />} />
                         <Route path="help" element={<HelpPage />} />
                         <Route path="notifications" element={<NotificationHistory />} />
+                        <Route path="feedbacks" element={<Feedbacks />} />
 
                         <Route
                           path="users"
@@ -556,6 +558,7 @@ function App() {
                         <Route path="settings" element={<Settings />} />
                         <Route path="help" element={<HelpPage />} />
                         <Route path="notifications" element={<NotificationHistory />} />
+                        <Route path="feedbacks" element={<Feedbacks />} />
                         <Route path="users" element={<UserManagement />} />
 
                         {/* Rotas de cadastro separadas */}

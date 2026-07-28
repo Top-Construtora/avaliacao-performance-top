@@ -21,7 +21,10 @@ export type NotificationType =
   | 'survey_deadline_approaching'
   | 'survey_closed'
   | 'team_member_added'
-  | 'team_member_moved';
+  | 'team_member_moved'
+  | 'feedback_received'
+  | 'feedback_request_received'
+  | 'feedback_acknowledged';
 
 export type DisplayCategory = 'success' | 'info' | 'warning' | 'alert' | 'achievement';
 
@@ -44,27 +47,30 @@ export interface Notification {
 }
 
 export const NOTIFICATION_DISPLAY_MAP: Record<NotificationType, DisplayCategory> = {
-  evaluation_cycle_opened:      'info',
-  evaluation_cycle_closed:      'info',
-  self_evaluation_pending:      'warning',
-  self_evaluation_completed:    'success',
-  leader_evaluation_completed:  'success',
-  consensus_completed:          'success',
-  pdi_created:                  'info',
-  pdi_updated:                  'info',
-  pdi_deadline_approaching:     'warning',
-  career_progression_approved:  'achievement',
-  career_track_assigned:        'info',
-  job_opening_created:          'info',
-  candidate_registered:         'info',
-  interview_scheduled:          'info',
-  candidate_hired:              'achievement',
-  interview_90day_scheduled:    'info',
-  interview_exit_scheduled:     'alert',
-  interview_completed:          'success',
-  survey_available:             'info',
-  survey_deadline_approaching:  'warning',
-  survey_closed:                'info',
-  team_member_added:            'info',
-  team_member_moved:            'info',
+  evaluation_cycle_opened: 'info',
+  evaluation_cycle_closed: 'info',
+  self_evaluation_pending: 'warning',
+  self_evaluation_completed: 'success',
+  leader_evaluation_completed: 'success',
+  consensus_completed: 'success',
+  pdi_created: 'info',
+  pdi_updated: 'info',
+  pdi_deadline_approaching: 'warning',
+  career_progression_approved: 'achievement',
+  career_track_assigned: 'info',
+  job_opening_created: 'info',
+  candidate_registered: 'info',
+  interview_scheduled: 'info',
+  candidate_hired: 'achievement',
+  interview_90day_scheduled: 'info',
+  interview_exit_scheduled: 'alert',
+  interview_completed: 'success',
+  survey_available: 'info',
+  survey_deadline_approaching: 'warning',
+  survey_closed: 'info',
+  team_member_added: 'info',
+  team_member_moved: 'info',
+  feedback_received: 'info',
+  feedback_request_received: 'info',
+  feedback_acknowledged: 'success',
 };
