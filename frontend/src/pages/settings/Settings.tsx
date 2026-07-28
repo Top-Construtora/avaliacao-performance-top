@@ -502,9 +502,8 @@ const Settings = () => {
               Diagnóstico de envio
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Dispara um e-mail de teste e mostra como o servidor está configurado. Use depois de
-              alterar as variáveis de ambiente. Informe um endereço real — contas administrativas
-              costumam ter e-mail fictício cadastrado.
+              Dispara um e-mail de teste para confirmar que o envio está funcionando. Se falhar, os
+              detalhes técnicos aparecem aqui para ajudar a identificar a causa.
             </p>
             <div className="flex flex-col sm:flex-row gap-2">
               <input
@@ -543,7 +542,8 @@ const Settings = () => {
                     {emailDiagnostics.reason}
                   </p>
                 )}
-                {emailDiagnostics.config && (
+                {/* Detalhes técnicos só quando falha — é quando servem. */}
+                {emailDiagnostics.config && !emailDiagnostics.sent && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs text-muted-foreground">
                     <span>
                       EMAIL_ENABLED:{' '}
