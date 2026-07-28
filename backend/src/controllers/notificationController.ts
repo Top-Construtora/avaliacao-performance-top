@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { notificationService } from '../services/notificationService';
 import {
+  describeBrevoKey,
   emailService,
   getEmailProvider,
   isEmailEnabled,
@@ -46,6 +47,7 @@ export const notificationController = {
       const config = {
         email_enabled_flag: process.env.EMAIL_ENABLED === 'true',
         provider: getEmailProvider(),
+        brevo_key: describeBrevoKey(),
         host: process.env.EMAIL_HOST || null,
         port: Number(process.env.EMAIL_PORT || 587),
         secure_tls: Number(process.env.EMAIL_PORT || 587) === 465,
@@ -95,7 +97,8 @@ export const notificationController = {
             to,
             reason:
               handshake.provider === 'brevo'
-                ? `A API da Brevo não aceitou a chave (${handshake.ms}ms): ${handshake.error}`
+                ? `A API da Brevo não aceitou a chave (${handshake.ms}ms): ${handshake.error}. ` +
+                  'Confira se a chave veio da aba "API Keys" (começa com "xkeysib-") e não da aba "SMTP".'
                 : `Não foi possível conectar ao servidor SMTP após ${handshake.ms}ms: ${handshake.error}. ` +
                   'Se o erro for de rede (ENETUNREACH/timeout), o provedor de hospedagem está bloqueando as portas de SMTP — configure BREVO_API_KEY para enviar por HTTPS.',
             config: { ...config, smtp_handshake: false, handshake_ms: handshake.ms },
