@@ -66,3 +66,12 @@ Para cada tabela, na ordem:
 
 - Migrações: `supabase/migrations/20260706130000..150100`
 - Auditoria original: branch `security/owasp-hardening` (mergeada via PR #8)
+
+---
+
+**Nota (fase 2 do roadmap, 2026-07):** as tabelas `self_evaluations`,
+`leader_evaluations` e `consensus_evaluations` ganharam triggers de auditoria
+(`fn_audit_row`, migração `20260728110100`) que registram as escritas diretas
+do frontend (auth.uid() presente) em `audit_logs`. Quando as fases 2-4 deste
+plano moverem essas escritas para o backend, **remover os triggers** — o
+`auditService` do backend passa a cobrir tudo.

@@ -1,6 +1,32 @@
 import { Request, Response, NextFunction } from 'express';
 import { userService } from '../services/userService';
 import { AuthRequest } from '../middleware/auth';
+import { auditService } from '../services/auditService';
+
+/** Campos sensíveis do usuário rastreados na auditoria (diff before/after). */
+const AUDITED_USER_FIELDS = [
+  'is_admin',
+  'is_director',
+  'is_leader',
+  'active',
+  'email',
+  'reports_to',
+  'position',
+  'department_id',
+  'contract_type',
+  'current_salary',
+  'current_track_position_id',
+  'current_salary_level_id',
+] as const;
+
+function pickAuditedFields(source: Record<string, any> | null | undefined) {
+  if (!source) return null;
+  const picked: Record<string, unknown> = {};
+  for (const field of AUDITED_USER_FIELDS) {
+    if (field in source) picked[field] = source[field];
+  }
+  return Object.keys(picked).length > 0 ? picked : null;
+}
 
 export const userController = {
   async getUsers(req: Request, res: Response, next: NextFunction) {
@@ -82,6 +108,10 @@ export const userController = {
 
       const user = await userService.createUserWithAuth(email, password, userData);
 
+      auditService.log(req as AuthRequest, 'user.created', 'users', user?.id ?? null, {
+        new: { email, ...(pickAuditedFields(userData) || {}) },
+      });
+
       res.status(201).json({
         success: true,
         data: user,
@@ -93,8 +123,29 @@ export const userController = {
 
   async updateUser(req: Request, res: Response, next: NextFunction) {
     try {
+      const authReq = req as AuthRequest;
       const { id } = req.params;
+
+      // Estado anterior dos campos sensíveis presentes no body (para o diff)
+      const touchedSensitive = pickAuditedFields(req.body);
+      let oldValues: Record<string, unknown> | null = null;
+      if (touchedSensitive) {
+        const { data: before } = await authReq.supabase
+          .from('users')
+          .select(AUDITED_USER_FIELDS.join(','))
+          .eq('id', id)
+          .single();
+        oldValues = pickAuditedFields(before);
+      }
+
       const user = await userService.updateUser(id, req.body);
+
+      if (touchedSensitive) {
+        auditService.log(authReq, 'user.updated', 'users', id, {
+          old: oldValues,
+          new: touchedSensitive,
+        });
+      }
 
       res.json({
         success: true,
@@ -109,6 +160,8 @@ export const userController = {
     try {
       const { id } = req.params;
       await userService.deleteUser(id);
+
+      auditService.log(req as AuthRequest, 'user.deleted', 'users', id);
 
       res.json({
         success: true,
@@ -154,6 +207,9 @@ export const userController = {
       }
 
       await userService.resetUserPassword(id, password);
+
+      // Nunca registrar a senha — só o fato de o reset ter ocorrido
+      auditService.log(req as AuthRequest, 'user.password_reset', 'users', id);
 
       res.json({
         success: true,

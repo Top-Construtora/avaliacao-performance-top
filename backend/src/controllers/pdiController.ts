@@ -3,6 +3,7 @@ import { pdiService } from '../services/pdiService';
 import { AuthRequest } from '../middleware/auth';
 import { PDIUtils } from '../utils/pdiUtils';
 import { notificationService } from '../services/notificationService';
+import { auditService } from '../services/auditService';
 import { assertCanAccessEmployeeData } from '../utils/accessControl';
 
 export const pdiController = {
@@ -52,6 +53,14 @@ export const pdiController = {
         periodo,
         status: 'active',
         createdBy: authReq.user?.id,
+      });
+
+      auditService.log(authReq, 'pdi.saved', 'development_plans', pdi?.id ?? null, {
+        new: {
+          employee_id: employeeId,
+          cycle_id: cycleId ?? null,
+          items_count: processedItems.length,
+        },
       });
 
       // Notificar o colaborador sobre PDI (se não for ele mesmo salvando)

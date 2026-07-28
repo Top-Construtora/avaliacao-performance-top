@@ -8,6 +8,7 @@ import {
   remindInterviewsTomorrow,
   autoCloseExpired,
 } from './reminderJobs';
+import { auditService } from '../services/auditService';
 
 const jobLogger = logger.child({ module: 'jobs' });
 
@@ -56,5 +57,15 @@ export function startJobs(): void {
     { timezone },
   );
 
-  jobLogger.info({ timezone }, 'Jobs agendados iniciados (00:10 encerramentos, 09:00 lembretes)');
+  // Dia 1 de cada mês, 01:00 — expurgo da auditoria (retenção de 24 meses)
+  cron.schedule(
+    '0 1 1 * *',
+    () => void runSafely('purgeAuditLogs', () => auditService.purgeOldEntries(24)),
+    { timezone },
+  );
+
+  jobLogger.info(
+    { timezone },
+    'Jobs agendados iniciados (00:10 encerramentos, 09:00 lembretes, mensal expurgo auditoria)',
+  );
 }

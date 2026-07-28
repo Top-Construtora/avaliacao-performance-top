@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../config/supabase';
 import { notificationService } from '../services/notificationService';
+import { auditService } from '../services/auditService';
 import { logger } from '../lib/logger';
 
 const jobLogger = logger.child({ module: 'jobs' });
@@ -261,6 +262,10 @@ export async function autoCloseExpired(): Promise<void> {
       cooldown_minutes: 24 * 60,
     });
 
+    auditService.logSystem('cycle.auto_closed', 'evaluation_cycles', cycle.id, {
+      new: { status: 'closed', title: cycle.title },
+    });
+
     jobLogger.info({ cycleId: cycle.id, title: cycle.title }, 'Ciclo encerrado automaticamente');
   }
 
@@ -298,6 +303,10 @@ export async function autoCloseExpired(): Promise<void> {
       group_key: `survey_autoclose:${survey.id}`,
       anti_spam: 'cooldown',
       cooldown_minutes: 24 * 60,
+    });
+
+    auditService.logSystem('survey.auto_closed', 'satisfaction_surveys', survey.id, {
+      new: { status: 'closed', title: survey.title },
     });
 
     jobLogger.info(
