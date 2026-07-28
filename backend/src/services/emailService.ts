@@ -50,7 +50,7 @@ function escapeHtml(value: string): string {
 }
 
 /**
- * Layout base dos e-mails do GIO: header escuro com wordmark, corpo claro,
+ * Layout base dos e-mails da GIO: header escuro com wordmark, corpo claro,
  * botão de ação em lima. CSS inline (obrigatório para clients de e-mail).
  */
 export function renderNotificationEmail(input: NotificationEmailInput): string {
@@ -67,7 +67,7 @@ export function renderNotificationEmail(input: NotificationEmailInput): string {
         <tr><td style="border-radius:8px;background:#D2FF00;">
           <a href="${fullActionUrl}"
              style="display:inline-block;padding:12px 28px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#1A1A1A;text-decoration:none;border-radius:8px;">
-            ${escapeHtml(input.actionLabel || 'Abrir no GIO')}
+            ${escapeHtml(input.actionLabel || 'Abrir na GIO')}
           </a>
         </td></tr>
       </table>`
@@ -95,7 +95,7 @@ export function renderNotificationEmail(input: NotificationEmailInput): string {
             </p>
             ${button}
             <p style="margin:24px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#9CA3AF;">
-              Você recebeu este e-mail porque tem notificações ativas no GIO.
+              Você recebeu este e-mail porque tem notificações ativas na GIO.
               Para ajustar suas preferências, acesse Configurações &gt; Notificações no sistema.
             </p>
           </td>

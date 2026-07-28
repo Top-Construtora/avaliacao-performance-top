@@ -6,13 +6,13 @@ interface GioLoadingProps {
   text?: string;
   /**
    * Mantido por compatibilidade de API. O loader é sempre um overlay
-   * de tela cheia (fixed inset-0), espelhando o GioLoader do GIO.
+   * de tela cheia (fixed inset-0), espelhando o GioLoader da GIO.
    */
   fullScreen?: boolean;
 }
 
 /**
- * Tela de carregamento — réplica estrita do GioLoader do GIO (identidade v4.0):
+ * Tela de carregamento — réplica estrita do GioLoader da GIO (identidade v4.0):
  * fundo obsidian com grid lime mascarado, anel cinza + arco lime girando/pulsando
  * e "Carregando…". A logo central é a mesma wordmark da sidebar (invertida p/ branco).
  */

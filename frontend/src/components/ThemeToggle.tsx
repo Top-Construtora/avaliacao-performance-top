@@ -7,7 +7,7 @@ export const ThemeToggle: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Espelha o switch do GIO (AppHeader): trilho 56×30, thumb lime 22px,
+  // Espelha o switch da GIO (AppHeader): trilho 56×30, thumb lime 22px,
   // desliza 26px, ícone lua(escuro)/sol(claro), easing "overshoot".
   return (
     <button

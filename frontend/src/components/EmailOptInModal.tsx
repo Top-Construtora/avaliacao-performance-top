@@ -65,7 +65,7 @@ const EmailOptInModal: React.FC<EmailOptInModalProps> = ({ isOpen, preferences, 
               </h2>
               <p className="text-sm text-muted-foreground mt-2">
                 {profile?.name?.split(' ')[0] ? `${profile.name.split(' ')[0]}, além` : 'Além'} dos
-                avisos dentro do sistema, o GIO pode te avisar por e-mail sobre avaliações,
+                avisos dentro do sistema, a GIO pode te avisar por e-mail sobre avaliações,
                 pesquisas, PDI e entrevistas. Quer receber?
               </p>
             </div>
