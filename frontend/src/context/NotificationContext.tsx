@@ -2,7 +2,11 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabase';
 import { notificationApiService } from '../services/notification.service';
-import { Notification, NOTIFICATION_DISPLAY_MAP, NotificationType } from '../types/notification.types';
+import {
+  Notification,
+  NOTIFICATION_DISPLAY_MAP,
+  NotificationType,
+} from '../types/notification.types';
 import toast from 'react-hot-toast';
 
 interface NotificationContextType {
@@ -11,7 +15,11 @@ interface NotificationContextType {
   loading: boolean;
   currentPage: number;
   totalPages: number;
-  fetchNotifications: (options?: { page?: number; filter?: string; type?: string }) => Promise<void>;
+  fetchNotifications: (options?: {
+    page?: number;
+    filter?: string;
+    type?: string;
+  }) => Promise<void>;
   markAsRead: (ids: string[]) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   archiveNotifications: (ids: string[]) => Promise<void>;
@@ -48,33 +56,38 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [profile?.id]);
 
-  const fetchNotifications = useCallback(async (options?: { page?: number; filter?: string; type?: string }) => {
-    if (!profile?.id) return;
-    setLoading(true);
-    try {
-      const result = await notificationApiService.getNotifications({
-        page: options?.page || 1,
-        limit: 20,
-        filter: options?.filter,
-        type: options?.type,
-      });
-      setNotifications(result.data);
-      setCurrentPage(result.page);
-      setTotalPages(result.totalPages);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [profile?.id]);
+  const fetchNotifications = useCallback(
+    async (options?: { page?: number; filter?: string; type?: string }) => {
+      if (!profile?.id) return;
+      setLoading(true);
+      try {
+        const result = await notificationApiService.getNotifications({
+          page: options?.page || 1,
+          limit: 20,
+          filter: options?.filter,
+          type: options?.type,
+        });
+        setNotifications(result.data);
+        setCurrentPage(result.page);
+        setTotalPages(result.totalPages);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [profile?.id],
+  );
 
   const markAsRead = useCallback(async (ids: string[]) => {
     try {
       await notificationApiService.markAsRead(ids);
-      setNotifications(prev =>
-        prev.map(n => ids.includes(n.id) ? { ...n, read: true, read_at: new Date().toISOString() } : n)
+      setNotifications((prev) =>
+        prev.map((n) =>
+          ids.includes(n.id) ? { ...n, read: true, read_at: new Date().toISOString() } : n,
+        ),
       );
-      setUnreadCount(prev => Math.max(0, prev - ids.length));
+      setUnreadCount((prev) => Math.max(0, prev - ids.length));
     } catch (error) {
       console.error('Error marking as read:', error);
     }
@@ -83,34 +96,42 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const markAllAsRead = useCallback(async () => {
     try {
       await notificationApiService.markAllAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, read: true, read_at: new Date().toISOString() })));
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, read: true, read_at: new Date().toISOString() })),
+      );
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all as read:', error);
     }
   }, []);
 
-  const archiveNotifications = useCallback(async (ids: string[]) => {
-    try {
-      await notificationApiService.archive(ids);
-      setNotifications(prev => prev.filter(n => !ids.includes(n.id)));
-      const unreadArchived = notifications.filter(n => ids.includes(n.id) && !n.read).length;
-      setUnreadCount(prev => Math.max(0, prev - unreadArchived));
-    } catch (error) {
-      console.error('Error archiving:', error);
-    }
-  }, [notifications]);
+  const archiveNotifications = useCallback(
+    async (ids: string[]) => {
+      try {
+        await notificationApiService.archive(ids);
+        setNotifications((prev) => prev.filter((n) => !ids.includes(n.id)));
+        const unreadArchived = notifications.filter((n) => ids.includes(n.id) && !n.read).length;
+        setUnreadCount((prev) => Math.max(0, prev - unreadArchived));
+      } catch (error) {
+        console.error('Error archiving:', error);
+      }
+    },
+    [notifications],
+  );
 
-  const deleteNotifications = useCallback(async (ids: string[]) => {
-    try {
-      await notificationApiService.deleteNotifications(ids);
-      setNotifications(prev => prev.filter(n => !ids.includes(n.id)));
-      const unreadDeleted = notifications.filter(n => ids.includes(n.id) && !n.read).length;
-      setUnreadCount(prev => Math.max(0, prev - unreadDeleted));
-    } catch (error) {
-      console.error('Error deleting:', error);
-    }
-  }, [notifications]);
+  const deleteNotifications = useCallback(
+    async (ids: string[]) => {
+      try {
+        await notificationApiService.deleteNotifications(ids);
+        setNotifications((prev) => prev.filter((n) => !ids.includes(n.id)));
+        const unreadDeleted = notifications.filter((n) => ids.includes(n.id) && !n.read).length;
+        setUnreadCount((prev) => Math.max(0, prev - unreadDeleted));
+      } catch (error) {
+        console.error('Error deleting:', error);
+      }
+    },
+    [notifications],
+  );
 
   // Fetch inicial + Realtime subscription
   useEffect(() => {
@@ -119,55 +140,89 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     refreshUnreadCount();
     fetchNotifications();
 
-    // Supabase Realtime subscription
-    const channel = supabase
-      .channel(`notifications:${profile.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `recipient_id=eq.${profile.id}`,
-        },
-        (payload) => {
-          const raw = payload.new as any;
-          const notification: Notification = {
-            id: raw.id,
-            type: raw.type as NotificationType,
-            displayCategory: NOTIFICATION_DISPLAY_MAP[raw.type as NotificationType] || 'info',
-            title: raw.title,
-            message: raw.message,
-            priority: raw.priority || 'medium',
-            action_url: raw.action_url || null,
-            actor_name: null,
-            entity_type: raw.entity_type || null,
-            entity_id: raw.entity_id || null,
-            metadata: raw.metadata || {},
-            read: raw.read || false,
-            archived: raw.archived || false,
-            created_at: raw.created_at,
-            read_at: raw.read_at || null,
-          };
+    let cancelado = false;
 
-          setNotifications(prev => [notification, ...prev]);
-          setUnreadCount(prev => prev + 1);
+    // O Realtime valida o filtro no servidor com
+    // has_column_privilege(claims.role, ...) — e a role `anon` não tem SELECT
+    // em `notifications`, então o join é recusado com
+    // "invalid column for filter recipient_id" e a assinatura morre calada.
+    //
+    // channel.subscribe() monta o payload de join com o token que o socket
+    // tiver naquele instante — que começa sendo a chave anônima — e só depois
+    // chama setAuth(), sem esperar. Por isso o setAuth explícito precisa vir
+    // antes do subscribe. Depois disso o heartbeat renova o token sozinho.
+    const conectar = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session || cancelado) return;
 
-          toast(notification.title, {
-            duration: 5000,
-            icon: notification.displayCategory === 'success' ? '\u2705'
-              : notification.displayCategory === 'warning' ? '\u26a0\ufe0f'
-              : notification.displayCategory === 'alert' ? '\ud83d\udea8'
-              : notification.displayCategory === 'achievement' ? '\ud83c\udfc6'
-              : '\ud83d\udd14',
-          });
-        }
-      )
-      .subscribe();
+      await supabase.realtime.setAuth(session.access_token);
+      if (cancelado) return;
 
-    channelRef.current = channel;
+      const channel = supabase
+        .channel(`notifications:${profile.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `recipient_id=eq.${profile.id}`,
+          },
+          (payload) => {
+            const raw = payload.new as any;
+            const notification: Notification = {
+              id: raw.id,
+              type: raw.type as NotificationType,
+              displayCategory: NOTIFICATION_DISPLAY_MAP[raw.type as NotificationType] || 'info',
+              title: raw.title,
+              message: raw.message,
+              priority: raw.priority || 'medium',
+              action_url: raw.action_url || null,
+              actor_name: null,
+              entity_type: raw.entity_type || null,
+              entity_id: raw.entity_id || null,
+              metadata: raw.metadata || {},
+              read: raw.read || false,
+              archived: raw.archived || false,
+              created_at: raw.created_at,
+              read_at: raw.read_at || null,
+            };
+
+            setNotifications((prev) => [notification, ...prev]);
+            setUnreadCount((prev) => prev + 1);
+
+            toast(notification.title, {
+              duration: 5000,
+              icon:
+                notification.displayCategory === 'success'
+                  ? '\u2705'
+                  : notification.displayCategory === 'warning'
+                    ? '\u26a0\ufe0f'
+                    : notification.displayCategory === 'alert'
+                      ? '\ud83d\udea8'
+                      : notification.displayCategory === 'achievement'
+                        ? '\ud83c\udfc6'
+                        : '\ud83d\udd14',
+            });
+          },
+        )
+        .subscribe((status) => {
+          // Sem isso a falha de assinatura fica invis\u00edvel: o sino simplesmente
+          // para de atualizar sozinho, sem erro no console.
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.error('Realtime de notifica\u00e7\u00f5es indispon\u00edvel:', status);
+          }
+        });
+
+      channelRef.current = channel;
+    };
+
+    conectar();
 
     return () => {
+      cancelado = true;
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
