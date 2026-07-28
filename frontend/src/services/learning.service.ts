@@ -30,9 +30,27 @@ export interface CourseClass {
   end_date: string | null;
   allow_late_completion: boolean;
   self_enrollment: boolean;
+  survey_id?: string | null;
   active: boolean;
   enrollments_count?: number;
   course?: Course | null;
+}
+
+export interface LearningTrack {
+  id: string;
+  name: string;
+  description: string | null;
+  active: boolean;
+  courses?: Array<{ position: number; course: Course | null }>;
+  enrollments_count?: number;
+}
+
+export interface MyTrack {
+  id: string;
+  track: { id: string; name: string; description: string | null } | null;
+  completed_at: string | null;
+  progress: number;
+  courses: Array<Course & { status: 'completed' | 'current' | 'locked' }>;
 }
 
 export interface Enrollment {
@@ -151,5 +169,39 @@ export const learningApiService = {
   },
   async classOverview(classId: string): Promise<Enrollment[]> {
     return unwrap(await api.get(`/learning/classes/${classId}/overview`)) || [];
+  },
+
+  // Trilhas
+  async myTracks(): Promise<MyTrack[]> {
+    return unwrap(await api.get('/learning/my-tracks')) || [];
+  },
+  async listTracks(all = false): Promise<LearningTrack[]> {
+    return unwrap(await api.get(`/learning/tracks${all ? '?all=true' : ''}`)) || [];
+  },
+  async createTrack(data: { name: string; description?: string }): Promise<LearningTrack> {
+    return unwrap(await api.post('/learning/tracks', data));
+  },
+  async setTrackCourses(trackId: string, courseIds: string[]): Promise<void> {
+    await api.put(`/learning/tracks/${trackId}/courses`, { course_ids: courseIds });
+  },
+  async enrollInTrack(trackId: string, userIds: string[]): Promise<{ enrolled: number }> {
+    return unwrap(await api.post(`/learning/tracks/${trackId}/enroll`, { user_ids: userIds }));
+  },
+
+  // Upload (Storage)
+  async uploadFile(file: File): Promise<{ url: string | null; path: string }> {
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    return unwrap(
+      await api.post('/learning/upload', {
+        filename: file.name,
+        content_type: file.type || 'application/octet-stream',
+        content_base64: base64,
+      }),
+    );
   },
 };

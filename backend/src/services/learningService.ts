@@ -310,6 +310,7 @@ export const learningService = {
     const progress = total === 0 ? 0 : Math.round((doneMandatory / total) * 100);
     const completed = total > 0 && doneMandatory >= total;
 
+    const wasCompleted = !!enrollment.completed_at;
     await supabase
       .from('class_enrollments')
       .update({
@@ -318,7 +319,255 @@ export const learningService = {
       })
       .eq('id', enrollmentId);
 
-    return { progress, completed };
+    // Conclusão nova: avança trilhas e devolve os ganchos (pesquisa da turma)
+    let justCompleted = false;
+    let surveyId: string | null = null;
+    let unlockedCourse: { id: string; title: string } | null = null;
+    if (completed && !wasCompleted) {
+      justCompleted = true;
+      const { data: cls } = await supabase
+        .from('course_classes')
+        .select('survey_id')
+        .eq('id', enrollment.class?.id ?? enrollment.class_id)
+        .single();
+      surveyId = cls?.survey_id || null;
+      unlockedCourse = await this.advanceTracks(supabase, userId, courseId);
+    }
+
+    return { progress, completed, justCompleted, surveyId, unlockedCourse };
+  },
+
+  // ===== TRILHAS =====
+
+  /**
+   * Liberação progressiva: ao concluir um curso, inscreve o usuário no
+   * próximo curso de cada trilha em que ele participa. Retorna o primeiro
+   * curso liberado (para a notificação). Marca a trilha como concluída
+   * quando não há próximo curso.
+   */
+  async advanceTracks(
+    supabase: SupabaseClient,
+    userId: string,
+    completedCourseId: string,
+  ): Promise<{ id: string; title: string } | null> {
+    const { data: trackEnrollments } = await supabase
+      .from('learning_track_enrollments')
+      .select('id, track_id')
+      .eq('user_id', userId)
+      .is('completed_at', null);
+    if (!trackEnrollments?.length) return null;
+
+    let unlocked: { id: string; title: string } | null = null;
+
+    for (const te of trackEnrollments) {
+      const { data: trackCourses } = await supabase
+        .from('learning_track_courses')
+        .select(
+          'course_id, position, course:courses!learning_track_courses_course_id_fkey(id, title, active)',
+        )
+        .eq('track_id', te.track_id)
+        .order('position');
+      const ordered = trackCourses || [];
+      const idx = ordered.findIndex((tc: any) => tc.course_id === completedCourseId);
+      if (idx === -1) continue;
+
+      // Próximo curso ativo da trilha ainda não concluído pelo usuário
+      const remaining = ordered.slice(idx + 1).filter((tc: any) => tc.course?.active);
+      if (remaining.length === 0) {
+        // Verifica se TODOS os cursos da trilha foram concluídos
+        const done = await this.userCompletedCourseIds(supabase, userId);
+        const allDone = ordered.every((tc: any) => done.has(tc.course_id));
+        if (allDone) {
+          await supabase
+            .from('learning_track_enrollments')
+            .update({ completed_at: new Date().toISOString() })
+            .eq('id', te.id);
+        }
+        continue;
+      }
+
+      const next = remaining[0] as any;
+      const classId = await this.resolveDefaultClass(supabase, next.course_id);
+      if (!classId) continue;
+
+      const { error } = await supabase
+        .from('class_enrollments')
+        .insert({ class_id: classId, user_id: userId, mandatory: false, enrolled_by: null });
+      // 23505 = já inscrito (curso compartilhado entre trilhas) — segue o jogo
+      if (!error && !unlocked) {
+        unlocked = { id: next.course_id, title: next.course?.title || 'Próximo curso' };
+      }
+    }
+    return unlocked;
+  },
+
+  /** Cursos que o usuário já concluiu (qualquer turma). */
+  async userCompletedCourseIds(supabase: SupabaseClient, userId: string): Promise<Set<string>> {
+    const { data } = await supabase
+      .from('class_enrollments')
+      .select('completed_at, class:course_classes!class_enrollments_class_id_fkey(course_id)')
+      .eq('user_id', userId)
+      .not('completed_at', 'is', null);
+    return new Set((data || []).map((e: any) => e.class?.course_id).filter(Boolean));
+  },
+
+  /** Turma padrão de um curso; cria "Trilha" se o curso não tiver turma ativa. */
+  async resolveDefaultClass(supabase: SupabaseClient, courseId: string): Promise<string | null> {
+    const { data: existing } = await supabase
+      .from('course_classes')
+      .select('id')
+      .eq('course_id', courseId)
+      .eq('active', true)
+      .order('created_at')
+      .limit(1);
+    if (existing?.length) return existing[0].id;
+
+    const { data: created } = await supabase
+      .from('course_classes')
+      .insert({ course_id: courseId, name: 'Trilha', allow_late_completion: true })
+      .select('id')
+      .single();
+    return created?.id || null;
+  },
+
+  async listTracks(supabase: SupabaseClient, includeInactive = false) {
+    let query = supabase
+      .from('learning_tracks')
+      .select(
+        `*,
+        courses:learning_track_courses(position, course:courses!learning_track_courses_course_id_fkey(id, title, active)),
+        enrollments:learning_track_enrollments(id)`,
+      )
+      .order('created_at', { ascending: false });
+    if (!includeInactive) query = query.eq('active', true);
+    const { data, error } = await query;
+    if (error) throw AppError.internal(`Erro ao listar trilhas: ${error.message}`);
+    return (data || []).map((t: any) => ({
+      ...t,
+      courses: (t.courses || []).sort((a: any, b: any) => a.position - b.position),
+      enrollments_count: (t.enrollments || []).length,
+      enrollments: undefined,
+    }));
+  },
+
+  async createTrack(
+    supabase: SupabaseClient,
+    input: { name: string; description?: string | null; createdBy: string },
+  ) {
+    const { data, error } = await supabase
+      .from('learning_tracks')
+      .insert({
+        name: input.name,
+        description: input.description || null,
+        created_by: input.createdBy,
+      })
+      .select()
+      .single();
+    if (error) throw AppError.internal(`Erro ao criar trilha: ${error.message}`);
+    return data;
+  },
+
+  async setTrackCourses(
+    supabase: SupabaseClient,
+    trackId: string,
+    courseIds: string[],
+  ): Promise<void> {
+    await supabase.from('learning_track_courses').delete().eq('track_id', trackId);
+    if (courseIds.length > 0) {
+      const { error } = await supabase
+        .from('learning_track_courses')
+        .insert(
+          courseIds.map((course_id, position) => ({ track_id: trackId, course_id, position })),
+        );
+      if (error) throw AppError.internal(`Erro ao montar trilha: ${error.message}`);
+    }
+  },
+
+  /** Inscreve usuários na trilha e no PRIMEIRO curso dela. */
+  async enrollInTrack(
+    supabase: SupabaseClient,
+    trackId: string,
+    userIds: string[],
+    enrolledBy: string,
+  ): Promise<{ enrolled: string[] }> {
+    const { data: trackCourses } = await supabase
+      .from('learning_track_courses')
+      .select('course_id, position, course:courses!learning_track_courses_course_id_fkey(active)')
+      .eq('track_id', trackId)
+      .order('position');
+    const first = (trackCourses || []).find((tc: any) => tc.course?.active);
+    if (!first) throw AppError.badRequest('A trilha precisa de ao menos um curso ativo');
+
+    const { data: existing } = await supabase
+      .from('learning_track_enrollments')
+      .select('user_id')
+      .eq('track_id', trackId);
+    const existingIds = new Set((existing || []).map((e: any) => e.user_id));
+    const newIds = Array.from(new Set(userIds)).filter((id) => !existingIds.has(id));
+    if (newIds.length === 0) return { enrolled: [] };
+
+    const { error } = await supabase
+      .from('learning_track_enrollments')
+      .insert(newIds.map((user_id) => ({ track_id: trackId, user_id, enrolled_by: enrolledBy })));
+    if (error) throw AppError.internal(`Erro ao inscrever na trilha: ${error.message}`);
+
+    const classId = await this.resolveDefaultClass(supabase, first.course_id);
+    if (classId) {
+      // Ignora conflito para quem já estava no primeiro curso
+      for (const user_id of newIds) {
+        await supabase
+          .from('class_enrollments')
+          .insert({ class_id: classId, user_id, mandatory: false, enrolled_by: enrolledBy })
+          .then(() => undefined);
+      }
+    }
+    return { enrolled: newIds };
+  },
+
+  /** Trilhas do usuário com o status de cada curso (concluído/atual/bloqueado). */
+  async myTracks(supabase: SupabaseClient, userId: string) {
+    const { data: enrollments, error } = await supabase
+      .from('learning_track_enrollments')
+      .select(
+        'id, track_id, completed_at, track:learning_tracks!learning_track_enrollments_track_id_fkey(id, name, description)',
+      )
+      .eq('user_id', userId);
+    if (error) throw AppError.internal(`Erro ao listar trilhas: ${error.message}`);
+    if (!enrollments?.length) return [];
+
+    const done = await this.userCompletedCourseIds(supabase, userId);
+    const result = [];
+    for (const te of enrollments) {
+      const { data: trackCourses } = await supabase
+        .from('learning_track_courses')
+        .select(
+          'course_id, position, course:courses!learning_track_courses_course_id_fkey(id, title, workload_hours)',
+        )
+        .eq('track_id', te.track_id)
+        .order('position');
+
+      let currentFound = false;
+      const courses = (trackCourses || []).map((tc: any) => {
+        const isDone = done.has(tc.course_id);
+        let status: 'completed' | 'current' | 'locked' = 'locked';
+        if (isDone) status = 'completed';
+        else if (!currentFound) {
+          status = 'current';
+          currentFound = true;
+        }
+        return { ...tc.course, status };
+      });
+
+      const completedCount = courses.filter((c: any) => c.status === 'completed').length;
+      result.push({
+        id: te.id,
+        track: te.track,
+        completed_at: te.completed_at,
+        courses,
+        progress: courses.length === 0 ? 0 : Math.round((completedCount / courses.length) * 100),
+      });
+    }
+    return result;
   },
 
   // ===== CATÁLOGO / AUTOINSCRIÇÃO =====

@@ -28,6 +28,23 @@ const classSchema = z.object({
   end_date: z.string().optional().nullable(),
   allow_late_completion: z.boolean().optional(),
   self_enrollment: z.boolean().optional(),
+  survey_id: z.string().uuid().optional().nullable(),
+});
+
+const trackSchema = z.object({
+  name: z.string().min(2).max(200),
+  description: z.string().max(2000).optional().nullable(),
+});
+
+const trackCoursesSchema = z.object({
+  course_ids: z.array(z.string().uuid()).max(50),
+});
+
+const uploadSchema = z.object({
+  filename: z.string().min(1).max(200),
+  content_type: z.string().min(3).max(100),
+  // base64 puro (sem prefixo data:); limite do body é 10mb
+  content_base64: z.string().min(10),
 });
 
 const enrollSchema = z.object({
@@ -180,6 +197,7 @@ export const learningController = {
         ...(parsed.data.self_enrollment !== undefined
           ? { self_enrollment: parsed.data.self_enrollment }
           : {}),
+        ...(parsed.data.survey_id !== undefined ? { survey_id: parsed.data.survey_id } : {}),
         ...(parsed.data.active !== undefined ? { active: parsed.data.active } : {}),
       });
       res.json({ success: true, data: cls });
@@ -269,7 +287,187 @@ export const learningController = {
         authReq.user!.id,
         !!req.body?.done,
       );
+
+      // Ganchos de conclusão (fase 5B): pesquisa da turma, PDI e trilha
+      if (result.justCompleted) {
+        const userId = authReq.user!.id;
+
+        if (result.surveyId) {
+          notificationService
+            .send(authReq.supabase, {
+              type: 'survey_available',
+              title: 'Avalie o curso que você concluiu',
+              message: 'Sua opinião ajuda a melhorar os próximos treinamentos. Leva 2 minutos.',
+              targets: [{ type: 'user', user_id: userId }],
+              action_url: `/satisfaction/${result.surveyId}/respond`,
+              entity_type: 'satisfaction_survey',
+              entity_id: result.surveyId,
+            })
+            .catch((err) => console.error('Notification error:', err));
+        }
+
+        if (result.unlockedCourse) {
+          notificationService
+            .send(authReq.supabase, {
+              type: 'course_enrolled',
+              title: 'Próximo curso da trilha liberado',
+              message: `Você concluiu uma etapa da trilha — o curso "${result.unlockedCourse.title}" foi liberado.`,
+              targets: [{ type: 'user', user_id: userId }],
+              action_url: '/learning',
+              entity_type: 'course',
+              entity_id: result.unlockedCourse.id,
+            })
+            .catch((err) => console.error('Notification error:', err));
+        }
+
+        // Se há PDI ativo, sugere atualizar a ação correspondente
+        const { data: activePdi } = await authReq.supabase
+          .from('development_plans')
+          .select('id')
+          .eq('employee_id', userId)
+          .eq('status', 'active')
+          .limit(1);
+        if (activePdi?.length) {
+          notificationService
+            .send(authReq.supabase, {
+              type: 'pdi_updated',
+              title: 'Curso concluído — atualize seu PDI',
+              message:
+                'Se este curso fazia parte de uma ação do seu PDI, aproveite para atualizar o status dela.',
+              targets: [{ type: 'user', user_id: userId }],
+              action_url: '/my-pdi',
+              entity_type: 'development_plan',
+              entity_id: activePdi[0].id,
+              group_key: `pdi_course_done:${activePdi[0].id}`,
+              anti_spam: 'cooldown',
+              cooldown_minutes: 24 * 60,
+            })
+            .catch((err) => console.error('Notification error:', err));
+        }
+      }
+
       res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ===== TRILHAS =====
+
+  async listTracks(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const tracks = await learningService.listTracks(authReq.supabase, req.query.all === 'true');
+      res.json({ success: true, data: tracks });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async createTrack(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const parsed = trackSchema.safeParse(req.body);
+      if (!parsed.success) return validationError(res, parsed.error.issues);
+      const track = await learningService.createTrack(authReq.supabase, {
+        name: parsed.data.name,
+        description: parsed.data.description,
+        createdBy: authReq.user!.id,
+      });
+      auditService.log(authReq, 'learning_track.created', 'learning_tracks', track?.id ?? null, {
+        new: { name: parsed.data.name },
+      });
+      res.status(201).json({ success: true, data: track });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async setTrackCourses(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const parsed = trackCoursesSchema.safeParse(req.body);
+      if (!parsed.success) return validationError(res, parsed.error.issues);
+      await learningService.setTrackCourses(
+        authReq.supabase,
+        req.params.id,
+        parsed.data.course_ids,
+      );
+      res.json({ success: true, data: null });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async enrollInTrack(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const parsed = enrollSchema.safeParse(req.body);
+      if (!parsed.success) return validationError(res, parsed.error.issues);
+
+      const { enrolled } = await learningService.enrollInTrack(
+        authReq.supabase,
+        req.params.id,
+        parsed.data.user_ids,
+        authReq.user!.id,
+      );
+
+      if (enrolled.length > 0) {
+        notificationService
+          .send(authReq.supabase, {
+            type: 'course_enrolled',
+            title: 'Você entrou em uma trilha de aprendizagem',
+            message: `${authReq.user!.name} inscreveu você em uma trilha. O primeiro curso já está liberado.`,
+            targets: enrolled.map((id) => ({ type: 'user' as const, user_id: id })),
+            actor_id: authReq.user!.id,
+            action_url: '/learning',
+            entity_type: 'learning_track',
+            entity_id: req.params.id,
+          })
+          .catch((err) => console.error('Notification error:', err));
+      }
+
+      res.json({ success: true, data: { enrolled: enrolled.length } });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async myTracks(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const tracks = await learningService.myTracks(authReq.supabase, authReq.user!.id);
+      res.json({ success: true, data: tracks });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ===== UPLOAD (Storage) =====
+
+  async uploadFile(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const parsed = uploadSchema.safeParse(req.body);
+      if (!parsed.success) return validationError(res, parsed.error.issues);
+
+      const buffer = Buffer.from(parsed.data.content_base64, 'base64');
+      if (buffer.length > 8 * 1024 * 1024) {
+        return res.status(400).json({ success: false, error: 'Arquivo acima de 8MB' });
+      }
+
+      const safeName = parsed.data.filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `cursos/${Date.now()}_${safeName}`;
+
+      const { error } = await authReq.supabase.storage
+        .from('learning')
+        .upload(path, buffer, { contentType: parsed.data.content_type, upsert: false });
+      if (error) {
+        return res.status(500).json({ success: false, error: `Erro no upload: ${error.message}` });
+      }
+
+      const { data: pub } = authReq.supabase.storage.from('learning').getPublicUrl(path);
+      res.status(201).json({ success: true, data: { url: pub?.publicUrl || null, path } });
     } catch (error) {
       next(error);
     }

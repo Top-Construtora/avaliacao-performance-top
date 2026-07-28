@@ -19,6 +19,9 @@ import {
   X,
   Users,
   Trash2,
+  Route,
+  Lock,
+  Upload,
 } from 'lucide-react';
 import Button from '../../components/Button';
 import { useUserRole } from '../../context/AuthContext';
@@ -29,8 +32,11 @@ import {
   CourseContent,
   Enrollment,
   ExternalCourse,
+  LearningTrack,
+  MyTrack,
 } from '../../services/learning.service';
 import { userService } from '../../services/user.service';
+import { satisfactionService } from '../../services/satisfaction.service';
 
 type Tab = 'mine' | 'catalog' | 'external' | 'admin';
 
@@ -92,13 +98,29 @@ const Learning = () => {
   const [enrollSelection, setEnrollSelection] = useState<string[]>([]);
   const [overview, setOverview] = useState<{ cls: CourseClass; rows: Enrollment[] } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  // Trilhas (5B)
+  const [myTracks, setMyTracks] = useState<MyTrack[]>([]);
+  const [tracks, setTracks] = useState<LearningTrack[]>([]);
+  const [surveys, setSurveys] = useState<Array<{ id: string; title: string }>>([]);
+  const [showTrackModal, setShowTrackModal] = useState(false);
+  const [trackForm, setTrackForm] = useState({ name: '', description: '' });
+  const [trackCoursesTarget, setTrackCoursesTarget] = useState<LearningTrack | null>(null);
+  const [trackCoursesSelection, setTrackCoursesSelection] = useState<string[]>([]);
+  const [trackEnrollTarget, setTrackEnrollTarget] = useState<LearningTrack | null>(null);
 
   const loadTab = useCallback(
     async (targetTab: Tab) => {
       setLoading(true);
       try {
         if (targetTab === 'mine') {
-          setEnrollments(await learningApiService.myEnrollments());
+          const [mine, tracksMine] = await Promise.all([
+            learningApiService.myEnrollments(),
+            learningApiService.myTracks(),
+          ]);
+          setEnrollments(mine);
+          setMyTracks(tracksMine);
         } else if (targetTab === 'catalog') {
           setCatalog(await learningApiService.catalog());
         } else if (targetTab === 'external') {
@@ -109,7 +131,14 @@ const Learning = () => {
           setExternals(mine);
           setPendingExternals(pending);
         } else {
-          setCourses(await learningApiService.listCourses(true));
+          const [allCourses, allTracks, activeSurveys] = await Promise.all([
+            learningApiService.listCourses(true),
+            learningApiService.listTracks(true),
+            satisfactionService.getSurveys('active').catch(() => []),
+          ]);
+          setCourses(allCourses);
+          setTracks(allTracks);
+          setSurveys((activeSurveys as any[]).map((s) => ({ id: s.id, title: s.title })));
         }
       } catch {
         toast.error('Erro ao carregar dados');
@@ -284,127 +313,189 @@ const Learning = () => {
         </div>
       ) : tab === 'mine' ? (
         /* ===== MEUS CURSOS ===== */
-        enrollments.length === 0 ? (
-          <div className="bg-card border border-border rounded-xl py-16 text-center text-sm text-muted-foreground">
-            Você ainda não está inscrito em nenhum curso. Veja o Catálogo.
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {enrollments.map((enrollment) => {
-              const isOpen = openEnrollment?.id === enrollment.id;
-              const display = isOpen ? openEnrollment! : enrollment;
-              const course = enrollment.class?.course;
-              const sections = isOpen
-                ? Array.from(new Set((openEnrollment!.contents || []).map((c) => c.section || '')))
-                : [];
-              return (
-                <div
-                  key={enrollment.id}
-                  className="bg-card border border-border rounded-xl p-4 md:p-5"
-                >
-                  <button
-                    type="button"
-                    className="w-full text-left"
-                    onClick={() => openEnrollmentDetail(enrollment)}
-                  >
+        <div className="space-y-6">
+          {/* Trilhas (5B): sequência com liberação progressiva */}
+          {myTracks.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <Route className="h-4 w-4" /> Minhas trilhas
+              </h3>
+              <div className="space-y-3">
+                {myTracks.map((mt) => (
+                  <div key={mt.id} className="bg-card border border-border rounded-xl p-4 md:p-5">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-foreground">
-                          {course?.title}
-                          <span className="font-normal text-muted-foreground">
-                            {' '}
-                            · {enrollment.class?.name}
-                          </span>
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {course?.workload_hours ? `${course.workload_hours}h · ` : ''}
-                          Prazo: {formatDate(enrollment.class?.end_date || null)}
-                          {enrollment.mandatory ? ' · Obrigatório' : ''}
-                        </p>
-                        <div className="flex items-center gap-3 mt-2">
-                          <div className="flex-1 max-w-xs">{progressBar(display.progress)}</div>
-                          <span className="text-xs font-medium text-foreground">
-                            {display.progress}%
-                          </span>
-                          {display.completed_at && (
-                            <span className="inline-flex items-center gap-1 text-xs text-success">
-                              <Check className="h-3.5 w-3.5" /> Concluído
-                            </span>
-                          )}
-                        </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground">{mt.track?.name}</p>
+                        {mt.track?.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {mt.track.description}
+                          </p>
+                        )}
                       </div>
-                      {isOpen ? (
-                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      )}
+                      <span className="text-xs font-medium text-foreground">
+                        {mt.progress}%
+                        {mt.completed_at && (
+                          <span className="ml-2 inline-flex items-center gap-1 text-success">
+                            <Check className="h-3.5 w-3.5" /> Trilha concluída
+                          </span>
+                        )}
+                      </span>
                     </div>
-                  </button>
-
-                  {isOpen && (
-                    <div className="border-t border-border mt-4 pt-4 space-y-4">
-                      {course?.description && (
-                        <p className="text-sm text-muted-foreground">{course.description}</p>
-                      )}
-                      {sections.map((section) => (
-                        <div key={section || '_default'}>
-                          {section && (
-                            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                              {section}
-                            </h4>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {mt.courses.map((c, index) => (
+                        <span
+                          key={c.id}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                            c.status === 'completed'
+                              ? 'bg-success/15 text-success'
+                              : c.status === 'current'
+                                ? 'bg-lime/20 text-lime-deep dark:text-lime'
+                                : 'bg-secondary text-muted-foreground'
+                          }`}
+                        >
+                          {c.status === 'completed' ? (
+                            <Check className="h-3 w-3" />
+                          ) : c.status === 'locked' ? (
+                            <Lock className="h-3 w-3" />
+                          ) : (
+                            <BookOpen className="h-3 w-3" />
                           )}
-                          <div className="space-y-1.5">
-                            {(openEnrollment!.contents || [])
-                              .filter((c) => (c.section || '') === section)
-                              .map((content) => {
-                                const Icon = CONTENT_ICONS[content.type] || Link2;
-                                return (
-                                  <div
-                                    key={content.id}
-                                    className="flex items-center gap-2 text-sm bg-secondary/50 rounded-lg px-3 py-2"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={!!content.done}
-                                      onChange={(e) => toggleContent(content.id, e.target.checked)}
-                                      className="rounded border-border accent-[#D2FF00]"
-                                    />
-                                    <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    <span
-                                      className={
-                                        content.done
-                                          ? 'line-through text-muted-foreground'
-                                          : 'text-foreground'
-                                      }
-                                    >
-                                      {content.title}
-                                    </span>
-                                    {!content.mandatory && (
-                                      <span className="text-xs text-muted-foreground">
-                                        (opcional)
-                                      </span>
-                                    )}
-                                    <a
-                                      href={content.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="ml-auto text-lime-deep dark:text-lime hover:opacity-80"
-                                    >
-                                      <ExternalLink className="h-4 w-4" />
-                                    </a>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        </div>
+                          {index + 1}. {c.title}
+                        </span>
                       ))}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {enrollments.length === 0 ? (
+            <div className="bg-card border border-border rounded-xl py-16 text-center text-sm text-muted-foreground">
+              Você ainda não está inscrito em nenhum curso. Veja o Catálogo.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {enrollments.map((enrollment) => {
+                const isOpen = openEnrollment?.id === enrollment.id;
+                const display = isOpen ? openEnrollment! : enrollment;
+                const course = enrollment.class?.course;
+                const sections = isOpen
+                  ? Array.from(
+                      new Set((openEnrollment!.contents || []).map((c) => c.section || '')),
+                    )
+                  : [];
+                return (
+                  <div
+                    key={enrollment.id}
+                    className="bg-card border border-border rounded-xl p-4 md:p-5"
+                  >
+                    <button
+                      type="button"
+                      className="w-full text-left"
+                      onClick={() => openEnrollmentDetail(enrollment)}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-foreground">
+                            {course?.title}
+                            <span className="font-normal text-muted-foreground">
+                              {' '}
+                              · {enrollment.class?.name}
+                            </span>
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {course?.workload_hours ? `${course.workload_hours}h · ` : ''}
+                            Prazo: {formatDate(enrollment.class?.end_date || null)}
+                            {enrollment.mandatory ? ' · Obrigatório' : ''}
+                          </p>
+                          <div className="flex items-center gap-3 mt-2">
+                            <div className="flex-1 max-w-xs">{progressBar(display.progress)}</div>
+                            <span className="text-xs font-medium text-foreground">
+                              {display.progress}%
+                            </span>
+                            {display.completed_at && (
+                              <span className="inline-flex items-center gap-1 text-xs text-success">
+                                <Check className="h-3.5 w-3.5" /> Concluído
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {isOpen ? (
+                          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                    </button>
+
+                    {isOpen && (
+                      <div className="border-t border-border mt-4 pt-4 space-y-4">
+                        {course?.description && (
+                          <p className="text-sm text-muted-foreground">{course.description}</p>
+                        )}
+                        {sections.map((section) => (
+                          <div key={section || '_default'}>
+                            {section && (
+                              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                                {section}
+                              </h4>
+                            )}
+                            <div className="space-y-1.5">
+                              {(openEnrollment!.contents || [])
+                                .filter((c) => (c.section || '') === section)
+                                .map((content) => {
+                                  const Icon = CONTENT_ICONS[content.type] || Link2;
+                                  return (
+                                    <div
+                                      key={content.id}
+                                      className="flex items-center gap-2 text-sm bg-secondary/50 rounded-lg px-3 py-2"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={!!content.done}
+                                        onChange={(e) =>
+                                          toggleContent(content.id, e.target.checked)
+                                        }
+                                        className="rounded border-border accent-[#D2FF00]"
+                                      />
+                                      <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                      <span
+                                        className={
+                                          content.done
+                                            ? 'line-through text-muted-foreground'
+                                            : 'text-foreground'
+                                        }
+                                      >
+                                        {content.title}
+                                      </span>
+                                      {!content.mandatory && (
+                                        <span className="text-xs text-muted-foreground">
+                                          (opcional)
+                                        </span>
+                                      )}
+                                      <a
+                                        href={content.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="ml-auto text-lime-deep dark:text-lime hover:opacity-80"
+                                      >
+                                        <ExternalLink className="h-4 w-4" />
+                                      </a>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       ) : tab === 'catalog' ? (
         /* ===== CATÁLOGO ===== */
         catalog.length === 0 ? (
@@ -572,7 +663,79 @@ const Learning = () => {
         </div>
       ) : (
         /* ===== GESTÃO ===== */
-        <div className="space-y-3">
+        <div className="space-y-6">
+          {/* Trilhas (5B) */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <Route className="h-4 w-4" /> Trilhas
+              </h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTrackModal(true)}
+                icon={<Plus size={14} />}
+              >
+                Nova trilha
+              </Button>
+            </div>
+            {tracks.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Nenhuma trilha criada. Trilhas encadeiam cursos com liberação progressiva.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {tracks.map((track) => (
+                  <div
+                    key={track.id}
+                    className="bg-card border border-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground">{track.name}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {(track.courses || []).length > 0
+                          ? (track.courses || [])
+                              .map((tc, i) => `${i + 1}. ${tc.course?.title}`)
+                              .join(' → ')
+                          : 'Sem cursos ainda'}
+                        {' · '}
+                        {track.enrollments_count} inscritos
+                      </p>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setTrackCoursesTarget(track);
+                          setTrackCoursesSelection(
+                            (track.courses || []).map((tc) => tc.course?.id || '').filter(Boolean),
+                          );
+                        }}
+                      >
+                        Cursos
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        icon={<Users size={13} />}
+                        onClick={() => {
+                          setTrackEnrollTarget(track);
+                          setEnrollSelection([]);
+                        }}
+                      >
+                        Inscrever
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <BookOpen className="h-4 w-4" /> Cursos
+          </h3>
           {courses.length === 0 ? (
             <div className="bg-card border border-border rounded-xl py-16 text-center text-sm text-muted-foreground">
               Nenhum curso criado ainda.
@@ -688,6 +851,48 @@ const Learning = () => {
                               placeholder="Seção (opcional)"
                               className="px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground w-32"
                             />
+                            {/* Upload nativo (5B): envia ao Storage e preenche a URL */}
+                            <label
+                              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-sm cursor-pointer text-muted-foreground hover:text-foreground ${uploading ? 'opacity-60 pointer-events-none' : ''}`}
+                            >
+                              {uploading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Upload className="h-4 w-4" />
+                              )}
+                              Enviar arquivo
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept=".pdf,.png,.jpg,.jpeg,.mp4,.pptx,.docx,.xlsx"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  e.target.value = '';
+                                  if (!file) return;
+                                  if (file.size > 8 * 1024 * 1024) {
+                                    toast.error('Arquivo acima de 8MB — use um link externo');
+                                    return;
+                                  }
+                                  setUploading(true);
+                                  try {
+                                    const result = await learningApiService.uploadFile(file);
+                                    if (result.url) {
+                                      setContentForm((f) => ({
+                                        ...f,
+                                        url: result.url!,
+                                        type: 'file',
+                                        title: f.title || file.name,
+                                      }));
+                                      toast.success('Arquivo enviado — URL preenchida');
+                                    }
+                                  } catch {
+                                    toast.error('Erro no upload');
+                                  } finally {
+                                    setUploading(false);
+                                  }
+                                }}
+                              />
+                            </label>
                             <Button
                               variant="outline"
                               size="sm"
@@ -730,6 +935,27 @@ const Learning = () => {
                               className="flex flex-wrap items-center gap-2 text-sm bg-secondary/50 rounded-lg px-3 py-2"
                             >
                               <span className="text-foreground font-medium">{cls.name}</span>
+                              {/* Pesquisa de avaliação disparada na conclusão (5B) */}
+                              <select
+                                value={cls.survey_id || ''}
+                                onChange={async (e) => {
+                                  await learningApiService
+                                    .updateClass(cls.id, {
+                                      survey_id: (e.target.value || null) as any,
+                                    })
+                                    .catch(() => toast.error('Erro ao vincular pesquisa'));
+                                  refreshCourse(openCourse.id);
+                                }}
+                                className="px-2 py-1 rounded-lg border border-border bg-background text-foreground text-xs"
+                                title="Pesquisa enviada ao concluir o curso"
+                              >
+                                <option value="">Sem pesquisa</option>
+                                {surveys.map((s) => (
+                                  <option key={s.id} value={s.id}>
+                                    📋 {s.title}
+                                  </option>
+                                ))}
+                              </select>
                               <span className="text-xs text-muted-foreground">
                                 {formatDate(cls.start_date)} → {formatDate(cls.end_date)} ·{' '}
                                 {cls.enrollments_count} inscritos
@@ -1101,6 +1327,190 @@ const Learning = () => {
             <div className="flex justify-end mt-5">
               <Button variant="outline" onClick={() => setOverview(null)}>
                 Fechar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: nova trilha */}
+      {showTrackModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-popover text-popover-foreground border border-border rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-lg font-bold text-foreground mb-4">Nova trilha</h2>
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={trackForm.name}
+                onChange={(e) => setTrackForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Nome da trilha (ex.: Onboarding de líderes)"
+                className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground"
+              />
+              <textarea
+                value={trackForm.description}
+                onChange={(e) => setTrackForm((f) => ({ ...f, description: e.target.value }))}
+                rows={2}
+                placeholder="Descrição (opcional)"
+                className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground"
+              />
+            </div>
+            <div className="flex justify-end gap-2 mt-5">
+              <Button variant="outline" onClick={() => setShowTrackModal(false)} disabled={busy}>
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                disabled={busy || trackForm.name.trim().length < 2}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await learningApiService.createTrack({
+                      name: trackForm.name.trim(),
+                      description: trackForm.description || undefined,
+                    });
+                    toast.success('Trilha criada — agora adicione os cursos');
+                    setShowTrackModal(false);
+                    setTrackForm({ name: '', description: '' });
+                    loadTab('admin');
+                  } catch {
+                    toast.error('Erro ao criar trilha');
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                icon={busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Route size={16} />}
+              >
+                Criar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: cursos da trilha (a ordem de seleção define a sequência) */}
+      {trackCoursesTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-popover text-popover-foreground border border-border rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-lg font-bold text-foreground mb-1">Cursos da trilha</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              {trackCoursesTarget.name} — a ordem em que você marca define a sequência
+            </p>
+            <div className="max-h-64 overflow-y-auto border border-border rounded-lg p-2 space-y-1">
+              {courses
+                .filter((c) => c.active)
+                .map((c) => {
+                  const orderIndex = trackCoursesSelection.indexOf(c.id);
+                  return (
+                    <label
+                      key={c.id}
+                      className="flex items-center gap-2 text-sm cursor-pointer px-1 py-0.5 rounded hover:bg-accent"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={orderIndex >= 0}
+                        onChange={() =>
+                          setTrackCoursesSelection((sel) =>
+                            sel.includes(c.id) ? sel.filter((id) => id !== c.id) : [...sel, c.id],
+                          )
+                        }
+                        className="rounded border-border accent-[#D2FF00]"
+                      />
+                      {orderIndex >= 0 && (
+                        <span className="w-5 h-5 rounded-full bg-lime text-obsidian text-xs font-bold flex items-center justify-center">
+                          {orderIndex + 1}
+                        </span>
+                      )}
+                      <span className="text-foreground">{c.title}</span>
+                    </label>
+                  );
+                })}
+            </div>
+            <div className="flex justify-end gap-2 mt-5">
+              <Button variant="outline" onClick={() => setTrackCoursesTarget(null)} disabled={busy}>
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await learningApiService.setTrackCourses(
+                      trackCoursesTarget.id,
+                      trackCoursesSelection,
+                    );
+                    toast.success('Trilha atualizada');
+                    setTrackCoursesTarget(null);
+                    loadTab('admin');
+                  } catch {
+                    toast.error('Erro ao salvar cursos da trilha');
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                icon={busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check size={16} />}
+              >
+                Salvar sequência
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: inscrever na trilha */}
+      {trackEnrollTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-popover text-popover-foreground border border-border rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-lg font-bold text-foreground mb-1">Inscrever na trilha</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              {trackEnrollTarget.name} — o primeiro curso é liberado imediatamente
+            </p>
+            <div className="max-h-64 overflow-y-auto border border-border rounded-lg p-2 space-y-1">
+              {users.map((u) => (
+                <label
+                  key={u.id}
+                  className="flex items-center gap-2 text-sm cursor-pointer px-1 py-0.5 rounded hover:bg-accent"
+                >
+                  <input
+                    type="checkbox"
+                    checked={enrollSelection.includes(u.id)}
+                    onChange={() =>
+                      setEnrollSelection((sel) =>
+                        sel.includes(u.id) ? sel.filter((id) => id !== u.id) : [...sel, u.id],
+                      )
+                    }
+                    className="rounded border-border accent-[#D2FF00]"
+                  />
+                  <span className="text-foreground">{u.name}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2 mt-5">
+              <Button variant="outline" onClick={() => setTrackEnrollTarget(null)} disabled={busy}>
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                disabled={busy || enrollSelection.length === 0}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    const result = await learningApiService.enrollInTrack(
+                      trackEnrollTarget.id,
+                      enrollSelection,
+                    );
+                    toast.success(`${result.enrolled} colaborador(es) na trilha`);
+                    setTrackEnrollTarget(null);
+                    loadTab('admin');
+                  } catch (error: any) {
+                    toast.error(error?.message || 'Erro ao inscrever');
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                icon={busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Users size={16} />}
+              >
+                Inscrever
               </Button>
             </div>
           </div>

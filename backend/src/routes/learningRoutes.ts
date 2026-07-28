@@ -20,6 +20,16 @@ router.post('/external', learningController.submitExternalCourse);
 router.get('/external/pending', adminOnly, learningController.pendingExternalCourses);
 router.patch('/external/:id/review', adminOnly, learningController.reviewExternalCourse);
 
+// Trilhas
+router.get('/my-tracks', learningController.myTracks);
+router.get('/tracks', adminOnly, learningController.listTracks);
+router.post('/tracks', adminOnly, learningController.createTrack);
+router.put('/tracks/:id/courses', adminOnly, learningController.setTrackCourses);
+router.post('/tracks/:id/enroll', adminOnly, learningController.enrollInTrack);
+
+// Upload de arquivos de curso (Storage)
+router.post('/upload', adminOnly, learningController.uploadFile);
+
 // Gestão (admin/diretoria)
 router.get('/courses', adminOnly, learningController.listCourses);
 router.post('/courses', adminOnly, learningController.createCourse);
