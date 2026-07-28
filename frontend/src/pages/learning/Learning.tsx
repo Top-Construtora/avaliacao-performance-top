@@ -671,7 +671,7 @@ const Learning = () => {
             </h3>
             {externals.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Fez um curso fora do GIO? Registre aqui para contar no seu histórico.
+                Fez um curso fora da GIO? Registre aqui para contar no seu histórico.
               </p>
             ) : (
               <div className="space-y-2">

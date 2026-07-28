@@ -70,7 +70,7 @@ export const notificationController = {
       const html = renderNotificationEmail({
         title: 'Teste de configuração de e-mail',
         message:
-          'Se você está lendo isto, o envio de e-mails do GIO está funcionando. Este é um teste manual — nenhuma ação é necessária.',
+          'Se você está lendo isto, o envio de e-mails da GIO está funcionando. Este é um teste manual — nenhuma ação é necessária.',
         actionUrl: '/notifications',
         actionLabel: 'Abrir notificações',
       });

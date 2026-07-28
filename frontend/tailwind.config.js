@@ -211,7 +211,7 @@ export default {
           'light-gray': '#f8f9fa',
           white: '#FFFFFF',
         },
-        // Cores de Status (NAUE legado — distinto de success/warning/critical do GIO)
+        // Cores de Status (NAUE legado — distinto de success/warning/critical da GIO)
         status: {
           success: '#10b981',
           warning: '#f59e0b',
