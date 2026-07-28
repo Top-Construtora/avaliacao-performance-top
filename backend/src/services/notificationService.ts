@@ -3,18 +3,21 @@ import { Database } from '../types/supabase';
 import {
   SendNotificationInput,
   RecipientTarget,
+  NotificationCategory,
   NOTIFICATION_TYPE_CONFIG,
+  NOTIFICATION_CATEGORY_LABELS,
 } from '../types/notification.types';
+import { emailService, isEmailEnabled } from './emailService';
+import { logger } from '../lib/logger';
 
 export const notificationService = {
-
   async send(supabase: SupabaseClient<Database>, input: SendNotificationInput): Promise<void> {
     try {
       const recipientIds = await this.resolveRecipients(supabase, input.targets);
 
       // Remove o actor dos destinatários (não auto-notificar)
       const filteredIds = input.actor_id
-        ? recipientIds.filter(id => id !== input.actor_id)
+        ? recipientIds.filter((id) => id !== input.actor_id)
         : recipientIds;
 
       if (filteredIds.length === 0) return;
@@ -57,7 +60,9 @@ export const notificationService = {
         // Anti-spam: cooldown
         if (antiSpam === 'cooldown' && input.group_key) {
           const cooldownMinutes = input.cooldown_minutes || 30;
-          const cooldownThreshold = new Date(Date.now() - cooldownMinutes * 60 * 1000).toISOString();
+          const cooldownThreshold = new Date(
+            Date.now() - cooldownMinutes * 60 * 1000,
+          ).toISOString();
 
           const { data: recent } = await supabase
             .from('notifications')
@@ -91,13 +96,22 @@ export const notificationService = {
         // Batch insert em chunks de 100
         for (let i = 0; i < toInsert.length; i += 100) {
           const chunk = toInsert.slice(i, i + 100);
-          const { error } = await supabase
-            .from('notifications')
-            .insert(chunk);
+          const { error } = await supabase.from('notifications').insert(chunk);
 
           if (error) {
             console.error('[NotificationService] Insert error:', error.message);
           }
+        }
+
+        // E-mail (fase 1 do roadmap): só para quem recebeu notificação nova
+        // (quem caiu no anti-spam também não recebe e-mail). Fire-and-forget —
+        // o envio SMTP nunca atrasa nem quebra a resposta HTTP.
+        if (config.email && isEmailEnabled()) {
+          const emailRecipientIds = toInsert.map((n) => n.recipient_id as string);
+          void this.dispatchEmails(supabase, emailRecipientIds, config.category, input).catch(
+            (err) =>
+              logger.warn({ err: err?.message }, '[NotificationService] dispatchEmails error'),
+          );
         }
       }
     } catch (error: any) {
@@ -106,7 +120,92 @@ export const notificationService = {
     }
   },
 
-  async resolveRecipients(supabase: SupabaseClient<Database>, targets: RecipientTarget[]): Promise<string[]> {
+  /**
+   * Envia e-mails da notificação respeitando notification_preferences
+   * (ausência de linha = habilitado). Recebe o client admin (service_role),
+   * que é o que os controllers injetam via authReq.supabase.
+   */
+  async dispatchEmails(
+    supabase: SupabaseClient<Database>,
+    recipientIds: string[],
+    category: NotificationCategory,
+    input: SendNotificationInput,
+  ): Promise<void> {
+    if (recipientIds.length === 0) return;
+
+    const [{ data: users }, { data: optOuts }] = await Promise.all([
+      supabase.from('users').select('id, email').in('id', recipientIds).eq('active', true),
+      (supabase as SupabaseClient)
+        .from('notification_preferences')
+        .select('user_id')
+        .in('user_id', recipientIds)
+        .eq('category', category)
+        .eq('email_enabled', false),
+    ]);
+
+    const optOutIds = new Set((optOuts || []).map((p: any) => p.user_id));
+    const recipients = (users || [])
+      .filter((u) => u.email && !optOutIds.has(u.id))
+      .map((u) => ({ email: u.email as string }));
+
+    await emailService.sendNotificationToMany(recipients, {
+      title: input.title,
+      message: input.message,
+      actionUrl: input.action_url,
+    });
+  },
+
+  /**
+   * Preferências de e-mail do usuário, mescladas com o default (ligado).
+   * `configured` indica se o usuário já respondeu ao opt-in (existe ao menos
+   * uma linha na tabela) — usado para exibir o modal de consentimento uma vez.
+   */
+  async getPreferences(supabase: SupabaseClient<Database>, userId: string) {
+    const { data } = await (supabase as SupabaseClient)
+      .from('notification_preferences')
+      .select('category, email_enabled')
+      .eq('user_id', userId);
+
+    const overrides = new Map<string, boolean>(
+      (data || []).map((row: any) => [row.category, row.email_enabled]),
+    );
+
+    const preferences = (Object.keys(NOTIFICATION_CATEGORY_LABELS) as NotificationCategory[]).map(
+      (category) => ({
+        category,
+        label: NOTIFICATION_CATEGORY_LABELS[category],
+        email_enabled: overrides.has(category) ? overrides.get(category)! : true,
+      }),
+    );
+
+    return { configured: (data || []).length > 0, preferences };
+  },
+
+  async updatePreferences(
+    supabase: SupabaseClient<Database>,
+    userId: string,
+    preferences: Array<{ category: NotificationCategory; email_enabled: boolean }>,
+  ): Promise<void> {
+    const rows = preferences.map((p) => ({
+      user_id: userId,
+      category: p.category,
+      email_enabled: p.email_enabled,
+      updated_at: new Date().toISOString(),
+    }));
+
+    const { error } = await (supabase as SupabaseClient)
+      .from('notification_preferences')
+      .upsert(rows, { onConflict: 'user_id,category' });
+
+    if (error) {
+      throw new Error(`Erro ao salvar preferências: ${error.message}`);
+    }
+  },
+
+  async resolveRecipients(
+    supabase: SupabaseClient<Database>,
+    targets: RecipientTarget[],
+  ): Promise<string[]> {
     const userIds = new Set<string>();
 
     for (const target of targets) {
@@ -116,9 +215,12 @@ export const notificationService = {
           break;
         }
         case 'role': {
-          const roleColumn = target.role === 'admin' ? 'is_admin'
-            : target.role === 'director' ? 'is_director'
-            : 'is_leader';
+          const roleColumn =
+            target.role === 'admin'
+              ? 'is_admin'
+              : target.role === 'director'
+                ? 'is_director'
+                : 'is_leader';
 
           const { data } = await supabase
             .from('users')
@@ -126,7 +228,7 @@ export const notificationService = {
             .eq(roleColumn, true)
             .eq('active', true);
 
-          if (data) data.forEach(u => userIds.add(u.id));
+          if (data) data.forEach((u) => userIds.add(u.id));
           break;
         }
         case 'team': {
@@ -149,16 +251,13 @@ export const notificationService = {
             .eq('department_id', target.department_id)
             .eq('active', true);
 
-          if (data) data.forEach(u => userIds.add(u.id));
+          if (data) data.forEach((u) => userIds.add(u.id));
           break;
         }
         case 'all': {
-          const { data } = await supabase
-            .from('users')
-            .select('id')
-            .eq('active', true);
+          const { data } = await supabase.from('users').select('id').eq('active', true);
 
-          if (data) data.forEach(u => userIds.add(u.id));
+          if (data) data.forEach((u) => userIds.add(u.id));
           break;
         }
       }
@@ -175,7 +274,7 @@ export const notificationService = {
       limit?: number;
       filter?: 'all' | 'unread' | 'archived';
       type?: string;
-    } = {}
+    } = {},
   ) {
     const page = options.page || 1;
     const limit = options.limit || 20;
@@ -185,7 +284,9 @@ export const notificationService = {
 
     let query = supabase
       .from('notifications')
-      .select('*, actor:users!notifications_actor_id_fkey(id, name, profile_image)', { count: 'exact' })
+      .select('*, actor:users!notifications_actor_id_fkey(id, name, profile_image)', {
+        count: 'exact',
+      })
       .eq('recipient_id', userId);
 
     if (filter === 'unread') {
@@ -220,7 +321,11 @@ export const notificationService = {
     };
   },
 
-  async markAsRead(supabase: SupabaseClient<Database>, userId: string, notificationIds: string[]): Promise<void> {
+  async markAsRead(
+    supabase: SupabaseClient<Database>,
+    userId: string,
+    notificationIds: string[],
+  ): Promise<void> {
     const { error } = await supabase
       .from('notifications')
       .update({ read: true, read_at: new Date().toISOString() })
@@ -244,7 +349,11 @@ export const notificationService = {
     }
   },
 
-  async archive(supabase: SupabaseClient<Database>, userId: string, notificationIds: string[]): Promise<void> {
+  async archive(
+    supabase: SupabaseClient<Database>,
+    userId: string,
+    notificationIds: string[],
+  ): Promise<void> {
     const { error } = await supabase
       .from('notifications')
       .update({ archived: true })
@@ -256,7 +365,11 @@ export const notificationService = {
     }
   },
 
-  async delete(supabase: SupabaseClient<Database>, userId: string, notificationIds: string[]): Promise<void> {
+  async delete(
+    supabase: SupabaseClient<Database>,
+    userId: string,
+    notificationIds: string[],
+  ): Promise<void> {
     const { error } = await supabase
       .from('notifications')
       .delete()

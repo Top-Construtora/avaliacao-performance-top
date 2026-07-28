@@ -1,5 +1,9 @@
 import { api } from '../config/api';
-import { Notification, NOTIFICATION_DISPLAY_MAP, NotificationType } from '../types/notification.types';
+import {
+  Notification,
+  NOTIFICATION_DISPLAY_MAP,
+  NotificationType,
+} from '../types/notification.types';
 
 function mapNotification(raw: any): Notification {
   return {
@@ -21,13 +25,42 @@ function mapNotification(raw: any): Notification {
   };
 }
 
+export interface NotificationPreference {
+  category: string;
+  label: string;
+  email_enabled: boolean;
+}
+
+export interface NotificationPreferencesResult {
+  /** false = usuário nunca respondeu ao opt-in de e-mail (mostrar modal) */
+  configured: boolean;
+  preferences: NotificationPreference[];
+}
+
 export const notificationApiService = {
-  async getNotifications(params: {
-    page?: number;
-    limit?: number;
-    filter?: string;
-    type?: string;
-  } = {}) {
+  async getPreferences(): Promise<NotificationPreferencesResult> {
+    const response = await api.get('/notifications/preferences');
+    const result = response.data || response;
+    return {
+      configured: !!result?.configured,
+      preferences: result?.preferences || [],
+    };
+  },
+
+  async updatePreferences(
+    preferences: Array<{ category: string; email_enabled: boolean }>,
+  ): Promise<void> {
+    await api.put('/notifications/preferences', { preferences });
+  },
+
+  async getNotifications(
+    params: {
+      page?: number;
+      limit?: number;
+      filter?: string;
+      type?: string;
+    } = {},
+  ) {
     const query = new URLSearchParams();
     if (params.page) query.set('page', String(params.page));
     if (params.limit) query.set('limit', String(params.limit));

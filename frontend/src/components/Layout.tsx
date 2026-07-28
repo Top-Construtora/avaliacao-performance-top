@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import FirstLoginPasswordModal from './FirstLoginPasswordModal';
+import EmailOptInModal from './EmailOptInModal';
 import PWAInstallPrompt from './pwa/PWAInstallPrompt';
 import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { notificationApiService, NotificationPreference } from '../services/notification.service';
 
 export default function Layout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
@@ -18,6 +20,10 @@ export default function Layout() {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [emailOptIn, setEmailOptIn] = useState<{
+    open: boolean;
+    preferences: NotificationPreference[];
+  }>({ open: false, preferences: [] });
 
   // Verificar se precisa mostrar modal de troca de senha
   useEffect(() => {
@@ -25,6 +31,26 @@ export default function Layout() {
       setShowPasswordModal(true);
     }
   }, [profile?.must_change_password]);
+
+  // Opt-in de e-mail: uma checagem por sessão; modal só aparece enquanto o
+  // usuário nunca tiver respondido (nenhuma preferência gravada no backend).
+  useEffect(() => {
+    if (loading || !user || profile?.must_change_password) return;
+    if (sessionStorage.getItem('email_optin_checked')) return;
+    sessionStorage.setItem('email_optin_checked', '1');
+
+    notificationApiService
+      .getPreferences()
+      .then((result) => {
+        if (!result.configured && result.preferences.length > 0) {
+          setEmailOptIn({ open: true, preferences: result.preferences });
+        }
+      })
+      .catch(() => {
+        /* silencioso — o opt-in tenta de novo na próxima sessão */
+        sessionStorage.removeItem('email_optin_checked');
+      });
+  }, [loading, user, profile?.must_change_password]);
 
   // Consumir destino pendente após login. Cobre o OAuth (Microsoft), que
   // retorna direto para "/" sem passar pela tela de Login. A chave é gravada
@@ -159,6 +185,13 @@ export default function Layout() {
       <FirstLoginPasswordModal
         isOpen={showPasswordModal}
         onSuccess={() => setShowPasswordModal(false)}
+      />
+
+      {/* Opt-in de notificações por e-mail (uma vez, após o modal de senha) */}
+      <EmailOptInModal
+        isOpen={emailOptIn.open && !showPasswordModal}
+        preferences={emailOptIn.preferences}
+        onClose={() => setEmailOptIn({ open: false, preferences: [] })}
       />
 
       {/* Convite discreto de instalação do PWA (somente mobile) */}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,6 +6,10 @@ import Button from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
+import {
+  notificationApiService,
+  NotificationPreference,
+} from '../../services/notification.service';
 import {
   Settings as SettingsIcon,
   User,
@@ -25,10 +29,11 @@ import {
   Users,
   FileText,
   BadgeCheck,
+  Bell,
 } from 'lucide-react';
 import { formatDateBR } from '../../utils/date';
 
-type SettingSection = 'profile' | 'preferences' | 'security';
+type SettingSection = 'profile' | 'preferences' | 'notifications' | 'security';
 
 const Settings = () => {
   const { user, profile, updatePassword, signOut } = useAuth();
@@ -47,6 +52,41 @@ const Settings = () => {
     newPassword: '',
     confirmPassword: '',
   });
+
+  // Preferências de notificação por e-mail
+  const [emailPreferences, setEmailPreferences] = useState<NotificationPreference[]>([]);
+  const [preferencesLoading, setPreferencesLoading] = useState(false);
+  const [preferencesSaving, setPreferencesSaving] = useState(false);
+
+  useEffect(() => {
+    if (activeSection !== 'notifications' || emailPreferences.length > 0) return;
+    setPreferencesLoading(true);
+    notificationApiService
+      .getPreferences()
+      .then((result) => setEmailPreferences(result.preferences))
+      .catch(() => toast.error('Erro ao carregar preferências de notificação'))
+      .finally(() => setPreferencesLoading(false));
+  }, [activeSection, emailPreferences.length]);
+
+  const handleTogglePreference = async (category: string) => {
+    const updated = emailPreferences.map((p) =>
+      p.category === category ? { ...p, email_enabled: !p.email_enabled } : p,
+    );
+    const changed = updated.find((p) => p.category === category);
+    setEmailPreferences(updated);
+    setPreferencesSaving(true);
+    try {
+      await notificationApiService.updatePreferences([
+        { category, email_enabled: changed!.email_enabled },
+      ]);
+    } catch {
+      // Reverte em caso de falha
+      setEmailPreferences(emailPreferences);
+      toast.error('Erro ao salvar preferência');
+    } finally {
+      setPreferencesSaving(false);
+    }
+  };
 
   // Animações
   const containerVariants = {
@@ -84,6 +124,12 @@ const Settings = () => {
       label: 'Aparência',
       icon: Palette,
       description: 'Personalize o visual',
+    },
+    {
+      id: 'notifications' as SettingSection,
+      label: 'Notificações',
+      icon: Bell,
+      description: 'E-mails que você recebe',
     },
     {
       id: 'security' as SettingSection,
@@ -366,6 +412,57 @@ const Settings = () => {
     </motion.div>
   );
 
+  const renderNotificationsSection = () => (
+    <motion.div variants={itemVariants} className="space-y-6">
+      <div>
+        <h2 className="text-xl font-bold text-foreground mb-2">Notificações</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Escolha para quais assuntos você quer receber e-mails. As notificações dentro do sistema
+          continuam ativas independentemente destas preferências.
+        </p>
+
+        {preferencesLoading ? (
+          <div className="flex items-center justify-center py-10 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+            Carregando preferências...
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {emailPreferences.map((pref) => (
+              <div
+                key={pref.category}
+                className="flex items-center justify-between bg-secondary rounded-lg px-4 py-3"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-lg bg-background flex items-center justify-center flex-shrink-0">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm font-medium text-foreground truncate">{pref.label}</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={pref.email_enabled}
+                  disabled={preferencesSaving}
+                  onClick={() => handleTogglePreference(pref.category)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                    pref.email_enabled ? 'bg-lime' : 'bg-border'
+                  } ${preferencesSaving ? 'opacity-60' : ''}`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      pref.email_enabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+
   const renderSecuritySection = () => (
     <motion.div variants={itemVariants} className="space-y-6">
       <div>
@@ -555,6 +652,7 @@ const Settings = () => {
             <AnimatePresence mode="wait">
               {activeSection === 'profile' && renderProfileSection()}
               {activeSection === 'preferences' && renderPreferencesSection()}
+              {activeSection === 'notifications' && renderNotificationsSection()}
               {activeSection === 'security' && renderSecuritySection()}
             </AnimatePresence>
           </div>

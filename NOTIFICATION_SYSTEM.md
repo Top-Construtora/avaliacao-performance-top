@@ -52,22 +52,22 @@ CREATE TABLE IF NOT EXISTS notifications (
 
 ### Campos explicados
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `recipient_id` | uuid FK | Quem recebe a notificação |
-| `actor_id` | uuid FK | Quem disparou (null = sistema) |
-| `type` | text | Tipo da notificação (ex: `evaluation_cycle_opened`) |
-| `title` | text | Título curto exibido no bell/toast |
-| `message` | text | Mensagem descritiva |
-| `priority` | text | `low`, `medium`, `high` |
-| `action_url` | text | Rota de navegação ao clicar |
-| `entity_type` | text | Tipo da entidade relacionada (ex: `evaluation_cycle`) |
-| `entity_id` | text | ID da entidade relacionada |
-| `group_key` | text | Chave para anti-spam (ex: `candidate_new:{opening_id}`) |
-| `metadata` | jsonb | Dados extras (scores, contadores de aggregate, etc.) |
-| `read` | boolean | Se foi lida |
-| `archived` | boolean | Se foi arquivada |
-| `read_at` | timestamptz | Quando foi lida |
+| Campo          | Tipo        | Descrição                                               |
+| -------------- | ----------- | ------------------------------------------------------- |
+| `recipient_id` | uuid FK     | Quem recebe a notificação                               |
+| `actor_id`     | uuid FK     | Quem disparou (null = sistema)                          |
+| `type`         | text        | Tipo da notificação (ex: `evaluation_cycle_opened`)     |
+| `title`        | text        | Título curto exibido no bell/toast                      |
+| `message`      | text        | Mensagem descritiva                                     |
+| `priority`     | text        | `low`, `medium`, `high`                                 |
+| `action_url`   | text        | Rota de navegação ao clicar                             |
+| `entity_type`  | text        | Tipo da entidade relacionada (ex: `evaluation_cycle`)   |
+| `entity_id`    | text        | ID da entidade relacionada                              |
+| `group_key`    | text        | Chave para anti-spam (ex: `candidate_new:{opening_id}`) |
+| `metadata`     | jsonb       | Dados extras (scores, contadores de aggregate, etc.)    |
+| `read`         | boolean     | Se foi lida                                             |
+| `archived`     | boolean     | Se foi arquivada                                        |
+| `read_at`      | timestamptz | Quando foi lida                                         |
 
 ### Índices
 
@@ -121,8 +121,8 @@ Depois verificar no Supabase Dashboard: **Database > Replication > supabase_real
 export type NotificationType =
   | 'evaluation_cycle_opened'
   | 'self_evaluation_completed'
-  | 'pdi_created'
-  // ... adicionar conforme necessidade
+  | 'pdi_created';
+// ... adicionar conforme necessidade
 
 export type NotificationPriority = 'low' | 'medium' | 'high';
 export type AntiSpamStrategy = 'always' | 'aggregate' | 'cooldown';
@@ -130,11 +130,11 @@ export type DisplayCategory = 'success' | 'info' | 'warning' | 'alert' | 'achiev
 
 // Tipos de destinatário
 export type RecipientTarget =
-  | { type: 'user'; user_id: string }        // pessoa específica
-  | { type: 'role'; role: 'admin' | 'director' | 'leader' }  // todos com essa role
-  | { type: 'team'; team_id: string }         // todos do time
-  | { type: 'department'; department_id: string }  // todos do departamento
-  | { type: 'all' };                          // broadcast
+  | { type: 'user'; user_id: string } // pessoa específica
+  | { type: 'role'; role: 'admin' | 'director' | 'leader' } // todos com essa role
+  | { type: 'team'; team_id: string } // todos do time
+  | { type: 'department'; department_id: string } // todos do departamento
+  | { type: 'all' }; // broadcast
 
 // Input para enviar notificação
 export interface SendNotificationInput {
@@ -147,17 +147,20 @@ export interface SendNotificationInput {
   action_url?: string;
   entity_type?: string;
   entity_id?: string;
-  group_key?: string;          // chave para anti-spam
+  group_key?: string; // chave para anti-spam
   anti_spam?: AntiSpamStrategy; // estratégia: always | aggregate | cooldown
-  cooldown_minutes?: number;    // para strategy cooldown (default 30)
+  cooldown_minutes?: number; // para strategy cooldown (default 30)
   metadata?: Record<string, any>;
 }
 
 // Config padrão por tipo de notificação
-export const NOTIFICATION_TYPE_CONFIG: Record<NotificationType, {
-  defaultPriority: NotificationPriority;
-  displayCategory: DisplayCategory;
-}> = {
+export const NOTIFICATION_TYPE_CONFIG: Record<
+  NotificationType,
+  {
+    defaultPriority: NotificationPriority;
+    displayCategory: DisplayCategory;
+  }
+> = {
   evaluation_cycle_opened: { defaultPriority: 'high', displayCategory: 'info' },
   self_evaluation_completed: { defaultPriority: 'medium', displayCategory: 'success' },
   pdi_created: { defaultPriority: 'medium', displayCategory: 'info' },
@@ -320,14 +323,14 @@ const channel = supabase
       event: 'INSERT',
       schema: 'public',
       table: 'notifications',
-      filter: `recipient_id=eq.${profile.id}`,  // FILTRO POR USUÁRIO
+      filter: `recipient_id=eq.${profile.id}`, // FILTRO POR USUÁRIO
     },
     (payload) => {
       const notification = mapPayload(payload.new);
-      setNotifications(prev => [notification, ...prev]);
-      setUnreadCount(prev => prev + 1);
-      toast(notification.title);  // toast real-time
-    }
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+      toast(notification.title); // toast real-time
+    },
   )
   .subscribe();
 ```
@@ -347,9 +350,9 @@ return () => {
 export const supabase = createClient(url, key, {
   realtime: {
     params: {
-      eventsPerSecond: 10  // DEVE ser > 0
-    }
-  }
+      eventsPerSecond: 10, // DEVE ser > 0
+    },
+  },
 });
 ```
 
@@ -358,20 +361,26 @@ export const supabase = createClient(url, key, {
 ## 7. Anti-Spam - 3 Estratégias
 
 ### `always` (padrão)
+
 Sempre insere nova notificação. Usar para eventos únicos.
+
 ```
 Exemplo: Ciclo aberto, progressão aprovada
 ```
 
 ### `aggregate`
+
 Se já existe notificação **não lida** com mesmo `group_key` para o mesmo destinatário, atualiza a existente (incrementa `metadata.aggregate_count`) em vez de criar nova.
+
 ```
 Exemplo: "3 candidatos cadastrados na vaga X" em vez de 3 notificações separadas
 group_key: "candidate_{opening_id}"
 ```
 
 ### `cooldown`
+
 Se já existe notificação com mesmo `group_key` criada nos últimos N minutos, ignora.
+
 ```
 Exemplo: PDI atualizado → máximo 1 notificação a cada 30min
 group_key: "pdi_{employee_id}"
@@ -386,27 +395,30 @@ No controller, após a operação principal ter sucesso:
 
 ```typescript
 // Fire-and-forget - não usar await, não deixar quebrar o fluxo
-notificationService.send(authReq.supabase, {
-  type: 'tipo_da_notificacao',
-  title: 'Título curto',
-  message: `Mensagem descritiva com ${variáveis}.`,
-  targets: [
-    { type: 'user', user_id: destinatarioId },
-    // ou { type: 'role', role: 'director' },
-    // ou { type: 'all' },
-  ],
-  actor_id: authReq.user!.id,
-  action_url: '/rota-no-frontend',
-  entity_type: 'nome_da_tabela',
-  entity_id: registro.id,
-  // Anti-spam (opcional):
-  group_key: 'chave_unica',
-  anti_spam: 'aggregate',  // ou 'cooldown'
-  cooldown_minutes: 30,    // só para cooldown
-}).catch(err => console.error('Notification error:', err));
+notificationService
+  .send(authReq.supabase, {
+    type: 'tipo_da_notificacao',
+    title: 'Título curto',
+    message: `Mensagem descritiva com ${variáveis}.`,
+    targets: [
+      { type: 'user', user_id: destinatarioId },
+      // ou { type: 'role', role: 'director' },
+      // ou { type: 'all' },
+    ],
+    actor_id: authReq.user!.id,
+    action_url: '/rota-no-frontend',
+    entity_type: 'nome_da_tabela',
+    entity_id: registro.id,
+    // Anti-spam (opcional):
+    group_key: 'chave_unica',
+    anti_spam: 'aggregate', // ou 'cooldown'
+    cooldown_minutes: 30, // só para cooldown
+  })
+  .catch((err) => console.error('Notification error:', err));
 ```
 
 **Regras**:
+
 - Sempre usar `.catch()` - nunca deixar rejeição não tratada
 - Nunca usar `await` - é fire-and-forget
 - Colocar ANTES do `res.json()` ou logo após
@@ -416,11 +428,11 @@ notificationService.send(authReq.supabase, {
 
 ## 9. Segurança - 3 Camadas de Filtro
 
-| Camada | Mecanismo | Garantia |
-|--------|-----------|----------|
-| **Banco** | RLS `auth.uid() = recipient_id` | Impossível SELECT/UPDATE/DELETE notificação alheia |
-| **API** | `getByUser()` filtra por `recipient_id = req.user.id` | Backend nunca retorna dados de outro usuário |
-| **Realtime** | `filter: recipient_id=eq.${userId}` | Eventos só disparam para o dono |
+| Camada       | Mecanismo                                             | Garantia                                           |
+| ------------ | ----------------------------------------------------- | -------------------------------------------------- |
+| **Banco**    | RLS `auth.uid() = recipient_id`                       | Impossível SELECT/UPDATE/DELETE notificação alheia |
+| **API**      | `getByUser()` filtra por `recipient_id = req.user.id` | Backend nunca retorna dados de outro usuário       |
+| **Realtime** | `filter: recipient_id=eq.${userId}`                   | Eventos só disparam para o dono                    |
 
 ---
 
@@ -485,3 +497,27 @@ frontend/
 - [ ] Testar: inserir via SQL → bell atualiza em real-time
 - [ ] Testar: ação real (ex: completar avaliação) → destinatário recebe
 - [ ] Testar: notificação para outro user → NÃO aparece no seu bell
+
+---
+
+## 12. Canal de e-mail e jobs agendados (fase 1 do roadmap — 2026-07)
+
+O sistema passou a ter um canal de **e-mail** e um **agendador de lembretes**, em cima da mesma infraestrutura de notificações. Ver `docs/roadmap-implementacao.md` (fase 1).
+
+### E-mail
+
+- `backend/src/services/emailService.ts` — nodemailer/SMTP. No-op sem `EMAIL_ENABLED=true` + credenciais (`EMAIL_HOST/PORT/USER/PASS/FROM/REPLY_TO`). 1 retry, nunca lança, log via pino (`module: email`).
+- `NOTIFICATION_TYPE_CONFIG` ganhou `category` (7 categorias) e `email: boolean` por tipo. `notificationService.send()` dispara e-mail em fire-and-forget **apenas** para quem recebeu notificação in-app nova (quem caiu no anti-spam não recebe e-mail).
+- Preferências por usuário na tabela `notification_preferences` (ausência de linha = habilitado). Endpoints `GET/PUT /notifications/preferences`; UI em Configurações > Notificações. Migração: `supabase/migrations/20260728100000_notification_preferences.sql`.
+
+### Jobs (`backend/src/jobs/`)
+
+Guard `ENABLE_JOBS=true` (ligar em **uma** instância só). Fuso `America/Sao_Paulo`. Idempotentes via anti-spam `cooldown` + `group_key` por dia/entidade.
+
+| Horário | Job                             | O que faz                                                                         |
+| ------- | ------------------------------- | --------------------------------------------------------------------------------- |
+| 00:10   | `autoCloseExpired`              | Encerra ciclos (`end_date` vencida) e pesquisas ativas expiradas, com notificação |
+| 09:00   | `remindEvaluationCycleDeadline` | Autoavaliação pendente com ciclo encerrando em ≤3 dias                            |
+| 09:00   | `remindSurveyDeadline`          | Pesquisa encerrando em ≤2 dias, só para quem não respondeu                        |
+| 09:00   | `remindInterviewsTomorrow`      | Entrevista agendada para amanhã (entrevistador + colaborador)                     |
+| 09:00   | `remindStalePdis`               | PDI ativo sem atualização há 30+ dias (máx. 1 lembrete/semana)                    |

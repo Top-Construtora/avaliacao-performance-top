@@ -6,6 +6,9 @@ const router = Router();
 
 router.use(authenticateToken as any);
 
+router.get('/preferences', notificationController.getPreferences);
+router.put('/preferences', notificationController.updatePreferences);
+
 router.get('/', notificationController.getNotifications);
 router.get('/unread-count', notificationController.getUnreadCount);
 router.patch('/read', notificationController.markAsRead);

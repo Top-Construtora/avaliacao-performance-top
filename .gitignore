@@ -66,3 +66,6 @@ login-gio-desktop.png
 !supabase/seed.sql
 # vite-plugin-pwa dev output
 dev-dist/
+
+# Referência interna (conteúdo de terceiros — não publicar)
+docs/referencia-impulseup/
