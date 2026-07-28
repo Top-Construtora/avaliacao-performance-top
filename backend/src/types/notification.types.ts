@@ -24,7 +24,9 @@ export type NotificationType =
   | 'team_member_moved'
   | 'feedback_received'
   | 'feedback_request_received'
-  | 'feedback_acknowledged';
+  | 'feedback_acknowledged'
+  | 'meeting_scheduled'
+  | 'meeting_cancelled';
 
 export type NotificationPriority = 'low' | 'medium' | 'high';
 
@@ -40,7 +42,8 @@ export type NotificationCategory =
   | 'carreira'
   | 'recrutamento'
   | 'equipe'
-  | 'feedbacks';
+  | 'feedbacks'
+  | 'reunioes';
 
 export const NOTIFICATION_CATEGORY_LABELS: Record<NotificationCategory, string> = {
   avaliacoes: 'Avaliações de desempenho',
@@ -51,6 +54,7 @@ export const NOTIFICATION_CATEGORY_LABELS: Record<NotificationCategory, string> 
   recrutamento: 'Recrutamento',
   equipe: 'Times e equipe',
   feedbacks: 'Feedbacks',
+  reunioes: 'Reuniões',
 };
 
 export type AntiSpamStrategy = 'always' | 'aggregate' | 'cooldown';
@@ -235,5 +239,17 @@ export const NOTIFICATION_TYPE_CONFIG: Record<
     displayCategory: 'success',
     category: 'feedbacks',
     email: false,
+  },
+  meeting_scheduled: {
+    defaultPriority: 'medium',
+    displayCategory: 'info',
+    category: 'reunioes',
+    email: true,
+  },
+  meeting_cancelled: {
+    defaultPriority: 'medium',
+    displayCategory: 'alert',
+    category: 'reunioes',
+    email: true,
   },
 };

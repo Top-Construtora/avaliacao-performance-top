@@ -13,6 +13,7 @@ import recruitmentRoutes from './recruitmentRoutes';
 import notificationRoutes from './notificationRoutes';
 import auditRoutes from './auditRoutes';
 import feedbackRoutes from './feedbackRoutes';
+import meetingRoutes from './meetingRoutes';
 import publicRoutes from './publicRoutes';
 import culturalCodeRoutes from './culturalCodeRoutes';
 
@@ -48,6 +49,7 @@ router.use('/recruitment', recruitmentRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/audit', auditRoutes);
 router.use('/feedbacks', feedbackRoutes);
+router.use('/meetings', meetingRoutes);
 router.use('/cultural-code', culturalCodeRoutes);
 
 // Health check
