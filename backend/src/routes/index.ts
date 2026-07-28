@@ -12,6 +12,7 @@ import satisfactionRoutes from './satisfactionRoutes';
 import recruitmentRoutes from './recruitmentRoutes';
 import notificationRoutes from './notificationRoutes';
 import publicRoutes from './publicRoutes';
+import culturalCodeRoutes from './culturalCodeRoutes';
 
 const router = Router();
 
@@ -43,6 +44,7 @@ router.use('/interviews', interviewRoutes);
 router.use('/satisfaction', satisfactionRoutes);
 router.use('/recruitment', recruitmentRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/cultural-code', culturalCodeRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

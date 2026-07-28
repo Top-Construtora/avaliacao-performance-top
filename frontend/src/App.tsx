@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
 import { EvaluationProvider } from './context/EvaluationContext';
@@ -62,6 +62,7 @@ const NotificationHistory = lazyWithRetry(
 const CycleManagement = lazyWithRetry(() => import('./pages/management/CycleManagement'));
 const SalaryAdminPage = lazyWithRetry(() => import('./pages/management/SalaryAdminPage'));
 const CodigoCultural = lazyWithRetry(() => import('./pages/management/CodigoCultural'));
+const CulturalCode = lazyWithRetry(() => import('./pages/management/CulturalCode'));
 const TrackPositionsPage = lazyWithRetry(() => import('./pages/carrer/TrackPositionsPage'));
 const CareerTrackDetail = lazyWithRetry(() => import('./pages/carrer/CareerTrackDetail'));
 const PdiManagement = lazyWithRetry(() => import('./pages/pdi/PdiManagement'));
@@ -399,11 +400,8 @@ function App() {
                             </ProtectedRoute>
                           }
                         />
-                        {/* Redirect da rota antiga (links/notificações salvos) */}
-                        <Route
-                          path="codigo-cultural"
-                          element={<Navigate to="/competencias-organizacionais" replace />}
-                        />
+                        {/* Código Cultural (valores e princípios — visível a todos) */}
+                        <Route path="codigo-cultural" element={<CulturalCode />} />
 
                         {/* Recrutamento e Seleção */}
                         <Route
@@ -576,10 +574,8 @@ function App() {
                         <Route path="pdi-management" element={<PdiManagement />} />
                         {/* Competências Organizacionais */}
                         <Route path="competencias-organizacionais" element={<CodigoCultural />} />
-                        <Route
-                          path="codigo-cultural"
-                          element={<Navigate to="/competencias-organizacionais" replace />}
-                        />
+                        {/* Código Cultural (valores e princípios — visível a todos) */}
+                        <Route path="codigo-cultural" element={<CulturalCode />} />
                       </Route>
                       <Route path="*" element={<NotFound />} />
                     </Routes>

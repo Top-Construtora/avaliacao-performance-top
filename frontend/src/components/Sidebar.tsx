@@ -28,6 +28,7 @@ import {
   Calendar,
   SmilePlus,
   Briefcase,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import { usePeopleCommitteePermission } from '../hooks/usePeopleCommittee';
@@ -277,6 +278,11 @@ export default function Sidebar({
           label: 'Pesquisas',
           icon: SmilePlus,
           path: '/satisfaction',
+        },
+        {
+          label: 'Código Cultural',
+          icon: Sparkles,
+          path: '/codigo-cultural',
         },
       ],
     },
