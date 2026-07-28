@@ -36,12 +36,15 @@ function getTransporter(): Transporter {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      // A preferência por IPv4 é definida globalmente em app.ts
+      // (dns.setDefaultResultOrder) — ver a explicação lá.
+      //
       // Timeouts explícitos: os padrões do nodemailer são longos demais
-      // (2 min só para conectar). Com retry, uma conexão travada deixaria a
-      // requisição pendurada além do limite do navegador.
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 20_000,
+      // (2 min só para conectar) e deixariam a requisição pendurada além do
+      // limite do navegador.
+      connectionTimeout: 20_000,
+      greetingTimeout: 15_000,
+      socketTimeout: 30_000,
     });
   }
   return transporter;
@@ -56,14 +59,19 @@ export function resetTransporter(): void {
  * Testa a conexão e a autenticação SMTP sem enviar mensagem.
  * Usado no diagnóstico para separar "não conecta" de "não envia".
  */
-export async function verifySmtp(): Promise<{ ok: boolean; error?: string }> {
-  if (!isEmailEnabled()) return { ok: false, error: 'Serviço de e-mail desligado' };
+export async function verifySmtp(): Promise<{ ok: boolean; error?: string; ms: number }> {
+  if (!isEmailEnabled()) return { ok: false, error: 'Serviço de e-mail desligado', ms: 0 };
+  const started = Date.now();
   try {
     await getTransporter().verify();
-    return { ok: true };
+    const ms = Date.now() - started;
+    emailLogger.info({ ms }, 'Handshake SMTP concluído');
+    return { ok: true, ms };
   } catch (error: any) {
+    const ms = Date.now() - started;
     resetTransporter();
-    return { ok: false, error: error?.message || String(error) };
+    emailLogger.warn({ ms, err: error?.message }, 'Handshake SMTP falhou');
+    return { ok: false, error: error?.message || String(error), ms };
   }
 }
 

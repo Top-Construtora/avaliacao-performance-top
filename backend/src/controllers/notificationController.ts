@@ -91,8 +91,8 @@ export const notificationController = {
           data: {
             sent: false,
             to,
-            reason: `Não foi possível conectar ao servidor SMTP: ${handshake.error}`,
-            config: { ...config, smtp_handshake: false },
+            reason: `Não foi possível conectar ao servidor SMTP após ${handshake.ms}ms: ${handshake.error}`,
+            config: { ...config, smtp_handshake: false, handshake_ms: handshake.ms },
           },
         });
       }
@@ -117,8 +117,10 @@ export const notificationController = {
         data: {
           sent: result.sent,
           to,
-          reason: result.sent ? null : `Conexão OK, mas o envio falhou: ${result.error}`,
-          config: { ...config, smtp_handshake: true },
+          reason: result.sent
+            ? `Conexão estabelecida em ${handshake.ms}ms.`
+            : `Conexão OK (${handshake.ms}ms), mas o envio falhou: ${result.error}`,
+          config: { ...config, smtp_handshake: true, handshake_ms: handshake.ms },
         },
       });
     } catch (error) {

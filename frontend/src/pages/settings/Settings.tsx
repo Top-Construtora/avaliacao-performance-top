@@ -535,7 +535,13 @@ const Settings = () => {
                     : 'Nenhum e-mail enviado'}
                 </p>
                 {emailDiagnostics.reason && (
-                  <p className="text-warning mb-2 break-words">{emailDiagnostics.reason}</p>
+                  <p
+                    className={`mb-2 break-words ${
+                      emailDiagnostics.sent ? 'text-success' : 'text-warning'
+                    }`}
+                  >
+                    {emailDiagnostics.reason}
+                  </p>
                 )}
                 {emailDiagnostics.config && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs text-muted-foreground">
