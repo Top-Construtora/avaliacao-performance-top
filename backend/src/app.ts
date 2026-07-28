@@ -10,6 +10,7 @@ import { logger } from './lib/logger';
 import { initSentry } from './lib/sentry';
 import { captureException } from './lib/observability';
 import routes from './routes';
+import { startJobs } from './jobs';
 
 // Carrega variáveis de ambiente e inicializa observabilidade (o quanto antes)
 dotenv.config();
@@ -227,6 +228,10 @@ app.listen(PORT, () => {
     },
     'Servidor iniciado',
   );
+
+  // Lembretes e encerramentos automáticos (fase 1 do roadmap).
+  // No-op sem ENABLE_JOBS=true.
+  startJobs();
 });
 
 export default app;
