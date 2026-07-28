@@ -2,6 +2,7 @@ import express from 'express';
 import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import dns from 'dns';
 import { errorHandler } from './middleware/errorHandler';
 import { requestId } from './middleware/requestId';
 import { apiLimiter } from './middleware/rateLimit';
@@ -15,6 +16,12 @@ import { startJobs } from './jobs';
 // Carrega variáveis de ambiente e inicializa observabilidade (o quanto antes)
 dotenv.config();
 initSentry();
+
+// Resolve nomes preferindo IPv4. Em containers com IPv6 configurado mas sem
+// rota de saída (comum em PaaS), o Node tenta primeiro o registro AAAA e só
+// cai para IPv4 quando o SO esgota o tempo — o que fazia a conexão com o
+// smtp.gmail.com levar mais de um minuto antes de completar.
+dns.setDefaultResultOrder('ipv4first');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
