@@ -14,6 +14,7 @@ import notificationRoutes from './notificationRoutes';
 import auditRoutes from './auditRoutes';
 import feedbackRoutes from './feedbackRoutes';
 import meetingRoutes from './meetingRoutes';
+import learningRoutes from './learningRoutes';
 import publicRoutes from './publicRoutes';
 import culturalCodeRoutes from './culturalCodeRoutes';
 
@@ -50,6 +51,7 @@ router.use('/notifications', notificationRoutes);
 router.use('/audit', auditRoutes);
 router.use('/feedbacks', feedbackRoutes);
 router.use('/meetings', meetingRoutes);
+router.use('/learning', learningRoutes);
 router.use('/cultural-code', culturalCodeRoutes);
 
 // Health check

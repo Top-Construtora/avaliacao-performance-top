@@ -32,6 +32,7 @@ import {
   ScrollText,
   MessagesSquare,
   CalendarClock,
+  GraduationCap,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import { usePeopleCommitteePermission } from '../hooks/usePeopleCommittee';
@@ -292,6 +293,11 @@ export default function Sidebar({
           label: 'Reuniões',
           icon: CalendarClock,
           path: '/meetings',
+        },
+        {
+          label: 'Aprendizado',
+          icon: GraduationCap,
+          path: '/learning',
         },
         {
           label: 'Pesquisas',
