@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { notificationService } from '../services/notificationService';
 import {
   emailService,
+  getEmailProvider,
   isEmailEnabled,
   renderNotificationEmail,
   verifySmtp,
@@ -44,6 +45,7 @@ export const notificationController = {
 
       const config = {
         email_enabled_flag: process.env.EMAIL_ENABLED === 'true',
+        provider: getEmailProvider(),
         host: process.env.EMAIL_HOST || null,
         port: Number(process.env.EMAIL_PORT || 587),
         secure_tls: Number(process.env.EMAIL_PORT || 587) === 465,
@@ -91,7 +93,11 @@ export const notificationController = {
           data: {
             sent: false,
             to,
-            reason: `Não foi possível conectar ao servidor SMTP após ${handshake.ms}ms: ${handshake.error}`,
+            reason:
+              handshake.provider === 'brevo'
+                ? `A API da Brevo não aceitou a chave (${handshake.ms}ms): ${handshake.error}`
+                : `Não foi possível conectar ao servidor SMTP após ${handshake.ms}ms: ${handshake.error}. ` +
+                  'Se o erro for de rede (ENETUNREACH/timeout), o provedor de hospedagem está bloqueando as portas de SMTP — configure BREVO_API_KEY para enviar por HTTPS.',
             config: { ...config, smtp_handshake: false, handshake_ms: handshake.ms },
           },
         });
@@ -118,8 +124,8 @@ export const notificationController = {
           sent: result.sent,
           to,
           reason: result.sent
-            ? `Conexão estabelecida em ${handshake.ms}ms.`
-            : `Conexão OK (${handshake.ms}ms), mas o envio falhou: ${result.error}`,
+            ? `Enviado via ${handshake.provider === 'brevo' ? 'Brevo (HTTPS)' : 'SMTP'} — conexão em ${handshake.ms}ms.`
+            : `Provedor respondeu em ${handshake.ms}ms, mas o envio falhou: ${result.error}`,
           config: { ...config, smtp_handshake: true, handshake_ms: handshake.ms },
         },
       });
