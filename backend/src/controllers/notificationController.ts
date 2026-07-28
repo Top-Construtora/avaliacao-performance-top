@@ -62,10 +62,21 @@ export const notificationController = {
         });
       }
 
-      const to = authReq.user?.email;
-      if (!to) {
-        return res.status(400).json({ success: false, error: 'Seu usuário não tem e-mail' });
+      // Destinatário: o informado no corpo ou, por padrão, o e-mail do usuário.
+      // Contas administrativas costumam ter e-mail fictício, daí a opção.
+      const parsedTo = z
+        .string()
+        .email()
+        .max(200)
+        .safeParse(req.body?.to ?? authReq.user?.email);
+      if (!parsedTo.success) {
+        return res.status(400).json({
+          success: false,
+          error:
+            'Informe um e-mail de destino válido (o e-mail do seu usuário não serve para teste).',
+        });
       }
+      const to = parsedTo.data;
 
       const html = renderNotificationEmail({
         title: 'Teste de configuração de e-mail',

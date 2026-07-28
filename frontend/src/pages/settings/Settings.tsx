@@ -71,11 +71,16 @@ const Settings = () => {
   // Diagnóstico de e-mail (admin/diretoria)
   const [testingEmail, setTestingEmail] = useState(false);
   const [emailDiagnostics, setEmailDiagnostics] = useState<any>(null);
+  const [testEmailTo, setTestEmailTo] = useState('');
 
   const handleTestEmail = async () => {
+    if (!testEmailTo.trim()) {
+      toast.error('Informe o e-mail que deve receber o teste');
+      return;
+    }
     setTestingEmail(true);
     try {
-      const result = await notificationApiService.testEmail();
+      const result = await notificationApiService.testEmail(testEmailTo.trim());
       setEmailDiagnostics(result);
       if (result.sent) {
         toast.success('E-mail de teste enviado! Confira sua caixa de entrada.');
@@ -488,19 +493,30 @@ const Settings = () => {
               Diagnóstico de envio
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Dispara um e-mail de teste para você e mostra como o servidor está configurado. Use
-              depois de alterar as variáveis de ambiente.
+              Dispara um e-mail de teste e mostra como o servidor está configurado. Use depois de
+              alterar as variáveis de ambiente. Informe um endereço real — contas administrativas
+              costumam ter e-mail fictício cadastrado.
             </p>
-            <Button
-              variant="outline"
-              onClick={handleTestEmail}
-              disabled={testingEmail}
-              icon={
-                testingEmail ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail size={16} />
-              }
-            >
-              {testingEmail ? 'Enviando...' : 'Enviar e-mail de teste'}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="email"
+                value={testEmailTo}
+                onChange={(e) => setTestEmailTo(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !testingEmail && handleTestEmail()}
+                placeholder="seu.email@empresa.com"
+                className="flex-1 px-4 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-[#D2FF00]/20 focus:border-[#D2FF00]"
+              />
+              <Button
+                variant="outline"
+                onClick={handleTestEmail}
+                disabled={testingEmail}
+                icon={
+                  testingEmail ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail size={16} />
+                }
+              >
+                {testingEmail ? 'Enviando...' : 'Enviar teste'}
+              </Button>
+            </div>
 
             {emailDiagnostics && (
               <div className="mt-4 bg-secondary rounded-lg p-4 text-sm space-y-1">
