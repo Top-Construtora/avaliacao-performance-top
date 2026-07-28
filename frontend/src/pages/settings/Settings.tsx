@@ -87,8 +87,17 @@ const Settings = () => {
       } else {
         toast.error(result.reason || 'Não foi possível enviar');
       }
-    } catch {
-      toast.error('Erro ao executar o diagnóstico');
+    } catch (error: any) {
+      const timedOut = String(error?.message || '')
+        .toLowerCase()
+        .includes('timeout');
+      setEmailDiagnostics({
+        sent: false,
+        reason: timedOut
+          ? 'O servidor não respondeu a tempo. Normalmente significa que a conexão com o SMTP está travando — confira host, porta e se a senha de app está correta.'
+          : 'Erro ao executar o diagnóstico.',
+      });
+      toast.error(timedOut ? 'Tempo esgotado ao contatar o servidor' : 'Erro no diagnóstico');
     } finally {
       setTestingEmail(false);
     }
@@ -526,45 +535,63 @@ const Settings = () => {
                     : 'Nenhum e-mail enviado'}
                 </p>
                 {emailDiagnostics.reason && (
-                  <p className="text-warning mb-2">{emailDiagnostics.reason}</p>
+                  <p className="text-warning mb-2 break-words">{emailDiagnostics.reason}</p>
                 )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs text-muted-foreground">
-                  <span>
-                    EMAIL_ENABLED:{' '}
-                    <strong
-                      className={
-                        emailDiagnostics.config?.email_enabled_flag
-                          ? 'text-success'
-                          : 'text-destructive'
-                      }
-                    >
-                      {String(emailDiagnostics.config?.email_enabled_flag)}
-                    </strong>
-                  </span>
-                  <span>
-                    ENABLE_JOBS:{' '}
-                    <strong
-                      className={
-                        emailDiagnostics.config?.jobs_enabled ? 'text-success' : 'text-destructive'
-                      }
-                    >
-                      {String(emailDiagnostics.config?.jobs_enabled)}
-                    </strong>
-                  </span>
-                  <span>Servidor: {emailDiagnostics.config?.host || '—'}</span>
-                  <span>
-                    Porta: {emailDiagnostics.config?.port} (TLS:{' '}
-                    {String(emailDiagnostics.config?.secure_tls)})
-                  </span>
-                  <span>Remetente: {emailDiagnostics.config?.from || '—'}</span>
-                  <span>
-                    Senha configurada: {String(emailDiagnostics.config?.password_present)}
-                  </span>
-                  <span className="sm:col-span-2">
-                    URL do sistema (botões do e-mail):{' '}
-                    {emailDiagnostics.config?.frontend_url || '— não configurada'}
-                  </span>
-                </div>
+                {emailDiagnostics.config && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs text-muted-foreground">
+                    <span>
+                      EMAIL_ENABLED:{' '}
+                      <strong
+                        className={
+                          emailDiagnostics.config?.email_enabled_flag
+                            ? 'text-success'
+                            : 'text-destructive'
+                        }
+                      >
+                        {String(emailDiagnostics.config?.email_enabled_flag)}
+                      </strong>
+                    </span>
+                    <span>
+                      ENABLE_JOBS:{' '}
+                      <strong
+                        className={
+                          emailDiagnostics.config?.jobs_enabled
+                            ? 'text-success'
+                            : 'text-destructive'
+                        }
+                      >
+                        {String(emailDiagnostics.config?.jobs_enabled)}
+                      </strong>
+                    </span>
+                    <span>Servidor: {emailDiagnostics.config?.host || '—'}</span>
+                    <span>
+                      Porta: {emailDiagnostics.config?.port} (TLS:{' '}
+                      {String(emailDiagnostics.config?.secure_tls)})
+                    </span>
+                    <span>Remetente: {emailDiagnostics.config?.from || '—'}</span>
+                    <span>
+                      Senha configurada: {String(emailDiagnostics.config?.password_present)}
+                    </span>
+                    {emailDiagnostics.config?.smtp_handshake !== undefined && (
+                      <span>
+                        Conexão SMTP:{' '}
+                        <strong
+                          className={
+                            emailDiagnostics.config.smtp_handshake
+                              ? 'text-success'
+                              : 'text-destructive'
+                          }
+                        >
+                          {emailDiagnostics.config.smtp_handshake ? 'autenticada' : 'falhou'}
+                        </strong>
+                      </span>
+                    )}
+                    <span className="sm:col-span-2">
+                      URL do sistema (botões do e-mail):{' '}
+                      {emailDiagnostics.config?.frontend_url || '— não configurada'}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>

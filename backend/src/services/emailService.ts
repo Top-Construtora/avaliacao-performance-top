@@ -36,9 +36,35 @@ function getTransporter(): Transporter {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      // Timeouts explícitos: os padrões do nodemailer são longos demais
+      // (2 min só para conectar). Com retry, uma conexão travada deixaria a
+      // requisição pendurada além do limite do navegador.
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 20_000,
     });
   }
   return transporter;
+}
+
+/** Descarta o transporte em cache — usado quando a config muda ou falha. */
+export function resetTransporter(): void {
+  transporter = null;
+}
+
+/**
+ * Testa a conexão e a autenticação SMTP sem enviar mensagem.
+ * Usado no diagnóstico para separar "não conecta" de "não envia".
+ */
+export async function verifySmtp(): Promise<{ ok: boolean; error?: string }> {
+  if (!isEmailEnabled()) return { ok: false, error: 'Serviço de e-mail desligado' };
+  try {
+    await getTransporter().verify();
+    return { ok: true };
+  } catch (error: any) {
+    resetTransporter();
+    return { ok: false, error: error?.message || String(error) };
+  }
 }
 
 function escapeHtml(value: string): string {
@@ -110,10 +136,15 @@ export function renderNotificationEmail(input: NotificationEmailInput): string {
 export const emailService = {
   /**
    * Envia um e-mail com 1 retry. Nunca lança — falha de e-mail não pode
-   * derrubar fluxo de negócio. Retorna true se enviado.
+   * derrubar fluxo de negócio. Retorna o resultado com a causa do erro,
+   * que o diagnóstico exibe para o admin.
    */
-  async send(to: string, subject: string, html: string): Promise<boolean> {
-    if (!isEmailEnabled()) return false;
+  async sendWithResult(
+    to: string,
+    subject: string,
+    html: string,
+  ): Promise<{ sent: boolean; error?: string }> {
+    if (!isEmailEnabled()) return { sent: false, error: 'Serviço de e-mail desligado' };
 
     const mail = {
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
@@ -123,18 +154,28 @@ export const emailService = {
       html,
     };
 
+    let lastError = '';
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         await getTransporter().sendMail(mail);
         emailLogger.info({ to, subject }, 'E-mail enviado');
-        return true;
+        return { sent: true };
       } catch (error: any) {
-        emailLogger.warn({ to, subject, attempt, err: error.message }, 'Falha ao enviar e-mail');
-        if (attempt === 2) return false;
+        lastError = error?.message || String(error);
+        emailLogger.warn({ to, subject, attempt, err: lastError }, 'Falha ao enviar e-mail');
+        // Conexão pode ter ficado num estado ruim — força reconectar no retry
+        resetTransporter();
+        if (attempt === 2) break;
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
-    return false;
+    return { sent: false, error: lastError };
+  },
+
+  /** Atalho booleano — usado pelos fluxos que só querem disparar e seguir. */
+  async send(to: string, subject: string, html: string): Promise<boolean> {
+    const { sent } = await this.sendWithResult(to, subject, html);
+    return sent;
   },
 
   /**
