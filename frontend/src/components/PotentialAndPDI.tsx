@@ -402,7 +402,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: itemIndex * 0.1 }}
-                        className="bg-secondary rounded-lg sm:rounded-xl p-3 sm:p-4 border border-border"
+                        className="bg-secondary rounded-lg sm:rounded-xl p-4 sm:p-5 border border-border"
                       >
                         {/* Header do Item */}
                         <div className="flex items-center justify-between mb-3">
@@ -429,17 +429,20 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                           )}
                         </div>
 
-                        <div className="space-y-3">
-                          {/* Competência a desenvolver */}
+                        <div className="space-y-4">
+                          {/* Competência: uma linha só — é um título curto
+                              ("Comunicação"), não um parágrafo. Como textarea de
+                              duas linhas dava a impressão de exigir mais texto do
+                              que precisa. */}
                           <div>
-                            <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
+                            <label className="block text-xs font-semibold text-foreground/70 mb-1.5 flex items-center">
                               <Award className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
                               Competência a desenvolver
                             </label>
-                            <textarea
-                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
-                              placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
-                              rows={2}
+                            <input
+                              type="text"
+                              className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm font-medium disabled:opacity-75 disabled:cursor-not-allowed"
+                              placeholder="Ex.: Comunicação, Liderança, Gestão de projetos"
                               value={item.competencia}
                               onChange={(e) =>
                                 !readOnly &&
@@ -450,53 +453,57 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             />
                           </div>
 
-                          {/* Calendarização */}
-                          <div>
-                            <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
-                              <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                              Calendarização (Mês/Ano)
-                            </label>
-                            <input
-                              type="month"
-                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed"
-                              value={item.calendarizacao}
-                              onChange={(e) =>
-                                !readOnly &&
-                                updateActionItem(
-                                  category,
-                                  item.id,
-                                  'calendarizacao',
-                                  e.target.value,
-                                )
-                              }
-                              disabled={readOnly}
-                              readOnly={readOnly}
-                            />
-                          </div>
+                          {/* Os dois textos longos lado a lado: "como" e "para
+                              quê" são a mesma decisão vista de dois ângulos, e
+                              empilhados faziam o card virar uma coluna sem fim. */}
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-semibold text-foreground/70 mb-1.5 flex items-center">
+                                <Lightbulb className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
+                                Como desenvolver
+                              </label>
+                              <textarea
+                                className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
+                                rows={3}
+                                placeholder="Que ações, práticas ou estudos levam a essa competência?"
+                                value={item.comoDesenvolver}
+                                onChange={(e) =>
+                                  !readOnly &&
+                                  updateActionItem(
+                                    category,
+                                    item.id,
+                                    'comoDesenvolver',
+                                    e.target.value,
+                                  )
+                                }
+                                disabled={readOnly}
+                                readOnly={readOnly}
+                              />
+                            </div>
 
-                          {/* Como desenvolver as competências */}
-                          <div>
-                            <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
-                              <Lightbulb className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
-                              Como desenvolver as competências
-                            </label>
-                            <textarea
-                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
-                              rows={2}
-                              placeholder="Descreva as ações e métodos para desenvolver esta competência..."
-                              value={item.comoDesenvolver}
-                              onChange={(e) =>
-                                !readOnly &&
-                                updateActionItem(
-                                  category,
-                                  item.id,
-                                  'comoDesenvolver',
-                                  e.target.value,
-                                )
-                              }
-                              disabled={readOnly}
-                              readOnly={readOnly}
-                            />
+                            <div>
+                              <label className="block text-xs font-semibold text-foreground/70 mb-1.5 flex items-center">
+                                <Target className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
+                                Resultados esperados
+                              </label>
+                              <textarea
+                                className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
+                                rows={3}
+                                placeholder="O que muda no dia a dia quando essa competência estiver desenvolvida?"
+                                value={item.resultadosEsperados}
+                                onChange={(e) =>
+                                  !readOnly &&
+                                  updateActionItem(
+                                    category,
+                                    item.id,
+                                    'resultadosEsperados',
+                                    e.target.value,
+                                  )
+                                }
+                                disabled={readOnly}
+                                readOnly={readOnly}
+                              />
+                            </div>
                           </div>
 
                           {/* Material de apoio: fica logo abaixo do "como
@@ -526,16 +533,21 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               return (
                                 <div>
                                   {!editando ? (
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setCursoEditando((prev) => ({ ...prev, [item.id]: true }))
-                                      }
-                                      className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-                                    >
-                                      <BookOpen className="h-4 w-4" />
-                                      Indicar um material de apoio (curso, vídeo, livro, artigo...)
-                                    </button>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        icon={<BookOpen size={16} />}
+                                        onClick={() =>
+                                          setCursoEditando((prev) => ({ ...prev, [item.id]: true }))
+                                        }
+                                      >
+                                        Indicar material de apoio
+                                      </Button>
+                                      <span className="text-xs text-muted-foreground">
+                                        curso, vídeo, livro, artigo...
+                                      </span>
+                                    </div>
                                   ) : (
                                     <div className="space-y-3 bg-background/60 rounded-xl p-3 border border-border">
                                       <div className="flex items-center justify-between gap-2">
@@ -560,7 +572,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                         <input
                                           type="url"
                                           placeholder="https://... (vídeo, artigo, página do livro)"
-                                          className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm"
+                                          className="w-full rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm"
                                           value={extra?.course_url || ''}
                                           onChange={(e) =>
                                             onActionExtraChange(
@@ -579,7 +591,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                         <input
                                           type="text"
                                           placeholder="Ex.: livro Comunicação não-violenta"
-                                          className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm"
+                                          className="w-full rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm"
                                           value={extra?.course_url_title || ''}
                                           onChange={(e) =>
                                             onActionExtraChange(
@@ -597,7 +609,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                             Ou um curso já cadastrado no Aprendizado
                                           </label>
                                           <select
-                                            className="w-full rounded-xl border border-border bg-secondary text-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm"
+                                            className="w-full rounded-xl border border-border bg-secondary text-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm"
                                             value={extra?.course_id || ''}
                                             onChange={(e) =>
                                               onActionExtraChange(
@@ -626,40 +638,43 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               );
                             })()}
 
-                          {/* Resultados Esperados */}
-                          <div>
-                            <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
-                              <Target className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
-                              Resultados Esperados
-                            </label>
-                            <textarea
-                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
-                              rows={2}
-                              placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
-                              value={item.resultadosEsperados}
-                              onChange={(e) =>
-                                !readOnly &&
-                                updateActionItem(
-                                  category,
-                                  item.id,
-                                  'resultadosEsperados',
-                                  e.target.value,
-                                )
-                              }
-                              disabled={readOnly}
-                              readOnly={readOnly}
-                            />
-                          </div>
+                          {/* Acompanhamento: quando, como está e o que anotar.
+                              Separado do conteúdo da ação (o que desenvolver e
+                              como) porque muda em outro momento — o conteúdo se
+                              escreve uma vez, isto se revisita. */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-border">
+                            {/* Calendarização */}
+                            <div>
+                              <label className="block text-xs font-semibold text-foreground/70 mb-1.5 flex items-center">
+                                <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                                Quando (mês/ano)
+                              </label>
+                              <input
+                                type="month"
+                                className="w-full rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed"
+                                value={item.calendarizacao}
+                                onChange={(e) =>
+                                  !readOnly &&
+                                  updateActionItem(
+                                    category,
+                                    item.id,
+                                    'calendarizacao',
+                                    e.target.value,
+                                  )
+                                }
+                                disabled={readOnly}
+                                readOnly={readOnly}
+                              />
+                            </div>
 
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-border">
                             {/* Status */}
                             <div>
-                              <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
+                              <label className="block text-xs font-semibold text-foreground/70 mb-1.5 flex items-center">
                                 <CheckCircle className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
                                 Status
                               </label>
                               <select
-                                className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed"
+                                className="w-full rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed"
                                 value={item.status}
                                 onChange={(e) =>
                                   !readOnly &&
@@ -681,13 +696,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             </div>
 
                             {/* Observação */}
-                            <div>
-                              <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
+                            <div className="sm:col-span-2 lg:col-span-2">
+                              <label className="block text-xs font-semibold text-foreground/70 mb-1.5 flex items-center">
                                 <MessageSquare className="h-4 w-4 mr-2 text-muted-foreground" />
                                 Observação
                               </label>
                               <textarea
-                                className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
+                                className="w-full rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
                                 rows={2}
                                 placeholder="Observações adicionais..."
                                 value={item.observacao}
@@ -700,35 +715,6 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               />
                             </div>
                           </div>
-
-                          {/* Prazo real da ação (vive em pdi_actions, não no JSONB). */}
-                          {onActionExtraChange &&
-                            !readOnly &&
-                            (() => {
-                              const extra = actionExtras?.[item.id];
-                              return (
-                                <div className="pt-3 border-t border-border">
-                                  <div className="sm:max-w-[50%]">
-                                    <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
-                                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                                      Prazo da ação
-                                    </label>
-                                    <input
-                                      type="date"
-                                      className="w-full rounded-xl border border-border bg-secondary text-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm"
-                                      value={extra?.due_date || ''}
-                                      onChange={(e) =>
-                                        onActionExtraChange(
-                                          item.id,
-                                          'due_date',
-                                          e.target.value || null,
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                </div>
-                              );
-                            })()}
                         </div>
                       </motion.div>
                     ))}
