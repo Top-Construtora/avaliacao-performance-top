@@ -9,9 +9,31 @@ import { PDIItem } from '../types/pdi.types';
  * Modo de transição (dual-write): o JSONB development_plans.items continua
  * sendo a fonte das telas legadas; esta tabela é a fonte de vínculo com
  * cursos, prazo real (due_date) e lembretes. O id do item é compartilhado
- * entre as duas estruturas. due_date/course_id vivem SÓ na tabela e são
- * preservados quando o restante do item é reescrito pelo fluxo legado.
+ * entre as duas estruturas. due_date/course_id/course_url vivem SÓ na tabela e
+ * são preservados quando o restante do item é reescrito pelo fluxo legado.
  */
+
+/**
+ * Aceita só http(s). O link é renderizado como âncora clicável na tela do
+ * colaborador — sem esta trava, um `javascript:` salvo aqui viraria execução
+ * de script no navegador de quem clicasse.
+ */
+function normalizeCourseUrl(raw: string): string {
+  const valor = raw.trim();
+  // Sem esquema, assume https — é o que a pessoa quer dizer ao colar "udemy.com/x"
+  const comEsquema = /^[a-z][a-z0-9+.-]*:/i.test(valor) ? valor : `https://${valor}`;
+
+  let url: URL;
+  try {
+    url = new URL(comEsquema);
+  } catch {
+    throw AppError.badRequest('Link do curso inválido');
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw AppError.badRequest('O link do curso precisa começar com http:// ou https://');
+  }
+  return url.toString();
+}
 
 export const pdiActionsService = {
   /** Garante id em todos os itens (muta uma cópia) e devolve a lista. */
@@ -69,6 +91,41 @@ export const pdiActionsService = {
     }
   },
 
+  /**
+   * Ações normalizadas de um plano, para quem gerencia o PDI de outra pessoa.
+   * As telas legadas leem o JSONB, que não conhece curso nem prazo — é por aqui
+   * que o líder enxerga (e edita) o que só existe na tabela.
+   */
+  async planActions(supabase: SupabaseClient, planId: string, userId: string, isHR: boolean) {
+    const { data: plan } = await supabase
+      .from('development_plans')
+      .select('id, employee_id')
+      .eq('id', planId)
+      .single();
+    if (!plan) throw AppError.notFound('PDI não encontrado');
+
+    // O dono lê o próprio (só não edita). Fora isso: RH, ou o líder direto —
+    // ser líder de alguém não dá acesso ao PDI de quem não é seu liderado.
+    if (plan.employee_id !== userId && !isHR) {
+      const { data: dono } = await supabase
+        .from('users')
+        .select('reports_to')
+        .eq('id', plan.employee_id)
+        .single();
+      if (dono?.reports_to !== userId) {
+        throw AppError.forbidden('Você não pode ver o PDI de outra pessoa');
+      }
+    }
+
+    const { data: actions, error } = await supabase
+      .from('pdi_actions')
+      .select('*, course:courses!pdi_actions_course_id_fkey(id, title)')
+      .eq('development_plan_id', planId)
+      .order('position');
+    if (error) throw AppError.internal(`Erro ao listar ações: ${error.message}`);
+    return { plan_id: planId, employee_id: plan.employee_id, actions: actions || [] };
+  },
+
   /** Ações do plano ativo do usuário, com o curso vinculado. */
   async myActions(supabase: SupabaseClient, userId: string) {
     const { data: plan } = await supabase
@@ -92,14 +149,25 @@ export const pdiActionsService = {
   /**
    * Atualiza status/prazo/curso de uma ação. Status é espelhado de volta no
    * JSONB (as telas legadas continuam coerentes); due_date/course_id só tabela.
+   *
+   * Quem pode: o líder direto do dono do plano (users.reports_to) — e nunca o
+   * próprio dono, senão o status vira autodeclaração: atestar que a ação andou
+   * é de quem lidera. RH e diretoria editam qualquer PDI, inclusive o próprio,
+   * por serem os responsáveis pelo processo.
    */
   async updateAction(
     supabase: SupabaseClient,
     planId: string,
     actionId: string,
     userId: string,
-    input: { status?: string; due_date?: string | null; course_id?: string | null },
-    canManageOthers: boolean,
+    input: {
+      status?: string;
+      due_date?: string | null;
+      course_id?: string | null;
+      course_url?: string | null;
+      course_url_title?: string | null;
+    },
+    isHR: boolean,
   ) {
     const { data: plan } = await supabase
       .from('development_plans')
@@ -107,8 +175,22 @@ export const pdiActionsService = {
       .eq('id', planId)
       .single();
     if (!plan) throw AppError.notFound('PDI não encontrado');
-    if (plan.employee_id !== userId && !canManageOthers) {
-      throw AppError.forbidden('Você não pode alterar o PDI de outra pessoa');
+
+    if (!isHR) {
+      if (plan.employee_id === userId) {
+        throw AppError.forbidden(
+          'O PDI é acompanhado pelo seu líder: só ele registra status e prazo das suas ações.',
+        );
+      }
+
+      const { data: dono } = await supabase
+        .from('users')
+        .select('reports_to')
+        .eq('id', plan.employee_id)
+        .single();
+      if (dono?.reports_to !== userId) {
+        throw AppError.forbidden('Você só pode alterar o PDI de quem se reporta a você.');
+      }
     }
 
     const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
@@ -120,6 +202,12 @@ export const pdiActionsService = {
     }
     if (input.due_date !== undefined) updates.due_date = input.due_date;
     if (input.course_id !== undefined) updates.course_id = input.course_id;
+    if (input.course_url !== undefined) {
+      updates.course_url = input.course_url ? normalizeCourseUrl(input.course_url) : null;
+    }
+    if (input.course_url_title !== undefined) {
+      updates.course_url_title = input.course_url_title?.trim() || null;
+    }
 
     const { data: action, error } = await supabase
       .from('pdi_actions')

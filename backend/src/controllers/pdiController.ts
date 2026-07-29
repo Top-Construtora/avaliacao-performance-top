@@ -105,13 +105,29 @@ export const pdiController = {
     }
   },
 
+  async getPlanActions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const result = await pdiActionsService.planActions(
+        authReq.supabase,
+        req.params.planId,
+        authReq.user!.id,
+        isPrivileged(authReq.user),
+      );
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async updateAction(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
       const { planId, actionId } = req.params;
-      const { status, due_date, course_id } = req.body || {};
+      const { status, due_date, course_id, course_url, course_url_title } = req.body || {};
 
-      const canManageOthers = isPrivileged(authReq.user) || !!authReq.user?.is_leader;
+      // Só o RH passa direto; para o líder, o serviço confere se o dono do plano
+      // se reporta a ele — e ninguém edita o próprio PDI.
       const action = await pdiActionsService.updateAction(
         authReq.supabase,
         planId,
@@ -121,8 +137,10 @@ export const pdiController = {
           ...(status !== undefined ? { status: String(status) } : {}),
           ...(due_date !== undefined ? { due_date: due_date || null } : {}),
           ...(course_id !== undefined ? { course_id: course_id || null } : {}),
+          ...(course_url !== undefined ? { course_url: course_url || null } : {}),
+          ...(course_url_title !== undefined ? { course_url_title: course_url_title || null } : {}),
         },
-        canManageOthers,
+        isPrivileged(authReq.user),
       );
 
       res.json({ success: true, data: action });
