@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { Users, BookOpen, Info, Save } from 'lucide-react';
 import Button from '../../components/Button';
 import PotentialAndPDI from '../../components/PotentialAndPDI';
+import PdiActionCourses from '../../components/PdiActionCourses';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 
@@ -50,6 +51,17 @@ const PdiManagement: React.FC = () => {
   });
   const [loadingPDI, setLoadingPDI] = useState<boolean>(false);
   const [isSavingPDI, setIsSavingPDI] = useState<boolean>(false);
+  /**
+   * Retrato dos itens no último carregamento/salvamento. Como os itens agora são
+   * editados direto na lista (sem etapa de confirmação), é isto que diz se há
+   * algo escrito e ainda não gravado — e é o que a barra de salvar anuncia.
+   */
+  const [savedSnapshot, setSavedSnapshot] = useState<string>('');
+
+  const snapshotOf = (data: PdiData) =>
+    JSON.stringify([data.curtosPrazos, data.mediosPrazos, data.longosPrazos]);
+
+  const hasUnsavedChanges = !!selectedEmployeeId && snapshotOf(pdiData) !== savedSnapshot;
 
   // Filtrar employees baseado nas permissões do usuário
   const filteredEmployees = React.useMemo(() => {
@@ -107,15 +119,18 @@ const PdiManagement: React.FC = () => {
                 'Não definido',
             };
             setPdiData(mergedPdiData);
+            setSavedSnapshot(snapshotOf(mergedPdiData));
             toast.success('PDI carregado com sucesso!');
           } else {
             // Se não houver PDI, mantenha os dados iniciais e informe ao usuário
             setPdiData(initialPdiData);
+            setSavedSnapshot(snapshotOf(initialPdiData));
             toast('Nenhum PDI encontrado para este colaborador. Crie um novo!');
           }
         } catch (error) {
           console.error('Erro ao carregar PDI:', error);
           setPdiData(initialPdiData);
+          setSavedSnapshot(snapshotOf(initialPdiData));
           toast.error('Erro ao carregar PDI. Você pode criar um novo.');
         } finally {
           setLoadingPDI(false);
@@ -131,18 +146,46 @@ const PdiManagement: React.FC = () => {
       return;
     }
 
-    const allPdiActionItems = [
+    const todosItens = [
       ...pdiData.curtosPrazos.map((item) => ({ ...item, prazo: 'curto' as const })),
       ...pdiData.mediosPrazos.map((item) => ({ ...item, prazo: 'medio' as const })),
       ...pdiData.longosPrazos.map((item) => ({ ...item, prazo: 'longo' as const })),
     ];
 
-    if (allPdiActionItems.length === 0) {
+    // Item em branco = clicou em adicionar e desistiu. Descartar em silêncio é
+    // melhor que barrar o salvamento inteiro por causa dele.
+    const preenchidos = todosItens.filter((item) =>
+      [item.competencia, item.comoDesenvolver, item.resultadosEsperados, item.observacao].some(
+        (campo) => (campo || '').trim() !== '',
+      ),
+    );
+
+    if (preenchidos.length === 0) {
       toast.error(
         'Adicione pelo menos um item ao Plano de Desenvolvimento Individual (PDI) antes de salvar.',
       );
       return;
     }
+
+    // O backend exige os três campos em todo item — avisar qual está faltando é
+    // mais útil que devolver "estrutura inválida".
+    const incompleto = preenchidos.find(
+      (item) =>
+        !item.competencia.trim() ||
+        !item.comoDesenvolver.trim() ||
+        !item.resultadosEsperados.trim(),
+    );
+    if (incompleto) {
+      toast.error(
+        `Complete o item "${incompleto.competencia || 'sem competência'}": competência, como desenvolver e resultados esperados são obrigatórios.`,
+      );
+      return;
+    }
+
+    const allPdiActionItems = preenchidos.map((item) => ({
+      ...item,
+      calendarizacao: item.calendarizacao?.trim() || 'A definir',
+    }));
 
     // Criar arrays para o formato antigo (compatibilidade)
     const pdiGoals = allPdiActionItems.map(
@@ -179,6 +222,7 @@ const PdiManagement: React.FC = () => {
           departamento: pdiData.departamento,
         };
         setPdiData(mergedPdiData);
+        setSavedSnapshot(snapshotOf(mergedPdiData));
       }
     } catch (error) {
       console.error('Erro ao salvar PDI:', error);
@@ -313,20 +357,44 @@ const PdiManagement: React.FC = () => {
                 selectedEmployee={selectedEmployee}
                 hideActionButtons={true} // Ocultar botões de Salvar Rascunho e Enviar Avaliação
               />
-              <div className="flex justify-end space-x-4 mt-6">
-                <Button
-                  variant="outline"
-                  onClick={handleSavePDI}
-                  icon={<Save size={18} />}
-                  size="lg"
-                  disabled={isSavingPDI || loadingPDI}
-                >
-                  {isSavingPDI ? 'Salvando PDI...' : 'Salvar PDI'}
-                </Button>
-              </div>
+              {/* Curso, prazo e status vivem na tabela pdi_actions, então só
+                  aparecem depois que o plano existe. */}
+              {pdiData.id && (
+                <div className="mt-8 pt-6 border-t border-border">
+                  <PdiActionCourses planId={pdiData.id} colaborador={pdiData.colaborador} />
+                </div>
+              )}
             </>
           )}
         </motion.div>
+      )}
+
+      {/* Barra de salvamento: fica colada no rodapé enquanto houver algo escrito
+          e não gravado. Com a edição direta na lista, não existe mais um "salvar
+          item" — este é o único ponto onde o plano é gravado, e ele precisa
+          dizer sozinho se ainda falta fazer isso. */}
+      {selectedEmployeeId && !loadingPDI && (
+        <div className="sticky bottom-0 z-10 -mx-4 sm:mx-0 px-4 sm:px-6 py-3 bg-card/95 backdrop-blur border-t sm:border sm:rounded-2xl border-border shadow-lg flex flex-wrap items-center justify-between gap-3">
+          <span className="text-sm text-muted-foreground">
+            {hasUnsavedChanges ? (
+              <span className="flex items-center gap-2 text-foreground font-medium">
+                <span className="h-2 w-2 rounded-full bg-[#D2FF00]" />
+                Alterações ainda não salvas
+              </span>
+            ) : (
+              'Tudo salvo'
+            )}
+          </span>
+          <Button
+            variant={hasUnsavedChanges ? 'primary' : 'outline'}
+            onClick={handleSavePDI}
+            icon={<Save size={18} />}
+            size="lg"
+            disabled={isSavingPDI || loadingPDI || !hasUnsavedChanges}
+          >
+            {isSavingPDI ? 'Salvando...' : 'Salvar PDI'}
+          </Button>
+        </div>
       )}
 
       {/* Empty State */}

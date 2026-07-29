@@ -67,6 +67,16 @@ function validationError(res: Response, issues: unknown) {
 export const learningController = {
   // ===== CURSOS (admin) =====
 
+  async courseOptions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const courses = await learningService.courseOptions(authReq.supabase);
+      res.json({ success: true, data: courses });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async listCourses(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;

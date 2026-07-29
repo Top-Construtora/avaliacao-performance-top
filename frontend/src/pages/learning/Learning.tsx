@@ -45,6 +45,9 @@ interface MyPdiAction {
   prazo: string;
   status: string;
   course: { id: string; title: string } | null;
+  due_date?: string | null;
+  course_url?: string | null;
+  course_url_title?: string | null;
 }
 
 type Tab = 'mine' | 'catalog' | 'external' | 'admin';
@@ -143,6 +146,12 @@ const Learning = () => {
               setPdiPlanId(result?.plan_id || null);
               setPdiActions(result?.actions || []);
             })
+            .catch(() => undefined);
+          // O catálogo é o que diz se existe turma aberta para o curso indicado
+          // no PDI — sem ele, o botão de começar nunca apareceria nesta aba.
+          learningApiService
+            .catalog()
+            .then(setCatalog)
             .catch(() => undefined);
         } else if (targetTab === 'catalog') {
           setCatalog(await learningApiService.catalog());
@@ -337,6 +346,91 @@ const Learning = () => {
       ) : tab === 'mine' ? (
         /* ===== MEUS CURSOS ===== */
         <div className="space-y-6">
+          {/* Indicações do PDI: o líder aponta o curso na ação, e ele aparece
+              aqui sem o colaborador precisar procurar no catálogo. */}
+          {(() => {
+            const indicados = pdiActions.filter(
+              (a) => (a.course || a.course_url) && !['4', '5'].includes(a.status),
+            );
+            if (indicados.length === 0) return null;
+
+            return (
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <GraduationCap className="h-4 w-4" /> Indicados no seu PDI
+                </h3>
+                <div className="space-y-3">
+                  {indicados.map((acao) => {
+                    // Já inscrito? Então o acompanhamento acontece no card do curso.
+                    const inscrito = acao.course
+                      ? enrollments.find((e) => e.class?.course?.id === acao.course!.id)
+                      : null;
+                    // Turma aberta para autoinscrição deste curso, se houver.
+                    const turma = acao.course
+                      ? catalog.find((cl) => cl.course?.id === acao.course!.id)
+                      : null;
+
+                    return (
+                      <div
+                        key={acao.id}
+                        className="bg-card border border-border rounded-xl p-4 md:p-5 flex flex-wrap items-center justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-foreground">
+                            {acao.course?.title || acao.course_url_title || 'Curso indicado'}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Ação do PDI: {acao.competencia}
+                            {acao.due_date &&
+                              ` · até ${new Date(`${acao.due_date}T00:00:00`).toLocaleDateString('pt-BR')}`}
+                          </p>
+                        </div>
+
+                        {acao.course ? (
+                          inscrito ? (
+                            <span className="text-xs font-medium text-muted-foreground">
+                              Inscrito · {inscrito.progress}%
+                            </span>
+                          ) : turma ? (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  await learningApiService.selfEnroll(turma.id);
+                                  toast.success('Inscrição feita!');
+                                  loadTab('mine');
+                                } catch (error: any) {
+                                  toast.error(error?.message || 'Erro na inscrição');
+                                }
+                              }}
+                              icon={<Plus size={14} />}
+                            >
+                              Começar
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              Aguardando turma disponível
+                            </span>
+                          )
+                        ) : (
+                          <a
+                            href={acao.course_url!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-secondary"
+                          >
+                            Abrir curso
+                          </a>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Trilhas (5B): sequência com liberação progressiva */}
           {myTracks.length > 0 && (
             <div>

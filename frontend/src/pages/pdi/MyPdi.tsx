@@ -21,7 +21,17 @@ interface PdiActionRow {
   status: string;
   due_date: string | null;
   course: { id: string; title: string } | null;
+  course_url: string | null;
+  course_url_title: string | null;
 }
+
+const STATUS_LABEL: Record<string, string> = {
+  '1': 'Não iniciado',
+  '2': 'Em andamento',
+  '3': 'Pausado',
+  '4': 'Concluído',
+  '5': 'Cancelado',
+};
 
 interface ActionItem {
   id: string;
@@ -71,39 +81,18 @@ const MyPdi: React.FC = () => {
       setPlanId(result?.plan_id || null);
       const map = new Map<string, PdiActionRow>();
       (result?.actions || []).forEach((a: any) =>
-        map.set(a.id, { id: a.id, status: a.status, due_date: a.due_date, course: a.course }),
+        map.set(a.id, {
+          id: a.id,
+          status: a.status,
+          due_date: a.due_date,
+          course: a.course,
+          course_url: a.course_url ?? null,
+          course_url_title: a.course_url_title ?? null,
+        }),
       );
       setActionRows(map);
     } catch {
       /* controles ficam ocultos se a consulta falhar */
-    }
-  };
-
-  const patchAction = async (
-    actionId: string,
-    changes: { status?: string; due_date?: string | null },
-  ) => {
-    if (!planId) return;
-    try {
-      await api.patch(`/pdi/${planId}/actions/${actionId}`, changes);
-      loadActions();
-      if (changes.status) {
-        // Espelha no card imediatamente
-        setPdiData((prev) => {
-          if (!prev) return prev;
-          const patch = (items: ActionItem[]) =>
-            items.map((i) => (i.id === actionId ? { ...i, status: changes.status as any } : i));
-          return {
-            ...prev,
-            curtosPrazos: patch(prev.curtosPrazos),
-            mediosPrazos: patch(prev.mediosPrazos),
-            longosPrazos: patch(prev.longosPrazos),
-          };
-        });
-      }
-      toast.success('Ação atualizada');
-    } catch {
-      toast.error('Erro ao atualizar ação');
     }
   };
 
@@ -250,41 +239,50 @@ const MyPdi: React.FC = () => {
                 </div>
               )}
 
-              {/* Controles da ação (fase 5C): status, prazo real e curso */}
-              {planId && actionRows.has(item.id) && (
-                <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-border">
-                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    Status
-                    <select
-                      value={actionRows.get(item.id)!.status}
-                      onChange={(e) => patchAction(item.id, { status: e.target.value })}
-                      className="px-2 py-1.5 rounded-lg border border-border bg-background text-foreground text-xs"
-                    >
-                      <option value="1">Não iniciado</option>
-                      <option value="2">Em andamento</option>
-                      <option value="3">Pausado</option>
-                      <option value="4">Concluído</option>
-                      <option value="5">Cancelado</option>
-                    </select>
-                  </label>
-                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <CalendarClock className="h-3.5 w-3.5" />
-                    Prazo
-                    <input
-                      type="date"
-                      value={actionRows.get(item.id)!.due_date || ''}
-                      onChange={(e) => patchAction(item.id, { due_date: e.target.value || null })}
-                      className="px-2 py-1.5 rounded-lg border border-border bg-background text-foreground text-xs"
-                    />
-                  </label>
-                  {actionRows.get(item.id)!.course && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-lime/20 text-lime-deep dark:text-lime">
-                      <GraduationCap className="h-3.5 w-3.5" />
-                      {actionRows.get(item.id)!.course!.title}
-                    </span>
-                  )}
-                </div>
-              )}
+              {/* Somente leitura: status e prazo são registrados pelo líder — se
+                  o próprio colaborador marcasse, viraria autodeclaração. */}
+              {planId &&
+                actionRows.has(item.id) &&
+                (() => {
+                  const row = actionRows.get(item.id)!;
+                  const link = row.course_url;
+                  return (
+                    <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-border text-xs text-muted-foreground">
+                      <span>
+                        Status:{' '}
+                        <strong className="text-foreground">
+                          {STATUS_LABEL[row.status] || 'Não iniciado'}
+                        </strong>
+                      </span>
+                      {row.due_date && (
+                        <span className="flex items-center gap-1.5">
+                          <CalendarClock className="h-3.5 w-3.5" />
+                          Prazo:{' '}
+                          <strong className="text-foreground">
+                            {new Date(`${row.due_date}T00:00:00`).toLocaleDateString('pt-BR')}
+                          </strong>
+                        </span>
+                      )}
+                      {row.course && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-medium bg-lime/20 text-lime-deep dark:text-lime">
+                          <GraduationCap className="h-3.5 w-3.5" />
+                          {row.course.title}
+                        </span>
+                      )}
+                      {link && (
+                        <a
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-medium bg-lime/20 text-lime-deep dark:text-lime hover:underline"
+                        >
+                          <GraduationCap className="h-3.5 w-3.5" />
+                          {row.course_url_title || 'Curso indicado'}
+                        </a>
+                      )}
+                    </div>
+                  );
+                })()}
             </div>
           </motion.div>
         ))}

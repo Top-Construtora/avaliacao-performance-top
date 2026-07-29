@@ -17,6 +17,7 @@ router.get('/cycle/:cycleId', requireManager, pdiController.getPDIsByCycle);
 
 // Ações normalizadas (fase 5C)
 router.get('/actions/mine', pdiController.getMyActions);
+router.get('/:planId/actions', pdiController.getPlanActions); // ownership validado no controller
 router.patch('/:planId/actions/:actionId', pdiController.updateAction);
 
 router.get('/:employeeId', pdiController.getPDI); // ownership validado no controller

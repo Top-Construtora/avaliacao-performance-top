@@ -18,8 +18,6 @@ import {
   X,
   ChevronDown,
   ChevronUp,
-  FileText,
-  TrendingUp,
 } from 'lucide-react';
 import Button from './Button';
 import { useEvaluation } from '../hooks/useEvaluation';
@@ -104,21 +102,6 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     longo: false,
   });
 
-  const [editingPdiItemPrazo, setEditingPdiItemPrazo] = useState<
-    'curto' | 'medio' | 'longo' | null
-  >(null);
-  const [newPdiItem, setNewPdiItem] = useState<
-    Omit<ActionItem, 'id'> & { prazo: 'curto' | 'medio' | 'longo' | '' }
-  >({
-    competencia: '',
-    calendarizacao: '',
-    comoDesenvolver: '',
-    resultadosEsperados: '',
-    status: '1',
-    observacao: '',
-    prazo: '',
-  });
-
   // Calcular total de itens do PDI
   const totalPdiItems =
     pdiData.curtosPrazos.length + pdiData.mediosPrazos.length + pdiData.longosPrazos.length;
@@ -144,81 +127,17 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     );
   };
 
+  /**
+   * Uma seção aberta por vez: abrir Médio fecha Curto. Os itens são altos, e com
+   * duas ou três seções abertas a página vira uma rolagem sem fim em que se
+   * perde de vista qual prazo está sendo editado.
+   */
   const togglePdiSection = (sectionKey: 'curto' | 'medio' | 'longo') => {
     setExpandedPdiSections((prev) => ({
-      ...prev,
-      [sectionKey]: !prev[sectionKey],
+      curto: sectionKey === 'curto' ? !prev.curto : false,
+      medio: sectionKey === 'medio' ? !prev.medio : false,
+      longo: sectionKey === 'longo' ? !prev.longo : false,
     }));
-  };
-
-  const handleNewPdiItemChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target;
-    setNewPdiItem((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const addPdiItem = () => {
-    if (
-      !newPdiItem.competencia.trim() ||
-      !newPdiItem.comoDesenvolver.trim() ||
-      !newPdiItem.resultadosEsperados.trim() ||
-      !newPdiItem.prazo
-    ) {
-      toast.error(
-        'Preencha todos os campos obrigatórios: Competência, Como Desenvolver e Resultados Esperados.',
-      );
-      return;
-    }
-
-    const newItem: ActionItem = {
-      id: Date.now().toString(),
-      competencia: newPdiItem.competencia.trim(),
-      calendarizacao: newPdiItem.calendarizacao.trim() || 'A definir',
-      comoDesenvolver: newPdiItem.comoDesenvolver.trim(),
-      resultadosEsperados: newPdiItem.resultadosEsperados.trim(),
-      status: newPdiItem.status || '1',
-      observacao: newPdiItem.observacao.trim(),
-    };
-
-    const prazo = newPdiItem.prazo;
-
-    setPdiData((prev: PdiData) => {
-      const prazoMap: { [key: string]: 'curtosPrazos' | 'mediosPrazos' | 'longosPrazos' } = {
-        curto: 'curtosPrazos',
-        medio: 'mediosPrazos',
-        longo: 'longosPrazos',
-      };
-
-      const key = prazoMap[newPdiItem.prazo];
-
-      if (!key || !prev[key]) {
-        console.error(`Chave de prazo inválida: ${newPdiItem.prazo}`);
-        return prev;
-      }
-
-      const updatedPrazos = [...prev[key], newItem];
-      return { ...prev, [key]: updatedPrazos };
-    });
-
-    // Fechar formulário e limpar campos
-    setEditingPdiItemPrazo(null);
-    setNewPdiItem({
-      competencia: '',
-      calendarizacao: '',
-      comoDesenvolver: '',
-      resultadosEsperados: '',
-      status: '1',
-      observacao: '',
-      prazo: '',
-    });
-
-    toast.success(
-      `Item adicionado ao PDI de ${prazo === 'curto' ? 'Curto' : prazo === 'medio' ? 'Médio' : 'Longo'} Prazo!`,
-    );
   };
 
   const removePdiItem = (idToRemove: string, prazo: 'curto' | 'medio' | 'longo') => {
@@ -258,22 +177,37 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     }));
   };
 
-  const openAddPdiItemForm = (prazo: 'curto' | 'medio' | 'longo') => {
-    setNewPdiItem((prev) => ({ ...prev, prazo }));
-    setEditingPdiItemPrazo(prazo);
-    setExpandedPdiSections((prev) => ({ ...prev, [prazo]: true }));
-  };
+  /**
+   * Cria o item já na lista, vazio, para ser preenchido no lugar.
+   *
+   * Antes havia um formulário à parte que só entrava no plano ao clicar em
+   * "Adicionar Item" — quem terminava de escrever e não queria mais itens não
+   * clicava, e perdia tudo. Sem etapa de confirmação, não há o que perder: o
+   * que está na tela é o que será salvo.
+   */
+  const addEmptyPdiItem = (prazo: 'curto' | 'medio' | 'longo') => {
+    const prazoMap = {
+      curto: 'curtosPrazos',
+      medio: 'mediosPrazos',
+      longo: 'longosPrazos',
+    } as const;
+    const key = prazoMap[prazo];
 
-  const closeAddPdiItemForm = () => {
-    setEditingPdiItemPrazo(null);
-    setNewPdiItem({
+    const novoItem: ActionItem = {
+      id: `${prazo}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       competencia: '',
       calendarizacao: '',
       comoDesenvolver: '',
       resultadosEsperados: '',
       status: '1',
       observacao: '',
-      prazo: '',
+    };
+
+    setPdiData((prev: PdiData) => ({ ...prev, [key]: [...prev[key], novoItem] }));
+    setExpandedPdiSections({
+      curto: prazo === 'curto',
+      medio: prazo === 'medio',
+      longo: prazo === 'longo',
     });
   };
 
@@ -361,7 +295,6 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     const prazo = categoryToPrazoMap[category];
 
     const isExpanded = expandedPdiSections[prazo];
-    const isAddingItemToThisCategory = editingPdiItemPrazo === prazo;
 
     return (
       <motion.div
@@ -418,7 +351,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
               className="p-4 sm:p-6 lg:p-8"
             >
               <div className="space-y-4 sm:space-y-6">
-                {items.length === 0 && !isAddingItemToThisCategory ? (
+                {items.length === 0 ? (
                   !readOnly && (
                     <div className="text-center py-8 sm:py-12">
                       <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -427,7 +360,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                       </p>
                       <Button
                         variant="outline"
-                        onClick={() => openAddPdiItemForm(prazo)}
+                        onClick={() => addEmptyPdiItem(prazo)}
                         icon={<Plus size={16} />}
                         size="sm"
                       >
@@ -443,26 +376,21 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: itemIndex * 0.1 }}
-                        className="bg-secondary rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 border border-border"
+                        className="bg-secondary rounded-lg sm:rounded-xl p-3 sm:p-4 border border-border"
                       >
                         {/* Header do Item */}
-                        <div className="flex items-start justify-between mb-4 sm:mb-6">
-                          <div className="flex items-center space-x-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2.5">
                             <div
-                              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl ${categoryData.iconBg} flex items-center justify-center text-obsidian text-sm sm:text-base font-bold shadow-md`}
+                              className={`w-7 h-7 rounded-lg ${categoryData.iconBg} flex items-center justify-center text-obsidian text-sm font-bold shadow-sm`}
                             >
                               {itemIndex + 1}
                             </div>
-                            <div>
-                              <h4 className="text-sm sm:text-base lg:text-lg font-semibold text-foreground">
-                                Item de Desenvolvimento
-                              </h4>
-                              <span
-                                className={`inline-flex mt-1 px-2 py-1 rounded-full text-xs font-medium border ${statusOptions.find((s) => s.value === item.status)?.color}`}
-                              >
-                                {statusOptions.find((s) => s.value === item.status)?.label}
-                              </span>
-                            </div>
+                            <span
+                              className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border ${statusOptions.find((s) => s.value === item.status)?.color}`}
+                            >
+                              {statusOptions.find((s) => s.value === item.status)?.label}
+                            </span>
                           </div>
                           {!readOnly && (
                             <button
@@ -475,17 +403,17 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                           )}
                         </div>
 
-                        <div className="space-y-4 sm:space-y-6">
+                        <div className="space-y-3">
                           {/* Competência a desenvolver */}
                           <div>
-                            <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center">
+                            <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
                               <Award className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
                               Competência a desenvolver
                             </label>
                             <textarea
-                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
+                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
                               placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
-                              rows={3}
+                              rows={2}
                               value={item.competencia}
                               onChange={(e) =>
                                 !readOnly &&
@@ -498,13 +426,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                           {/* Calendarização */}
                           <div>
-                            <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center">
+                            <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
                               <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                               Calendarização (Mês/Ano)
                             </label>
                             <input
                               type="month"
-                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
+                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed"
                               value={item.calendarizacao}
                               onChange={(e) =>
                                 !readOnly &&
@@ -522,13 +450,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                           {/* Como desenvolver as competências */}
                           <div>
-                            <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center">
+                            <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
                               <Lightbulb className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
                               Como desenvolver as competências
                             </label>
                             <textarea
-                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
-                              rows={3}
+                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
+                              rows={2}
                               placeholder="Descreva as ações e métodos para desenvolver esta competência..."
                               value={item.comoDesenvolver}
                               onChange={(e) =>
@@ -547,13 +475,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                           {/* Resultados Esperados */}
                           <div>
-                            <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center">
+                            <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
                               <Target className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
                               Resultados Esperados
                             </label>
                             <textarea
-                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
-                              rows={3}
+                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
+                              rows={2}
                               placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
                               value={item.resultadosEsperados}
                               onChange={(e) =>
@@ -573,12 +501,12 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-border">
                             {/* Status */}
                             <div>
-                              <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center">
+                              <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
                                 <CheckCircle className="h-4 w-4 mr-2 text-lime-deep dark:text-lime" />
                                 Status
                               </label>
                               <select
-                                className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed"
+                                className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed"
                                 value={item.status}
                                 onChange={(e) =>
                                   !readOnly &&
@@ -601,12 +529,12 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
 
                             {/* Observação */}
                             <div>
-                              <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center">
+                              <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
                                 <MessageSquare className="h-4 w-4 mr-2 text-muted-foreground" />
                                 Observação
                               </label>
                               <textarea
-                                className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 text-sm sm:text-base disabled:opacity-75 disabled:cursor-not-allowed resize-none"
+                                className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
                                 rows={2}
                                 placeholder="Observações adicionais..."
                                 value={item.observacao}
@@ -624,11 +552,11 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                     ))}
 
                     {/* Botão Adicionar Novo Item - Only show in edit mode */}
-                    {!isAddingItemToThisCategory && !readOnly && (
+                    {!readOnly && (
                       <div className="flex justify-center pt-4">
                         <Button
                           variant="outline"
-                          onClick={() => openAddPdiItemForm(prazo)}
+                          onClick={() => addEmptyPdiItem(prazo)}
                           icon={<Plus size={16} />}
                           className="border-2 border-dashed hover:border-solid"
                           size="sm"
@@ -639,178 +567,6 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                     )}
                   </>
                 )}
-
-                {/* Formulário de Novo Item - Only show in edit mode */}
-                <AnimatePresence>
-                  {isAddingItemToThisCategory && !readOnly && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="bg-card rounded-xl sm:rounded-2xl shadow-sm dark:shadow-lg border border-border p-4 sm:p-6 lg:p-8 overflow-hidden mt-6"
-                    >
-                      <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg sm:text-xl font-bold text-foreground flex items-center">
-                          <Plus className="h-6 w-6 text-lime-deep dark:text-lime mr-3" />
-                          Adicionar Novo Item de Desenvolvimento ({categoryData.title})
-                        </h3>
-                        <button
-                          onClick={closeAddPdiItemForm}
-                          className="text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <X size={24} />
-                        </button>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div>
-                          <label
-                            htmlFor="competencia"
-                            className="block text-sm font-medium text-muted-foreground mb-2 flex items-center"
-                          >
-                            <Lightbulb size={16} className="mr-1 text-lime-deep dark:text-lime" />
-                            Competência a desenvolver
-                          </label>
-                          <textarea
-                            id="competencia"
-                            name="competencia"
-                            value={newPdiItem.competencia}
-                            onChange={handleNewPdiItemChange}
-                            placeholder="Ex: Liderança, Comunicação, Gestão de Projetos..."
-                            rows={3}
-                            className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 resize-none"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label
-                              htmlFor="calendarizacao"
-                              className="block text-sm font-medium text-muted-foreground mb-2 flex items-center"
-                            >
-                              <Calendar size={16} className="mr-1 text-lime-deep dark:text-lime" />
-                              Calendarização (Mês/Ano)
-                            </label>
-                            <input
-                              type="month"
-                              id="calendarizacao"
-                              name="calendarizacao"
-                              value={newPdiItem.calendarizacao}
-                              onChange={handleNewPdiItemChange}
-                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="comoDesenvolver"
-                            className="block text-sm font-medium text-muted-foreground mb-2 flex items-center"
-                          >
-                            <FileText size={16} className="mr-1 text-muted-foreground" />
-                            Como desenvolver as competências
-                          </label>
-                          <textarea
-                            id="comoDesenvolver"
-                            name="comoDesenvolver"
-                            value={newPdiItem.comoDesenvolver}
-                            onChange={handleNewPdiItemChange}
-                            placeholder="Descreva as ações e métodos para desenvolver esta competência..."
-                            rows={3}
-                            className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 resize-none"
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="resultadosEsperados"
-                            className="block text-sm font-medium text-muted-foreground mb-2 flex items-center"
-                          >
-                            <TrendingUp size={16} className="mr-1 text-lime-deep dark:text-lime" />
-                            Resultados Esperados
-                          </label>
-                          <textarea
-                            id="resultadosEsperados"
-                            name="resultadosEsperados"
-                            value={newPdiItem.resultadosEsperados}
-                            onChange={handleNewPdiItemChange}
-                            placeholder="Descreva os resultados esperados com o desenvolvimento desta competência..."
-                            rows={3}
-                            className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 resize-none"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label
-                              htmlFor="status"
-                              className="block text-sm font-medium text-muted-foreground mb-2 flex items-center"
-                            >
-                              <CheckCircle
-                                size={16}
-                                className="mr-1 text-lime-deep dark:text-lime"
-                              />
-                              Status
-                            </label>
-                            <select
-                              id="status"
-                              name="status"
-                              value={newPdiItem.status}
-                              onChange={handleNewPdiItemChange}
-                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
-                            >
-                              {statusOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div>
-                            <label
-                              htmlFor="observacao"
-                              className="block text-sm font-medium text-muted-foreground mb-2 flex items-center"
-                            >
-                              <MessageSquare size={16} className="mr-1 text-muted-foreground" />
-                              Observação
-                            </label>
-                            <textarea
-                              id="observacao"
-                              name="observacao"
-                              value={newPdiItem.observacao}
-                              onChange={handleNewPdiItemChange}
-                              placeholder="Observações adicionais..."
-                              rows={1}
-                              className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3 resize-none"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex justify-end space-x-3 mt-4">
-                          <Button
-                            variant="outline"
-                            onClick={closeAddPdiItemForm}
-                            size="lg"
-                            className="w-full sm:w-auto"
-                          >
-                            Cancelar
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            onClick={addPdiItem}
-                            icon={<Plus size={18} />}
-                            size="lg"
-                            className="w-full sm:w-auto"
-                          >
-                            Adicionar Item
-                          </Button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </div>
             </motion.div>
           )}

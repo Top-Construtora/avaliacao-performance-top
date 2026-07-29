@@ -30,6 +30,10 @@ router.post('/tracks/:id/enroll', adminOnly, learningController.enrollInTrack);
 // Upload de arquivos de curso (Storage)
 router.post('/upload', adminOnly, learningController.uploadFile);
 
+// Seletor de cursos (id + título): usado pelo líder ao indicar um curso na ação
+// do PDI do liderado, por isso fora do adminOnly.
+router.get('/course-options', learningController.courseOptions);
+
 // Gestão (admin/diretoria)
 router.get('/courses', adminOnly, learningController.listCourses);
 router.post('/courses', adminOnly, learningController.createCourse);

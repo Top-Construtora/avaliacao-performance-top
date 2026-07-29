@@ -17,6 +17,22 @@ const CLASS_SELECT = `
 export const learningService = {
   // ===== CURSOS (admin) =====
 
+  /**
+   * Lista enxuta para preencher seletor (id + título dos cursos ativos).
+   * Existe separada de listCourses porque aquela é adminOnly e devolve contagens
+   * e metadados de gestão — o líder que vai indicar um curso no PDI do liderado
+   * não precisa (nem deve ter) esse acesso.
+   */
+  async courseOptions(supabase: SupabaseClient) {
+    const { data, error } = await supabase
+      .from('courses')
+      .select('id, title')
+      .eq('active', true)
+      .order('title');
+    if (error) throw AppError.internal(`Erro ao listar cursos: ${error.message}`);
+    return data || [];
+  },
+
   async listCourses(supabase: SupabaseClient, includeInactive = false) {
     let query = supabase
       .from('courses')
