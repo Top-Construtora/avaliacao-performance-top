@@ -4,7 +4,8 @@ import { toast } from 'react-hot-toast';
 import { Users, BookOpen, Info, Save } from 'lucide-react';
 import Button from '../../components/Button';
 import PotentialAndPDI from '../../components/PotentialAndPDI';
-import PdiActionCourses from '../../components/PdiActionCourses';
+import type { ActionExtra } from '../../components/PotentialAndPDI';
+import { api } from '../../config/api';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
 
@@ -58,10 +59,66 @@ const PdiManagement: React.FC = () => {
    */
   const [savedSnapshot, setSavedSnapshot] = useState<string>('');
 
+  /**
+   * Prazo e curso de cada ação. Vivem em pdi_actions, não no JSONB, e por isso
+   * são gravados por PATCH — mas depois do "Salvar PDI", nunca antes: a ação só
+   * existe na tabela depois que o plano é salvo. O id do item é gerado aqui no
+   * frontend e preservado pelo backend, então dá para preencher prazo e curso
+   * num item recém-criado e gravar tudo de uma vez.
+   */
+  const [actionExtras, setActionExtras] = useState<Record<string, ActionExtra>>({});
+  const [savedExtras, setSavedExtras] = useState<string>('{}');
+  const [courseOptions, setCourseOptions] = useState<Array<{ id: string; title: string }>>([]);
+
   const snapshotOf = (data: PdiData) =>
     JSON.stringify([data.curtosPrazos, data.mediosPrazos, data.longosPrazos]);
 
-  const hasUnsavedChanges = !!selectedEmployeeId && snapshotOf(pdiData) !== savedSnapshot;
+  const hasUnsavedChanges =
+    !!selectedEmployeeId &&
+    (snapshotOf(pdiData) !== savedSnapshot || JSON.stringify(actionExtras) !== savedExtras);
+
+  const handleActionExtraChange = (id: string, field: keyof ActionExtra, value: string | null) => {
+    setActionExtras((prev) => ({
+      ...prev,
+      [id]: {
+        due_date: null,
+        course_id: null,
+        course_url: null,
+        course_url_title: null,
+        ...prev[id],
+        [field]: value,
+      },
+    }));
+  };
+
+  // Cursos do catálogo para o seletor (rota leve, liberada para líderes)
+  useEffect(() => {
+    api
+      .get('/learning/course-options')
+      .then((response: any) => setCourseOptions(response.data || response || []))
+      .catch(() => undefined);
+  }, []);
+
+  const loadActionExtras = useCallback(async (planId: string) => {
+    try {
+      const response: any = await api.get(`/pdi/${planId}/actions`);
+      const acoes = (response.data || response)?.actions || [];
+      const mapa: Record<string, ActionExtra> = {};
+      acoes.forEach((a: any) => {
+        mapa[a.id] = {
+          due_date: a.due_date ?? null,
+          course_id: a.course_id ?? null,
+          course_url: a.course_url ?? null,
+          course_url_title: a.course_url_title ?? null,
+        };
+      });
+      setActionExtras(mapa);
+      setSavedExtras(JSON.stringify(mapa));
+    } catch {
+      setActionExtras({});
+      setSavedExtras('{}');
+    }
+  }, []);
 
   // Filtrar employees baseado nas permissões do usuário
   const filteredEmployees = React.useMemo(() => {
@@ -120,11 +177,14 @@ const PdiManagement: React.FC = () => {
             };
             setPdiData(mergedPdiData);
             setSavedSnapshot(snapshotOf(mergedPdiData));
+            if (mergedPdiData.id) loadActionExtras(mergedPdiData.id);
             toast.success('PDI carregado com sucesso!');
           } else {
             // Se não houver PDI, mantenha os dados iniciais e informe ao usuário
             setPdiData(initialPdiData);
             setSavedSnapshot(snapshotOf(initialPdiData));
+            setActionExtras({});
+            setSavedExtras('{}');
             toast('Nenhum PDI encontrado para este colaborador. Crie um novo!');
           }
         } catch (error) {
@@ -138,7 +198,7 @@ const PdiManagement: React.FC = () => {
       }
     };
     fetchPdi();
-  }, [selectedEmployeeId, filteredEmployees, loadPDI]);
+  }, [selectedEmployeeId, filteredEmployees, loadPDI, loadActionExtras]);
 
   const handleSavePDI = useCallback(async () => {
     if (!pdiData.colaboradorId) {
@@ -223,6 +283,30 @@ const PdiManagement: React.FC = () => {
         };
         setPdiData(mergedPdiData);
         setSavedSnapshot(snapshotOf(mergedPdiData));
+
+        // Prazo e curso só podem ser gravados agora: antes do save a ação ainda
+        // não existe na tabela. O id do item veio do frontend e foi preservado,
+        // então o PATCH acha a ação recém-criada.
+        const planId = mergedPdiData.id;
+        if (planId) {
+          const anteriores: Record<string, ActionExtra> = JSON.parse(savedExtras);
+          const alterados = Object.entries(actionExtras).filter(
+            ([id, extra]) => JSON.stringify(anteriores[id]) !== JSON.stringify(extra),
+          );
+
+          const falhas = await Promise.all(
+            alterados.map(([id, extra]) =>
+              api.patch(`/pdi/${planId}/actions/${id}`, extra).then(
+                () => null,
+                (erro: any) => erro?.message || 'erro ao salvar prazo/curso',
+              ),
+            ),
+          );
+          const erro = falhas.find(Boolean);
+          if (erro) toast.error(String(erro));
+
+          await loadActionExtras(planId);
+        }
       }
     } catch (error) {
       console.error('Erro ao salvar PDI:', error);
@@ -230,7 +314,9 @@ const PdiManagement: React.FC = () => {
     } finally {
       setIsSavingPDI(false);
     }
-  }, [pdiData, savePDI]);
+    // actionExtras/savedExtras precisam estar aqui: sem eles o callback fica com
+    // uma cópia antiga e o salvamento ignoraria o prazo/curso recém-digitado.
+  }, [pdiData, savePDI, loadPDI, actionExtras, savedExtras, loadActionExtras]);
 
   const handlePdiSubmit = async () => {
     // For PDI Management page, "submit" is effectively "save"
@@ -356,14 +442,10 @@ const PdiManagement: React.FC = () => {
                 canProceedToStep3={() => true}
                 selectedEmployee={selectedEmployee}
                 hideActionButtons={true} // Ocultar botões de Salvar Rascunho e Enviar Avaliação
+                actionExtras={actionExtras}
+                onActionExtraChange={handleActionExtraChange}
+                courseOptions={courseOptions}
               />
-              {/* Curso, prazo e status vivem na tabela pdi_actions, então só
-                  aparecem depois que o plano existe. */}
-              {pdiData.id && (
-                <div className="mt-8 pt-6 border-t border-border">
-                  <PdiActionCourses planId={pdiData.id} colaborador={pdiData.colaborador} />
-                </div>
-              )}
             </>
           )}
         </motion.div>

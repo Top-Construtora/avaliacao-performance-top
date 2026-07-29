@@ -17,6 +17,11 @@ import { PDIItem } from '../types/pdi.types';
  * Aceita só http(s). O link é renderizado como âncora clicável na tela do
  * colaborador — sem esta trava, um `javascript:` salvo aqui viraria execução
  * de script no navegador de quem clicasse.
+ *
+ * Nota sobre o nome: `course_url` guarda qualquer **material de apoio** — vídeo,
+ * artigo, livro, podcast — e não só curso. A tela usa esse vocabulário mais
+ * amplo de propósito: falar em "curso" faz o líder indicar só curso, quando o
+ * desenvolvimento também acontece por leitura, mentoria e prática.
  */
 function normalizeCourseUrl(raw: string): string {
   const valor = raw.trim();

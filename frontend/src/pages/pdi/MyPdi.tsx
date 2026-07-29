@@ -277,7 +277,7 @@ const MyPdi: React.FC = () => {
                           className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-medium bg-lime/20 text-lime-deep dark:text-lime hover:underline"
                         >
                           <GraduationCap className="h-3.5 w-3.5" />
-                          {row.course_url_title || 'Curso indicado'}
+                          {row.course_url_title || 'Material indicado'}
                         </a>
                       )}
                     </div>

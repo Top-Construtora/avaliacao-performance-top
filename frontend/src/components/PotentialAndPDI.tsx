@@ -58,6 +58,18 @@ interface PdiData {
   dataAtualizacao?: string;
 }
 
+/**
+ * Campos que vivem só na tabela pdi_actions (o JSONB não os conhece): prazo
+ * real e o curso indicado. Chegam por props para que a gravação continue sendo
+ * uma só — o "Salvar PDI" do pai grava o plano e estes campos juntos.
+ */
+export interface ActionExtra {
+  due_date: string | null;
+  course_id: string | null;
+  course_url: string | null;
+  course_url_title: string | null;
+}
+
 interface PotentialAndPDIProps {
   currentStep: number;
   potentialItems: PotentialItem[];
@@ -73,6 +85,10 @@ interface PotentialAndPDIProps {
   selectedEmployee: UserWithDetails | undefined;
   hideActionButtons?: boolean;
   readOnly?: boolean;
+  /** Sem estes três, o card não mostra prazo nem curso (ex.: fluxo da avaliação). */
+  actionExtras?: Record<string, ActionExtra>;
+  onActionExtraChange?: (id: string, field: keyof ActionExtra, value: string | null) => void;
+  courseOptions?: Array<{ id: string; title: string }>;
 }
 
 const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
@@ -90,6 +106,9 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
   selectedEmployee,
   hideActionButtons = false,
   readOnly = false,
+  actionExtras,
+  onActionExtraChange,
+  courseOptions = [],
 }) => {
   const { getNineBoxByEmployeeId } = useEvaluation();
   const employeeNineBox: NineBoxData | undefined = selectedEmployee
@@ -101,6 +120,13 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
     medio: false,
     longo: false,
   });
+
+  /**
+   * Itens com o editor de curso aberto. Nem toda ação de PDI é um curso —
+   * mentoria, projeto e leitura também são ações — então os campos ficam atrás
+   * de um link em vez de ocupar quatro linhas vazias em toda ação.
+   */
+  const [cursoEditando, setCursoEditando] = useState<Record<string, boolean>>({});
 
   // Calcular total de itens do PDI
   const totalPdiItems =
@@ -473,6 +499,133 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             />
                           </div>
 
+                          {/* Material de apoio: fica logo abaixo do "como
+                              desenvolver" porque é a mesma pergunta respondida de
+                              forma concreta — o link do vídeo, livro ou curso que
+                              materializa o que foi descrito acima.
+
+                              Quando o material é um curso do catálogo, concluí-lo
+                              marca a ação como concluída sozinha. */}
+                          {onActionExtraChange &&
+                            !readOnly &&
+                            (() => {
+                              const extra = actionExtras?.[item.id];
+                              const temMaterial = !!(extra?.course_id || extra?.course_url);
+                              const editando = cursoEditando[item.id] || temMaterial;
+                              const nomeMaterial = extra?.course_id
+                                ? courseOptions.find((c) => c.id === extra.course_id)?.title
+                                : extra?.course_url_title || extra?.course_url;
+
+                              const limparMaterial = () => {
+                                onActionExtraChange(item.id, 'course_id', null);
+                                onActionExtraChange(item.id, 'course_url', null);
+                                onActionExtraChange(item.id, 'course_url_title', null);
+                                setCursoEditando((prev) => ({ ...prev, [item.id]: false }));
+                              };
+
+                              return (
+                                <div>
+                                  {!editando ? (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setCursoEditando((prev) => ({ ...prev, [item.id]: true }))
+                                      }
+                                      className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                      <BookOpen className="h-4 w-4" />
+                                      Indicar um material de apoio (curso, vídeo, livro, artigo...)
+                                    </button>
+                                  ) : (
+                                    <div className="space-y-3 bg-background/60 rounded-xl p-3 border border-border">
+                                      <div className="flex items-center justify-between gap-2">
+                                        <span className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                                          <BookOpen className="h-4 w-4 text-lime-deep dark:text-lime" />
+                                          Material de apoio
+                                          {nomeMaterial ? `: ${nomeMaterial}` : ''}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={limparMaterial}
+                                          className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                                        >
+                                          remover
+                                        </button>
+                                      </div>
+
+                                      <div>
+                                        <label className="block text-xs font-medium text-muted-foreground mb-1">
+                                          Link do material
+                                        </label>
+                                        <input
+                                          type="url"
+                                          placeholder="https://... (vídeo, artigo, página do livro)"
+                                          className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm"
+                                          value={extra?.course_url || ''}
+                                          onChange={(e) =>
+                                            onActionExtraChange(
+                                              item.id,
+                                              'course_url',
+                                              e.target.value || null,
+                                            )
+                                          }
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <label className="block text-xs font-medium text-muted-foreground mb-1">
+                                          Nome do material
+                                        </label>
+                                        <input
+                                          type="text"
+                                          placeholder="Ex.: livro Comunicação não-violenta"
+                                          className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm"
+                                          value={extra?.course_url_title || ''}
+                                          onChange={(e) =>
+                                            onActionExtraChange(
+                                              item.id,
+                                              'course_url_title',
+                                              e.target.value || null,
+                                            )
+                                          }
+                                        />
+                                      </div>
+
+                                      {courseOptions.length > 0 && (
+                                        <div>
+                                          <label className="block text-xs font-medium text-muted-foreground mb-1">
+                                            Ou um curso já cadastrado no Aprendizado
+                                          </label>
+                                          <select
+                                            className="w-full rounded-xl border border-border bg-secondary text-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm"
+                                            value={extra?.course_id || ''}
+                                            onChange={(e) =>
+                                              onActionExtraChange(
+                                                item.id,
+                                                'course_id',
+                                                e.target.value || null,
+                                              )
+                                            }
+                                          >
+                                            <option value="">Nenhum</option>
+                                            {courseOptions.map((c) => (
+                                              <option key={c.id} value={c.id}>
+                                                {c.title}
+                                              </option>
+                                            ))}
+                                          </select>
+                                          <p className="text-xs text-muted-foreground mt-1">
+                                            Só nesse caso a ação é concluída sozinha quando o
+                                            colaborador termina o curso.
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+
                           {/* Resultados Esperados */}
                           <div>
                             <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
@@ -547,6 +700,35 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               />
                             </div>
                           </div>
+
+                          {/* Prazo real da ação (vive em pdi_actions, não no JSONB). */}
+                          {onActionExtraChange &&
+                            !readOnly &&
+                            (() => {
+                              const extra = actionExtras?.[item.id];
+                              return (
+                                <div className="pt-3 border-t border-border">
+                                  <div className="sm:max-w-[50%]">
+                                    <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center">
+                                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                                      Prazo da ação
+                                    </label>
+                                    <input
+                                      type="date"
+                                      className="w-full rounded-xl border border-border bg-secondary text-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2 px-3 text-sm"
+                                      value={extra?.due_date || ''}
+                                      onChange={(e) =>
+                                        onActionExtraChange(
+                                          item.id,
+                                          'due_date',
+                                          e.target.value || null,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })()}
                         </div>
                       </motion.div>
                     ))}

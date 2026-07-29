@@ -377,7 +377,7 @@ const Learning = () => {
                       >
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-foreground">
-                            {acao.course?.title || acao.course_url_title || 'Curso indicado'}
+                            {acao.course?.title || acao.course_url_title || 'Material indicado'}
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             Ação do PDI: {acao.competencia}
@@ -420,7 +420,7 @@ const Learning = () => {
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-secondary"
                           >
-                            Abrir curso
+                            Abrir material
                           </a>
                         )}
                       </div>
