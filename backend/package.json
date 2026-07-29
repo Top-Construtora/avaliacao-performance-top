@@ -2,6 +2,7 @@
   "name": "sistema-gente-gestao-backend",
   "version": "1.0.0",
   "scripts": {
+    "predev": "node scripts/free-port.js",
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/app.js",
