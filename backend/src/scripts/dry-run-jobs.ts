@@ -8,9 +8,9 @@
  * anti-spam (cooldown/aggregate), o filtro de opt-out por categoria e o filtro
  * de usuário ativo com e-mail, que é o que `dispatchEmails` faz de verdade.
  *
- * Só roda os jobs que apenas leem. Ficam de fora `autoCloseExpired`,
- * `resyncPdiActions` e `materializeOverdueRecurrences`, que escrevem no banco
- * (encerram ciclos, reespelham o PDI, criam ocorrências de reunião).
+ * Só roda os jobs que apenas leem. Ficam de fora `autoCloseExpired` e
+ * `resyncPdiActions`, que escrevem no banco (encerram ciclos e pesquisas,
+ * reespelham as ações do PDI).
  *
  * Uso: npm run dry-run-jobs
  */
@@ -22,7 +22,6 @@ import {
   remindStalePdis,
   remindSurveyDeadline,
   remindInterviewsTomorrow,
-  remindMeetingsTomorrow,
   remindCourseDeadline,
   remindPdiActionDeadlines,
 } from '../jobs/reminderJobs';
@@ -164,7 +163,6 @@ async function main(): Promise<void> {
   await rodar('remindEvaluationCycleDeadline', remindEvaluationCycleDeadline);
   await rodar('remindSurveyDeadline', remindSurveyDeadline);
   await rodar('remindInterviewsTomorrow', remindInterviewsTomorrow);
-  await rodar('remindMeetingsTomorrow', remindMeetingsTomorrow);
   await rodar('remindCourseDeadline', remindCourseDeadline);
   await rodar('remindPdiActionDeadlines', remindPdiActionDeadlines);
   await rodar('remindStalePdis', remindStalePdis);
@@ -184,7 +182,6 @@ async function main(): Promise<void> {
     'remindEvaluationCycleDeadline',
     'remindSurveyDeadline',
     'remindInterviewsTomorrow',
-    'remindMeetingsTomorrow',
     'remindCourseDeadline',
     'remindPdiActionDeadlines',
     'remindStalePdis',

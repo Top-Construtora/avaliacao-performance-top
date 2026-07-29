@@ -31,7 +31,6 @@ import {
   Sparkles,
   ScrollText,
   MessagesSquare,
-  CalendarClock,
   GraduationCap,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
@@ -292,14 +291,6 @@ export default function Sidebar({
           icon: MessagesSquare,
           path: '/feedbacks',
         },
-        // Reuniões: ocultado do menu temporariamente a pedido do RH.
-        // A rota /meetings e a API continuam funcionando — para reexibir,
-        // basta descomentar este item.
-        // {
-        //   label: 'Reuniões',
-        //   icon: CalendarClock,
-        //   path: '/meetings',
-        // },
         {
           label: 'Aprendizado',
           icon: GraduationCap,

@@ -266,17 +266,19 @@ export const NOTIFICATION_TYPE_CONFIG: Record<
     category: 'feedbacks',
     email: false,
   },
+  // Reuniões saíram do frontend (módulo sem uso: zero registros). Os tipos
+  // continuam declarados porque a API ainda existe, mas sem e-mail.
   meeting_scheduled: {
     defaultPriority: 'medium',
     displayCategory: 'info',
     category: 'reunioes',
-    email: true,
+    email: false,
   },
   meeting_cancelled: {
     defaultPriority: 'medium',
     displayCategory: 'alert',
     category: 'reunioes',
-    email: true,
+    email: false,
   },
   course_enrolled: {
     defaultPriority: 'medium',

@@ -43,7 +43,6 @@ const NineBoxMatrix = lazyWithRetry(() => import('./pages/evaluations/NineBox'))
 const Consensus = lazyWithRetry(() => import('./pages/evaluations/Consensus'));
 const AuditLog = lazyWithRetry(() => import('./pages/management/AuditLog'));
 const Feedbacks = lazyWithRetry(() => import('./pages/feedbacks/Feedbacks'));
-const Meetings = lazyWithRetry(() => import('./pages/meetings/Meetings'));
 const Learning = lazyWithRetry(() => import('./pages/learning/Learning'));
 const UserManagement = lazyWithRetry(() => import('./pages/users/UserManagement'));
 const RegisterUser = lazyWithRetry(() => import('./pages/users/RegisterUser'));
@@ -249,7 +248,6 @@ function App() {
                         <Route path="help" element={<HelpPage />} />
                         <Route path="notifications" element={<NotificationHistory />} />
                         <Route path="feedbacks" element={<Feedbacks />} />
-                        <Route path="meetings" element={<Meetings />} />
                         <Route path="learning" element={<Learning />} />
 
                         <Route
@@ -563,7 +561,6 @@ function App() {
                         <Route path="help" element={<HelpPage />} />
                         <Route path="notifications" element={<NotificationHistory />} />
                         <Route path="feedbacks" element={<Feedbacks />} />
-                        <Route path="meetings" element={<Meetings />} />
                         <Route path="learning" element={<Learning />} />
                         <Route path="users" element={<UserManagement />} />
 

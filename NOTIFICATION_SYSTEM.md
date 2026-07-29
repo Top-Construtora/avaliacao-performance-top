@@ -522,4 +522,5 @@ Guard `ENABLE_JOBS=true` (ligar em **uma** instância só). Fuso `America/Sao_Pa
 | 09:00   | `remindEvaluationCycleDeadline` | Autoavaliação pendente com ciclo encerrando em ≤3 dias                            |
 | 09:00   | `remindSurveyDeadline`          | Pesquisa encerrando em ≤2 dias, só para quem não respondeu                        |
 | 09:00   | `remindInterviewsTomorrow`      | Entrevista agendada para amanhã (entrevistador + colaborador)                     |
+| —       | ~~`remindMeetingsTomorrow`~~    | Removido junto com a saída de Reuniões do frontend (módulo sem uso)               |
 | 09:00   | `remindStalePdis`               | PDI ativo sem atualização há 30+ dias (máx. 1 lembrete/semana, **sem e-mail**)    |
