@@ -88,6 +88,13 @@ export interface SendNotificationInput {
   anti_spam?: AntiSpamStrategy;
   cooldown_minutes?: number;
   metadata?: Record<string, any>;
+  /**
+   * Sobrepõe o `email` do tipo neste disparo específico. Existe porque um mesmo
+   * tipo atende situações de urgência diferente: `pdi_deadline_approaching`
+   * cobre tanto uma ação com prazo vencendo (urgente, vale e-mail) quanto um
+   * plano parado há 30 dias (não urgente, só notificação in-app).
+   */
+  email?: boolean;
 }
 
 export const NOTIFICATION_TYPE_CONFIG: Record<
@@ -96,7 +103,15 @@ export const NOTIFICATION_TYPE_CONFIG: Record<
     defaultPriority: NotificationPriority;
     displayCategory: DisplayCategory;
     category: NotificationCategory;
-    /** Se true, o send() também dispara e-mail (respeitando a preferência do usuário). */
+    /**
+     * Se true, o send() também dispara e-mail (respeitando a preferência do
+     * usuário). O critério é urgência, não importância: e-mail só para o que
+     * tem prazo ou hora marcada — ciclo/pesquisa/curso encerrando, ação de PDI
+     * vencendo, reunião ou entrevista agendada. Tudo o mais é informativo e
+     * vive no sininho, mesmo sendo relevante (feedback recebido, progressão
+     * aprovada, inscrição em curso). A caixa de entrada é o canal caro: se ela
+     * virar rotina, o lembrete de prazo deixa de ser lido.
+     */
     email: boolean;
   }
 > = {
@@ -136,7 +151,12 @@ export const NOTIFICATION_TYPE_CONFIG: Record<
     category: 'avaliacoes',
     email: false,
   },
-  pdi_created: { defaultPriority: 'medium', displayCategory: 'info', category: 'pdi', email: true },
+  pdi_created: {
+    defaultPriority: 'medium',
+    displayCategory: 'info',
+    category: 'pdi',
+    email: false,
+  },
   pdi_updated: { defaultPriority: 'low', displayCategory: 'info', category: 'pdi', email: false },
   pdi_deadline_approaching: {
     defaultPriority: 'high',
@@ -148,13 +168,13 @@ export const NOTIFICATION_TYPE_CONFIG: Record<
     defaultPriority: 'high',
     displayCategory: 'achievement',
     category: 'carreira',
-    email: true,
+    email: false,
   },
   career_track_assigned: {
     defaultPriority: 'medium',
     displayCategory: 'info',
     category: 'carreira',
-    email: true,
+    email: false,
   },
   job_opening_created: {
     defaultPriority: 'low',
@@ -184,7 +204,7 @@ export const NOTIFICATION_TYPE_CONFIG: Record<
     defaultPriority: 'medium',
     displayCategory: 'info',
     category: 'entrevistas',
-    email: true,
+    email: false,
   },
   interview_exit_scheduled: {
     defaultPriority: 'medium',
@@ -232,13 +252,13 @@ export const NOTIFICATION_TYPE_CONFIG: Record<
     defaultPriority: 'medium',
     displayCategory: 'info',
     category: 'feedbacks',
-    email: true,
+    email: false,
   },
   feedback_request_received: {
     defaultPriority: 'medium',
     displayCategory: 'info',
     category: 'feedbacks',
-    email: true,
+    email: false,
   },
   feedback_acknowledged: {
     defaultPriority: 'low',
@@ -262,7 +282,7 @@ export const NOTIFICATION_TYPE_CONFIG: Record<
     defaultPriority: 'medium',
     displayCategory: 'info',
     category: 'learning',
-    email: true,
+    email: false,
   },
   course_deadline_approaching: {
     defaultPriority: 'high',
@@ -280,6 +300,6 @@ export const NOTIFICATION_TYPE_CONFIG: Record<
     defaultPriority: 'medium',
     displayCategory: 'success',
     category: 'learning',
-    email: true,
+    email: false,
   },
 };

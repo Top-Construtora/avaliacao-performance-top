@@ -15,12 +15,21 @@ let transporter: Transporter | null = null;
 /**
  * Provedor de envio ativo.
  *
- * `brevo` (HTTP/443) tem prioridade sobre `smtp` porque muitos PaaS — o
- * Render entre eles — descartam tráfego de saída nas portas de SMTP
- * (25/465/587), o que faz a conexão ficar pendurada até estourar o tempo.
- * A saída HTTPS sempre funciona (é por ela que falamos com o Supabase).
+ * O Render — onde este backend roda — descarta tráfego de saída nas portas de
+ * SMTP (25/465/587), o que faz a conexão ficar pendurada até estourar o tempo.
+ * Só a saída HTTPS funciona (é por ela que falamos com o Supabase). Por isso
+ * os dois provedores viáveis em produção falam HTTP/443:
+ *
+ * - `edge`: delega para uma Edge Function na Supabase, que abre o SMTP do
+ *   Gmail de dentro da infraestrutura deles (sem bloqueio de porta). Usa o
+ *   e-mail corporativo como remetente e não depende de serviço de terceiro.
+ * - `brevo`: API HTTP da Brevo. Funciona, mas o remetente sai por um
+ *   subdomínio compartilhado (`*.brevosend.com`) e a conta trava por IP
+ *   autorizado — o Render alterna de IP, então quebra sozinho de vez em quando.
+ *
+ * `smtp` direto só serve para desenvolvimento local, onde não há bloqueio.
  */
-export type EmailProvider = 'brevo' | 'smtp' | 'none';
+export type EmailProvider = 'edge' | 'brevo' | 'smtp' | 'none';
 
 /**
  * Chave da Brevo já higienizada: valores colados em painel de hospedagem
@@ -43,8 +52,29 @@ export function describeBrevoKey(): string | null {
   })`;
 }
 
+/** URL da Edge Function de envio, se o projeto Supabase estiver configurado. */
+function edgeFunctionUrl(): string {
+  const base = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
+  return base ? `${base}/functions/v1/send-email` : '';
+}
+
+function isEdgeConfigured(): boolean {
+  return Boolean(edgeFunctionUrl() && process.env.SUPABASE_SERVICE_KEY);
+}
+
+/**
+ * A escolha é explícita via `EMAIL_PROVIDER` para que a troca em produção
+ * seja uma variável de ambiente — e possa ser revertida na mesma velocidade
+ * se o provedor novo falhar. Sem ela, mantém-se a ordem automática antiga.
+ */
 export function getEmailProvider(): EmailProvider {
   if (process.env.EMAIL_ENABLED !== 'true') return 'none';
+
+  const escolhido = (process.env.EMAIL_PROVIDER || '').trim().toLowerCase();
+  if (escolhido === 'edge' && isEdgeConfigured()) return 'edge';
+  if (escolhido === 'brevo' && brevoApiKey()) return 'brevo';
+  if (escolhido === 'smtp' && process.env.EMAIL_HOST && process.env.EMAIL_USER) return 'smtp';
+
   if (brevoApiKey()) return 'brevo';
   if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASS) return 'smtp';
   return 'none';
@@ -90,6 +120,58 @@ function getTransporter(): Transporter {
 /** Descarta o transporte em cache — usado quando a config muda ou falha. */
 export function resetTransporter(): void {
   transporter = null;
+}
+
+/**
+ * Chama a Edge Function `send-email` na Supabase (HTTPS/443). É ela que abre
+ * o SMTP do Gmail, de dentro da infraestrutura da Supabase.
+ */
+async function callEdgeFunction(
+  body: Record<string, unknown>,
+): Promise<{ ok: boolean; status: number; data: any; error?: string }> {
+  try {
+    const response = await fetch(edgeFunctionUrl(), {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(30_000),
+    });
+
+    const raw = await response.text();
+    let data: any = null;
+    try {
+      data = raw ? JSON.parse(raw) : null;
+    } catch {
+      data = { error: raw.slice(0, 300) };
+    }
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      data,
+      error: response.ok ? undefined : data?.error || `HTTP ${response.status}`,
+    };
+  } catch (error: any) {
+    return { ok: false, status: 0, data: null, error: error?.message || String(error) };
+  }
+}
+
+async function sendViaEdge(
+  to: string,
+  subject: string,
+  html: string,
+): Promise<{ sent: boolean; error?: string }> {
+  const result = await callEdgeFunction({
+    to,
+    subject,
+    html,
+    ...(process.env.EMAIL_REPLY_TO ? { replyTo: process.env.EMAIL_REPLY_TO } : {}),
+  });
+  if (result.ok && result.data?.sent) return { sent: true };
+  return { sent: false, error: result.error || 'Edge Function não confirmou o envio' };
 }
 
 /** Envia via API HTTP da Brevo (porta 443). */
@@ -142,6 +224,21 @@ export async function verifySmtp(): Promise<{
   }
 
   const started = Date.now();
+
+  if (provider === 'edge') {
+    const result = await callEdgeFunction({ verify: true });
+    const ms = Date.now() - started;
+    if (result.ok && result.data?.ok) {
+      emailLogger.info({ ms, sender: result.data?.sender }, 'Edge Function de e-mail respondeu');
+      return { ok: true, ms, provider };
+    }
+    return {
+      ok: false,
+      error: result.error || 'Edge Function não confirmou o handshake SMTP',
+      ms,
+      provider,
+    };
+  }
 
   if (provider === 'brevo') {
     try {
@@ -263,6 +360,16 @@ export const emailService = {
   ): Promise<{ sent: boolean; error?: string }> {
     const provider = getEmailProvider();
     if (provider === 'none') return { sent: false, error: 'Serviço de e-mail desligado' };
+
+    if (provider === 'edge') {
+      const result = await sendViaEdge(to, subject, html);
+      if (result.sent) {
+        emailLogger.info({ to, subject }, 'E-mail enviado (Edge Function)');
+      } else {
+        emailLogger.warn({ to, subject, err: result.error }, 'Falha ao enviar (Edge Function)');
+      }
+      return result;
+    }
 
     if (provider === 'brevo') {
       const result = await sendViaBrevo(to, subject, html);

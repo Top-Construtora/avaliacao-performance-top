@@ -109,6 +109,10 @@ export async function remindStalePdis(): Promise<void> {
       group_key: `pdi_stale:${pdi.id}`,
       anti_spam: 'cooldown',
       cooldown_minutes: 7 * 24 * 60, // no máximo 1 lembrete por semana
+      // Só notificação in-app: um plano parado não é urgente, e este é o único
+      // lembrete que se repete sem prazo final — semanalmente, enquanto o PDI
+      // não for atualizado. Por e-mail viraria a cobrança que ninguém lê.
+      email: false,
     });
   }
 

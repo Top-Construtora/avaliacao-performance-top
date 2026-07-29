@@ -106,7 +106,8 @@ export const notificationService = {
         // E-mail (fase 1 do roadmap): só para quem recebeu notificação nova
         // (quem caiu no anti-spam também não recebe e-mail). Fire-and-forget —
         // o envio SMTP nunca atrasa nem quebra a resposta HTTP.
-        if (config.email && isEmailEnabled()) {
+        const enviaEmail = input.email ?? config.email;
+        if (enviaEmail && isEmailEnabled()) {
           const emailRecipientIds = toInsert.map((n) => n.recipient_id as string);
           void this.dispatchEmails(supabase, emailRecipientIds, config.category, input).catch(
             (err) =>
