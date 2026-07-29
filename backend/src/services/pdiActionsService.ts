@@ -40,6 +40,36 @@ function normalizeCourseUrl(raw: string): string {
   return url.toString();
 }
 
+/**
+ * Converte a calendarização ("2026-03") no prazo real da ação ("2026-03-31").
+ *
+ * A tela pede só mês/ano — é a granularidade que um PDI tem de verdade ("em
+ * algum momento de março"). Mas o lembrete de prazo precisa perguntar ao banco
+ * "o que vence nos próximos 7 dias?", e isso não se faz com texto: "2026-03" é
+ * string, o Postgres não sabe que março acaba no dia 31.
+ *
+ * Então o dia é derivado aqui, invisível para quem preenche. O último dia do mês
+ * é a leitura correta do prazo: a ação tem até o fim do mês para acontecer.
+ */
+export function prazoDoMes(calendarizacao?: string | null): string | null {
+  if (!calendarizacao) return null;
+  const valor = String(calendarizacao).trim();
+
+  // Data completa (formato legado do JSONB) já serve como prazo
+  if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) return valor;
+
+  const partes = /^(\d{4})-(\d{2})$/.exec(valor);
+  if (!partes) return null;
+
+  const ano = Number(partes[1]);
+  const mes = Number(partes[2]);
+  if (mes < 1 || mes > 12) return null;
+
+  // Dia 0 do mês seguinte = último dia deste mês (cobre fevereiro bissexto)
+  const ultimoDia = new Date(Date.UTC(ano, mes, 0)).getUTCDate();
+  return `${partes[1]}-${partes[2]}-${String(ultimoDia).padStart(2, '0')}`;
+}
+
 export const pdiActionsService = {
   /** Garante id em todos os itens (muta uma cópia) e devolve a lista. */
   ensureItemIds(items: PDIItem[]): PDIItem[] {
@@ -50,8 +80,13 @@ export const pdiActionsService = {
   },
 
   /**
-   * Espelha os itens do JSONB na tabela pdi_actions:
-   * upsert dos presentes (sem tocar due_date/course_id) e remoção dos ausentes.
+   * Espelha os itens do JSONB na tabela pdi_actions: upsert dos presentes e
+   * remoção dos ausentes. O material indicado (course_id/course_url) não é
+   * tocado — não vem do JSONB e sobrevive a qualquer edição do plano.
+   *
+   * O `due_date` é derivado da calendarização, então acompanha o mês que o líder
+   * escolheu: mudou de março para abril, o prazo muda junto.
+   *
    * Nunca lança — falha aqui não pode quebrar o fluxo legado de PDI.
    */
   async syncFromItems(supabase: SupabaseClient, planId: string, items: PDIItem[]): Promise<void> {
@@ -67,6 +102,7 @@ export const pdiActionsService = {
           resultados_esperados: item.resultadosEsperados || null,
           como_desenvolver: item.comoDesenvolver || null,
           calendarizacao: item.calendarizacao || null,
+          due_date: prazoDoMes(item.calendarizacao),
           observacao: item.observacao || null,
           status: ['1', '2', '3', '4', '5'].includes(item.status) ? item.status : '1',
           position: index,
