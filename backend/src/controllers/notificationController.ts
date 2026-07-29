@@ -4,12 +4,24 @@ import { notificationService } from '../services/notificationService';
 import {
   describeBrevoKey,
   emailService,
+  EmailProvider,
   getEmailProvider,
   isEmailEnabled,
   renderNotificationEmail,
   verifySmtp,
 } from '../services/emailService';
 import { AuthRequest } from '../middleware/auth';
+
+/** Nome do provedor para quem lê o diagnóstico — inclui o `edge`, que antes caía em "SMTP". */
+function nomeDoProvedor(provider: EmailProvider): string {
+  const nomes: Record<EmailProvider, string> = {
+    edge: 'Edge Function da Supabase',
+    brevo: 'Brevo (HTTPS)',
+    smtp: 'SMTP direto',
+    none: 'nenhum provedor',
+  };
+  return nomes[provider];
+}
 
 const updatePreferencesSchema = z.object({
   preferences: z
@@ -127,7 +139,7 @@ export const notificationController = {
           sent: result.sent,
           to,
           reason: result.sent
-            ? `Enviado via ${handshake.provider === 'brevo' ? 'Brevo (HTTPS)' : 'SMTP'} — conexão em ${handshake.ms}ms.`
+            ? `Enviado via ${nomeDoProvedor(handshake.provider)} — conexão em ${handshake.ms}ms.`
             : `Provedor respondeu em ${handshake.ms}ms, mas o envio falhou: ${result.error}`,
           config: { ...config, smtp_handshake: true, handshake_ms: handshake.ms },
         },

@@ -334,3 +334,9 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+
+# A função de envio de e-mail exige JWT: quem chama é o backend, autenticando
+# com a service key do projeto. Deixado explícito para que o deploy não dependa
+# do padrão do CLI — abrir isso tornaria a função um relay de e-mail público.
+[functions.send-email]
+verify_jwt = true

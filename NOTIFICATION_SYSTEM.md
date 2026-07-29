@@ -507,7 +507,9 @@ O sistema passou a ter um canal de **e-mail** e um **agendador de lembretes**, e
 ### E-mail
 
 - `backend/src/services/emailService.ts` — nodemailer/SMTP. No-op sem `EMAIL_ENABLED=true` + credenciais (`EMAIL_HOST/PORT/USER/PASS/FROM/REPLY_TO`). 1 retry, nunca lança, log via pino (`module: email`).
-- `NOTIFICATION_TYPE_CONFIG` ganhou `category` (7 categorias) e `email: boolean` por tipo. `notificationService.send()` dispara e-mail em fire-and-forget **apenas** para quem recebeu notificação in-app nova (quem caiu no anti-spam não recebe e-mail).
+- **Critério do `email: boolean`**: urgência, não importância. Só vai por e-mail o que tem prazo ou hora marcada — ciclo/pesquisa/curso encerrando, ação de PDI vencendo, reunião ou entrevista agendada (10 tipos). Informativo fica no sininho, mesmo sendo relevante: feedback recebido, progressão aprovada, inscrição em curso, PDI alterado por terceiro.
+- `NOTIFICATION_TYPE_CONFIG` ganhou `category` (7 categorias) e `email: boolean` por tipo. `notificationService.send()` dispara e-mail em fire-and-forget **apenas** para quem recebeu notificação in-app nova (quem caiu no anti-spam não recebe e-mail). Um disparo pode passar `email: false` no input para desligar o e-mail sem mexer no tipo — usado quando o mesmo tipo atende situações de urgência diferente.
+- `npm run dry-run-jobs` (backend) mostra quantas notificações e e-mails os jobs de lembrete gerariam hoje, sem gravar nem enviar: intercepta o `send()`, replica anti-spam e opt-out em modo leitura e agrega por destinatário. Roda só os jobs que apenas leem.
 - Preferências por usuário na tabela `notification_preferences` (ausência de linha = habilitado). Endpoints `GET/PUT /notifications/preferences`; UI em Configurações > Notificações. Migração: `supabase/migrations/20260728100000_notification_preferences.sql`.
 
 ### Jobs (`backend/src/jobs/`)
@@ -520,4 +522,4 @@ Guard `ENABLE_JOBS=true` (ligar em **uma** instância só). Fuso `America/Sao_Pa
 | 09:00   | `remindEvaluationCycleDeadline` | Autoavaliação pendente com ciclo encerrando em ≤3 dias                            |
 | 09:00   | `remindSurveyDeadline`          | Pesquisa encerrando em ≤2 dias, só para quem não respondeu                        |
 | 09:00   | `remindInterviewsTomorrow`      | Entrevista agendada para amanhã (entrevistador + colaborador)                     |
-| 09:00   | `remindStalePdis`               | PDI ativo sem atualização há 30+ dias (máx. 1 lembrete/semana)                    |
+| 09:00   | `remindStalePdis`               | PDI ativo sem atualização há 30+ dias (máx. 1 lembrete/semana, **sem e-mail**)    |

@@ -53,21 +53,6 @@ export const notificationApiService = {
     await api.put('/notifications/preferences', { preferences });
   },
 
-  /**
-   * Diagnóstico de e-mail (admin/diretoria): dispara teste e devolve a config.
-   * `to` permite escolher o destinatário — contas admin costumam ter e-mail
-   * fictício cadastrado.
-   */
-  async testEmail(to?: string): Promise<{
-    sent: boolean;
-    to?: string;
-    reason?: string | null;
-    config?: Record<string, unknown>;
-  }> {
-    const response = await api.post('/notifications/test-email', to ? { to } : {});
-    return response.data || response;
-  },
-
   async getNotifications(
     params: {
       page?: number;
