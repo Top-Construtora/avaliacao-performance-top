@@ -29,9 +29,7 @@ import {
   SmilePlus,
   Briefcase,
   Sparkles,
-  ScrollText,
   MessagesSquare,
-  GraduationCap,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import { usePeopleCommitteePermission } from '../hooks/usePeopleCommittee';
@@ -248,7 +246,8 @@ export default function Sidebar({
         },
         // Auditoria: ocultada do menu temporariamente a pedido do RH.
         // A rota /audit e a API continuam funcionando, e a trilha segue
-        // sendo gravada — para reexibir, basta descomentar este item.
+        // sendo gravada — para reexibir, descomentar este item e reimportar
+        // o ícone ScrollText do lucide-react.
         // {
         //   label: 'Auditoria',
         //   icon: ScrollText,
@@ -291,11 +290,19 @@ export default function Sidebar({
           icon: MessagesSquare,
           path: '/feedbacks',
         },
-        {
-          label: 'Aprendizado',
-          icon: GraduationCap,
-          path: '/learning',
-        },
+        // Aprendizado: ocultado do menu por ora, a pedido do RH. A rota
+        // /learning e a API continuam funcionando — inclusive o link que o
+        // e-mail de prazo de curso manda. Para reexibir, descomentar este item
+        // e reimportar o ícone GraduationCap do lucide-react.
+        //
+        // Enquanto estiver oculto, o material indicado no PDI continua visível
+        // em Meu PDI; o que se perde é a inscrição em um clique nos cursos do
+        // catálogo, que só existe nesta tela.
+        // {
+        //   label: 'Aprendizado',
+        //   icon: GraduationCap,
+        //   path: '/learning',
+        // },
         {
           label: 'Pesquisas',
           icon: SmilePlus,
