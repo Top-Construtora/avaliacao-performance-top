@@ -11,7 +11,8 @@
     "dry-run-jobs": "ts-node src/scripts/dry-run-jobs.ts",
     "recalculate-ninebox": "ts-node src/scripts/recalculate-ninebox.ts",
     "apply-rls": "ts-node src/scripts/apply-rls.ts",
-    "verify-rls": "ts-node src/scripts/verify-rls-status.ts"
+    "verify-rls": "ts-node src/scripts/verify-rls-status.ts",
+    "migrate-profile-images": "ts-node src/scripts/migrate-profile-images.ts"
   },
   "dependencies": {
     "@sentry/node": "^10.59.0",

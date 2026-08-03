@@ -76,6 +76,56 @@ function pickAssignableUserFields(input: Record<string, any> = {}): Record<strin
   return out;
 }
 
+// Fotos de perfil vivem no bucket público `avatars`; na coluna
+// users.profile_image fica só a URL. Sem isso, cada foto era um data URL
+// base64 (até ~2 MB) devolvido em toda listagem de usuários.
+const AVATARS_BUCKET = 'avatars';
+
+const DATA_IMAGE_PARTS_RE = /^data:image\/(png|jpe?g|webp);base64,(.+)$/;
+
+async function uploadProfileImageToStorage(dataUrl: string, userId?: string): Promise<string> {
+  const match = dataUrl.match(DATA_IMAGE_PARTS_RE);
+  if (!match) {
+    // validateProfileImage já barrou formatos inseguros; aqui só formato inesperado
+    throw new ApiError(400, 'Formato de imagem de perfil não permitido (use PNG, JPEG ou WEBP)');
+  }
+  const [, rawType, base64] = match;
+  const type = rawType.toLowerCase() === 'jpg' ? 'jpeg' : rawType.toLowerCase();
+  const ext = type === 'jpeg' ? 'jpg' : type;
+  // O timestamp no nome evita servir foto antiga de cache quando o usuário troca a imagem
+  const path = `users/${userId || 'novo'}_${Date.now()}.${ext}`;
+
+  const { error } = await supabaseAdmin.storage
+    .from(AVATARS_BUCKET)
+    .upload(path, Buffer.from(base64, 'base64'), {
+      contentType: `image/${type}`,
+      upsert: false,
+    });
+  if (error) {
+    throw new ApiError(500, 'Erro ao enviar imagem de perfil: ' + error.message);
+  }
+
+  const { data } = supabaseAdmin.storage.from(AVATARS_BUCKET).getPublicUrl(path);
+  if (!data?.publicUrl) {
+    throw new ApiError(500, 'Erro ao gerar URL da imagem de perfil');
+  }
+  return data.publicUrl;
+}
+
+/**
+ * Se `fields.profile_image` chegou como data URL base64 (fluxo atual dos
+ * formulários), sobe a imagem para o Storage e substitui pelo URL público.
+ * URLs https e null/'' passam intactos.
+ */
+async function resolveProfileImageField(
+  fields: Record<string, any>,
+  userId?: string,
+): Promise<void> {
+  if (typeof fields.profile_image === 'string' && fields.profile_image.startsWith('data:')) {
+    fields.profile_image = await uploadProfileImageToStorage(fields.profile_image, userId);
+  }
+}
+
 // Colunas da listagem "leve" (?light=true): o suficiente para montar seletores
 // de colaborador sem trafegar `profile_image` (fotos em base64 podem passar de
 // 2 MB por usuário) nem os joins de trilha/salário. `email` entra porque o
@@ -169,6 +219,7 @@ export const userService = {
   async createUser(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>) {
     // Whitelist de campos — nunca espalhar o corpo cru (anti mass-assignment)
     const userToInsert = pickAssignableUserFields(userData as Record<string, any>);
+    await resolveProfileImageField(userToInsert);
 
     const { data, error } = await supabaseAdmin
       .from('users')
@@ -190,6 +241,7 @@ export const userService = {
       ...pickAssignableUserFields(updates as Record<string, any>),
       updated_at: new Date().toISOString(),
     };
+    await resolveProfileImageField(updateData, id);
 
     const { data, error } = await supabaseAdmin
       .from('users')
@@ -353,6 +405,9 @@ export const userService = {
 
         authUserId = authData.user.id;
       }
+
+      // Foto em base64 vira objeto no Storage + URL (antes de gravar o perfil)
+      await resolveProfileImageField(safeUserData, authUserId);
 
       // Verificar se já existe um usuário com este ID na tabela users (pode acontecer se houver inconsistências)
       const { data: existingUserById } = await supabaseAdmin

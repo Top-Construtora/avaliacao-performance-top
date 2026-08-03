@@ -58,6 +58,8 @@ Thumbs.db
 
 # Misc
 profile-images
+# Backups locais de migrações de dados (ex.: fotos de perfil)
+backend/.backup/
 .playwright-mcp/
 login-gio-desktop.png
 
