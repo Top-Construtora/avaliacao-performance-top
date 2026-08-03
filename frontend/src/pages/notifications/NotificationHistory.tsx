@@ -32,7 +32,7 @@ import {
   UserPlus,
   LogOut as LogOutIcon,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import { useNotifications } from '../../context/NotificationContext';
@@ -87,7 +87,7 @@ const NotificationHistory: React.FC = () => {
       y: 0,
       opacity: 1,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 100,
       },
     },

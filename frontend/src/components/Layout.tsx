@@ -1,6 +1,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import FirstLoginPasswordModal from './FirstLoginPasswordModal';
@@ -158,18 +158,23 @@ export default function Layout() {
 
         {/* Page Content — painel arredondado sobre o obsidian (espelha seguranca-trabalho) */}
         <main className="flex-1 flex flex-col overflow-auto bg-background md:rounded-tl-3xl md:dark:border-t md:dark:border-l md:dark:border-white/10">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8"
-          >
-            <Suspense fallback={null}>
-              <Outlet />
-            </Suspense>
-          </motion.div>
+          {/* AnimatePresence é o que faz o exit rodar de verdade na troca de
+              rota (sem ele, só existia o fade-in). Saída mais curta que a
+              entrada para a navegação não parecer lenta. */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12, transition: { duration: 0.15, ease: 'easeIn' } }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8"
+            >
+              <Suspense fallback={null}>
+                <Outlet />
+              </Suspense>
+            </motion.div>
+          </AnimatePresence>
 
           {/* Footer */}
           <footer className="border-t border-border py-4 px-4 sm:px-6">

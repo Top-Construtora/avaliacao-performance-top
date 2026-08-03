@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { toast } from 'react-hot-toast';
 import {
   BookOpen,
@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../config/api';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import PageSkeleton from '../../components/Skeleton';
 
 /** Ação normalizada (fase 5C) — casa com o item do JSONB pelo id. */
 interface PdiActionRow {
@@ -328,7 +328,7 @@ const MyPdi: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <PageSkeleton kpis={0} cards={3} />;
   }
 
   if (!pdiData) {

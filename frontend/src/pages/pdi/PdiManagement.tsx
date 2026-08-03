@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { toast } from 'react-hot-toast';
 import { Users, BookOpen, Info, Save } from 'lucide-react';
 import Button from '../../components/Button';
@@ -475,7 +475,8 @@ const PdiManagement: React.FC = () => {
             onClick={handleSavePDI}
             icon={<Save size={18} />}
             size="lg"
-            disabled={isSavingPDI || loadingPDI || !hasUnsavedChanges}
+            loading={isSavingPDI}
+            disabled={loadingPDI || !hasUnsavedChanges}
           >
             {isSavingPDI ? 'Salvando...' : 'Salvar PDI'}
           </Button>

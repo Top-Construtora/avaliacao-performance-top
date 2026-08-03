@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import UserSalaryAssignment from '../../components/UserSalaryAssignment';
@@ -53,7 +53,7 @@ import {
   UIGuard,
   OperationWarning,
 } from '../../components/PermissionGuard';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import PageSkeleton from '../../components/Skeleton';
 import { formatDateBR } from '../../utils/date';
 
 type ViewMode = 'grid' | 'list';
@@ -942,7 +942,7 @@ const UserManagement = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <PageSkeleton />;
   }
 
   return (

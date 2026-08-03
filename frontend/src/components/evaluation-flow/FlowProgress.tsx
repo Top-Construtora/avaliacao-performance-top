@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Check } from 'lucide-react';
 import type { FlowStep } from './types';
 
@@ -43,7 +43,7 @@ export default function FlowProgress({ steps, index }: FlowProgressProps) {
           className="h-full rounded-full bg-lime"
           initial={false}
           animate={{ width: `${pct}%` }}
-          transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+          transition={{ type: 'spring' as const, stiffness: 260, damping: 30 }}
         />
       </div>
     </div>

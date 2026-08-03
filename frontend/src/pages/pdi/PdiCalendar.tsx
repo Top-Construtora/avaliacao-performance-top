@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { toast } from 'react-hot-toast';
 import {
   Calendar as CalendarIcon,
@@ -13,7 +13,7 @@ import {
   Target,
 } from 'lucide-react';
 import { api } from '../../config/api';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import PageSkeleton from '../../components/Skeleton';
 
 interface PdiItem {
   id: string;
@@ -243,7 +243,7 @@ const PdiCalendar = () => {
     };
   }, [pdis]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <PageSkeleton kpis={0} cards={0} />;
 
   return (
     <div className="space-y-4 sm:space-y-6">

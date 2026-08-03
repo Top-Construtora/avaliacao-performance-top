@@ -14,7 +14,8 @@ import {
   BarChart2,
   Calendar,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
+import AnimatedNumber from '../../components/AnimatedNumber';
 import { evaluationService } from '../../services/evaluation.service';
 
 const CollaboratorDashboard = () => {
@@ -93,7 +94,7 @@ const CollaboratorDashboard = () => {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { type: 'spring', stiffness: 100 },
+      transition: { type: 'spring' as const, stiffness: 100 },
     },
   };
 
@@ -472,9 +473,11 @@ const CollaboratorDashboard = () => {
                 <span className="text-sm font-medium text-muted-foreground">Autoavaliação</span>
               </div>
               <div className="text-2xl font-bold text-foreground">
-                {myStatus.selfEvaluation === 'completed' && myStatus.selfScore !== null
-                  ? myStatus.selfScore.toFixed(2)
-                  : '-'}
+                {myStatus.selfEvaluation === 'completed' && myStatus.selfScore !== null ? (
+                  <AnimatedNumber value={myStatus.selfScore} decimals={2} />
+                ) : (
+                  '-'
+                )}
               </div>
               <span
                 className={`text-xs ${myStatus.selfEvaluation === 'completed' ? 'text-success' : 'text-muted-foreground'}`}
@@ -490,9 +493,11 @@ const CollaboratorDashboard = () => {
                 <span className="text-sm font-medium text-muted-foreground">Líder</span>
               </div>
               <div className="text-2xl font-bold text-foreground">
-                {myStatus.leaderEvaluation === 'completed' && myStatus.leaderScore !== null
-                  ? myStatus.leaderScore.toFixed(2)
-                  : '-'}
+                {myStatus.leaderEvaluation === 'completed' && myStatus.leaderScore !== null ? (
+                  <AnimatedNumber value={myStatus.leaderScore} decimals={2} />
+                ) : (
+                  '-'
+                )}
               </div>
               <span
                 className={`text-xs ${myStatus.leaderEvaluation === 'completed' ? 'text-success' : 'text-muted-foreground'}`}
@@ -508,9 +513,11 @@ const CollaboratorDashboard = () => {
                 <span className="text-sm font-medium text-muted-foreground">Consenso</span>
               </div>
               <div className="text-2xl font-bold text-foreground">
-                {myStatus.consensus === 'completed' && myStatus.consensusScore !== null
-                  ? myStatus.consensusScore.toFixed(2)
-                  : '-'}
+                {myStatus.consensus === 'completed' && myStatus.consensusScore !== null ? (
+                  <AnimatedNumber value={myStatus.consensusScore} decimals={2} />
+                ) : (
+                  '-'
+                )}
               </div>
               <span
                 className={`text-xs ${myStatus.consensus === 'completed' ? 'text-success' : 'text-muted-foreground'}`}

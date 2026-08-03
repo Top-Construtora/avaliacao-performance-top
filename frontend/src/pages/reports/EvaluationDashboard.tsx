@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import {
   BarChart3,
   Users,
@@ -19,7 +19,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { usersService, departmentsService } from '../../services/supabase.service';
 import type { CycleDashboard } from '../../types/evaluation.types';
 import type { UserWithDetails, Department } from '../../types/supabase';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import PageSkeleton from '../../components/Skeleton';
+import AnimatedNumber from '../../components/AnimatedNumber';
 
 const EvaluationDashboard: React.FC = () => {
   const { cycleId } = useParams<{ cycleId: string }>();
@@ -243,8 +244,12 @@ const EvaluationDashboard: React.FC = () => {
     );
   };
 
+  // Sem colaboradores, as barras iam a NaN% (divisão por zero)
+  const completionPct = (completed: number) =>
+    stats.totalEmployees > 0 ? (completed / stats.totalEmployees) * 100 : 0;
+
   if (loading) {
-    return <LoadingSpinner />;
+    return <PageSkeleton cards={0} />;
   }
 
   return (
@@ -286,7 +291,9 @@ const EvaluationDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm font-medium">Total de Colaboradores</p>
-                <p className="text-2xl font-bold text-foreground mt-1">{stats.totalEmployees}</p>
+                <p className="text-2xl font-bold text-foreground mt-1">
+                  <AnimatedNumber value={stats.totalEmployees} />
+                </p>
               </div>
               <Users className="h-8 w-8 text-muted-foreground" />
             </div>
@@ -302,12 +309,12 @@ const EvaluationDashboard: React.FC = () => {
               <div>
                 <p className="text-muted-foreground text-sm font-medium">Autoavaliações</p>
                 <p className="text-2xl font-bold text-foreground mt-1">
-                  {stats.selfCompleted}/{stats.totalEmployees}
+                  <AnimatedNumber value={stats.selfCompleted} />/{stats.totalEmployees}
                 </p>
                 <div className="w-full bg-secondary rounded-full h-1.5 mt-2">
                   <div
                     className="bg-lime h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${(stats.selfCompleted / stats.totalEmployees) * 100}%` }}
+                    style={{ width: `${completionPct(stats.selfCompleted)}%` }}
                   />
                 </div>
               </div>
@@ -325,12 +332,12 @@ const EvaluationDashboard: React.FC = () => {
               <div>
                 <p className="text-muted-foreground text-sm font-medium">Avaliações do Líder</p>
                 <p className="text-2xl font-bold text-foreground mt-1">
-                  {stats.leaderCompleted}/{stats.totalEmployees}
+                  <AnimatedNumber value={stats.leaderCompleted} />/{stats.totalEmployees}
                 </p>
                 <div className="w-full bg-secondary rounded-full h-1.5 mt-2">
                   <div
                     className="bg-lime h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${(stats.leaderCompleted / stats.totalEmployees) * 100}%` }}
+                    style={{ width: `${completionPct(stats.leaderCompleted)}%` }}
                   />
                 </div>
               </div>
@@ -348,12 +355,12 @@ const EvaluationDashboard: React.FC = () => {
               <div>
                 <p className="text-muted-foreground text-sm font-medium">Consensos Finalizados</p>
                 <p className="text-2xl font-bold text-foreground mt-1">
-                  {stats.consensusCompleted}/{stats.totalEmployees}
+                  <AnimatedNumber value={stats.consensusCompleted} />/{stats.totalEmployees}
                 </p>
                 <div className="w-full bg-secondary rounded-full h-1.5 mt-2">
                   <div
                     className="bg-lime h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${(stats.consensusCompleted / stats.totalEmployees) * 100}%` }}
+                    style={{ width: `${completionPct(stats.consensusCompleted)}%` }}
                   />
                 </div>
               </div>

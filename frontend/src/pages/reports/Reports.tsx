@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import {
   BarChart3,
   FileDown,
@@ -25,7 +25,8 @@ import { departmentsService, usersService, teamsService } from '../../services/s
 import type { Department, UserWithDetails, Team } from '../../types/supabase';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { CycleDashboard, EvaluationCycle } from '../../types/evaluation.types';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import PageSkeleton from '../../components/Skeleton';
+import AnimatedNumber from '../../components/AnimatedNumber';
 import { formatDateBR } from '../../utils/date';
 
 const Reports = () => {
@@ -1003,7 +1004,7 @@ const Reports = () => {
   };
 
   if (loading || evaluationLoading) {
-    return <LoadingSpinner minHeight="min-h-[60vh]" />;
+    return <PageSkeleton />;
   }
 
   if (!selectedCycle && availableCycles.length === 0) {
@@ -1214,7 +1215,7 @@ const Reports = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-card p-6 rounded-xl shadow-lg border border-border"
+              className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border"
             >
               <div className="flex items-center justify-between mb-2">
                 <Users className="w-8 h-8 text-lime-deep dark:text-lime" />
@@ -1223,7 +1224,7 @@ const Reports = () => {
                 </span>
               </div>
               <h3 className="text-3xl font-bold text-foreground mb-1">
-                {summaryData.totalEmployees}
+                <AnimatedNumber value={summaryData.totalEmployees} />
               </h3>
               <p className="text-sm text-muted-foreground">Total de Colaboradores</p>
             </motion.div>
@@ -1244,7 +1245,7 @@ const Reports = () => {
                 </span>
               </div>
               <h3 className="text-3xl font-bold text-foreground mb-1">
-                {summaryData.completedEvaluations}
+                <AnimatedNumber value={summaryData.completedEvaluations} />
               </h3>
               <p className="text-sm text-muted-foreground">Avaliações Completas</p>
             </motion.div>
@@ -1262,13 +1263,15 @@ const Reports = () => {
                   %
                 </span>
               </div>
-              <h3 className="text-3xl font-bold text-foreground mb-1">{summaryData.inProgress}</h3>
+              <h3 className="text-3xl font-bold text-foreground mb-1">
+                <AnimatedNumber value={summaryData.inProgress} />
+              </h3>
               <p className="text-sm text-muted-foreground">Em Andamento</p>
             </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="bg-card p-6 rounded-xl shadow-lg border border-border"
+              className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border"
             >
               <div className="flex items-center justify-between mb-2">
                 <AlertTriangle className="w-8 h-8 text-warning" />
@@ -1279,7 +1282,9 @@ const Reports = () => {
                   %
                 </span>
               </div>
-              <h3 className="text-3xl font-bold text-foreground mb-1">{summaryData.pending}</h3>
+              <h3 className="text-3xl font-bold text-foreground mb-1">
+                <AnimatedNumber value={summaryData.pending} />
+              </h3>
               <p className="text-sm text-muted-foreground">Pendentes</p>
             </motion.div>
           </div>

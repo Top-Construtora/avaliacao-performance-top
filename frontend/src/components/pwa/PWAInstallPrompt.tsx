@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { Download, Share, Plus, X } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -121,7 +121,7 @@ export default function PWAInstallPrompt() {
       initial={reduceMotion ? { opacity: 0 } : { y: '110%' }}
       animate={reduceMotion ? { opacity: 1 } : { y: 0 }}
       exit={reduceMotion ? { opacity: 0 } : { y: '110%' }}
-      transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+      transition={{ type: 'spring' as const, stiffness: 320, damping: 32 }}
       className="fixed inset-x-0 bottom-0 z-[60] px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] md:hidden"
     >
       <div className="mx-auto max-w-md rounded-2xl border border-border bg-card shadow-2xl">
