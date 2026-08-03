@@ -60,6 +60,8 @@ Thumbs.db
 profile-images
 # Backups locais de migrações de dados (ex.: fotos de perfil)
 backend/.backup/
+# Env de produção guardado enquanto o .env.local aponta para o banco local
+frontend/.env.local.producao
 .playwright-mcp/
 login-gio-desktop.png
 

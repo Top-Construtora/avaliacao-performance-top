@@ -21,6 +21,28 @@ npm run db:reset
 npm run db:push
 ```
 
+## Banco LOCAL de teste (não toca a produção)
+
+O baseline da produção **já foi capturado** (2026-08-03) em
+`migrations/20260803150000_baseline_producao.sql`; as migrações anteriores,
+já aplicadas em prod e contidas no baseline, foram arquivadas em
+`migrations_applied/`.
+
+```bash
+npm run db:start    # sobe o stack local (Docker) — portas 5434x p/ não colidir com o da GIO
+npm run db:reset    # recria o banco local: baseline + migrações novas + seed
+npm run dev:local   # frontend + backend apontando para o banco LOCAL
+npm run db:studio   # abre o Studio local (http://127.0.0.1:54343)
+```
+
+Usuários do seed (senha `local123`): `admin@local.test`, `diretora@local.test`,
+`lider@local.test`, `ana@local.test`, `bruno@local.test`, `carla@local.test` —
+com ciclo aberto e consensos prontos (9-Box populado).
+
+Para voltar à produção no frontend: copie `frontend/.env.local.producao` por
+cima de `frontend/.env.local` e reinicie o dev server. O backend volta sozinho
+usando `npm run dev` (o modo local é só via `npm run dev:local`).
+
 ## Baseline de um banco que JÁ existe (rodar UMA vez)
 
 A produção já tem schema (criado no dashboard). Antes de versionar, capture o

@@ -13,8 +13,10 @@ import { captureException } from './lib/observability';
 import routes from './routes';
 import { startJobs } from './jobs';
 
-// Carrega variáveis de ambiente e inicializa observabilidade (o quanto antes)
-dotenv.config();
+// Carrega variáveis de ambiente e inicializa observabilidade (o quanto antes).
+// ENV_FILE aponta para outro ambiente (ex.: .env.local → banco local do
+// Supabase CLI, via `npm run dev:local`).
+dotenv.config({ path: process.env.ENV_FILE || '.env' });
 initSentry();
 
 // Resolve nomes preferindo IPv4. Em containers com IPv6 configurado mas sem
