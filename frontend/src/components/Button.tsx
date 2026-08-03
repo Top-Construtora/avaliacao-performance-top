@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Loader2 } from 'lucide-react';
 
 interface ButtonProps {
   children: ReactNode;
@@ -7,6 +8,8 @@ interface ButtonProps {
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
+  /** Ação em andamento: mostra spinner no lugar do ícone, desabilita e anuncia aria-busy. */
+  loading?: boolean;
   className?: string;
   icon?: ReactNode;
 }
@@ -18,6 +21,7 @@ const Button = ({
   onClick,
   type = 'button',
   disabled = false,
+  loading = false,
   className = '',
   icon,
 }: ButtonProps) => {
@@ -41,7 +45,8 @@ const Button = ({
     lg: 'px-6 py-3 text-lg',
   };
 
-  const disabledClasses = disabled
+  const isDisabled = disabled || loading;
+  const disabledClasses = isDisabled
     ? 'opacity-50 cursor-not-allowed hover:transform-none hover:shadow-none'
     : '';
 
@@ -49,16 +54,24 @@ const Button = ({
     <button
       type={type}
       onClick={onClick}
-      disabled={disabled}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
       className={`
-        ${baseClasses} 
-        ${variantClasses[variant]} 
-        ${sizeClasses[size]} 
+        ${baseClasses}
+        ${variantClasses[variant]}
+        ${sizeClasses[size]}
         ${disabledClasses}
         ${className}
       `}
     >
-      {icon && <span className="mr-2 flex-shrink-0">{icon}</span>}
+      {/* Spinner assume o lugar do ícone para o botão não mudar de largura */}
+      {loading ? (
+        <span className="mr-2 flex-shrink-0">
+          <Loader2 className="h-[1.1em] w-[1.1em] animate-spin" />
+        </span>
+      ) : (
+        icon && <span className="mr-2 flex-shrink-0">{icon}</span>
+      )}
       <span className="truncate">{children}</span>
     </button>
   );

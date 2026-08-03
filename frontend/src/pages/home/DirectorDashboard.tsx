@@ -13,7 +13,8 @@ import {
   Building2,
   Award,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
+import AnimatedNumber from '../../components/AnimatedNumber';
 import { evaluationService } from '../../services/evaluation.service';
 
 const DirectorDashboard = () => {
@@ -112,7 +113,7 @@ const DirectorDashboard = () => {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { type: 'spring', stiffness: 100 },
+      transition: { type: 'spring' as const, stiffness: 100 },
     },
   };
 
@@ -182,11 +183,15 @@ const DirectorDashboard = () => {
           </h2>
           <div className="flex items-center gap-3">
             <div className="text-center">
-              <span className="text-xl font-bold text-success">{completedLeaderEvaluations}</span>
+              <span className="text-xl font-bold text-success">
+                <AnimatedNumber value={completedLeaderEvaluations} />
+              </span>
               <span className="text-xs text-muted-foreground block">Avaliados</span>
             </div>
             <div className="text-center">
-              <span className="text-xl font-bold text-warning">{pendingLeaderEvaluations}</span>
+              <span className="text-xl font-bold text-warning">
+                <AnimatedNumber value={pendingLeaderEvaluations} />
+              </span>
               <span className="text-xs text-muted-foreground block">Pendentes</span>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type ReactNode } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import FlowProgress, { FlowSideRail } from './FlowProgress';
 import FlowFooter from './FlowFooter';
 import type { FlowStep, FlowScreenContext } from './types';

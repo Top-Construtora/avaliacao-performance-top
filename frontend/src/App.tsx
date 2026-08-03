@@ -98,37 +98,32 @@ function PageLoader() {
 const USE_SUPABASE_AUTH = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
 
 function App() {
-  // Configuração do Toaster (comum para ambos os casos)
+  // Configuração do Toaster (comum para ambos os casos).
+  // Tokens do tema via var(): o toast acompanha dark/light em vez do branco
+  // fixo de antes; success/error usam as cores de status do design system.
   const toasterConfig = {
     position: 'bottom-right' as const,
     toastOptions: {
       style: {
-        background: '#ffffff',
-        color: '#363636',
+        background: 'hsl(var(--card))',
+        color: 'hsl(var(--card-foreground))',
+        border: '1px solid hsl(var(--border))',
         fontSize: '14px',
         maxWidth: '400px',
         padding: '16px',
-        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        borderRadius: '0.5rem',
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1)',
+        borderRadius: '0.75rem',
       },
       success: {
-        style: {
-          background: '#10b981',
-          color: '#ffffff',
-        },
         iconTheme: {
-          primary: '#ffffff',
-          secondary: '#10b981',
+          primary: 'hsl(var(--status-success))',
+          secondary: 'hsl(var(--card))',
         },
       },
       error: {
-        style: {
-          background: '#ef4444',
-          color: '#ffffff',
-        },
         iconTheme: {
-          primary: '#ffffff',
-          secondary: '#ef4444',
+          primary: 'hsl(var(--status-critical))',
+          secondary: 'hsl(var(--card))',
         },
       },
     },

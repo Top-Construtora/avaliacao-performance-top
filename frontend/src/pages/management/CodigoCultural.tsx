@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAuth, useUserRole } from '../../context/AuthContext';
 import { competencyService } from '../../services/competency.service';
 import Button from '../../components/Button';

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Home,
   FileText,
@@ -462,7 +462,7 @@ export default function Sidebar({
           {!isMobile && (
             <motion.div
               layout
-              transition={{ type: 'spring', stiffness: 240, damping: 28 }}
+              transition={{ type: 'spring' as const, stiffness: 240, damping: 28 }}
               className="flex-shrink-0"
             >
               <button

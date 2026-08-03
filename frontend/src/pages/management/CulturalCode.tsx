@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';

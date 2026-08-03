@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { ArrowLeft, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import gioWordmark from '@/assets/images/gio-wordmark.png';
 import { useAuth } from '../../context/AuthContext';
@@ -91,7 +91,7 @@ export default function ForgotPassword() {
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+                  transition={{ delay: 0.1, type: 'spring' as const, stiffness: 200 }}
                   className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-[#D2FF00]/30 bg-[#D2FF00]/10"
                 >
                   <CheckCircle className="h-9 w-9 text-[#D2FF00]" />

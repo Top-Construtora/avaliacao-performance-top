@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { ShieldOff, AlertTriangle } from 'lucide-react';
 import { usePermissions, useUIPermissions } from '../hooks/usePermissions';
 
@@ -26,20 +26,20 @@ export function PermissionGuard({
   // Se resource e action foram especificados, verifica permissão específica
   if (resource && action) {
     const hasPermission = permissions.hasPermission(resource, action);
-    
+
     if (!hasPermission) {
       if (redirectTo) {
         return <Navigate to={redirectTo} replace />;
       }
-      
+
       if (fallback) {
         return <>{fallback}</>;
       }
-      
+
       if (showError) {
         return <PermissionDenied resource={resource} action={action} />;
       }
-      
+
       return null;
     }
   }
@@ -59,11 +59,17 @@ function PermissionDenied({ resource, action }: { resource: string; action: stri
         <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-red-100 to-red-200 mb-6">
           <ShieldOff className="h-10 w-10 text-red-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Permissão Negada
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Permissão Negada</h2>
         <p className="text-gray-600 mb-6">
-          Você não tem permissão para {action === 'create' ? 'criar' : action === 'read' ? 'visualizar' : action === 'update' ? 'editar' : 'excluir'} {resource}.
+          Você não tem permissão para{' '}
+          {action === 'create'
+            ? 'criar'
+            : action === 'read'
+              ? 'visualizar'
+              : action === 'update'
+                ? 'editar'
+                : 'excluir'}{' '}
+          {resource}.
         </p>
         <button
           onClick={() => window.history.back()}
@@ -127,7 +133,7 @@ export function UIGuard({
   show: keyof ReturnType<typeof useUIPermissions>;
 }) {
   const uiPermissions = useUIPermissions();
-  
+
   if (!uiPermissions[show]) {
     return null;
   }
@@ -170,7 +176,7 @@ export function OperationWarning({
           <AlertTriangle className="h-6 w-6 text-yellow-500 mr-2" />
           <h3 className="text-lg font-bold text-gray-900">Atenção</h3>
         </div>
-        
+
         <div className="space-y-2 mb-6">
           {warnings.map((warning, index) => (
             <p key={index} className="text-sm text-gray-600">
@@ -178,7 +184,7 @@ export function OperationWarning({
             </p>
           ))}
         </div>
-        
+
         <div className="flex gap-3">
           <button
             onClick={onCancel}
@@ -201,7 +207,10 @@ export function OperationWarning({
 // Hook helper para uso em componentes
 import { useOperationValidator } from '../hooks/usePermissions';
 
-export function usePermissionGuard(resource: string, action: 'create' | 'read' | 'update' | 'delete') {
+export function usePermissionGuard(
+  resource: string,
+  action: 'create' | 'read' | 'update' | 'delete',
+) {
   const permissions = usePermissions();
   return permissions.hasPermission(resource, action);
 }

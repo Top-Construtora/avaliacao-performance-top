@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { ThemeToggle } from './ThemeToggle';
 import {
   Bell,
@@ -74,43 +74,44 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
   const pageTitle = PAGE_TITLES.find((t) => t.match(pathname))?.title || 'GIO';
 
   // Configuração dos tipos de notificação com a paleta de cores NAUE
+  // Tokens reais do design system (as escalas *-50..900 referenciadas antes
+  // não existem no tailwind.config — as cores nunca pintavam). Mesmo padrão
+  // /10 de fundo + /20 de borda do StatusBadge.
   const notificationTypeConfig = {
     success: {
-      bgColor: 'bg-status-success-50 dark:bg-status-success-900/20',
-      iconBg: 'bg-status-success-100 dark:bg-status-success-800/30',
-      iconColor: 'text-status-success-600 dark:text-status-success-400',
-      borderColor: 'border-status-success-200 dark:border-status-success-700',
-      dotColor: 'bg-status-success-500',
+      bgColor: 'bg-success/10',
+      iconBg: 'bg-success/15',
+      iconColor: 'text-success',
+      borderColor: 'border-success/20',
+      dotColor: 'bg-success',
     },
     info: {
-      bgColor: 'bg-secondary-50 dark:bg-secondary-900/20',
-      iconBg: 'bg-secondary-100 dark:bg-secondary-800/30',
-      iconColor: 'text-secondary-600 dark:text-secondary-400',
-      borderColor: 'border-secondary-200 dark:border-secondary-700',
-      dotColor: 'bg-secondary-500',
+      bgColor: 'bg-secondary/60',
+      iconBg: 'bg-secondary',
+      iconColor: 'text-foreground/70',
+      borderColor: 'border-border',
+      dotColor: 'bg-lime',
     },
     warning: {
-      bgColor: 'bg-status-warning-50 dark:bg-status-warning-900/20',
-      iconBg: 'bg-status-warning-100 dark:bg-status-warning-800/30',
-      iconColor: 'text-status-warning-600 dark:text-status-warning-400',
-      borderColor: 'border-status-warning-200 dark:border-status-warning-700',
-      dotColor: 'bg-status-warning-500',
+      bgColor: 'bg-warning/10',
+      iconBg: 'bg-warning/15',
+      iconColor: 'text-warning',
+      borderColor: 'border-warning/20',
+      dotColor: 'bg-warning',
     },
     alert: {
-      bgColor: 'bg-status-danger-50 dark:bg-status-danger-900/20',
-      iconBg: 'bg-status-danger-100 dark:bg-status-danger-800/30',
-      iconColor: 'text-status-danger-600 dark:text-status-danger-400',
-      borderColor: 'border-status-danger-200 dark:border-status-danger-700',
-      dotColor: 'bg-status-danger-500',
+      bgColor: 'bg-destructive/10',
+      iconBg: 'bg-destructive/15',
+      iconColor: 'text-destructive',
+      borderColor: 'border-destructive/20',
+      dotColor: 'bg-destructive',
     },
     achievement: {
-      bgColor:
-        'bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20',
-      iconBg:
-        'bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-800/30 dark:to-secondary-800/30',
-      iconColor: 'text-primary-600 dark:text-primary-400',
-      borderColor: 'border-primary-200 dark:border-primary-700',
-      dotColor: 'bg-gradient-to-r from-primary-500 to-secondary-500',
+      bgColor: 'bg-lime/10',
+      iconBg: 'bg-lime/15',
+      iconColor: 'text-lime-deep dark:text-lime',
+      borderColor: 'border-lime/25',
+      dotColor: 'bg-lime',
     },
   };
 

@@ -18,7 +18,8 @@ import {
   Clock,
   TrendingUp,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
+import AnimatedNumber from '../../components/AnimatedNumber';
 import { evaluationService } from '../../services/evaluation.service';
 import { recruitmentService } from '../../services/recruitment.service';
 import { satisfactionService } from '../../services/satisfaction.service';
@@ -271,7 +272,7 @@ const AdminDashboard = () => {
 
   const itemVariants = {
     hidden: { y: 12, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 120 } },
+    visible: { y: 0, opacity: 1, transition: { type: 'spring' as const, stiffness: 120 } },
   };
 
   return (
@@ -334,7 +335,13 @@ const AdminDashboard = () => {
                     className={`text-xl sm:text-2xl font-bold font-lemon-milk tracking-wide leading-none
                     ${kpi.highlight && totalPendencias > 0 ? 'text-warning' : 'text-foreground'}`}
                   >
-                    {loading ? '…' : kpi.value}
+                    {loading ? (
+                      '…'
+                    ) : typeof kpi.value === 'number' ? (
+                      <AnimatedNumber value={kpi.value} />
+                    ) : (
+                      kpi.value
+                    )}
                   </div>
                   <div className="text-[11px] sm:text-xs font-semibold text-foreground/80 mt-1 truncate">
                     {kpi.label}

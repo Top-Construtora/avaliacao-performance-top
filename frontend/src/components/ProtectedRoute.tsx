@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, useUserRole } from '../context/AuthContext';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useAuthNavigation } from '../hooks/useAuthNavigation';
 import { GioLoading } from './GioLoading';
 

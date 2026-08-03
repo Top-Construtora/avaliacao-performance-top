@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import gioWordmark from '@/assets/images/gio-wordmark.png';
 import { useAuth } from '../../context/AuthContext';
 import { devLog } from '../../utils/logger';
+import CursorGrid from '../../components/CursorGrid';
 
 // gio — Identidade v4.0: split obsidian + grade blueprint + lime.
 // Marca GIO (wordmark) sobre obsidian; CTA lime; card com vidro.
@@ -104,21 +105,24 @@ export default function Login() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#1A1A1A] text-white">
-      {/* Grade blueprint — pano de fundo técnico (lime translúcido sobre obsidian) */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-0"
-        style={{
-          backgroundImage: `linear-gradient(rgba(210,255,0,.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(210,255,0,.05) 1px, transparent 1px),
-            linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px)`,
-          backgroundSize: '90px 90px, 90px 90px, 22.5px 22.5px, 22.5px 22.5px',
-          maskImage: 'radial-gradient(ellipse 100% 100% at 45% 45%, black 30%, transparent 100%)',
-          WebkitMaskImage:
-            'radial-gradient(ellipse 100% 100% at 45% 45%, black 30%, transparent 100%)',
-        }}
-      />
+      {/* Grade reativa ao cursor — pano de fundo técnico (lime sobre obsidian).
+          A malha estática sutil (gridOpacity) mantém o clima blueprint mesmo
+          sem interação; as células acendem seguindo o mouse e pulsam no clique. */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
+        <CursorGrid
+          cellSize={70}
+          color="#D2FF00"
+          radius={140}
+          falloff="smooth"
+          holdTime={400}
+          fadeDuration={800}
+          lineWidth={1.2}
+          maxOpacity={0.55}
+          gridOpacity={0.05}
+          clickPulse
+          pulseSpeed={600}
+        />
+      </div>
 
       <div className="relative z-10 grid min-h-screen grid-cols-1 lg:h-screen lg:grid-cols-[1.05fr_0.95fr]">
         {/* ═══ ESQUERDA — PAINEL DE MARCA ═══ */}
