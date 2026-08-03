@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import AnimatedNumber from '../../components/AnimatedNumber';
+import EmptyState from '../../components/EmptyState';
 import { evaluationService } from '../../services/evaluation.service';
 
 const DirectorDashboard = () => {
@@ -202,10 +203,11 @@ const DirectorDashboard = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime"></div>
           </div>
         ) : teamStatus.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>Nenhum liderado encontrado</p>
-          </div>
+          <EmptyState
+            icon={Users}
+            title="Nenhum liderado encontrado"
+            description="Quando colaboradores forem vinculados a você, o progresso deles aparece aqui."
+          />
         ) : (
           <div className="space-y-2 max-h-[280px] overflow-y-auto">
             {teamStatus.map((member) => (

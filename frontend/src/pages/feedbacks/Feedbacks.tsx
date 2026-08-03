@@ -17,7 +17,9 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  MessageSquare,
 } from 'lucide-react';
+import EmptyState from '../../components/EmptyState';
 import Button from '../../components/Button';
 import { useAuth, useUserRole } from '../../context/AuthContext';
 import {
@@ -690,13 +692,18 @@ const Feedbacks = () => {
       ) : tab === 'requests' ? (
         renderRequests()
       ) : feedbacks.length === 0 ? (
-        <div className="bg-card border border-border rounded-xl py-16 text-center text-sm text-muted-foreground">
-          {tab === 'received'
-            ? 'Você ainda não recebeu feedbacks.'
-            : tab === 'sent'
-              ? 'Você ainda não enviou feedbacks.'
-              : 'Nenhum feedback registrado.'}
-        </div>
+        <EmptyState
+          variant="page"
+          icon={MessageSquare}
+          title={
+            tab === 'received'
+              ? 'Você ainda não recebeu feedbacks'
+              : tab === 'sent'
+                ? 'Você ainda não enviou feedbacks'
+                : 'Nenhum feedback registrado'
+          }
+          description="Os feedbacks trocados com o time aparecem aqui."
+        />
       ) : (
         <div className="space-y-3">
           {feedbacks.map(renderFeedbackCard)}

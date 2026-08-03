@@ -1287,10 +1287,20 @@ const UserManagement = () => {
                   : 'space-y-2'
               }
             >
-              {filteredUsers.map((user) => (
-                <div key={user.id}>
+              {filteredUsers.map((user, index) => (
+                <motion.div
+                  key={user.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  // Teto no delay: com 100+ usuários, os últimos não podem esperar segundos
+                  transition={{
+                    duration: 0.3,
+                    delay: Math.min(index * 0.04, 0.5),
+                    ease: 'easeOut',
+                  }}
+                >
                   {viewMode === 'grid' ? renderUserCard(user) : renderUserListItem(user)}
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>

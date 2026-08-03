@@ -253,7 +253,7 @@ const RecruitmentList = () => {
         ) : (
           <div className="overflow-x-auto rounded-xl border border-border">
             <table className="min-w-full divide-y divide-border text-sm">
-              <thead className="bg-secondary">
+              <thead className="bg-secondary sticky top-0 z-10">
                 <tr className="text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   <th scope="col" className="px-4 py-3">
                     Vaga
@@ -288,14 +288,20 @@ const RecruitmentList = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border bg-card">
-                {filteredOpenings.map((opening) => {
+                {filteredOpenings.map((opening, index) => {
                   const statusInfo = statusConfig[opening.status] || statusConfig.draft;
                   const StatusIcon = statusInfo.icon;
                   const prioInfo = priorityConfig[opening.priority] || priorityConfig.normal;
                   const sla = computeSla(opening);
 
                   return (
-                    <tr key={opening.id} className="hover:bg-accent transition-colors">
+                    <motion.tr
+                      key={opening.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25, delay: Math.min(index * 0.02, 0.4) }}
+                      className="hover:bg-accent transition-colors"
+                    >
                       <td className="px-4 py-3 align-middle">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-foreground">{opening.title}</span>
@@ -426,7 +432,7 @@ const RecruitmentList = () => {
                           )}
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 })}
               </tbody>

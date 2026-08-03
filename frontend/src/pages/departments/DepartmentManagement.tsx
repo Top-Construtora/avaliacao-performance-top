@@ -586,8 +586,19 @@ const DepartmentManagement = () => {
                     : 'space-y-4'
                 }
               >
-                {filteredDepartments.map((dept) => (
-                  <div key={dept.id}>{renderDepartmentCard(dept)}</div>
+                {filteredDepartments.map((dept, index) => (
+                  <motion.div
+                    key={dept.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.3,
+                      delay: Math.min(index * 0.04, 0.5),
+                      ease: 'easeOut',
+                    }}
+                  >
+                    {renderDepartmentCard(dept)}
+                  </motion.div>
                 ))}
               </motion.div>
             </AnimatePresence>
