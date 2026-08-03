@@ -31,6 +31,16 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showEmailLogin, setShowEmailLogin] = useState(false);
+  // Telas baixas (notebook 768p): o card expandido precisa de cada pixel —
+  // o spacer de alinhamento encolhe quase a zero e o card fica compacto.
+  const [isShortViewport, setIsShortViewport] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-height: 820px)');
+    const update = () => setIsShortViewport(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
   // Em telas baixas o card expandido rola dentro da coluna — ao abrir o
   // formulário, garante que ele apareça na vista.
   const emailFormRef = useRef<HTMLDivElement>(null);
@@ -200,7 +210,7 @@ export default function Login() {
             No desktop, um spacer espelha o bloco da logo do painel esquerdo:
             o card centra no mesmo espaço vertical da headline, alinhando os
             dois lados em qualquer altura de tela. */}
-          <main className="relative flex flex-col p-6 lg:min-h-0 lg:overflow-y-auto lg:px-16 lg:pt-14 lg:pb-0">
+          <main className="relative flex flex-col p-6 lg:min-h-0 lg:overflow-y-auto lg:px-16 lg:pt-14 lg:pb-0 lg:[@media(max-height:820px)]:pt-6">
             {/* Marca no mobile (o painel esquerdo some abaixo de lg) */}
             <div className="mt-6 text-center lg:hidden">
               <img
@@ -221,10 +231,10 @@ export default function Login() {
               aria-hidden
               className="hidden w-full flex-shrink-0 lg:block"
               initial={false}
-              animate={{ height: showEmailLogin ? 40 : 202 }}
+              animate={{ height: showEmailLogin ? (isShortViewport ? 8 : 40) : 202 }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
             />
-            <div className="flex w-full flex-1 items-center justify-center lg:min-h-0 lg:py-5">
+            <div className="flex w-full flex-1 items-center justify-center lg:min-h-0 lg:py-5 lg:[@media(max-height:820px)]:py-3">
               <motion.div
                 initial={{ opacity: 0, y: 28, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -232,7 +242,7 @@ export default function Login() {
                 className="w-[460px] max-w-[calc(100%-48px)] sm:max-w-[calc(100%-80px)]"
               >
                 <div
-                  className="relative overflow-hidden rounded-[20px] border border-white/10 bg-[rgba(0,0,0,0.18)] px-10 pb-10 pt-11 shadow-[0_32px_64px_rgba(0,0,0,0.35)]"
+                  className="relative overflow-hidden rounded-[20px] border border-white/10 bg-[rgba(0,0,0,0.18)] px-10 pb-10 pt-11 shadow-[0_32px_64px_rgba(0,0,0,0.35)] lg:[@media(max-height:820px)]:px-8 lg:[@media(max-height:820px)]:pb-6 lg:[@media(max-height:820px)]:pt-7"
                   style={{
                     backdropFilter: 'blur(28px) saturate(1.4)',
                     WebkitBackdropFilter: 'blur(28px) saturate(1.4)',
@@ -242,18 +252,18 @@ export default function Login() {
                   <div className="absolute -top-px left-10 right-10 h-0.5 rounded-b-[4px] bg-[#D2FF00] opacity-90" />
 
                   {/* Assinatura do produto (a marca grande já vive no painel esquerdo) */}
-                  <div className="mb-7 text-center">
+                  <div className="mb-7 text-center lg:[@media(max-height:820px)]:mb-4">
                     <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8B8B95]">
                       Gente &amp; Gestão
                     </span>
                   </div>
 
-                  <div className="mb-[26px] h-px w-full bg-white/[0.09]" />
+                  <div className="mb-[26px] h-px w-full bg-white/[0.09] lg:[@media(max-height:820px)]:mb-4" />
 
                   <h2 className="mb-1.5 text-center text-[22px] font-semibold tracking-[-0.03em] text-white">
                     Entre na sua conta
                   </h2>
-                  <p className="mb-8 text-center text-[14px] text-[#8B8B95]">
+                  <p className="mb-8 text-center text-[14px] text-[#8B8B95] lg:[@media(max-height:820px)]:mb-5">
                     Use sua conta corporativa para acessar a GIO.
                   </p>
 
@@ -288,7 +298,7 @@ export default function Login() {
                     type="button"
                     onClick={handleMicrosoftLogin}
                     disabled={isLoading || isLoadingMicrosoft}
-                    className="group relative flex h-[52px] w-full items-center justify-center gap-3 overflow-hidden rounded-[10px] border border-white/[0.14] bg-white/[0.08] text-[14.5px] font-semibold text-white shadow-[0_2px_12px_rgba(0,0,0,0.25)] transition hover:border-[#D2FF00]/40 hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D2FF00]/50 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="group relative flex h-[52px] w-full items-center justify-center gap-3 overflow-hidden rounded-[10px] border border-white/[0.14] bg-white/[0.08] text-[14.5px] font-semibold text-white shadow-[0_2px_12px_rgba(0,0,0,0.25)] transition hover:border-[#D2FF00]/40 hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D2FF00]/50 disabled:cursor-not-allowed disabled:opacity-60 lg:[@media(max-height:820px)]:h-[46px]"
                   >
                     {isLoadingMicrosoft ? (
                       <>
@@ -334,7 +344,7 @@ export default function Login() {
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
                       >
-                        <div className="mt-5 border-t border-white/[0.09] pt-5">
+                        <div className="mt-5 border-t border-white/[0.09] pt-5 lg:[@media(max-height:820px)]:mt-4 lg:[@media(max-height:820px)]:pt-4">
                           <form onSubmit={handleSubmit}>
                             {/* E-mail */}
                             <div className="mb-4 flex flex-col gap-1.5">
@@ -352,12 +362,12 @@ export default function Login() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="seu@email.com.br"
                                 disabled={isLoading}
-                                className="h-12 w-full rounded-[10px] border border-white/10 bg-white/[0.06] px-4 text-[14.5px] text-white outline-none transition placeholder:text-[#8B8B95] placeholder:opacity-55 hover:border-white/[0.14] focus:border-[#D2FF00] focus:shadow-[0_0_0_3px_rgba(210,255,0,0.18)]"
+                                className="h-12 w-full rounded-[10px] border border-white/10 bg-white/[0.06] px-4 text-[14.5px] text-white outline-none transition placeholder:text-[#8B8B95] placeholder:opacity-55 hover:border-white/[0.14] focus:border-[#D2FF00] focus:shadow-[0_0_0_3px_rgba(210,255,0,0.18)] lg:[@media(max-height:820px)]:h-11"
                               />
                             </div>
 
                             {/* Senha */}
-                            <div className="mb-6 flex flex-col gap-1.5">
+                            <div className="mb-6 flex flex-col gap-1.5 lg:[@media(max-height:820px)]:mb-4">
                               <label
                                 htmlFor="password"
                                 className="text-[11.5px] font-semibold uppercase tracking-[0.07em] text-[#8B8B95]"
@@ -373,7 +383,7 @@ export default function Login() {
                                   onChange={(e) => setPassword(e.target.value)}
                                   placeholder="••••••••"
                                   disabled={isLoading}
-                                  className="h-12 w-full rounded-[10px] border border-white/10 bg-white/[0.06] pl-4 pr-12 text-[14.5px] text-white outline-none transition placeholder:text-[#8B8B95] placeholder:opacity-55 hover:border-white/[0.14] focus:border-[#D2FF00] focus:shadow-[0_0_0_3px_rgba(210,255,0,0.18)]"
+                                  className="h-12 w-full rounded-[10px] border border-white/10 bg-white/[0.06] pl-4 pr-12 text-[14.5px] text-white outline-none transition placeholder:text-[#8B8B95] placeholder:opacity-55 hover:border-white/[0.14] focus:border-[#D2FF00] focus:shadow-[0_0_0_3px_rgba(210,255,0,0.18)] lg:[@media(max-height:820px)]:h-11"
                                 />
                                 <button
                                   type="button"
@@ -395,7 +405,7 @@ export default function Login() {
                             <button
                               type="submit"
                               disabled={isLoading || isLoadingMicrosoft}
-                              className="relative flex h-[50px] w-full items-center justify-center rounded-[10px] bg-[#D2FF00] text-[15px] font-bold tracking-[0.02em] text-[#1A1A1A] shadow-[0_4px_16px_rgba(0,0,0,0.25)] transition hover:-translate-y-px hover:bg-[#C2EE00] hover:shadow-[0_6px_20px_rgba(0,0,0,0.3)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+                              className="relative flex h-[50px] w-full items-center justify-center rounded-[10px] bg-[#D2FF00] text-[15px] font-bold tracking-[0.02em] text-[#1A1A1A] shadow-[0_4px_16px_rgba(0,0,0,0.25)] transition hover:-translate-y-px hover:bg-[#C2EE00] hover:shadow-[0_6px_20px_rgba(0,0,0,0.3)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 lg:[@media(max-height:820px)]:h-[46px]"
                             >
                               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Entrar'}
                             </button>
