@@ -173,15 +173,43 @@ export default function Login() {
                   />
                 </h1>
 
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.55, ease: 'easeOut' }}
-                  className="max-w-[460px] text-[17px] leading-[1.6] text-white/55"
-                >
-                  Avaliações de desempenho, comitê de gente e PDI em um só lugar, com o
-                  acompanhamento estruturado que o desenvolvimento da sua equipe precisa.
-                </motion.p>
+                {/* Destaques do produto — marcador editorial numerado (sem ícone) */}
+                <ul className="max-w-[460px] space-y-5">
+                  {[
+                    {
+                      title: 'Avaliações 360°',
+                      desc: 'Autoavaliação, avaliação do líder e consenso num fluxo só.',
+                    },
+                    {
+                      title: 'Comitê de Gente',
+                      desc: 'Matriz 9-Box viva para decisões de talento.',
+                    },
+                    {
+                      title: 'PDI estruturado',
+                      desc: 'Desenvolvimento individual com prazos e acompanhamento.',
+                    },
+                  ].map((item, index) => (
+                    <motion.li
+                      key={item.title}
+                      className="flex items-baseline gap-4"
+                      initial={{ opacity: 0, x: -14 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, delay: 0.55 + index * 0.13, ease: 'easeOut' }}
+                    >
+                      <span className="w-7 flex-shrink-0 font-lemon-milk text-[13px] tracking-wide text-[#D2FF00]/80">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span>
+                        <span className="block text-[15px] font-semibold text-white">
+                          {item.title}
+                        </span>
+                        <span className="block text-[14px] leading-[1.55] text-white/50">
+                          {item.desc}
+                        </span>
+                      </span>
+                    </motion.li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
