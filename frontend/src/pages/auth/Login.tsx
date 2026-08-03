@@ -7,7 +7,7 @@ import RotatingText from '../../components/RotatingText';
 import gioWordmark from '@/assets/images/gio-wordmark.png';
 import { useAuth } from '../../context/AuthContext';
 import { devLog } from '../../utils/logger';
-import CursorGrid from '../../components/CursorGrid';
+import AuthBackdrop from '../../components/AuthBackdrop';
 
 // gio — Identidade v4.0: split obsidian + grade blueprint + lime.
 // Marca GIO (wordmark) sobre obsidian; CTA lime; card com vidro.
@@ -27,7 +27,26 @@ export default function Login() {
     if (from) sessionStorage.setItem(REDIRECT_KEY, JSON.stringify(from));
   }, [location.state]);
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showEmailLogin, setShowEmailLogin] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMicrosoft, setIsLoadingMicrosoft] = useState(false);
+  const [error, setError] = useState('');
+  /** Fade-out do conteúdo em andamento antes do redirect pós-login. */
+  const [leaving, setLeaving] = useState(false);
+  /** Voltamos do redirect do OAuth? (code/token na URL — o Supabase ainda está
+      processando a sessão; o overlay cobre esse limbo até o redirect). */
+  const [oauthReturning] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      (window.location.hash.includes('access_token') || window.location.search.includes('code=')),
+  );
+  const connecting = isLoadingMicrosoft || oauthReturning;
+
   const redirectAfterLogin = () => {
+    if (leaving) return;
     const from = (location.state as any)?.from;
     const stored = sessionStorage.getItem(REDIRECT_KEY);
     const loc = from || (stored ? JSON.parse(stored) : null);
@@ -41,16 +60,15 @@ export default function Login() {
     }
     // Nunca voltar para as próprias telas de auth.
     if (target.startsWith('/login')) target = '/';
-    navigate(target, { replace: true });
+    // Fade-out curto antes de navegar (vindo do OAuth o overlay já cobre tudo,
+    // então navega direto)
+    if (oauthReturning) {
+      navigate(target, { replace: true });
+      return;
+    }
+    setLeaving(true);
+    window.setTimeout(() => navigate(target, { replace: true }), 380);
   };
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showEmailLogin, setShowEmailLogin] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMicrosoft, setIsLoadingMicrosoft] = useState(false);
-  const [error, setError] = useState('');
 
   // Redirecionar se já estiver autenticado
   useEffect(() => {
@@ -107,38 +125,33 @@ export default function Login() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#1A1A1A] text-white">
-      {/* Luz de fundo: aurora estática lime ancorada no painel de marca +
-          vinheta nas bordas — profundidade sem custo (CSS puro, sem animação) */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-0"
-        style={{
-          background: `radial-gradient(140% 140% at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%),
-            radial-gradient(900px 640px at 16% 38%, rgba(210,255,0,0.065), transparent 70%),
-            radial-gradient(1100px 760px at 88% 96%, rgba(210,255,0,0.035), transparent 70%)`,
-        }}
-      />
+      <AuthBackdrop />
 
-      {/* Grade reativa ao cursor — pano de fundo técnico (lime sobre obsidian).
-          A malha estática sutil (gridOpacity) mantém o clima blueprint mesmo
-          sem interação; as células acendem seguindo o mouse e pulsam no clique. */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
-        <CursorGrid
-          cellSize={70}
-          color="#D2FF00"
-          radius={140}
-          falloff="smooth"
-          holdTime={400}
-          fadeDuration={800}
-          lineWidth={1.2}
-          maxOpacity={0.55}
-          gridOpacity={0.05}
-          clickPulse
-          pulseSpeed={600}
-        />
-      </div>
+      {/* Overlay do OAuth: cobre o clique no botão E a volta do redirect da
+          Microsoft (detectada pelo code/token na URL) — sem tela "morta" */}
+      <AnimatePresence>
+        {connecting && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 grid place-items-center bg-[#1A1A1A]/80 backdrop-blur-sm"
+          >
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-[#D2FF00]" />
+              <p className="text-[14px] text-white/70">Conectando à Microsoft…</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="relative z-10 flex min-h-screen flex-col lg:h-screen">
+      {/* Fade-out do conteúdo antes do redirect pós-login (fecha o ciclo da
+          animação de entrada) */}
+      <motion.div
+        animate={{ opacity: leaving ? 0 : 1 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="relative z-10 flex min-h-screen flex-col lg:h-screen"
+      >
         <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[1.05fr_0.95fr]">
           {/* ═══ ESQUERDA — PAINEL DE MARCA ═══
               Marca no topo e headline grande centrada; os tópicos vivem no
@@ -177,9 +190,31 @@ export default function Login() {
             No desktop, um spacer espelha o bloco da logo do painel esquerdo:
             o card centra no mesmo espaço vertical da headline, alinhando os
             dois lados em qualquer altura de tela. */}
-          <main className="relative flex flex-col p-6 lg:px-16 lg:pt-14 lg:pb-0">
-            <div aria-hidden className="hidden h-[202px] w-full flex-shrink-0 lg:block" />
-            <div className="flex w-full flex-1 items-center justify-center">
+          <main className="relative flex flex-col p-6 lg:min-h-0 lg:px-16 lg:pt-14 lg:pb-0">
+            {/* Marca no mobile (o painel esquerdo some abaixo de lg) */}
+            <div className="mt-6 text-center lg:hidden">
+              <img
+                src={gioWordmark}
+                alt="gio"
+                className="mx-auto h-[44px] w-auto"
+                style={{ filter: INVERT_TO_WHITE }}
+              />
+              <span className="mt-2 block text-[10px] font-medium uppercase tracking-[0.2em] text-white/35">
+                Gestão Inteligente de Obras
+              </span>
+            </div>
+
+            {/* Spacer que espelha o bloco da logo para alinhar o card com a
+                headline; quando o formulário de email expande, encolhe e o
+                card sobe — sem nunca encostar no rodapé */}
+            <motion.div
+              aria-hidden
+              className="hidden w-full flex-shrink-0 lg:block"
+              initial={false}
+              animate={{ height: showEmailLogin ? 40 : 202 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+            />
+            <div className="flex w-full flex-1 items-center justify-center lg:min-h-0 lg:py-5">
               <motion.div
                 initial={{ opacity: 0, y: 28, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -228,6 +263,7 @@ export default function Login() {
                   {/* Aviso de sessão expirada */}
                   {sessionExpired && (
                     <motion.div
+                      role="alert"
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="mb-[18px] flex items-center gap-2 rounded-[9px] border border-[rgba(245,158,11,0.28)] bg-[rgba(245,158,11,0.12)] px-3.5 py-[11px] text-[13px] text-[#fcd34d]"
@@ -240,6 +276,7 @@ export default function Login() {
                   {/* Erro de autenticação */}
                   {error && (
                     <motion.div
+                      role="alert"
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="mb-[18px] flex items-center gap-2 rounded-[9px] border border-[rgba(255,80,80,0.22)] bg-[rgba(255,80,80,0.1)] px-3.5 py-[11px] text-[13px] text-[#ff9090]"
@@ -289,7 +326,7 @@ export default function Login() {
                     <button
                       type="button"
                       onClick={() => setShowEmailLogin(!showEmailLogin)}
-                      className="text-[13px] text-[#8B8B95] transition-colors hover:text-[#D2FF00]"
+                      className="rounded px-1 text-[13px] text-[#8B8B95] transition-colors hover:text-[#D2FF00] focus-visible:text-[#D2FF00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D2FF00]/50"
                     >
                       {showEmailLogin ? 'Ocultar login com email' : 'Entrar com email e senha'}
                     </button>
@@ -375,7 +412,7 @@ export default function Login() {
                               <button
                                 type="button"
                                 onClick={() => navigate('/forgot-password')}
-                                className="text-[12px] text-[#8B8B95] transition-colors hover:text-[#D2FF00]"
+                                className="rounded px-1 text-[12px] text-[#8B8B95] transition-colors hover:text-[#D2FF00] focus-visible:text-[#D2FF00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D2FF00]/50"
                               >
                                 Esqueci minha senha
                               </button>
@@ -432,7 +469,7 @@ export default function Login() {
             </span>
           </div>
         </footer>
-      </div>
+      </motion.div>
     </div>
   );
 }

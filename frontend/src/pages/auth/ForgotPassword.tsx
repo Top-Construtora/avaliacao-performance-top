@@ -4,19 +4,10 @@ import { motion } from 'motion/react';
 import { ArrowLeft, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import gioWordmark from '@/assets/images/gio-wordmark.png';
 import { useAuth } from '../../context/AuthContext';
+import AuthBackdrop from '../../components/AuthBackdrop';
 
-// gio — Identidade v4.0: fundo obsidian + grade blueprint + card com vidro e barra lime.
+// gio — Identidade v4.0: fundo obsidian + grade reativa + card com vidro e barra lime.
 const INVERT_TO_WHITE = 'invert(1) brightness(1.1)';
-
-const blueprintBackground = {
-  backgroundImage: `linear-gradient(rgba(210,255,0,.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(210,255,0,.05) 1px, transparent 1px),
-    linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px)`,
-  backgroundSize: '90px 90px, 90px 90px, 22.5px 22.5px, 22.5px 22.5px',
-  maskImage: 'radial-gradient(ellipse 100% 100% at 50% 45%, black 30%, transparent 100%)',
-  WebkitMaskImage: 'radial-gradient(ellipse 100% 100% at 50% 45%, black 30%, transparent 100%)',
-} as const;
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -46,12 +37,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#1A1A1A] text-white">
-      {/* Grade blueprint — pano de fundo técnico (lime translúcido sobre obsidian) */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-0"
-        style={blueprintBackground}
-      />
+      <AuthBackdrop />
 
       <main className="relative z-10 flex min-h-screen items-center justify-center p-6">
         <motion.div
