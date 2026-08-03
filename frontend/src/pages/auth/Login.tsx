@@ -1,14 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  motion,
-  AnimatePresence,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  useReducedMotion,
-} from 'motion/react';
-import { Eye, EyeOff, AlertCircle, Loader2, ClipboardList, Grid3X3, BookOpen } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import BlurText from '../../components/BlurText';
 import RotatingText from '../../components/RotatingText';
 import gioWordmark from '@/assets/images/gio-wordmark.png';
@@ -50,29 +43,6 @@ export default function Login() {
     if (target.startsWith('/login')) target = '/';
     navigate(target, { replace: true });
   };
-
-  // Parallax sutil do tile decorativo do 9-Box (segue o mouse com mola).
-  // Com movimento reduzido, o listener nem é registrado — o tile fica parado.
-  const prefersReducedMotion = useReducedMotion();
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-    const onMove = (e: PointerEvent) => {
-      mouseX.set(e.clientX / window.innerWidth - 0.5);
-      mouseY.set(e.clientY / window.innerHeight - 0.5);
-    };
-    window.addEventListener('pointermove', onMove);
-    return () => window.removeEventListener('pointermove', onMove);
-  }, [prefersReducedMotion, mouseX, mouseY]);
-  const tileX = useSpring(useTransform(mouseX, [-0.5, 0.5], [10, -10]), {
-    stiffness: 60,
-    damping: 20,
-  });
-  const tileY = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
-    stiffness: 60,
-    damping: 20,
-  });
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -203,82 +173,18 @@ export default function Login() {
                   />
                 </h1>
 
-                {/* Destaques do produto no lugar do parágrafo institucional */}
-                <ul className="max-w-[460px] space-y-5">
-                  {[
-                    {
-                      icon: ClipboardList,
-                      title: 'Avaliações 360°',
-                      desc: 'Autoavaliação, avaliação do líder e consenso num fluxo só.',
-                    },
-                    {
-                      icon: Grid3X3,
-                      title: 'Comitê de Gente',
-                      desc: 'Matriz 9-Box viva para decisões de talento.',
-                    },
-                    {
-                      icon: BookOpen,
-                      title: 'PDI estruturado',
-                      desc: 'Desenvolvimento individual com prazos e acompanhamento.',
-                    },
-                  ].map((item, index) => (
-                    <motion.li
-                      key={item.title}
-                      className="flex items-start gap-4"
-                      initial={{ opacity: 0, x: -14 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: 0.55 + index * 0.13, ease: 'easeOut' }}
-                    >
-                      <span className="mt-0.5 grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-[#D2FF00]">
-                        <item.icon className="h-5 w-5" />
-                      </span>
-                      <span>
-                        <span className="block text-[15px] font-semibold text-white">
-                          {item.title}
-                        </span>
-                        <span className="block text-[14px] leading-[1.55] text-white/50">
-                          {item.desc}
-                        </span>
-                      </span>
-                    </motion.li>
-                  ))}
-                </ul>
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.55, ease: 'easeOut' }}
+                  className="max-w-[460px] text-[17px] leading-[1.6] text-white/55"
+                >
+                  Avaliações de desempenho, comitê de gente e PDI em um só lugar, com o
+                  acompanhamento estruturado que o desenvolvimento da sua equipe precisa.
+                </motion.p>
               </div>
             </div>
           </div>
-
-          {/* Tile decorativo do 9-Box — o produto aparece na porta de entrada.
-              Parallax sutil ao mouse; puramente visual. */}
-          <motion.div
-            aria-hidden
-            style={{ x: tileX, y: tileY }}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.9, ease: 'easeOut' }}
-            className="pointer-events-none absolute bottom-14 right-12 hidden xl:block"
-          >
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 shadow-[0_24px_48px_rgba(0,0,0,0.4)] backdrop-blur-sm">
-              <div className="grid grid-cols-3 gap-1.5">
-                {Array.from({ length: 9 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`grid h-11 w-11 place-items-center rounded-lg border ${
-                      i === 2
-                        ? 'border-[#D2FF00]/40 bg-[#D2FF00]/15'
-                        : 'border-white/[0.07] bg-white/[0.02]'
-                    }`}
-                  >
-                    {i === 2 && (
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#D2FF00] shadow-[0_0_10px_rgba(210,255,0,0.8)]" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <p className="mt-2.5 text-center text-[9.5px] font-medium uppercase tracking-[0.22em] text-white/25">
-              Comitê de Gente · 9-Box
-            </p>
-          </motion.div>
         </aside>
 
         {/* ═══ DIREITA — FORMULÁRIO ═══ */}
@@ -296,34 +202,8 @@ export default function Login() {
                 WebkitBackdropFilter: 'blur(28px) saturate(1.4)',
               }}
             >
-              {/* Contorno com luz: um traço lime percorre a borda do card
-                  (substitui a barra estática). Com movimento reduzido, volta
-                  a barra fixa no topo. */}
-              {prefersReducedMotion ? (
-                <div className="absolute -top-px left-10 right-10 h-0.5 rounded-b-[4px] bg-[#D2FF00] opacity-90" />
-              ) : (
-                <svg
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
-                  fill="none"
-                >
-                  <motion.rect
-                    x="1"
-                    y="1"
-                    width="99.5%"
-                    height="99%"
-                    rx="19"
-                    pathLength={100}
-                    strokeDasharray="10 90"
-                    stroke="#D2FF00"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    opacity={0.75}
-                    animate={{ strokeDashoffset: [0, -100] }}
-                    transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-                  />
-                </svg>
-              )}
+              {/* Barra de destaque lime (assinatura do card de autenticação) */}
+              <div className="absolute -top-px left-10 right-10 h-0.5 rounded-b-[4px] bg-[#D2FF00] opacity-90" />
 
               {/* Assinatura do produto (a marca grande já vive no painel esquerdo) */}
               <div className="mb-7 text-center">
