@@ -538,7 +538,9 @@ export default function Sidebar({
                           <motion.span
                             layoutId="sidebar-active-bar"
                             transition={{ type: 'spring' as const, stiffness: 400, damping: 35 }}
-                            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]"
+                            // Centraliza sem translate: o layoutId controla o transform do
+                            // elemento e descartaria o -translate-y-1/2 do Tailwind
+                            className="absolute left-0 top-[calc(50%-9px)] w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]"
                           />
                         )}
                         <span className="flex items-center min-w-0">
@@ -623,7 +625,9 @@ export default function Sidebar({
                           <motion.span
                             layoutId="sidebar-active-bar"
                             transition={{ type: 'spring' as const, stiffness: 400, damping: 35 }}
-                            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]"
+                            // Centraliza sem translate: o layoutId controla o transform do
+                            // elemento e descartaria o -translate-y-1/2 do Tailwind
+                            className="absolute left-0 top-[calc(50%-9px)] w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]"
                           />
                         )}
                         <item.icon
@@ -677,7 +681,9 @@ export default function Sidebar({
                   <motion.span
                     layoutId="sidebar-active-bar"
                     transition={{ type: 'spring' as const, stiffness: 400, damping: 35 }}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]"
+                    // Centraliza sem translate: o layoutId controla o transform do
+                    // elemento e descartaria o -translate-y-1/2 do Tailwind
+                    className="absolute left-0 top-[calc(50%-9px)] w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]"
                   />
                 )}
                 <Settings
@@ -705,7 +711,9 @@ export default function Sidebar({
                   <motion.span
                     layoutId="sidebar-active-bar"
                     transition={{ type: 'spring' as const, stiffness: 400, damping: 35 }}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]"
+                    // Centraliza sem translate: o layoutId controla o transform do
+                    // elemento e descartaria o -translate-y-1/2 do Tailwind
+                    className="absolute left-0 top-[calc(50%-9px)] w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]"
                   />
                 )}
                 <HelpCircle
