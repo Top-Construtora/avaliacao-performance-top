@@ -41,6 +41,14 @@ interface CursorGridProps {
   cellRadius?: number;
   clickPulse?: boolean;
   pulseSpeed?: number;
+  /** Ancora a malha na base do container (uma linha cai exatamente na borda
+      inferior) — permite alinhar elementos da página às linhas do grid. */
+  anchorBottom?: boolean;
+  /** Subdivisões dentro de cada célula da malha estática (estilo blueprint):
+      4 desenha uma subgrade fina branca a cada 1/4 de célula. 0 desliga. */
+  subCells?: number;
+  /** Opacidade das linhas da subgrade (branco). */
+  subGridOpacity?: number;
   className?: string;
 }
 
@@ -58,6 +66,9 @@ const CursorGrid = ({
   cellRadius = 0,
   clickPulse = true,
   pulseSpeed = 600,
+  anchorBottom = false,
+  subCells = 0,
+  subGridOpacity = 0.02,
   className = '',
 }: CursorGridProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -76,6 +87,9 @@ const CursorGrid = ({
     cellRadius,
     clickPulse,
     pulseSpeed,
+    anchorBottom,
+    subCells,
+    subGridOpacity,
   });
   const wakeRef = useRef<(() => void) | null>(null);
 
@@ -93,6 +107,9 @@ const CursorGrid = ({
     cellRadius,
     clickPulse,
     pulseSpeed,
+    anchorBottom,
+    subCells,
+    subGridOpacity,
   };
 
   useEffect(() => {
@@ -129,9 +146,10 @@ const CursorGrid = ({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       cols = Math.ceil(w / p.cellSize) + 1;
       rows = Math.ceil(h / p.cellSize) + 1;
-      // Centraliza a malha para as células das bordas cortarem por igual
+      // Centraliza a malha para as células das bordas cortarem por igual;
+      // com anchorBottom, uma linha cai exatamente na borda inferior
       offX = (w - cols * p.cellSize) / 2;
-      offY = (h - rows * p.cellSize) / 2;
+      offY = p.anchorBottom ? h - rows * p.cellSize : (h - rows * p.cellSize) / 2;
       alphas = new Float32Array(cols * rows);
       touched = new Float64Array(cols * rows);
     };
@@ -180,6 +198,29 @@ const CursorGrid = ({
 
       // Malha estática sutil, opcional
       if (p.gridOpacity > 0) {
+        // Subgrade blueprint: linhas finas brancas dentro de cada célula
+        if (p.subCells > 1) {
+          ctx.strokeStyle = `rgba(255, 255, 255, ${p.subGridOpacity})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          const step = p.cellSize / p.subCells;
+          for (let cCol = 0; cCol <= cols; cCol++) {
+            for (let k = 1; k < p.subCells; k++) {
+              const x = Math.round(offX + cCol * p.cellSize + k * step) + 0.5;
+              ctx.moveTo(x, 0);
+              ctx.lineTo(x, h);
+            }
+          }
+          for (let cRow = 0; cRow <= rows; cRow++) {
+            for (let k = 1; k < p.subCells; k++) {
+              const y = Math.round(offY + cRow * p.cellSize + k * step) + 0.5;
+              ctx.moveTo(0, y);
+              ctx.lineTo(w, y);
+            }
+          }
+          ctx.stroke();
+        }
+
         ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${p.gridOpacity})`;
         ctx.lineWidth = 1;
         ctx.beginPath();

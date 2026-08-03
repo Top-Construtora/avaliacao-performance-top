@@ -9,7 +9,7 @@ import {
 } from '../../hooks/useSupabaseData';
 import { userService } from '../../services/user.service';
 import { supabase } from '../../lib/supabase';
-import Button from '../../components/Button';
+import FormWizard from '../../components/FormWizard';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import {
   Users,
@@ -29,8 +29,6 @@ import {
   Upload,
   Eye,
   EyeOff,
-  Save,
-  Loader2,
   Lock,
   CheckCircle2,
   ChevronDown,
@@ -275,28 +273,6 @@ const RegisterUser = () => {
     }
   }, [formData.positionId, positions]);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: 'spring' as const,
-        stiffness: 100,
-      },
-    },
-  };
-
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     // Limita a 11 dígitos
@@ -339,7 +315,19 @@ const RegisterUser = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const validateForm = () => {
+  /* Validação por passo do wizard. Cada função computa só os erros dos seus
+     campos e mescla no estado (preservando erros de outros passos); devolve
+     true quando o passo pode avançar. */
+  const mergeErrors = (mine: string[], errors: Record<string, string>) => {
+    setFormErrors((prev) => {
+      const next = { ...prev };
+      mine.forEach((k) => delete next[k]);
+      return { ...next, ...errors };
+    });
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateStepPessoais = () => {
     const errors: Record<string, string> = {};
 
     if (!formData.name.trim()) errors.name = 'Nome é obrigatório';
@@ -351,10 +339,6 @@ const RegisterUser = () => {
     if (formData.password && formData.password.length < 6) {
       errors.password = 'Senha deve ter pelo menos 6 caracteres';
     }
-    if (!formData.departmentId) errors.departmentId = 'Departamento é obrigatório';
-    if (!formData.trackId) errors.trackId = 'Trilha é obrigatória';
-    if (!formData.positionId) errors.positionId = 'Cargo é obrigatório';
-    if (!formData.internLevel) errors.internLevel = 'Internível é obrigatório';
     if (formData.phone && !/^\(\d{2}\) \d{5}-\d{4}$/.test(formData.phone)) {
       errors.phone = 'Telefone inválido';
     }
@@ -385,6 +369,20 @@ const RegisterUser = () => {
       }
     }
 
+    return mergeErrors(['name', 'email', 'password', 'phone', 'birthDate', 'joinDate'], errors);
+  };
+
+  const validateStepCarreira = () => {
+    const errors: Record<string, string> = {};
+    if (!formData.departmentId) errors.departmentId = 'Departamento é obrigatório';
+    if (!formData.trackId) errors.trackId = 'Trilha é obrigatória';
+    if (!formData.positionId) errors.positionId = 'Cargo é obrigatório';
+    if (!formData.internLevel) errors.internLevel = 'Internível é obrigatório';
+    return mergeErrors(['departmentId', 'trackId', 'positionId', 'internLevel'], errors);
+  };
+
+  const validateStepEquipe = () => {
+    const errors: Record<string, string> = {};
     if (formData.teamIds.length === 0 && formData.profileType !== 'director') {
       errors.teams = 'Selecione pelo menos um time';
     }
@@ -394,9 +392,15 @@ const RegisterUser = () => {
     if (formData.profileType === 'leader' && !formData.reportsTo) {
       errors.reportsTo = 'Selecione quem este avaliador reporta';
     }
+    return mergeErrors(['teams', 'reportsTo'], errors);
+  };
 
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+  const validateForm = () => {
+    // Ordem importa: valida tudo e reporta o conjunto completo
+    const pessoais = validateStepPessoais();
+    const carreira = validateStepCarreira();
+    const equipe = validateStepEquipe();
+    return pessoais && carreira && equipe;
   };
 
   const handleSubmit = async () => {
@@ -477,797 +481,798 @@ const RegisterUser = () => {
         </div>
       </motion.div>
 
-      {/* Form Content */}
-      <motion.div
-        className="space-y-6"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Profile Type Selection */}
-        <motion.div
-          variants={itemVariants}
-          className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
-        >
-          <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
-            <Shield className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
-            Tipo de Perfil
-          </h3>
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            {[
-              {
-                value: 'regular',
-                label: 'Avaliado',
-                description: 'Membro da equipe com acesso padrão',
-                icon: UserCheck,
-                gradient: 'bg-secondary',
-                selectedBg: 'bg-card ring-2 ring-lime/60',
-                selectedBorder: 'border-lime',
-                selectedText: 'text-lime-deep dark:text-lime',
-              },
-              {
-                value: 'leader',
-                label: 'Avaliador',
-                description: 'Gerencia equipes e avaliações',
-                icon: Crown,
-                gradient: 'bg-secondary',
-                selectedBg: 'bg-card ring-2 ring-lime/60',
-                selectedBorder: 'border-lime',
-                selectedText: 'text-lime-deep dark:text-lime',
-              },
-              {
-                value: 'director',
-                label: 'Diretor',
-                description: 'Acesso completo ao sistema',
-                icon: Sparkles,
-                gradient: 'bg-secondary',
-                selectedBg: 'bg-card ring-2 ring-lime/60',
-                selectedBorder: 'border-lime',
-                selectedText: 'text-lime-deep dark:text-lime font-medium',
-              },
-            ].map((type) => (
-              <label
-                key={type.value}
-                className={`relative flex flex-col items-center text-center sm:items-start sm:text-left p-3 sm:p-6 rounded-lg border cursor-pointer transition-all sm:hover:scale-[1.02] ${
-                  formData.profileType === type.value
-                    ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
-                    : 'bg-secondary border-border hover:border-lime'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="profileType"
-                  value={type.value}
-                  checked={formData.profileType === type.value}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      profileType: e.target.value as any,
-                      isLeader: e.target.value !== 'regular',
-                      isDirector: e.target.value === 'director',
-                    })
-                  }
-                  className="sr-only"
-                />
-                {formData.profileType === type.value && (
-                  <div className="absolute top-2 right-2 rounded-full bg-lime p-1 shadow-md">
-                    <Check className="h-3 w-3 text-obsidian" />
-                  </div>
-                )}
-                <div
-                  className={`mb-2 rounded-xl p-2 shadow-md transition-colors sm:mb-4 sm:p-3 ${
-                    formData.profileType === type.value
-                      ? 'bg-lime text-obsidian'
-                      : `${type.gradient} text-foreground`
-                  }`}
-                >
-                  <type.icon className="h-5 w-5 sm:h-6 sm:w-6" />
-                </div>
-                <h4
-                  className={`font-bold text-sm sm:mb-1 sm:text-base ${
-                    formData.profileType === type.value ? type.selectedText : 'text-foreground'
-                  }`}
-                >
-                  {type.label}
-                </h4>
-                <p className="hidden text-sm text-muted-foreground sm:block">{type.description}</p>
-              </label>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Contract Type Selection */}
-        <motion.div
-          variants={itemVariants}
-          className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
-        >
-          <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
-            <FileText className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
-            Tipo de Contrato
-          </h3>
-          <div className="grid grid-cols-2 gap-2 sm:gap-4">
-            {[
-              {
-                value: 'CLT',
-                label: 'CLT',
-                description: 'Contrato de trabalho com carteira assinada',
-                icon: Shield,
-                gradient: 'bg-secondary',
-                selectedBg: 'bg-card ring-2 ring-lime/60',
-                selectedBorder: 'border-lime',
-                selectedText: 'text-lime-deep dark:text-lime',
-              },
-              {
-                value: 'PJ',
-                label: 'PJ',
-                description: 'Pessoa Jurídica - Prestador de serviços',
-                icon: Briefcase,
-                gradient: 'bg-secondary',
-                selectedBg: 'bg-card ring-2 ring-lime/60',
-                selectedBorder: 'border-lime',
-                selectedText: 'text-lime-deep dark:text-lime',
-              },
-            ].map((type) => (
-              <label
-                key={type.value}
-                className={`relative flex flex-col items-center text-center sm:items-start sm:text-left p-3 sm:p-6 rounded-lg border cursor-pointer transition-all sm:hover:scale-[1.02] ${
-                  formData.contractType === type.value
-                    ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
-                    : 'bg-secondary border-border hover:border-lime'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="contractType"
-                  value={type.value}
-                  checked={formData.contractType === type.value}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      contractType: e.target.value as 'CLT' | 'PJ',
-                    })
-                  }
-                  className="sr-only"
-                />
-                {formData.contractType === type.value && (
-                  <div className="absolute top-2 right-2 rounded-full bg-lime p-1 shadow-md">
-                    <Check className="h-3 w-3 text-obsidian" />
-                  </div>
-                )}
-                <div
-                  className={`mb-2 rounded-xl p-2 shadow-md transition-colors sm:mb-4 sm:p-3 ${
-                    formData.contractType === type.value
-                      ? 'bg-lime text-obsidian'
-                      : `${type.gradient} text-foreground`
-                  }`}
-                >
-                  <type.icon className="h-5 w-5 sm:h-6 sm:w-6" />
-                </div>
-                <h4
-                  className={`font-bold text-sm sm:mb-1 sm:text-base ${
-                    formData.contractType === type.value ? type.selectedText : 'text-foreground'
-                  }`}
-                >
-                  {type.label}
-                </h4>
-                <p className="hidden text-sm text-muted-foreground sm:block">{type.description}</p>
-              </label>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Basic Information */}
-        <motion.div
-          variants={itemVariants}
-          className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
-        >
-          <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
-            <User className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
-            Informações Básicas
-          </h3>
-
-          {/* Profile Image */}
-          <div className="mb-6 pb-6 border-b border-border">
-            <label className="block text-sm font-medium text-foreground font-medium mb-4">
-              Foto do Perfil
-            </label>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <div
-                  className="h-24 w-24 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden cursor-pointer hover:bg-accent transition-colors group border-2 border-dashed border-border"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {formData.profileImage ? (
-                    <img
-                      src={formData.profileImage}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="text-center">
-                      <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
-                      <span className="text-xs text-muted-foreground">Upload</span>
-                    </div>
-                  )}
-                </div>
-                {formData.profileImage && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFormData({ ...formData, profileImage: null });
-                    }}
-                    className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:bg-destructive/90 transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-              </div>
-              <div className="text-sm text-muted-foreground">
-                <p>Clique para fazer upload</p>
-                <p className="text-xs mt-1">JPG, PNG ou GIF (máx. 5MB)</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground font-medium mb-2">
-                Nome completo *
-              </label>
-              <input
-                type="text"
-                className={`w-full px-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
-                  formErrors.name
-                    ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
-                    : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
-                }`}
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Digite o nome completo"
-              />
-              {formErrors.name && (
-                <p className="text-sm text-destructive mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.name}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground font-medium mb-2">
-                Email corporativo *
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <input
-                  type="email"
-                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
-                    formErrors.email
-                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
-                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
-                  }`}
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="email@empresa.com"
-                />
-              </div>
-              {formErrors.email && (
-                <p className="text-sm text-destructive mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.email}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground font-medium mb-2">
-                Senha temporária *
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  className={`w-full px-4 py-3 pr-12 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
-                    formErrors.password
-                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
-                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
-                  }`}
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="Mínimo 6 caracteres"
-                />
-                <button
-                  type="button"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              {formErrors.password && (
-                <p className="text-sm text-destructive mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.password}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground font-medium mb-2">
-                Telefone
-              </label>
-              <div className="relative">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <input
-                  type="tel"
-                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
-                    formErrors.phone
-                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
-                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
-                  }`}
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
-                  placeholder="(00) 00000-0000"
-                />
-              </div>
-              {formErrors.phone && (
-                <p className="text-sm text-destructive mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.phone}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground font-medium mb-2">
-                Data de nascimento
-              </label>
-              <div className="relative">
-                <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <input
-                  type="date"
-                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground ${
-                    formErrors.birthDate
-                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
-                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
-                  }`}
-                  value={formData.birthDate}
-                  onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                />
-              </div>
-              {formErrors.birthDate && (
-                <p className="text-sm text-destructive mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.birthDate}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground font-medium mb-2">
-                Data de Admissão *
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <input
-                  type="date"
-                  className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground ${
-                    formErrors.joinDate
-                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
-                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
-                  }`}
-                  value={formData.joinDate}
-                  onChange={(e) => setFormData({ ...formData, joinDate: e.target.value })}
-                  max={new Date().toISOString().split('T')[0]}
-                />
-              </div>
-              {formErrors.joinDate && (
-                <p className="text-sm text-destructive mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.joinDate}
-                </p>
-              )}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Career Information */}
-        <motion.div
-          variants={itemVariants}
-          className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
-        >
-          <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
-            <TrendingUp className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
-            Informações de Carreira
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground font-medium mb-2">
-                Departamento *
-              </label>
-              <div className="relative">
-                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-                <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
-                    formErrors.departmentId
-                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
-                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
-                  }`}
-                  value={formData.departmentId}
-                  onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
-                  disabled={depsLoading}
-                >
-                  <option value="">Selecione um departamento</option>
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {formErrors.departmentId && (
-                <p className="text-sm text-destructive mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.departmentId}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground font-medium mb-2">
-                Trilha *
-              </label>
-              <div className="relative">
-                <Route className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-                <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
-                    formErrors.trackId
-                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
-                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
-                  }`}
-                  value={formData.trackId}
-                  onChange={(e) => setFormData({ ...formData, trackId: e.target.value })}
-                  disabled={!formData.departmentId || tracksLoading}
-                >
-                  <option value="">
-                    {!formData.departmentId
-                      ? 'Selecione um departamento primeiro'
-                      : 'Selecione uma trilha'}
-                  </option>
-                  {filteredTracks.map((track) => (
-                    <option key={track.id} value={track.id}>
-                      {track.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {formErrors.trackId && (
-                <p className="text-sm text-destructive mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.trackId}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground font-medium mb-2">
-                Cargo *
-              </label>
-              <div className="relative">
-                <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-                <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
-                    formErrors.positionId
-                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
-                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
-                  }`}
-                  value={formData.positionId}
-                  onChange={(e) => setFormData({ ...formData, positionId: e.target.value })}
-                  disabled={!formData.trackId || positionsLoading}
-                >
-                  <option value="">
-                    {!formData.trackId ? 'Selecione uma trilha primeiro' : 'Selecione um cargo'}
-                  </option>
-                  {filteredPositions.map((position) => {
-                    const positionName = position.position?.name || position.position_id;
-                    return (
-                      <option key={position.id} value={position.id}>
-                        {positionName}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-              {formErrors.positionId && (
-                <p className="text-sm text-destructive mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.positionId}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground font-medium mb-2">
-                Internível *
-              </label>
-              <div className="relative">
-                <Layers className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-                <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
-                    formErrors.internLevel
-                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
-                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
-                  }`}
-                  value={formData.internLevel}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      internLevel: e.target.value as 'A' | 'B' | 'C' | 'D' | 'E',
-                    })
-                  }
-                  disabled={!formData.positionId}
-                >
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                  <option value="C">C</option>
-                  <option value="D">D</option>
-                  <option value="E">E</option>
-                </select>
-              </div>
-              {formErrors.internLevel && (
-                <p className="text-sm text-destructive mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.internLevel}
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">
-                Selecione o nível de senioridade dentro do cargo
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Team Allocation */}
-        {formData.profileType !== 'director' && (
-          <motion.div
-            variants={itemVariants}
-            className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
-          >
-            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
-              <Users className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
-              Alocação em Times *
-            </h3>
-            <div className="max-h-64 overflow-y-auto pr-2 space-y-2">
-              {teams.map((team) => (
-                <label
-                  key={team.id}
-                  className={`flex items-center p-4 rounded-xl cursor-pointer transition-all group ${
-                    formData.teamIds.includes(team.id)
-                      ? 'bg-secondary border-2 border-lime ring-1 ring-lime/40'
-                      : 'bg-secondary border-2 border-border hover:border-lime'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 rounded border-border text-lime focus:ring-[#D2FF00]/20"
-                    checked={formData.teamIds.includes(team.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setFormData({ ...formData, teamIds: [...formData.teamIds, team.id] });
-                      } else {
-                        setFormData({
-                          ...formData,
-                          teamIds: formData.teamIds.filter((id) => id !== team.id),
-                        });
-                      }
-                    }}
-                  />
-                  <div className="ml-4 flex-1">
-                    <span className="font-medium text-foreground block">{team.name}</span>
-                    {team.department && (
-                      <span className="text-sm text-muted-foreground">
-                        Depto: {team.department.name}
-                      </span>
-                    )}
-                  </div>
-                  {formData.teamIds.includes(team.id) && (
-                    <CheckCircle2 className="h-5 w-5 text-lime-deep dark:text-lime ml-2" />
-                  )}
-                </label>
-              ))}
-            </div>
-            {formErrors.teams && (
-              <p className="text-sm text-destructive mt-2 flex items-center">
-                <AlertCircle className="h-4 w-4 mr-1" />
-                {formErrors.teams}
-              </p>
-            )}
-          </motion.div>
-        )}
-
-        {/* Hierarchy */}
-        {(formData.profileType === 'regular' || formData.profileType === 'leader') && (
-          <motion.div
-            variants={itemVariants}
-            className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
-          >
-            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
-              <GitBranch className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
-              Hierarquia
-            </h3>
-            <div>
-              <label className="block text-sm font-medium text-foreground font-medium mb-2">
-                Reporta para *
-              </label>
-              <div className="relative">
-                <UserCog className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-                <select
-                  className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
-                    formErrors.reportsTo
-                      ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
-                      : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
-                  }`}
-                  value={formData.reportsTo}
-                  onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
-                >
-                  <option value="">
-                    {formData.profileType === 'regular'
-                      ? 'Selecione um avaliador'
-                      : 'Selecione quem este avaliador reporta'}
-                  </option>
-                  {users
-                    .filter((u) => {
-                      // Não mostrar admins na lista
-                      if (u.is_admin) return false;
-
-                      if (formData.profileType === 'regular') {
-                        return u.is_leader || u.is_director;
-                      }
-                      // Para líderes, podem reportar para outros líderes ou diretores
-                      return u.is_leader || u.is_director;
-                    })
-                    .map((superior) => (
-                      <option key={superior.id} value={superior.id}>
-                        {superior.name} - {superior.position}
-                        {superior.is_director && ' (Diretor)'}
-                        {superior.is_leader && !superior.is_director && ' (Avaliador)'}
-                      </option>
+      {/* Cadastro em 4 passos (FormWizard) — a validação de cada etapa roda
+          ao avançar; o salvar final revalida tudo. */}
+      <FormWizard
+        onFinish={handleSubmit}
+        finishing={isLoading}
+        finishLabel="Salvar Usuário"
+        onCancel={() => navigate('/users')}
+        steps={[
+          {
+            id: 'perfil',
+            title: 'Perfil',
+            icon: Shield,
+            content: (
+              <>
+                {/* Profile Type Selection */}
+                <motion.div className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border">
+                  <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+                    <Shield className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
+                    Tipo de Perfil
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                    {[
+                      {
+                        value: 'regular',
+                        label: 'Avaliado',
+                        description: 'Membro da equipe com acesso padrão',
+                        icon: UserCheck,
+                        gradient: 'bg-secondary',
+                        selectedBg: 'bg-card ring-2 ring-lime/60',
+                        selectedBorder: 'border-lime',
+                        selectedText: 'text-lime-deep dark:text-lime',
+                      },
+                      {
+                        value: 'leader',
+                        label: 'Avaliador',
+                        description: 'Gerencia equipes e avaliações',
+                        icon: Crown,
+                        gradient: 'bg-secondary',
+                        selectedBg: 'bg-card ring-2 ring-lime/60',
+                        selectedBorder: 'border-lime',
+                        selectedText: 'text-lime-deep dark:text-lime',
+                      },
+                      {
+                        value: 'director',
+                        label: 'Diretor',
+                        description: 'Acesso completo ao sistema',
+                        icon: Sparkles,
+                        gradient: 'bg-secondary',
+                        selectedBg: 'bg-card ring-2 ring-lime/60',
+                        selectedBorder: 'border-lime',
+                        selectedText: 'text-lime-deep dark:text-lime font-medium',
+                      },
+                    ].map((type) => (
+                      <label
+                        key={type.value}
+                        className={`relative flex flex-col items-center text-center sm:items-start sm:text-left p-3 sm:p-6 rounded-lg border cursor-pointer transition-all sm:hover:scale-[1.02] ${
+                          formData.profileType === type.value
+                            ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
+                            : 'bg-secondary border-border hover:border-lime'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="profileType"
+                          value={type.value}
+                          checked={formData.profileType === type.value}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              profileType: e.target.value as any,
+                              isLeader: e.target.value !== 'regular',
+                              isDirector: e.target.value === 'director',
+                            })
+                          }
+                          className="sr-only"
+                        />
+                        {formData.profileType === type.value && (
+                          <div className="absolute top-2 right-2 rounded-full bg-lime p-1 shadow-md">
+                            <Check className="h-3 w-3 text-obsidian" />
+                          </div>
+                        )}
+                        <div
+                          className={`mb-2 rounded-xl p-2 shadow-md transition-colors sm:mb-4 sm:p-3 ${
+                            formData.profileType === type.value
+                              ? 'bg-lime text-obsidian'
+                              : `${type.gradient} text-foreground`
+                          }`}
+                        >
+                          <type.icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                        </div>
+                        <h4
+                          className={`font-bold text-sm sm:mb-1 sm:text-base ${
+                            formData.profileType === type.value
+                              ? type.selectedText
+                              : 'text-foreground'
+                          }`}
+                        >
+                          {type.label}
+                        </h4>
+                        <p className="hidden text-sm text-muted-foreground sm:block">
+                          {type.description}
+                        </p>
+                      </label>
                     ))}
-                </select>
-              </div>
-              {formErrors.reportsTo && (
-                <p className="text-sm text-destructive mt-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {formErrors.reportsTo}
-                </p>
-              )}
-              {formData.profileType === 'leader' && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Avaliadores podem reportar para outros avaliadores ou diretores
-                </p>
-              )}
-            </div>
-          </motion.div>
-        )}
+                  </div>
+                </motion.div>
 
-        {/* Observations */}
-        <motion.div
-          variants={itemVariants}
-          className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
-        >
-          <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
-            <MessageSquare className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
-            Observações / Anotações
-          </h3>
-          <div>
-            <label className="block text-sm font-medium text-foreground font-medium mb-2">
-              Observações sobre o colaborador
-            </label>
-            <textarea
-              className="w-full px-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 resize-none"
-              rows={4}
-              value={formData.observations}
-              onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
-              placeholder="Adicione observações, anotações ou informações relevantes sobre este colaborador..."
-            />
-            <p className="text-xs text-muted-foreground mt-2">
-              Este campo é opcional e será exibido no Comitê de Gente
-            </p>
-          </div>
-        </motion.div>
+                {/* Contract Type Selection */}
+                <motion.div className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border">
+                  <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+                    <FileText className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
+                    Tipo de Contrato
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                    {[
+                      {
+                        value: 'CLT',
+                        label: 'CLT',
+                        description: 'Contrato de trabalho com carteira assinada',
+                        icon: Shield,
+                        gradient: 'bg-secondary',
+                        selectedBg: 'bg-card ring-2 ring-lime/60',
+                        selectedBorder: 'border-lime',
+                        selectedText: 'text-lime-deep dark:text-lime',
+                      },
+                      {
+                        value: 'PJ',
+                        label: 'PJ',
+                        description: 'Pessoa Jurídica - Prestador de serviços',
+                        icon: Briefcase,
+                        gradient: 'bg-secondary',
+                        selectedBg: 'bg-card ring-2 ring-lime/60',
+                        selectedBorder: 'border-lime',
+                        selectedText: 'text-lime-deep dark:text-lime',
+                      },
+                    ].map((type) => (
+                      <label
+                        key={type.value}
+                        className={`relative flex flex-col items-center text-center sm:items-start sm:text-left p-3 sm:p-6 rounded-lg border cursor-pointer transition-all sm:hover:scale-[1.02] ${
+                          formData.contractType === type.value
+                            ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
+                            : 'bg-secondary border-border hover:border-lime'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="contractType"
+                          value={type.value}
+                          checked={formData.contractType === type.value}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              contractType: e.target.value as 'CLT' | 'PJ',
+                            })
+                          }
+                          className="sr-only"
+                        />
+                        {formData.contractType === type.value && (
+                          <div className="absolute top-2 right-2 rounded-full bg-lime p-1 shadow-md">
+                            <Check className="h-3 w-3 text-obsidian" />
+                          </div>
+                        )}
+                        <div
+                          className={`mb-2 rounded-xl p-2 shadow-md transition-colors sm:mb-4 sm:p-3 ${
+                            formData.contractType === type.value
+                              ? 'bg-lime text-obsidian'
+                              : `${type.gradient} text-foreground`
+                          }`}
+                        >
+                          <type.icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                        </div>
+                        <h4
+                          className={`font-bold text-sm sm:mb-1 sm:text-base ${
+                            formData.contractType === type.value
+                              ? type.selectedText
+                              : 'text-foreground'
+                          }`}
+                        >
+                          {type.label}
+                        </h4>
+                        <p className="hidden text-sm text-muted-foreground sm:block">
+                          {type.description}
+                        </p>
+                      </label>
+                    ))}
+                  </div>
+                </motion.div>
+              </>
+            ),
+          },
+          {
+            id: 'pessoais',
+            title: 'Dados Pessoais',
+            icon: User,
+            validate: validateStepPessoais,
+            content: (
+              <>
+                {/* Basic Information */}
+                <motion.div className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border">
+                  <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+                    <User className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
+                    Informações Básicas
+                  </h3>
 
-        {/* Cargo Sigiloso (admin only) */}
-        {isAdmin && (
-          <motion.div
-            variants={itemVariants}
-            className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border"
-          >
-            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
-              <Lock className="h-5 w-5 mr-2 text-warning" />
-              Confidencialidade do Cargo
-            </h3>
-            <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
-              <div className="pr-4">
-                <h4 className="font-medium text-foreground">Cargo sigiloso</h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Quando ativado, o cargo real fica visível apenas para o próprio colaborador,
-                  administradores, diretores e o líder direto. Demais usuários veem uma versão
-                  genérica no formato &quot;Cargo de Time&quot;.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() =>
-                  setFormData({
-                    ...formData,
-                    positionIsConfidential: !formData.positionIsConfidential,
-                  })
-                }
-                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                  formData.positionIsConfidential ? 'bg-warning' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-                aria-pressed={formData.positionIsConfidential}
-                aria-label="Marcar cargo como sigiloso"
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    formData.positionIsConfidential ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </motion.div>
+                  {/* Profile Image */}
+                  <div className="mb-6 pb-6 border-b border-border">
+                    <label className="block text-sm font-medium text-foreground font-medium mb-4">
+                      Foto do Perfil
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        <div
+                          className="h-24 w-24 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden cursor-pointer hover:bg-accent transition-colors group border-2 border-dashed border-border"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          {formData.profileImage ? (
+                            <img
+                              src={formData.profileImage}
+                              alt="Profile"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-1 group-hover:text-foreground" />
+                              <span className="text-xs text-muted-foreground">Upload</span>
+                            </div>
+                          )}
+                        </div>
+                        {formData.profileImage && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFormData({ ...formData, profileImage: null });
+                            }}
+                            className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 shadow-lg hover:bg-destructive/90 transition-colors"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        <p>Clique para fazer upload</p>
+                        <p className="text-xs mt-1">JPG, PNG ou GIF (máx. 5MB)</p>
+                      </div>
+                    </div>
+                  </div>
 
-      {/* Action Buttons */}
-      <motion.div
-        className="bg-card rounded-2xl shadow-sm dark:shadow-lg border border-border p-4 sm:p-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <div className="flex flex-col sm:flex-row justify-end gap-3">
-          <Button
-            variant="outline"
-            onClick={() => navigate('/users')}
-            disabled={isLoading}
-            size="lg"
-            className="w-full sm:w-auto"
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleSubmit}
-            disabled={isLoading}
-            size="lg"
-            className="w-full sm:w-auto"
-            icon={
-              isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Save className="h-5 w-5" />
-              )
-            }
-          >
-            {isLoading ? 'Salvando...' : 'Salvar Usuário'}
-          </Button>
-        </div>
-      </motion.div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
+                        Nome completo *
+                      </label>
+                      <input
+                        type="text"
+                        className={`w-full px-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
+                          formErrors.name
+                            ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                            : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
+                        }`}
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Digite o nome completo"
+                      />
+                      {formErrors.name && (
+                        <p className="text-sm text-destructive mt-2 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {formErrors.name}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
+                        Email corporativo *
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <input
+                          type="email"
+                          className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
+                            formErrors.email
+                              ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                              : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
+                          }`}
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="email@empresa.com"
+                        />
+                      </div>
+                      {formErrors.email && (
+                        <p className="text-sm text-destructive mt-2 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {formErrors.email}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
+                        Senha temporária *
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          className={`w-full px-4 py-3 pr-12 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
+                            formErrors.password
+                              ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                              : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
+                          }`}
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                          placeholder="Mínimo 6 caracteres"
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-5 w-5" />
+                          ) : (
+                            <Eye className="h-5 w-5" />
+                          )}
+                        </button>
+                      </div>
+                      {formErrors.password && (
+                        <p className="text-sm text-destructive mt-2 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {formErrors.password}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
+                        Telefone
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <input
+                          type="tel"
+                          className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground ${
+                            formErrors.phone
+                              ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                              : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
+                          }`}
+                          value={formData.phone}
+                          onChange={(e) =>
+                            setFormData({ ...formData, phone: formatPhone(e.target.value) })
+                          }
+                          placeholder="(00) 00000-0000"
+                        />
+                      </div>
+                      {formErrors.phone && (
+                        <p className="text-sm text-destructive mt-2 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {formErrors.phone}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
+                        Data de nascimento
+                      </label>
+                      <div className="relative">
+                        <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <input
+                          type="date"
+                          className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground ${
+                            formErrors.birthDate
+                              ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                              : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
+                          }`}
+                          value={formData.birthDate}
+                          onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                        />
+                      </div>
+                      {formErrors.birthDate && (
+                        <p className="text-sm text-destructive mt-2 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {formErrors.birthDate}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
+                        Data de Admissão *
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <input
+                          type="date"
+                          className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all bg-secondary text-foreground ${
+                            formErrors.joinDate
+                              ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                              : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
+                          }`}
+                          value={formData.joinDate}
+                          onChange={(e) => setFormData({ ...formData, joinDate: e.target.value })}
+                          max={new Date().toISOString().split('T')[0]}
+                        />
+                      </div>
+                      {formErrors.joinDate && (
+                        <p className="text-sm text-destructive mt-2 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {formErrors.joinDate}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              </>
+            ),
+          },
+          {
+            id: 'carreira',
+            title: 'Carreira',
+            icon: TrendingUp,
+            validate: validateStepCarreira,
+            content: (
+              <>
+                {/* Career Information */}
+                <motion.div className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border">
+                  <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
+                    Informações de Carreira
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
+                        Departamento *
+                      </label>
+                      <div className="relative">
+                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                        <select
+                          className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                            formErrors.departmentId
+                              ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                              : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
+                          }`}
+                          value={formData.departmentId}
+                          onChange={(e) =>
+                            setFormData({ ...formData, departmentId: e.target.value })
+                          }
+                          disabled={depsLoading}
+                        >
+                          <option value="">Selecione um departamento</option>
+                          {departments.map((dept) => (
+                            <option key={dept.id} value={dept.id}>
+                              {dept.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {formErrors.departmentId && (
+                        <p className="text-sm text-destructive mt-2 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {formErrors.departmentId}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
+                        Trilha *
+                      </label>
+                      <div className="relative">
+                        <Route className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                        <select
+                          className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                            formErrors.trackId
+                              ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                              : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
+                          }`}
+                          value={formData.trackId}
+                          onChange={(e) => setFormData({ ...formData, trackId: e.target.value })}
+                          disabled={!formData.departmentId || tracksLoading}
+                        >
+                          <option value="">
+                            {!formData.departmentId
+                              ? 'Selecione um departamento primeiro'
+                              : 'Selecione uma trilha'}
+                          </option>
+                          {filteredTracks.map((track) => (
+                            <option key={track.id} value={track.id}>
+                              {track.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {formErrors.trackId && (
+                        <p className="text-sm text-destructive mt-2 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {formErrors.trackId}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
+                        Cargo *
+                      </label>
+                      <div className="relative">
+                        <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                        <select
+                          className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                            formErrors.positionId
+                              ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                              : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
+                          }`}
+                          value={formData.positionId}
+                          onChange={(e) => setFormData({ ...formData, positionId: e.target.value })}
+                          disabled={!formData.trackId || positionsLoading}
+                        >
+                          <option value="">
+                            {!formData.trackId
+                              ? 'Selecione uma trilha primeiro'
+                              : 'Selecione um cargo'}
+                          </option>
+                          {filteredPositions.map((position) => {
+                            const positionName = position.position?.name || position.position_id;
+                            return (
+                              <option key={position.id} value={position.id}>
+                                {positionName}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                      {formErrors.positionId && (
+                        <p className="text-sm text-destructive mt-2 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {formErrors.positionId}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
+                        Internível *
+                      </label>
+                      <div className="relative">
+                        <Layers className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                        <select
+                          className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                            formErrors.internLevel
+                              ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                              : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
+                          }`}
+                          value={formData.internLevel}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              internLevel: e.target.value as 'A' | 'B' | 'C' | 'D' | 'E',
+                            })
+                          }
+                          disabled={!formData.positionId}
+                        >
+                          <option value="A">A</option>
+                          <option value="B">B</option>
+                          <option value="C">C</option>
+                          <option value="D">D</option>
+                          <option value="E">E</option>
+                        </select>
+                      </div>
+                      {formErrors.internLevel && (
+                        <p className="text-sm text-destructive mt-2 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {formErrors.internLevel}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Selecione o nível de senioridade dentro do cargo
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </>
+            ),
+          },
+          {
+            id: 'equipe',
+            title: 'Equipe e Finalização',
+            icon: Users,
+            validate: validateStepEquipe,
+            content: (
+              <>
+                {/* Team Allocation */}
+                {formData.profileType !== 'director' && (
+                  <motion.div className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border">
+                    <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+                      <Users className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
+                      Alocação em Times *
+                    </h3>
+                    <div className="max-h-64 overflow-y-auto pr-2 space-y-2">
+                      {teams.map((team) => (
+                        <label
+                          key={team.id}
+                          className={`flex items-center p-4 rounded-xl cursor-pointer transition-all group ${
+                            formData.teamIds.includes(team.id)
+                              ? 'bg-secondary border-2 border-lime ring-1 ring-lime/40'
+                              : 'bg-secondary border-2 border-border hover:border-lime'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="w-5 h-5 rounded border-border text-lime focus:ring-[#D2FF00]/20"
+                            checked={formData.teamIds.includes(team.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({
+                                  ...formData,
+                                  teamIds: [...formData.teamIds, team.id],
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  teamIds: formData.teamIds.filter((id) => id !== team.id),
+                                });
+                              }
+                            }}
+                          />
+                          <div className="ml-4 flex-1">
+                            <span className="font-medium text-foreground block">{team.name}</span>
+                            {team.department && (
+                              <span className="text-sm text-muted-foreground">
+                                Depto: {team.department.name}
+                              </span>
+                            )}
+                          </div>
+                          {formData.teamIds.includes(team.id) && (
+                            <CheckCircle2 className="h-5 w-5 text-lime-deep dark:text-lime ml-2" />
+                          )}
+                        </label>
+                      ))}
+                    </div>
+                    {formErrors.teams && (
+                      <p className="text-sm text-destructive mt-2 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {formErrors.teams}
+                      </p>
+                    )}
+                  </motion.div>
+                )}
+
+                {/* Hierarchy */}
+                {(formData.profileType === 'regular' || formData.profileType === 'leader') && (
+                  <motion.div className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border">
+                    <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+                      <GitBranch className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
+                      Hierarquia
+                    </h3>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground font-medium mb-2">
+                        Reporta para *
+                      </label>
+                      <div className="relative">
+                        <UserCog className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                        <select
+                          className={`w-full pl-12 pr-10 py-3 rounded-lg border transition-all appearance-none bg-secondary text-foreground ${
+                            formErrors.reportsTo
+                              ? 'border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/20'
+                              : 'border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20'
+                          }`}
+                          value={formData.reportsTo}
+                          onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
+                        >
+                          <option value="">
+                            {formData.profileType === 'regular'
+                              ? 'Selecione um avaliador'
+                              : 'Selecione quem este avaliador reporta'}
+                          </option>
+                          {users
+                            .filter((u) => {
+                              // Não mostrar admins na lista
+                              if (u.is_admin) return false;
+
+                              if (formData.profileType === 'regular') {
+                                return u.is_leader || u.is_director;
+                              }
+                              // Para líderes, podem reportar para outros líderes ou diretores
+                              return u.is_leader || u.is_director;
+                            })
+                            .map((superior) => (
+                              <option key={superior.id} value={superior.id}>
+                                {superior.name} - {superior.position}
+                                {superior.is_director && ' (Diretor)'}
+                                {superior.is_leader && !superior.is_director && ' (Avaliador)'}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                      {formErrors.reportsTo && (
+                        <p className="text-sm text-destructive mt-2 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {formErrors.reportsTo}
+                        </p>
+                      )}
+                      {formData.profileType === 'leader' && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Avaliadores podem reportar para outros avaliadores ou diretores
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Observations */}
+                <motion.div className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border">
+                  <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+                    <MessageSquare className="h-5 w-5 mr-2 text-lime-deep dark:text-lime" />
+                    Observações / Anotações
+                  </h3>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground font-medium mb-2">
+                      Observações sobre o colaborador
+                    </label>
+                    <textarea
+                      className="w-full px-4 py-3 rounded-lg border transition-all bg-secondary text-foreground placeholder:text-muted-foreground border-border hover:border-lime focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 resize-none"
+                      rows={4}
+                      value={formData.observations}
+                      onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
+                      placeholder="Adicione observações, anotações ou informações relevantes sobre este colaborador..."
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Este campo é opcional e será exibido no Comitê de Gente
+                    </p>
+                  </div>
+                </motion.div>
+
+                {/* Cargo Sigiloso (admin only) */}
+                {isAdmin && (
+                  <motion.div className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-lg border border-border">
+                    <h3 className="text-lg font-bold text-foreground mb-6 flex items-center">
+                      <Lock className="h-5 w-5 mr-2 text-warning" />
+                      Confidencialidade do Cargo
+                    </h3>
+                    <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
+                      <div className="pr-4">
+                        <h4 className="font-medium text-foreground">Cargo sigiloso</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Quando ativado, o cargo real fica visível apenas para o próprio
+                          colaborador, administradores, diretores e o líder direto. Demais usuários
+                          veem uma versão genérica no formato &quot;Cargo de Time&quot;.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            positionIsConfidential: !formData.positionIsConfidential,
+                          })
+                        }
+                        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                          formData.positionIsConfidential
+                            ? 'bg-warning'
+                            : 'bg-gray-300 dark:bg-gray-600'
+                        }`}
+                        aria-pressed={formData.positionIsConfidential}
+                        aria-label="Marcar cargo como sigiloso"
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            formData.positionIsConfidential ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 };
