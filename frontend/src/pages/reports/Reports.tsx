@@ -27,6 +27,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { CycleDashboard, EvaluationCycle } from '../../types/evaluation.types';
 import PageSkeleton from '../../components/Skeleton';
 import AnimatedNumber from '../../components/AnimatedNumber';
+import SpotlightCard from '../../components/SpotlightCard';
 import { formatDateBR } from '../../utils/date';
 
 const Reports = () => {
@@ -1213,10 +1214,7 @@ const Reports = () => {
         >
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border"
-            >
+            <SpotlightCard className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border hover:border-lime/30 transition-colors">
               <div className="flex items-center justify-between mb-2">
                 <Users className="w-8 h-8 text-lime-deep dark:text-lime" />
                 <span className="text-xs font-medium bg-lime/20 text-lime-deep dark:text-lime px-2 py-1 rounded-full">
@@ -1227,12 +1225,9 @@ const Reports = () => {
                 <AnimatedNumber value={summaryData.totalEmployees} />
               </h3>
               <p className="text-sm text-muted-foreground">Total de Colaboradores</p>
-            </motion.div>
+            </SpotlightCard>
 
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border"
-            >
+            <SpotlightCard className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border hover:border-lime/30 transition-colors">
               <div className="flex items-center justify-between mb-2">
                 <CheckCircle className="w-8 h-8 text-success" />
                 <span className="text-xs font-medium text-muted-foreground">
@@ -1248,12 +1243,9 @@ const Reports = () => {
                 <AnimatedNumber value={summaryData.completedEvaluations} />
               </h3>
               <p className="text-sm text-muted-foreground">Avaliações Completas</p>
-            </motion.div>
+            </SpotlightCard>
 
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border"
-            >
+            <SpotlightCard className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border hover:border-lime/30 transition-colors">
               <div className="flex items-center justify-between mb-2">
                 <Clock className="w-8 h-8 text-lime-deep dark:text-lime" />
                 <span className="text-xs font-medium text-muted-foreground">
@@ -1267,12 +1259,9 @@ const Reports = () => {
                 <AnimatedNumber value={summaryData.inProgress} />
               </h3>
               <p className="text-sm text-muted-foreground">Em Andamento</p>
-            </motion.div>
+            </SpotlightCard>
 
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border"
-            >
+            <SpotlightCard className="bg-card p-6 rounded-2xl shadow-sm hover:shadow-md border border-border hover:border-lime/30 transition-colors">
               <div className="flex items-center justify-between mb-2">
                 <AlertTriangle className="w-8 h-8 text-warning" />
                 <span className="text-xs font-medium bg-warning/15 text-warning px-2 py-1 rounded-full">
@@ -1286,7 +1275,7 @@ const Reports = () => {
                 <AnimatedNumber value={summaryData.pending} />
               </h3>
               <p className="text-sm text-muted-foreground">Pendentes</p>
-            </motion.div>
+            </SpotlightCard>
           </div>
 
           {/* Progress by Department */}

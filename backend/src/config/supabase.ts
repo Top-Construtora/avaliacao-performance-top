@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 
-dotenv.config();
+// ENV_FILE permite apontar para outro ambiente (ex.: .env.local → banco local
+// do Supabase CLI, via `npm run dev:local`). Sem ENV_FILE, segue o .env normal.
+dotenv.config({ path: process.env.ENV_FILE || '.env' });
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
@@ -15,8 +17,8 @@ if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
-    persistSession: false
-  }
+    persistSession: false,
+  },
 });
 
 // Cliente para operações do usuário (usando token do frontend)
@@ -24,9 +26,9 @@ const createUserClient = (accessToken: string) => {
   return createClient(supabaseUrl, supabaseAnonKey, {
     global: {
       headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
-    }
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
   });
 };
 

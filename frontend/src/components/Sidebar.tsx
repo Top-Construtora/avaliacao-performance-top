@@ -535,7 +535,13 @@ export default function Sidebar({
                         className={`${leafBase} justify-between ${active ? leafActive : leafInactive}`}
                       >
                         {active && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]" />
+                          <motion.span
+                            layoutId="sidebar-active-bar"
+                            transition={{ type: 'spring' as const, stiffness: 400, damping: 35 }}
+                            // Centraliza sem translate: o layoutId controla o transform do
+                            // elemento e descartaria o -translate-y-1/2 do Tailwind
+                            className="absolute left-0 top-[calc(50%-9px)] w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]"
+                          />
                         )}
                         <span className="flex items-center min-w-0">
                           <item.icon
@@ -616,7 +622,13 @@ export default function Sidebar({
                     {({ isActive }) => (
                       <>
                         {isActive && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]" />
+                          <motion.span
+                            layoutId="sidebar-active-bar"
+                            transition={{ type: 'spring' as const, stiffness: 400, damping: 35 }}
+                            // Centraliza sem translate: o layoutId controla o transform do
+                            // elemento e descartaria o -translate-y-1/2 do Tailwind
+                            className="absolute left-0 top-[calc(50%-9px)] w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]"
+                          />
                         )}
                         <item.icon
                           size={20}
@@ -666,7 +678,13 @@ export default function Sidebar({
             {({ isActive }) => (
               <>
                 {isActive && !collapsed && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]" />
+                  <motion.span
+                    layoutId="sidebar-active-bar"
+                    transition={{ type: 'spring' as const, stiffness: 400, damping: 35 }}
+                    // Centraliza sem translate: o layoutId controla o transform do
+                    // elemento e descartaria o -translate-y-1/2 do Tailwind
+                    className="absolute left-0 top-[calc(50%-9px)] w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]"
+                  />
                 )}
                 <Settings
                   size={18}
@@ -690,7 +708,13 @@ export default function Sidebar({
             {({ isActive }) => (
               <>
                 {isActive && !collapsed && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]" />
+                  <motion.span
+                    layoutId="sidebar-active-bar"
+                    transition={{ type: 'spring' as const, stiffness: 400, damping: 35 }}
+                    // Centraliza sem translate: o layoutId controla o transform do
+                    // elemento e descartaria o -translate-y-1/2 do Tailwind
+                    className="absolute left-0 top-[calc(50%-9px)] w-[3px] h-[18px] bg-[#D2FF00] rounded-r-[3px]"
+                  />
                 )}
                 <HelpCircle
                   size={18}

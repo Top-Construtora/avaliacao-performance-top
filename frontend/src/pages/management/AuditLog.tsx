@@ -232,7 +232,7 @@ const AuditLog = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-card">
                 <tr className="border-b border-border bg-secondary/50 text-left">
                   <th className="px-4 py-3 font-semibold text-muted-foreground">Data/Hora</th>
                   <th className="px-4 py-3 font-semibold text-muted-foreground">Ação</th>
@@ -242,13 +242,16 @@ const AuditLog = () => {
                 </tr>
               </thead>
               <tbody>
-                {entries.map((entry) => {
+                {entries.map((entry, index) => {
                   const expanded = expandedId === entry.id;
                   const hasDetails = !!(entry.old_data || entry.new_data || entry.request_id);
                   return (
                     <>
-                      <tr
+                      <motion.tr
                         key={entry.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, delay: Math.min(index * 0.02, 0.4) }}
                         onClick={() => hasDetails && setExpandedId(expanded ? null : entry.id)}
                         className={`border-b border-border/60 ${
                           hasDetails ? 'cursor-pointer hover:bg-accent/50' : ''
@@ -281,7 +284,7 @@ const AuditLog = () => {
                               <ChevronDown className="h-4 w-4" />
                             ))}
                         </td>
-                      </tr>
+                      </motion.tr>
                       {expanded && (
                         <tr key={`${entry.id}-details`} className="border-b border-border/60">
                           <td colSpan={5} className="px-4 py-3 bg-secondary/40">

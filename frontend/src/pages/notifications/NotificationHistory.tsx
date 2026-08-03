@@ -33,6 +33,7 @@ import {
   LogOut as LogOutIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import EmptyState from '../../components/EmptyState';
 import { toast } from 'react-hot-toast';
 import Button from '../../components/Button';
 import { useNotifications } from '../../context/NotificationContext';
@@ -764,25 +765,16 @@ const NotificationHistory: React.FC = () => {
       {/* Notifications List */}
       <motion.div variants={itemVariants} className="space-y-3">
         {filteredNotifications.length === 0 ? (
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-card rounded-2xl shadow-sm border border-border p-12 text-center"
-          >
-            <div className="flex justify-center mb-4">
-              <div className="p-4 bg-secondary rounded-full">
-                <Bell className="h-8 w-8 text-muted-foreground" />
-              </div>
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Nenhuma notificação encontrada
-            </h3>
-            <p className="text-muted-foreground">
-              {searchTerm || selectedType !== 'all' || selectedPeriod !== 'all'
+          <EmptyState
+            variant="page"
+            icon={Bell}
+            title="Nenhuma notificação encontrada"
+            description={
+              searchTerm || selectedType !== 'all' || selectedPeriod !== 'all'
                 ? 'Tente ajustar os filtros ou termos de busca'
-                : 'Você está em dia com todas as atualizações'}
-            </p>
-          </motion.div>
+                : 'Você está em dia com todas as atualizações'
+            }
+          />
         ) : (
           <AnimatePresence>
             {filteredNotifications.map((notification, index) => {

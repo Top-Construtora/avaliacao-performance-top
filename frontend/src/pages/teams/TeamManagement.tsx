@@ -631,8 +631,19 @@ const TeamManagement = () => {
                     : 'space-y-4'
                 }
               >
-                {filteredTeams.map((team) => (
-                  <div key={team.id}>{renderTeamCard(team)}</div>
+                {filteredTeams.map((team, index) => (
+                  <motion.div
+                    key={team.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.3,
+                      delay: Math.min(index * 0.04, 0.5),
+                      ease: 'easeOut',
+                    }}
+                  >
+                    {renderTeamCard(team)}
+                  </motion.div>
                 ))}
               </motion.div>
             </AnimatePresence>

@@ -1257,13 +1257,13 @@ const NineBoxMatrix = () => {
                         );
 
                         return (
-                          <div
-                            className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-lime rounded-full shadow-lg dark:shadow-xl z-20 ring-4 ring-obsidian transition-all duration-500 ease-out"
-                            style={{
-                              left: `${position.x}%`,
-                              top: `${position.y}%`,
-                              transform: 'translate(-50%, -50%)',
-                            }}
+                          <motion.div
+                            className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-lime rounded-full shadow-lg dark:shadow-xl z-20 ring-4 ring-obsidian"
+                            initial={false}
+                            animate={{ left: `${position.x}%`, top: `${position.y}%` }}
+                            // Spring: o ponto "viaja" até o novo quadrante em vez de deslizar linear
+                            transition={{ type: 'spring' as const, stiffness: 130, damping: 16 }}
+                            style={{ x: '-50%', y: '-50%' }}
                           />
                         );
                       })()}

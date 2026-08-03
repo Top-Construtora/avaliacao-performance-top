@@ -4,6 +4,7 @@
   "scripts": {
     "predev": "node scripts/free-port.js",
     "dev": "nodemon",
+    "dev:local": "node scripts/free-port.js && set ENV_FILE=.env.local&& nodemon",
     "build": "tsc",
     "start": "node dist/app.js",
     "lint": "eslint .",

@@ -21,6 +21,7 @@ import type { CycleDashboard } from '../../types/evaluation.types';
 import type { UserWithDetails, Department } from '../../types/supabase';
 import PageSkeleton from '../../components/Skeleton';
 import AnimatedNumber from '../../components/AnimatedNumber';
+import SpotlightCard from '../../components/SpotlightCard';
 
 const EvaluationDashboard: React.FC = () => {
   const { cycleId } = useParams<{ cycleId: string }>();
@@ -283,89 +284,92 @@ const EvaluationDashboard: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-card border border-border rounded-lg p-4"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">Total de Colaboradores</p>
-                <p className="text-2xl font-bold text-foreground mt-1">
-                  <AnimatedNumber value={stats.totalEmployees} />
-                </p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <SpotlightCard className="bg-card border border-border rounded-lg p-4 hover:border-lime/30 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-muted-foreground text-sm font-medium">
+                    Total de Colaboradores
+                  </p>
+                  <p className="text-2xl font-bold text-foreground mt-1">
+                    <AnimatedNumber value={stats.totalEmployees} />
+                  </p>
+                </div>
+                <Users className="h-8 w-8 text-muted-foreground" />
               </div>
-              <Users className="h-8 w-8 text-muted-foreground" />
-            </div>
+            </SpotlightCard>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-card border border-border rounded-lg p-4"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">Autoavaliações</p>
-                <p className="text-2xl font-bold text-foreground mt-1">
-                  <AnimatedNumber value={stats.selfCompleted} />/{stats.totalEmployees}
-                </p>
-                <div className="w-full bg-secondary rounded-full h-1.5 mt-2">
-                  <div
-                    className="bg-lime h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${completionPct(stats.selfCompleted)}%` }}
-                  />
+            <SpotlightCard className="bg-card border border-border rounded-lg p-4 hover:border-lime/30 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-muted-foreground text-sm font-medium">Autoavaliações</p>
+                  <p className="text-2xl font-bold text-foreground mt-1">
+                    <AnimatedNumber value={stats.selfCompleted} />/{stats.totalEmployees}
+                  </p>
+                  <div className="w-full bg-secondary rounded-full h-1.5 mt-2">
+                    <div
+                      className="bg-lime h-1.5 rounded-full transition-all duration-500"
+                      style={{ width: `${completionPct(stats.selfCompleted)}%` }}
+                    />
+                  </div>
                 </div>
+                <FileText className="h-8 w-8 text-muted-foreground" />
               </div>
-              <FileText className="h-8 w-8 text-muted-foreground" />
-            </div>
+            </SpotlightCard>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-card border border-border rounded-lg p-4"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">Avaliações do Líder</p>
-                <p className="text-2xl font-bold text-foreground mt-1">
-                  <AnimatedNumber value={stats.leaderCompleted} />/{stats.totalEmployees}
-                </p>
-                <div className="w-full bg-secondary rounded-full h-1.5 mt-2">
-                  <div
-                    className="bg-lime h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${completionPct(stats.leaderCompleted)}%` }}
-                  />
+            <SpotlightCard className="bg-card border border-border rounded-lg p-4 hover:border-lime/30 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-muted-foreground text-sm font-medium">Avaliações do Líder</p>
+                  <p className="text-2xl font-bold text-foreground mt-1">
+                    <AnimatedNumber value={stats.leaderCompleted} />/{stats.totalEmployees}
+                  </p>
+                  <div className="w-full bg-secondary rounded-full h-1.5 mt-2">
+                    <div
+                      className="bg-lime h-1.5 rounded-full transition-all duration-500"
+                      style={{ width: `${completionPct(stats.leaderCompleted)}%` }}
+                    />
+                  </div>
                 </div>
+                <Target className="h-8 w-8 text-muted-foreground" />
               </div>
-              <Target className="h-8 w-8 text-muted-foreground" />
-            </div>
+            </SpotlightCard>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-card border border-border rounded-lg p-4"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">Consensos Finalizados</p>
-                <p className="text-2xl font-bold text-foreground mt-1">
-                  <AnimatedNumber value={stats.consensusCompleted} />/{stats.totalEmployees}
-                </p>
-                <div className="w-full bg-secondary rounded-full h-1.5 mt-2">
-                  <div
-                    className="bg-lime h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${completionPct(stats.consensusCompleted)}%` }}
-                  />
+            <SpotlightCard className="bg-card border border-border rounded-lg p-4 hover:border-lime/30 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-muted-foreground text-sm font-medium">Consensos Finalizados</p>
+                  <p className="text-2xl font-bold text-foreground mt-1">
+                    <AnimatedNumber value={stats.consensusCompleted} />/{stats.totalEmployees}
+                  </p>
+                  <div className="w-full bg-secondary rounded-full h-1.5 mt-2">
+                    <div
+                      className="bg-lime h-1.5 rounded-full transition-all duration-500"
+                      style={{ width: `${completionPct(stats.consensusCompleted)}%` }}
+                    />
+                  </div>
                 </div>
+                <Award className="h-8 w-8 text-muted-foreground" />
               </div>
-              <Award className="h-8 w-8 text-muted-foreground" />
-            </div>
+            </SpotlightCard>
           </motion.div>
         </div>
       </div>
@@ -407,7 +411,7 @@ const EvaluationDashboard: React.FC = () => {
         {/* Desktop: tabela */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-secondary">
+            <thead className="bg-secondary sticky top-0 z-10">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Colaborador
@@ -433,7 +437,7 @@ const EvaluationDashboard: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-card divide-y divide-border">
-              {filteredEmployees.map((item: CycleDashboard) => {
+              {filteredEmployees.map((item: CycleDashboard, index: number) => {
                 const user = users.find((u) => u.id === item.employee_id);
                 const deptName =
                   item.department_name ||
@@ -442,7 +446,13 @@ const EvaluationDashboard: React.FC = () => {
                     : '-');
 
                 return (
-                  <tr key={item.employee_id} className="hover:bg-accent transition-colors">
+                  <motion.tr
+                    key={item.employee_id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: Math.min(index * 0.02, 0.4) }}
+                    className="hover:bg-accent transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-foreground">
@@ -473,7 +483,7 @@ const EvaluationDashboard: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       {getNineBoxBadge(item.ninebox_position, item)}
                     </td>
-                  </tr>
+                  </motion.tr>
                 );
               })}
             </tbody>
