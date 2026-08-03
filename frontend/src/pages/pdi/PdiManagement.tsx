@@ -37,7 +37,10 @@ interface PdiData {
 }
 
 const PdiManagement: React.FC = () => {
-  const { employees, loadPDI, savePDI } = useEvaluation();
+  // Listagem leve: esta tela só precisa de nome/cargo/departamento para o
+  // seletor — sem isso, o GET /users traria as fotos base64 de todo mundo
+  // (~17 MB) só para preencher o dropdown.
+  const { employees, loadPDI, savePDI } = useEvaluation({ lightEmployees: true });
   const { profile } = useAuth();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [pdiData, setPdiData] = useState<PdiData>({

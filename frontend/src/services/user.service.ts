@@ -8,6 +8,10 @@ export const userService = {
     is_director?: boolean;
     is_leader_or_director?: boolean;
     reports_to?: string;
+    // Versão leve da listagem: sem profile_image (base64 pesado) e sem os
+    // joins de trilha/salário; traz `department` embutido. Para telas que só
+    // precisam montar um seletor de colaborador, como Gerenciar PDI.
+    light?: boolean;
   }): Promise<User[]> {
     const queryParams = new URLSearchParams(
       Object.entries(filters || {}).reduce(

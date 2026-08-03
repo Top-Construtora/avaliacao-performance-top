@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { evaluationService } from '../services/evaluation.service';
 import { usersService } from '../services/supabase.service';
+import { userService } from '../services/user.service';
 import { dataCacheService } from '../services/dataCache.service';
 import type {
   EvaluationCycle,
@@ -131,7 +132,18 @@ interface UseEvaluationReturn {
   reloadEmployees: () => Promise<void>;
 }
 
-export const useEvaluation = (): UseEvaluationReturn => {
+interface UseEvaluationOptions {
+  /**
+   * Carrega `employees` pela listagem leve (`/users?light=true`): sem
+   * profile_image (fotos base64 de até ~2 MB por usuário) e sem os joins de
+   * trilha/salário. Para telas que só precisam de um seletor de colaborador,
+   * como Gerenciar PDI. As telas que exibem foto seguem no caminho completo.
+   */
+  lightEmployees?: boolean;
+}
+
+export const useEvaluation = (options?: UseEvaluationOptions): UseEvaluationReturn => {
+  const lightEmployees = options?.lightEmployees === true;
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [cyclesLoading, setCyclesLoading] = useState(false);
@@ -659,15 +671,28 @@ export const useEvaluation = (): UseEvaluationReturn => {
 
     const loadEmployees = async () => {
       try {
-        const data = await usersService.getAll();
-        setEmployees(data);
+        if (lightEmployees) {
+          const data = await userService.getUsers({ light: true });
+          setEmployees(
+            data.map((u: any) => ({
+              ...u,
+              manager: null,
+              teams: [],
+              departments: u.department ? [u.department] : [],
+              direct_reports: [],
+            })) as UserWithDetails[],
+          );
+        } else {
+          const data = await usersService.getAll();
+          setEmployees(data);
+        }
       } catch (error) {
         console.error('Erro ao carregar colaboradores:', error);
       }
     };
 
     loadEmployees();
-  }, [loadCurrentCycle, loadOrganizationalCompetencies]);
+  }, [loadCurrentCycle, loadOrganizationalCompetencies, lightEmployees]);
 
   return {
     loading,

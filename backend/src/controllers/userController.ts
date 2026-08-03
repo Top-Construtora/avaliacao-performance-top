@@ -39,6 +39,7 @@ export const userController = {
         is_director: req.query.is_director === 'true' ? true : undefined,
         is_leader_or_director: req.query.is_leader_or_director === 'true' ? true : undefined,
         reports_to: req.query.reports_to as string,
+        light: req.query.light === 'true' ? true : undefined,
         currentUserEmail: authReq.user?.email,
         viewer: authReq.user
           ? {

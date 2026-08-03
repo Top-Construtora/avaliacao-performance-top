@@ -76,6 +76,18 @@ function pickAssignableUserFields(input: Record<string, any> = {}): Record<strin
   return out;
 }
 
+// Colunas da listagem "leve" (?light=true): o suficiente para montar seletores
+// de colaborador sem trafegar `profile_image` (fotos em base64 podem passar de
+// 2 MB por usuário) nem os joins de trilha/salário. `email` entra porque o
+// filtro de usuários restritos depende dele; `position_is_confidential`,
+// `position_id`, `department_id` e `reports_to` porque o mascaramento de cargo
+// precisa deles.
+const LIGHT_USER_COLUMNS = `
+  id, name, email, position, is_admin, is_director, is_leader, active,
+  reports_to, department_id, position_id, position_is_confidential,
+  department:departments!department_id(id, name)
+`;
+
 export const userService = {
   async getUsers(filters?: {
     active?: boolean;
@@ -83,11 +95,15 @@ export const userService = {
     is_director?: boolean;
     is_leader_or_director?: boolean;
     reports_to?: string;
+    light?: boolean;
     currentUserEmail?: string;
     viewer?: ViewerContext;
   }) {
     // Select com relacionamentos para trilha e posição salarial
-    let query = supabaseAdmin.from('users').select(`
+    let query = supabaseAdmin.from('users').select(
+      filters?.light
+        ? LIGHT_USER_COLUMNS
+        : `
       *,
       track_position:track_positions!current_track_position_id(
         id,
@@ -97,7 +113,8 @@ export const userService = {
         track:career_tracks!track_id(id, name, code)
       ),
       salary_level:salary_levels!current_salary_level_id(id, name, percentage)
-    `);
+    `,
+    );
 
     if (filters?.active !== undefined) {
       query = query.eq('active', filters.active);
@@ -126,8 +143,12 @@ export const userService = {
       throw new ApiError(500, 'Failed to fetch users');
     }
 
+    // O select condicional (light × completo) quebra a inferência de tipos do
+    // supabase-js; as linhas seguem sendo `users` (+ joins), então o cast é seguro.
+    const rows = (data ?? []) as unknown as Array<{ id: string; email?: string }>;
+
     // Aplicar filtro de usuários restritos
-    const filteredData = filterRestrictedUsers(filters?.currentUserEmail, data || []);
+    const filteredData = filterRestrictedUsers(filters?.currentUserEmail, rows);
 
     // Aplicar mascaramento de cargo sigiloso
     const maskedData = await applyPositionMasking(filters?.viewer, filteredData);
