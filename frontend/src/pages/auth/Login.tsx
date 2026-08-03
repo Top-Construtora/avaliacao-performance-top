@@ -238,19 +238,6 @@ export default function Login() {
                     WebkitBackdropFilter: 'blur(28px) saturate(1.4)',
                   }}
                 >
-                  {/* Luz interna no topo do vidro (dá volume ao card) */}
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-x-0 top-0 h-32"
-                    style={{
-                      background:
-                        'radial-gradient(120% 100% at 50% 0%, rgba(255,255,255,0.06), transparent 70%)',
-                    }}
-                  />
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent"
-                  />
                   {/* Barra de destaque lime (assinatura do card de autenticação) */}
                   <div className="absolute -top-px left-10 right-10 h-0.5 rounded-b-[4px] bg-[#D2FF00] opacity-90" />
 
@@ -303,11 +290,6 @@ export default function Login() {
                     disabled={isLoading || isLoadingMicrosoft}
                     className="group relative flex h-[52px] w-full items-center justify-center gap-3 overflow-hidden rounded-[10px] border border-white/[0.14] bg-white/[0.08] text-[14.5px] font-semibold text-white shadow-[0_2px_12px_rgba(0,0,0,0.25)] transition hover:border-[#D2FF00]/40 hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D2FF00]/50 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {/* Glare: faixa de luz atravessa o botão no hover */}
-                    <span
-                      aria-hidden
-                      className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
-                    />
                     {isLoadingMicrosoft ? (
                       <>
                         <Loader2 className="h-5 w-5 animate-spin" />
@@ -445,8 +427,10 @@ export default function Login() {
         </div>
 
         {/* ═══ RODAPÉ DE TELA INTEIRA — ancora as duas colunas ═══ */}
-        <footer className="relative z-10 hidden border-t border-white/[0.08] lg:grid lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="grid grid-cols-3 gap-8 px-16 py-7 xl:px-24">
+        {/* Altura fixa de 2 células do grid (140px): com a malha ancorada na
+            base, a divisória do rodapé cai exatamente numa linha do grid */}
+        <footer className="relative z-10 hidden h-[140px] border-t border-white/[0.08] lg:grid lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="grid grid-cols-3 content-center gap-8 px-16 xl:px-24">
             {[
               {
                 title: 'Avaliações 360°',
@@ -474,7 +458,7 @@ export default function Login() {
               </motion.div>
             ))}
           </div>
-          <div className="flex items-center justify-end px-16 py-7">
+          <div className="flex items-center justify-end px-16">
             <span className="text-right text-[11px] tracking-[0.03em] text-white/30">
               © 2026 gio · Sistema protegido por autenticação segura
             </span>
