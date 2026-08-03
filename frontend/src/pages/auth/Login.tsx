@@ -139,73 +139,65 @@ export default function Login() {
       </div>
 
       <div className="relative z-10 grid min-h-screen grid-cols-1 lg:h-screen lg:grid-cols-[1.05fr_0.95fr]">
-        {/* ═══ ESQUERDA — PAINEL DE MARCA ═══ */}
-        <aside className="relative hidden flex-col justify-center overflow-hidden px-16 py-16 lg:flex xl:px-24">
-          <div className="relative z-[1] max-w-[560px]">
-            {/* Logo + tagline da marca */}
-            <div className="mb-12">
-              <img
-                src={gioWordmark}
-                alt="gio"
-                className="w-[240px] max-w-full"
-                style={{ filter: INVERT_TO_WHITE }}
+        {/* ═══ ESQUERDA — PAINEL DE MARCA ═══
+            Três zonas verticais: marca no topo, headline grande ao centro e a
+            faixa de tópicos ancorada na base — o painel ocupa a tela inteira
+            em vez de aglomerar tudo no canto superior. */}
+        <aside className="relative hidden flex-col justify-between overflow-hidden px-16 py-14 lg:flex xl:px-24">
+          {/* Logo + tagline da marca */}
+          <div className="relative z-[1]">
+            <img
+              src={gioWordmark}
+              alt="gio"
+              className="w-[240px] max-w-full"
+              style={{ filter: INVERT_TO_WHITE }}
+            />
+            <span className="mt-3 block text-[12px] font-medium uppercase tracking-[0.18em] text-white/35">
+              Gestão Inteligente de Obras
+            </span>
+          </div>
+
+          {/* Headline grande ao centro, ancorada pela linha lime */}
+          <div className="relative z-[1] flex gap-[18px]">
+            <div className="mt-3 w-[3px] shrink-0 self-stretch rounded-full bg-gradient-to-b from-[#D2FF00] via-[#D2FF00]/40 to-transparent" />
+            <h1 className="text-[clamp(40px,3.6vw,64px)] font-semibold leading-[1.1] tracking-[-0.035em] text-white">
+              <BlurText text="Pessoas no centro," />
+              <br />
+              <RotatingText
+                className="text-[#D2FF00]"
+                items={['resultados em foco.', 'evolução contínua.', 'decisões com dados.']}
               />
-              <span className="mt-3 block text-[12px] font-medium uppercase tracking-[0.18em] text-white/35">
-                Gestão Inteligente de Obras
-              </span>
-            </div>
+            </h1>
+          </div>
 
-            {/* Headline viva, ancorada por uma linha lime: primeira linha entra
-                em blur; a segunda é um slot rotativo com as promessas do produto */}
-            <div className="flex gap-[14px]">
-              <div className="mt-2 w-[3px] shrink-0 self-stretch rounded-full bg-gradient-to-b from-[#D2FF00] via-[#D2FF00]/40 to-transparent" />
-              <div>
-                <h1 className="mb-8 text-[48px] font-semibold leading-[1.12] tracking-[-0.035em] text-white">
-                  <BlurText text="Pessoas no centro," />
-                  <br />
-                  <RotatingText
-                    className="text-[#D2FF00]"
-                    items={[
-                      'resultados em foco.',
-                      'desenvolvimento contínuo.',
-                      'decisões com dados.',
-                    ]}
-                  />
-                </h1>
-
-                {/* Destaques do produto — sem marcador: só tipografia */}
-                <ul className="max-w-[460px] space-y-5">
-                  {[
-                    {
-                      title: 'Avaliações 360°',
-                      desc: 'Autoavaliação, avaliação do líder e consenso num fluxo só.',
-                    },
-                    {
-                      title: 'Comitê de Gente',
-                      desc: 'Matriz 9-Box viva para decisões de talento.',
-                    },
-                    {
-                      title: 'PDI estruturado',
-                      desc: 'Desenvolvimento individual com prazos e acompanhamento.',
-                    },
-                  ].map((item, index) => (
-                    <motion.li
-                      key={item.title}
-                      initial={{ opacity: 0, x: -14 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: 0.55 + index * 0.13, ease: 'easeOut' }}
-                    >
-                      <span className="block text-[15px] font-semibold text-white">
-                        {item.title}
-                      </span>
-                      <span className="block text-[14px] leading-[1.55] text-white/50">
-                        {item.desc}
-                      </span>
-                    </motion.li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+          {/* Faixa de tópicos na base do painel */}
+          <div className="relative z-[1] grid grid-cols-3 gap-8 border-t border-white/[0.08] pt-8">
+            {[
+              {
+                title: 'Avaliações 360°',
+                desc: 'Autoavaliação, líder e consenso num fluxo só.',
+              },
+              {
+                title: 'Comitê de Gente',
+                desc: 'Matriz 9-Box viva para decisões de talento.',
+              },
+              {
+                title: 'PDI estruturado',
+                desc: 'Desenvolvimento com prazos e acompanhamento.',
+              },
+            ].map((item, index) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.55 + index * 0.13, ease: 'easeOut' }}
+              >
+                <span className="block text-[14px] font-semibold text-white">{item.title}</span>
+                <span className="mt-1 block text-[13px] leading-[1.55] text-white/45">
+                  {item.desc}
+                </span>
+              </motion.div>
+            ))}
           </div>
         </aside>
 
@@ -302,7 +294,7 @@ export default function Login() {
                 )}
               </button>
 
-              {/* Link para login alternativo */}
+              {/* Login alternativo fica oculto: o Microsoft é o caminho oficial */}
               <div className="mt-4 text-center">
                 <button
                   type="button"
@@ -313,7 +305,6 @@ export default function Login() {
                 </button>
               </div>
 
-              {/* Formulário de Email/Senha (colapsável) */}
               <AnimatePresence>
                 {showEmailLogin && (
                   <motion.div
