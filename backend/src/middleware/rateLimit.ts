@@ -3,10 +3,15 @@ import rateLimit from 'express-rate-limit';
 // Rate limiting (achado H4). O app já confia no proxy do Render
 // (`app.set('trust proxy', 1)`), então o IP do cliente é resolvido corretamente.
 
+// Em desenvolvimento o limite geral fica folgado: o app dispara dezenas de
+// requests por navegação e testes automatizados/e2e locais estouravam os 300
+// em minutos, derrubando a sessão com 429. Produção segue com o limite normal.
+const isDev = process.env.NODE_ENV !== 'production';
+
 // Limite geral para toda a superfície da API — barra abuso/scraping.
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
-  max: 300, // por IP, por janela
+  max: isDev ? 100000 : 300, // por IP, por janela
   standardHeaders: true,
   legacyHeaders: false,
   message: {
