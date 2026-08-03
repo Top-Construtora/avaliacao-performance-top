@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
@@ -31,6 +31,16 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showEmailLogin, setShowEmailLogin] = useState(false);
+  // Em telas baixas o card expandido rola dentro da coluna — ao abrir o
+  // formulário, garante que ele apareça na vista.
+  const emailFormRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!showEmailLogin) return;
+    const id = window.setTimeout(() => {
+      emailFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 350);
+    return () => window.clearTimeout(id);
+  }, [showEmailLogin]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMicrosoft, setIsLoadingMicrosoft] = useState(false);
   const [error, setError] = useState('');
@@ -174,7 +184,7 @@ export default function Login() {
             <div className="relative z-[1] flex flex-1 items-center">
               <div className="flex gap-[18px]">
                 <div className="mt-3 w-[3px] shrink-0 self-stretch rounded-full bg-gradient-to-b from-[#D2FF00] via-[#D2FF00]/40 to-transparent" />
-                <h1 className="text-[clamp(40px,3.6vw,64px)] font-semibold leading-[1.1] tracking-[-0.035em] text-white">
+                <h1 className="text-[clamp(30px,3.4vw,64px)] font-semibold leading-[1.1] tracking-[-0.035em] text-white">
                   <BlurText text="Pessoas no centro," />
                   <br />
                   <RotatingText
@@ -190,7 +200,7 @@ export default function Login() {
             No desktop, um spacer espelha o bloco da logo do painel esquerdo:
             o card centra no mesmo espaço vertical da headline, alinhando os
             dois lados em qualquer altura de tela. */}
-          <main className="relative flex flex-col p-6 lg:min-h-0 lg:px-16 lg:pt-14 lg:pb-0">
+          <main className="relative flex flex-col p-6 lg:min-h-0 lg:overflow-y-auto lg:px-16 lg:pt-14 lg:pb-0">
             {/* Marca no mobile (o painel esquerdo some abaixo de lg) */}
             <div className="mt-6 text-center lg:hidden">
               <img
@@ -335,6 +345,7 @@ export default function Login() {
                   <AnimatePresence>
                     {showEmailLogin && (
                       <motion.div
+                        ref={emailFormRef}
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
