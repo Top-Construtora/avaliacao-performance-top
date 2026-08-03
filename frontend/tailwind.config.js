@@ -1,84 +1,8 @@
-import tailwindcssAnimate from 'tailwindcss-animate';
-
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['class'],
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   prefix: '',
-  safelist: [
-    // Cores Top - Teal
-    'bg-top-teal',
-    'bg-top-teal-light',
-    'bg-top-teal-dark',
-    'from-top-teal',
-    'to-top-teal',
-    'from-top-teal-dark',
-    'to-top-teal-dark',
-    'border-top-teal',
-    'text-top-teal',
-    'bg-top-teal/10',
-    'bg-top-teal/20',
-    'border-top-teal/20',
-    'border-top-teal/30',
-    'border-top-teal/40',
-    'dark:from-top-teal',
-    'dark:to-top-teal',
-    'dark:from-top-teal-dark',
-    'dark:to-top-teal-dark',
-    'dark:bg-top-teal/10',
-    'dark:border-top-teal/30',
-    'dark:border-top-teal/40',
-    'dark:text-top-teal',
-    'focus:ring-top-teal',
-    'dark:focus:ring-top-teal',
-    // Cores Top - Blue
-    'bg-top-blue',
-    'bg-top-blue-light',
-    'bg-top-blue-dark',
-    'from-top-blue',
-    'to-top-blue',
-    'from-top-blue-dark',
-    'to-top-blue-dark',
-    'border-top-blue',
-    'text-top-blue',
-    'bg-top-blue/10',
-    'bg-top-blue/20',
-    'border-top-blue/30',
-    'border-top-blue/40',
-    'dark:from-top-blue',
-    'dark:to-top-blue',
-    'dark:from-top-blue-dark',
-    'dark:to-top-blue-dark',
-    'dark:bg-top-blue/10',
-    'dark:border-top-blue/40',
-    'dark:text-top-blue',
-    'focus:ring-top-blue',
-    'dark:focus:ring-top-blue',
-    // Cores Top - Gold
-    'bg-top-gold',
-    'bg-top-gold-light',
-    'bg-top-gold-dark',
-    'from-top-gold',
-    'to-top-gold',
-    'from-top-gold-dark',
-    'to-top-gold-dark',
-    'border-top-gold',
-    'text-top-gold',
-    'bg-top-gold/10',
-    'bg-top-gold/20',
-    'border-top-gold/30',
-    'border-top-gold/40',
-    'dark:from-top-gold',
-    'dark:to-top-gold',
-    'dark:from-top-gold-dark',
-    'dark:to-top-gold-dark',
-    'dark:bg-top-gold/10',
-    'dark:border-top-gold/40',
-    'dark:text-top-gold',
-    // YouTube-style dark mode (legado — páginas ainda não migradas)
-    { pattern: /bg-yt-(bg|surface|elevated)/, variants: ['dark'] },
-    { pattern: /border-yt-border/, variants: ['dark'] },
-  ],
   theme: {
     container: {
       center: true,
@@ -102,7 +26,6 @@ export default {
           'Arial',
           'sans-serif',
         ],
-        space: ['Space Grotesk', 'sans-serif'],
         // Fonte do shell (Sidebar/Header) — espelha a identidade GIO v4.0 (DM Sans)
         gio: [
           '"DM Sans"',
@@ -202,56 +125,19 @@ export default {
           900: '#064c3a',
         },
 
-        // Cores Neutras (NAUE legado)
-        naue: {
-          black: '#282C2A',
-          'dark-gray': '#2C2C2C',
-          'text-gray': '#6b7280',
-          'border-gray': '#e5e7eb',
-          'light-gray': '#f8f9fa',
-          white: '#FFFFFF',
-        },
-        // Cores de Status (NAUE legado — distinto de success/warning/critical da GIO)
+        // Cores de Status (NAUE legado — distinto de success/warning/critical
+        // da GIO; ainda usado em ~13 lugares)
         status: {
           success: '#10b981',
           warning: '#f59e0b',
           danger: '#ef4444',
           info: '#0A8060',
         },
-        'dark-navy': '#1e2938',
-        // YouTube-style dark mode backgrounds (legado)
-        yt: {
-          bg: '#0f0f0f',
-          surface: '#212121',
-          elevated: '#272727',
-          border: '#3f3f3f',
-        },
-        'naue-green': '#1e2938',
-        // Cores Top (legado)
-        top: {
-          teal: '#12b0a0',
-          'teal-light': '#e6f7f5',
-          'teal-dark': '#0e8c80',
-          blue: '#1e6076',
-          'blue-light': '#e8f0f3',
-          'blue-dark': '#184d5e',
-          gold: '#baa673',
-          'gold-light': '#f5f1e6',
-          'gold-dark': '#9a8a5f',
-        },
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
-      },
-      boxShadow: {
-        'primary-500/20':
-          '0 10px 15px -3px rgba(18, 176, 160, 0.2), 0 4px 6px -2px rgba(18, 176, 160, 0.1)',
-        'secondary-500/20':
-          '0 10px 15px -3px rgba(30, 96, 118, 0.2), 0 4px 6px -2px rgba(30, 96, 118, 0.1)',
-        'accent-500/20':
-          '0 10px 15px -3px rgba(186, 166, 115, 0.2), 0 4px 6px -2px rgba(186, 166, 115, 0.1)',
       },
       screens: {
         xs: '475px',
@@ -269,30 +155,15 @@ export default {
         'safe-right': 'env(safe-area-inset-right)',
       },
       keyframes: {
-        'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
-        },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' },
-        },
         fadeIn: {
           from: { opacity: '0', transform: 'translateY(-10px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
-        slideInRight: {
-          from: { opacity: '0', transform: 'translateX(20px)' },
-          to: { opacity: '1', transform: 'translateX(0)' },
-        },
       },
       animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
         fadeIn: 'fadeIn 0.5s ease-out',
-        slideInRight: 'slideInRight 0.5s ease-out',
       },
     },
   },
-  plugins: [tailwindcssAnimate],
+  plugins: [],
 };
