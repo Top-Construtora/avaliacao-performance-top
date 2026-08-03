@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
-import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  useReducedMotion,
+} from 'motion/react';
+import { Eye, EyeOff, AlertCircle, Loader2, ClipboardList, Grid3X3, BookOpen } from 'lucide-react';
+import BlurText from '../../components/BlurText';
+import RotatingText from '../../components/RotatingText';
 import gioWordmark from '@/assets/images/gio-wordmark.png';
 import { useAuth } from '../../context/AuthContext';
 import { devLog } from '../../utils/logger';
@@ -41,6 +50,29 @@ export default function Login() {
     if (target.startsWith('/login')) target = '/';
     navigate(target, { replace: true });
   };
+
+  // Parallax sutil do tile decorativo do 9-Box (segue o mouse com mola).
+  // Com movimento reduzido, o listener nem é registrado — o tile fica parado.
+  const prefersReducedMotion = useReducedMotion();
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    const onMove = (e: PointerEvent) => {
+      mouseX.set(e.clientX / window.innerWidth - 0.5);
+      mouseY.set(e.clientY / window.innerHeight - 0.5);
+    };
+    window.addEventListener('pointermove', onMove);
+    return () => window.removeEventListener('pointermove', onMove);
+  }, [prefersReducedMotion, mouseX, mouseY]);
+  const tileX = useSpring(useTransform(mouseX, [-0.5, 0.5], [10, -10]), {
+    stiffness: 60,
+    damping: 20,
+  });
+  const tileY = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
+    stiffness: 60,
+    damping: 20,
+  });
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -105,6 +137,18 @@ export default function Login() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#1A1A1A] text-white">
+      {/* Luz de fundo: aurora estática lime ancorada no painel de marca +
+          vinheta nas bordas — profundidade sem custo (CSS puro, sem animação) */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background: `radial-gradient(140% 140% at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%),
+            radial-gradient(900px 640px at 16% 38%, rgba(210,255,0,0.065), transparent 70%),
+            radial-gradient(1100px 760px at 88% 96%, rgba(210,255,0,0.035), transparent 70%)`,
+        }}
+      />
+
       {/* Grade reativa ao cursor — pano de fundo técnico (lime sobre obsidian).
           A malha estática sutil (gridOpacity) mantém o clima blueprint mesmo
           sem interação; as células acendem seguindo o mouse e pulsam no clique. */}
@@ -141,21 +185,100 @@ export default function Login() {
               </span>
             </div>
 
-            {/* Headline + subtítulo, ancorados por uma linha lime */}
+            {/* Headline viva, ancorada por uma linha lime: primeira linha entra
+                em blur; a segunda é um slot rotativo com as promessas do produto */}
             <div className="flex gap-[14px]">
               <div className="mt-2 w-[3px] shrink-0 self-stretch rounded-full bg-gradient-to-b from-[#D2FF00] via-[#D2FF00]/40 to-transparent" />
               <div>
-                <h1 className="mb-6 text-[48px] font-semibold leading-[1.08] tracking-[-0.035em] text-white">
-                  Pessoas no centro,{' '}
-                  <em className="not-italic text-[#D2FF00]">resultados em foco</em>.
+                <h1 className="mb-8 text-[48px] font-semibold leading-[1.12] tracking-[-0.035em] text-white">
+                  <BlurText text="Pessoas no centro," />
+                  <br />
+                  <RotatingText
+                    className="text-[#D2FF00]"
+                    items={[
+                      'resultados em foco.',
+                      'desenvolvimento contínuo.',
+                      'decisões com dados.',
+                    ]}
+                  />
                 </h1>
-                <p className="max-w-[460px] text-[17px] leading-[1.6] text-white/55">
-                  Avaliações de desempenho, comitê de gente e PDI em um só lugar, com o
-                  acompanhamento estruturado que o desenvolvimento da sua equipe precisa.
-                </p>
+
+                {/* Destaques do produto no lugar do parágrafo institucional */}
+                <ul className="max-w-[460px] space-y-5">
+                  {[
+                    {
+                      icon: ClipboardList,
+                      title: 'Avaliações 360°',
+                      desc: 'Autoavaliação, avaliação do líder e consenso num fluxo só.',
+                    },
+                    {
+                      icon: Grid3X3,
+                      title: 'Comitê de Gente',
+                      desc: 'Matriz 9-Box viva para decisões de talento.',
+                    },
+                    {
+                      icon: BookOpen,
+                      title: 'PDI estruturado',
+                      desc: 'Desenvolvimento individual com prazos e acompanhamento.',
+                    },
+                  ].map((item, index) => (
+                    <motion.li
+                      key={item.title}
+                      className="flex items-start gap-4"
+                      initial={{ opacity: 0, x: -14 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, delay: 0.55 + index * 0.13, ease: 'easeOut' }}
+                    >
+                      <span className="mt-0.5 grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-[#D2FF00]">
+                        <item.icon className="h-5 w-5" />
+                      </span>
+                      <span>
+                        <span className="block text-[15px] font-semibold text-white">
+                          {item.title}
+                        </span>
+                        <span className="block text-[14px] leading-[1.55] text-white/50">
+                          {item.desc}
+                        </span>
+                      </span>
+                    </motion.li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
+
+          {/* Tile decorativo do 9-Box — o produto aparece na porta de entrada.
+              Parallax sutil ao mouse; puramente visual. */}
+          <motion.div
+            aria-hidden
+            style={{ x: tileX, y: tileY }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.9, ease: 'easeOut' }}
+            className="pointer-events-none absolute bottom-14 right-12 hidden xl:block"
+          >
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 shadow-[0_24px_48px_rgba(0,0,0,0.4)] backdrop-blur-sm">
+              <div className="grid grid-cols-3 gap-1.5">
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`grid h-11 w-11 place-items-center rounded-lg border ${
+                      i === 2
+                        ? 'border-[#D2FF00]/40 bg-[#D2FF00]/15'
+                        : 'border-white/[0.07] bg-white/[0.02]'
+                    }`}
+                  >
+                    {i === 2 && (
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#D2FF00] shadow-[0_0_10px_rgba(210,255,0,0.8)]" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <p className="mt-2.5 text-center text-[9.5px] font-medium uppercase tracking-[0.22em] text-white/25">
+              Comitê de Gente · 9-Box
+            </p>
+          </motion.div>
         </aside>
 
         {/* ═══ DIREITA — FORMULÁRIO ═══ */}
@@ -173,18 +296,38 @@ export default function Login() {
                 WebkitBackdropFilter: 'blur(28px) saturate(1.4)',
               }}
             >
-              {/* Barra de destaque lime (assinatura do card de autenticação) */}
-              <div className="absolute -top-px left-10 right-10 h-0.5 rounded-b-[4px] bg-[#D2FF00] opacity-90" />
+              {/* Contorno com luz: um traço lime percorre a borda do card
+                  (substitui a barra estática). Com movimento reduzido, volta
+                  a barra fixa no topo. */}
+              {prefersReducedMotion ? (
+                <div className="absolute -top-px left-10 right-10 h-0.5 rounded-b-[4px] bg-[#D2FF00] opacity-90" />
+              ) : (
+                <svg
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+                  fill="none"
+                >
+                  <motion.rect
+                    x="1"
+                    y="1"
+                    width="99.5%"
+                    height="99%"
+                    rx="19"
+                    pathLength={100}
+                    strokeDasharray="10 90"
+                    stroke="#D2FF00"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    opacity={0.75}
+                    animate={{ strokeDashoffset: [0, -100] }}
+                    transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                  />
+                </svg>
+              )}
 
-              {/* Logo + tagline */}
-              <div className="mb-7 flex flex-col items-center gap-2.5 text-center">
-                <img
-                  src={gioWordmark}
-                  alt="gio"
-                  className="block h-[40px] w-auto"
-                  style={{ filter: INVERT_TO_WHITE, imageRendering: 'auto' }}
-                />
-                <span className="text-[10.5px] font-medium uppercase tracking-[0.13em] text-[#8B8B95]">
+              {/* Assinatura do produto (a marca grande já vive no painel esquerdo) */}
+              <div className="mb-7 text-center">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8B8B95]">
                   Gente &amp; Gestão
                 </span>
               </div>
@@ -192,10 +335,10 @@ export default function Login() {
               <div className="mb-[26px] h-px w-full bg-white/[0.09]" />
 
               <h2 className="mb-1.5 text-center text-[22px] font-semibold tracking-[-0.03em] text-white">
-                Bem-vindo(a)!
+                Entre na sua conta
               </h2>
               <p className="mb-8 text-center text-[14px] text-[#8B8B95]">
-                Acesse sua conta para continuar.
+                Use sua conta corporativa para acessar a GIO.
               </p>
 
               {/* Aviso de sessão expirada */}
@@ -227,8 +370,13 @@ export default function Login() {
                 type="button"
                 onClick={handleMicrosoftLogin}
                 disabled={isLoading || isLoadingMicrosoft}
-                className="flex h-[50px] w-full items-center justify-center gap-3 rounded-[10px] border border-white/10 bg-white/[0.06] text-[14.5px] font-semibold text-white transition hover:border-white/[0.18] hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-60"
+                className="group relative flex h-[50px] w-full items-center justify-center gap-3 overflow-hidden rounded-[10px] border border-white/10 bg-white/[0.06] text-[14.5px] font-semibold text-white transition hover:border-white/[0.18] hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-60"
               >
+                {/* Glare: faixa de luz atravessa o botão no hover */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
+                />
                 {isLoadingMicrosoft ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" />
