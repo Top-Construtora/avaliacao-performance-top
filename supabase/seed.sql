@@ -80,6 +80,38 @@ insert into public.team_members (team_id, user_id) values
   ('e0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000006')
 on conflict do nothing;
 
+-- ======================= CARREIRA E SALÁRIOS ==========================
+-- Estrutura mínima para o fluxo de cadastro (departamento → trilha →
+-- cargo → internível) funcionar no banco local.
+insert into public.salary_classes (id, code, name, order_index)
+values ('f0000000-0000-4000-8000-000000000001', 'I', 'Classe I', 1)
+on conflict (id) do nothing;
+
+insert into public.salary_levels (id, name, percentage, order_index) values
+  ('f1000000-0000-4000-8000-000000000001', 'A', 0, 1),
+  ('f1000000-0000-4000-8000-000000000002', 'B', 5, 2),
+  ('f1000000-0000-4000-8000-000000000003', 'C', 10, 3),
+  ('f1000000-0000-4000-8000-000000000004', 'D', 15, 4),
+  ('f1000000-0000-4000-8000-000000000005', 'E', 20, 5)
+on conflict (id) do nothing;
+
+insert into public.career_tracks (id, department_id, name, code, description)
+values ('f2000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001',
+        'Trilha Técnica', 'TEC', 'Trilha de teste')
+on conflict (id) do nothing;
+
+insert into public.job_positions (id, name, code) values
+  ('f3000000-0000-4000-8000-000000000001', 'Analista', 'AN'),
+  ('f3000000-0000-4000-8000-000000000002', 'Especialista', 'ES')
+on conflict (id) do nothing;
+
+insert into public.track_positions (id, track_id, position_id, class_id, base_salary, order_index) values
+  ('f4000000-0000-4000-8000-000000000001', 'f2000000-0000-4000-8000-000000000001',
+   'f3000000-0000-4000-8000-000000000001', 'f0000000-0000-4000-8000-000000000001', 5000, 1),
+  ('f4000000-0000-4000-8000-000000000002', 'f2000000-0000-4000-8000-000000000001',
+   'f3000000-0000-4000-8000-000000000002', 'f0000000-0000-4000-8000-000000000001', 8000, 2)
+on conflict (id) do nothing;
+
 -- ============================== CICLO ==================================
 insert into public.evaluation_cycles (id, title, description, start_date, end_date, status, created_by)
 values ('c0000000-0000-4000-8000-000000000001', 'Ciclo Local 2026', 'Ciclo de teste do banco local',
