@@ -294,7 +294,10 @@ const InterviewForm = () => {
     }
   };
 
-  const activeUsers = users.filter((u) => u.active !== false && !u.is_admin);
+  // Entrevista de desligamento inclui colaboradores já inativos
+  const selectableUsers = users.filter(
+    (u) => !u.is_admin && (type === 'exit' || u.active !== false),
+  );
   const leadersAndDirectors = users.filter(
     (u) => (u.is_leader || u.is_director) && u.active !== false,
   );
@@ -400,9 +403,10 @@ const InterviewForm = () => {
                 className="w-full rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 focus:bg-background transition-colors py-2.5 px-3"
               >
                 <option value="">Selecione o colaborador</option>
-                {activeUsers.map((user) => (
+                {selectableUsers.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.name} - {user.position}
+                    {user.active === false ? ' (inativo)' : ''}
                   </option>
                 ))}
               </select>
