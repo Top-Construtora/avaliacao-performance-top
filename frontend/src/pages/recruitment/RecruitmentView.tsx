@@ -25,6 +25,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { recruitmentService, JobOpening, JobCandidate } from '../../services/recruitment.service';
+import { careersService } from '../../services/careers.service';
 import { formatDateBR } from '../../utils/date';
 
 const candidateStatusConfig: Record<string, { label: string; color: string }> = {
@@ -223,6 +224,16 @@ const RecruitmentView = () => {
       toast.success('Candidato removido');
     } catch {
       toast.error('Erro ao remover');
+    }
+  };
+
+  // O arquivo vive num bucket privado: o link é assinado na hora pelo backend.
+  const baixarCurriculo = async (candidateId: string) => {
+    try {
+      const { url } = await careersService.resumeUrl(candidateId);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch {
+      toast.error('Não foi possível abrir o currículo');
     }
   };
 
@@ -665,6 +676,57 @@ const RecruitmentView = () => {
                                 <FileText className="h-3.5 w-3.5" /> Currículo
                                 <ExternalLink className="h-3 w-3 text-muted-foreground" />
                               </a>
+                            )}
+                          </div>
+                        )}
+                        {/* Mini currículo: só existe para quem se cadastrou no
+                            portal — candidato digitado à mão não tem. */}
+                        {candidate.candidate && (
+                          <div className="mt-4 pt-3 border-t border-border space-y-3">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                              <span className="font-semibold text-foreground">Mini currículo</span>
+                              {(candidate.candidate.city || candidate.candidate.state) && (
+                                <span>
+                                  {[candidate.candidate.city, candidate.candidate.state]
+                                    .filter(Boolean)
+                                    .join(' - ')}
+                                </span>
+                              )}
+                              {candidate.candidate.salary_expectation != null && (
+                                <span>
+                                  Pretensão: R${' '}
+                                  {Number(candidate.candidate.salary_expectation).toLocaleString(
+                                    'pt-BR',
+                                  )}
+                                </span>
+                              )}
+                              {candidate.candidate.availability && (
+                                <span>Início: {candidate.candidate.availability}</span>
+                              )}
+                            </div>
+                            {candidate.candidate.summary && (
+                              <InfoBlock label="Resumo" value={candidate.candidate.summary} />
+                            )}
+                            {candidate.candidate.education && (
+                              <InfoBlock label="Formação" value={candidate.candidate.education} />
+                            )}
+                            {candidate.candidate.experience && (
+                              <InfoBlock
+                                label="Experiência"
+                                value={candidate.candidate.experience}
+                              />
+                            )}
+                            {candidate.candidate.skills && (
+                              <InfoBlock label="Competências" value={candidate.candidate.skills} />
+                            )}
+                            {candidate.candidate.resume_name && (
+                              <button
+                                type="button"
+                                onClick={() => baixarCurriculo(candidate.candidate!.id)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-xs font-medium text-foreground hover:border-[#D2FF00] transition-colors"
+                              >
+                                <FileText className="h-3.5 w-3.5" /> Baixar currículo anexado
+                              </button>
                             )}
                           </div>
                         )}

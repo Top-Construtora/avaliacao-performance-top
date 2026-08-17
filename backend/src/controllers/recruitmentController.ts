@@ -113,10 +113,16 @@ export const recruitmentController = {
         }
       }
 
-      // Buscar candidatos
+      // Buscar candidatos, já com o mini currículo de quem veio pelo portal
       const { data: candidates } = await supabaseAdmin
         .from('job_candidates')
-        .select('*')
+        .select(
+          `*,
+          candidate:candidates!job_candidates_candidate_id_fkey(
+            id, name, email, phone, city, state, linkedin_url, summary, education,
+            experience, skills, salary_expectation, availability, resume_name
+          )`,
+        )
         .eq('job_opening_id', id)
         .order('created_at', { ascending: false });
 
@@ -260,6 +266,101 @@ export const recruitmentController = {
   },
 
   // === CANDIDATOS ===
+
+  // === BANCO DE CURRÍCULOS ===
+
+  /**
+   * Currículos cadastrados pelos próprios candidatos no portal. Diferente de
+   * getCandidates, que lista candidaturas de uma vaga: aqui a pessoa é a
+   * unidade, e ela sobrevive ao fechamento da vaga.
+   */
+  async getCandidateBank(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { search } = req.query;
+
+      let query = supabaseAdmin
+        .from('candidates')
+        .select('*, applications:job_candidates(id, status, job_opening_id)')
+        .order('created_at', { ascending: false })
+        .limit(300);
+
+      if (search) {
+        const termo = `%${String(search).trim()}%`;
+        query = query.or(
+          `name.ilike.${termo},email.ilike.${termo},skills.ilike.${termo},city.ilike.${termo}`,
+        );
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const candidatos = (data || []).map((c: any) => ({
+        ...c,
+        applications_count: (c.applications || []).length,
+        // O caminho no Storage não sai daqui: quem quiser o arquivo pede a URL
+        // assinada, que confere a permissão na hora.
+        resume_path: undefined,
+      }));
+
+      res.json({ success: true, data: candidatos });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async getCandidateProfile(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('candidates')
+        .select(
+          `*,
+          applications:job_candidates(
+            id, status, rating, created_at,
+            opening:job_openings!job_candidates_job_opening_id_fkey(id, title, status)
+          )`,
+        )
+        .eq('id', req.params.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return res.status(404).json({ success: false, error: 'Currículo não encontrado' });
+
+      res.json({ success: true, data: { ...data, resume_path: undefined } });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /** URL temporária do arquivo de currículo (bucket privado). */
+  async getCandidateResumeUrl(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { data: candidato } = await supabaseAdmin
+        .from('candidates')
+        .select('resume_path, resume_name')
+        .eq('id', req.params.id)
+        .maybeSingle();
+
+      if (!candidato?.resume_path) {
+        return res
+          .status(404)
+          .json({ success: false, error: 'Este candidato não anexou currículo' });
+      }
+
+      const { data, error } = await supabaseAdmin.storage
+        .from('curriculos')
+        .createSignedUrl(candidato.resume_path, 300, {
+          download: candidato.resume_name || 'curriculo',
+        });
+      if (error || !data?.signedUrl) {
+        return res
+          .status(500)
+          .json({ success: false, error: 'Não foi possível gerar o link do currículo' });
+      }
+
+      res.json({ success: true, data: { url: data.signedUrl, file_name: candidato.resume_name } });
+    } catch (error) {
+      next(error);
+    }
+  },
 
   async getCandidates(req: AuthRequest, res: Response, next: NextFunction) {
     try {

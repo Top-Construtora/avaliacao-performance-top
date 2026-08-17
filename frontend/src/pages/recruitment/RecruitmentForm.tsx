@@ -106,23 +106,49 @@ const RecruitmentForm = () => {
   };
 
   const handleSave = async () => {
-    if (!title.trim()) {
-      toast.error('Título da vaga é obrigatório');
+    // Vaga só é publicada completa: o candidato se cadastra a partir do que
+    // está escrito aqui, então campo em branco vira vaga sem informação para
+    // quem vai se candidatar. Só "Observações adicionais" segue opcional.
+    const obrigatorios: { value: string; label: string; secao: string }[] = [
+      { value: title, label: 'Título da Vaga', secao: 'Descrição da Vaga' },
+      { value: departmentId, label: 'Departamento', secao: 'Descrição da Vaga' },
+      { value: location, label: 'Local', secao: 'Descrição da Vaga' },
+      { value: contractType, label: 'Tipo de Contrato', secao: 'Descrição da Vaga' },
+      { value: priority, label: 'Prioridade', secao: 'Descrição da Vaga' },
+      { value: salaryMin, label: 'Salário Mín (R$)', secao: 'Descrição da Vaga' },
+      { value: salaryMax, label: 'Salário Máx (R$)', secao: 'Descrição da Vaga' },
+      { value: description, label: 'Descrição', secao: 'Descrição da Vaga' },
+      { value: requirements, label: 'Requisitos', secao: 'Descrição da Vaga' },
+      { value: benefits, label: 'Benefícios', secao: 'Descrição da Vaga' },
+      { value: briefReason, label: 'Motivo da abertura da vaga', secao: 'Brief do Gestor' },
+      { value: briefExpectedStart, label: 'Previsão de início', secao: 'Brief do Gestor' },
+      { value: briefTeamContext, label: 'Contexto da equipe', secao: 'Brief do Gestor' },
+      {
+        value: briefKeyActivities,
+        label: 'Atividades principais do cargo',
+        secao: 'Brief do Gestor',
+      },
+      {
+        value: briefRequiredSkills,
+        label: 'Habilidades e competências necessárias',
+        secao: 'Brief do Gestor',
+      },
+      { value: briefNiceToHave, label: 'Diferenciais desejáveis', secao: 'Brief do Gestor' },
+    ];
+
+    const faltando = obrigatorios.find((f) => !(f.value || '').trim());
+    if (faltando) {
+      toast.error(`Preencha o campo "${faltando.label}" em ${faltando.secao}`);
       return;
     }
 
-    // Campos essenciais do Brief do Gestor — obrigatórios para incentivar
-    // o preenchimento completo das informações da vaga.
-    const requiredBriefFields: { value: string; label: string }[] = [
-      { value: briefReason, label: 'Motivo da abertura da vaga' },
-      { value: briefExpectedStart, label: 'Previsão de início' },
-      { value: briefTeamContext, label: 'Contexto da equipe' },
-      { value: briefKeyActivities, label: 'Atividades principais do cargo' },
-      { value: briefRequiredSkills, label: 'Habilidades e competências necessárias' },
-    ];
-    const missingBrief = requiredBriefFields.find((f) => !f.value.trim());
-    if (missingBrief) {
-      toast.error(`Preencha o campo "${missingBrief.label}" no Brief do Gestor`);
+    if (!positionsCount || positionsCount < 1) {
+      toast.error('Informe o Nº de Posições (mínimo 1)');
+      return;
+    }
+
+    if (Number(salaryMax) < Number(salaryMin)) {
+      toast.error('O salário máximo não pode ser menor que o mínimo');
       return;
     }
 
@@ -237,6 +263,7 @@ const RecruitmentForm = () => {
               <div>
                 <label className="block text-sm font-semibold text-muted-foreground mb-2">
                   Departamento
+                  <span className="text-red-500 ml-0.5">*</span>
                 </label>
                 <select
                   value={departmentId}
@@ -254,6 +281,7 @@ const RecruitmentForm = () => {
               <div>
                 <label className="block text-sm font-semibold text-muted-foreground mb-2">
                   Nº de Posições
+                  <span className="text-red-500 ml-0.5">*</span>
                 </label>
                 <input
                   type="number"
@@ -269,6 +297,7 @@ const RecruitmentForm = () => {
               <div>
                 <label className="block text-sm font-semibold text-muted-foreground mb-2">
                   Tipo de Contrato
+                  <span className="text-red-500 ml-0.5">*</span>
                 </label>
                 <select
                   value={contractType}
@@ -283,6 +312,7 @@ const RecruitmentForm = () => {
               <div>
                 <label className="block text-sm font-semibold text-muted-foreground mb-2">
                   Prioridade
+                  <span className="text-red-500 ml-0.5">*</span>
                 </label>
                 <select
                   value={priority}
@@ -300,6 +330,7 @@ const RecruitmentForm = () => {
             <div>
               <label className="block text-sm font-semibold text-muted-foreground mb-2">
                 Local
+                <span className="text-red-500 ml-0.5">*</span>
               </label>
               <input
                 type="text"
@@ -314,6 +345,7 @@ const RecruitmentForm = () => {
               <div>
                 <label className="block text-sm font-semibold text-muted-foreground mb-2">
                   Salário Mín (R$)
+                  <span className="text-red-500 ml-0.5">*</span>
                 </label>
                 <input
                   type="number"
@@ -326,6 +358,7 @@ const RecruitmentForm = () => {
               <div>
                 <label className="block text-sm font-semibold text-muted-foreground mb-2">
                   Salário Máx (R$)
+                  <span className="text-red-500 ml-0.5">*</span>
                 </label>
                 <input
                   type="number"
@@ -342,18 +375,21 @@ const RecruitmentForm = () => {
               value={description}
               onChange={setDescription}
               placeholder="Descrição detalhada da vaga..."
+              required
             />
             <TextareaField
               label="Requisitos"
               value={requirements}
               onChange={setRequirements}
               placeholder="Requisitos técnicos e comportamentais..."
+              required
             />
             <TextareaField
               label="Benefícios"
               value={benefits}
               onChange={setBenefits}
               placeholder="Benefícios oferecidos..."
+              required
             />
           </div>
         </motion.div>
@@ -417,6 +453,7 @@ const RecruitmentForm = () => {
               value={briefNiceToHave}
               onChange={setBriefNiceToHave}
               placeholder="Certificações, experiências, idiomas..."
+              required
             />
             <TextareaField
               label="Observações adicionais"

@@ -60,8 +60,14 @@ function formatDate(iso: string | null): string {
 }
 
 const Learning = () => {
-  const { isAdmin, isDirector } = useUserRole();
+  const { isAdmin, isDirector, isLeader } = useUserRole();
+  /** Catálogo, trilhas e aprovação de curso externo continuam com RH/diretoria. */
   const privileged = isAdmin || isDirector;
+  /**
+   * O gestor entra na Gestão para registrar o treinamento que ministrou e subir
+   * o material — o backend limita o que ele vê e edita ao que ele mesmo criou.
+   */
+  const podeGerenciarTreinamentos = privileged || isLeader;
 
   const [tab, setTab] = useState<Tab>('mine');
   const [loading, setLoading] = useState(true);
@@ -165,7 +171,8 @@ const Learning = () => {
         } else {
           const [allCourses, allTracks, activeSurveys] = await Promise.all([
             learningApiService.listCourses(true),
-            learningApiService.listTracks(true),
+            // Trilha é decisão de catálogo: o líder não lista (e a rota nega).
+            privileged ? learningApiService.listTracks(true) : Promise.resolve([]),
             satisfactionService.getSurveys('active').catch(() => []),
           ]);
           setCourses(allCourses);
@@ -188,13 +195,14 @@ const Learning = () => {
     setOverview(null);
   }, [tab, loadTab]);
 
+  // Lista de pessoas para inscrever na turma — o gestor também precisa dela.
   useEffect(() => {
-    if (!privileged) return;
+    if (!podeGerenciarTreinamentos) return;
     userService
       .getUsers({ active: true })
       .then((list: any[]) => setUsers(list.map((u) => ({ id: u.id, name: u.name }))))
       .catch(() => undefined);
-  }, [privileged]);
+  }, [podeGerenciarTreinamentos]);
 
   const tabs = useMemo(
     () =>
@@ -202,9 +210,11 @@ const Learning = () => {
         { id: 'mine' as Tab, label: 'Meus cursos', icon: BookOpen },
         { id: 'catalog' as Tab, label: 'Catálogo', icon: Library },
         { id: 'external' as Tab, label: 'Cursos externos', icon: Award },
-        ...(privileged ? [{ id: 'admin' as Tab, label: 'Gestão', icon: Settings2 }] : []),
+        ...(podeGerenciarTreinamentos
+          ? [{ id: 'admin' as Tab, label: 'Gestão', icon: Settings2 }]
+          : []),
       ] as Array<{ id: Tab; label: string; icon: any }>,
-    [privileged],
+    [podeGerenciarTreinamentos],
   );
 
   // ===== Aluno =====
@@ -292,10 +302,10 @@ const Learning = () => {
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center flex-wrap">
               <GraduationCap className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-lime-deep dark:text-lime mr-2 sm:mr-3 flex-shrink-0" />
-              <span className="break-words">Aprendizado</span>
+              <span className="break-words">Treinamento e Desenvolvimento</span>
             </h1>
             <p className="text-sm md:text-base text-muted-foreground mt-1">
-              Cursos, turmas e desenvolvimento contínuo
+              Treinamentos, materiais e desenvolvimento contínuo
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -308,13 +318,13 @@ const Learning = () => {
                 Registrar curso externo
               </Button>
             )}
-            {tab === 'admin' && privileged && (
+            {tab === 'admin' && podeGerenciarTreinamentos && (
               <Button
                 variant="primary"
                 onClick={() => setShowCourseModal(true)}
                 icon={<Plus size={16} />}
               >
-                Novo curso
+                Novo treinamento
               </Button>
             )}
           </div>
@@ -806,8 +816,9 @@ const Learning = () => {
       ) : (
         /* ===== GESTÃO ===== */
         <div className="space-y-6">
-          {/* Trilhas (5B) */}
-          <div>
+          {/* Trilhas (5B) — encadear cursos é decisão de catálogo, fica com
+              RH/diretoria; o gestor vê daqui para baixo só os treinamentos. */}
+          <div className={privileged ? '' : 'hidden'}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <Route className="h-4 w-4" /> Trilhas

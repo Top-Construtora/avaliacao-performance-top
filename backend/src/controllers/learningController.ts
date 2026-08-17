@@ -4,6 +4,7 @@ import { learningService } from '../services/learningService';
 import { notificationService } from '../services/notificationService';
 import { auditService } from '../services/auditService';
 import { AuthRequest } from '../middleware/auth';
+import { AppError } from '../errors/AppError';
 
 const courseSchema = z.object({
   title: z.string().min(2).max(200),
@@ -64,6 +65,31 @@ function validationError(res: Response, issues: unknown) {
   return res.status(400).json({ success: false, error: 'Dados inválidos', details: issues });
 }
 
+/** RH e diretoria cuidam do catálogo inteiro; o líder, só do que cadastrou. */
+function ehRH(authReq: AuthRequest) {
+  return !!(authReq.user?.is_admin || authReq.user?.is_director);
+}
+
+/**
+ * O gestor registra o treinamento que ministrou e sobe o material dele — mas
+ * não mexe no treinamento dos outros. Sem esse recorte, abrir a tela aos
+ * líderes daria a cada um poder de editar o catálogo oficial do RH.
+ */
+async function assertPodeGerenciarCurso(authReq: AuthRequest, courseId: string) {
+  if (ehRH(authReq)) return;
+  const donoId = await learningService.courseOwnerId(authReq.supabase, courseId);
+  if (donoId !== authReq.user!.id) {
+    throw AppError.forbidden('Você só pode gerenciar os treinamentos que cadastrou.');
+  }
+}
+
+/** Mesma regra, chegando pela turma. */
+async function assertPodeGerenciarTurma(authReq: AuthRequest, classId: string) {
+  if (ehRH(authReq)) return;
+  const courseId = await learningService.courseIdOfClass(authReq.supabase, classId);
+  await assertPodeGerenciarCurso(authReq, courseId);
+}
+
 export const learningController = {
   // ===== CURSOS (admin) =====
 
@@ -80,7 +106,13 @@ export const learningController = {
   async listCourses(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
-      const courses = await learningService.listCourses(authReq.supabase, req.query.all === 'true');
+      // O líder vê a própria lista: o catálogo do RH aparece para ele como
+      // aluno, no catálogo, não na tela de gestão.
+      const courses = await learningService.listCourses(
+        authReq.supabase,
+        req.query.all === 'true',
+        ehRH(authReq) ? undefined : authReq.user!.id,
+      );
       res.json({ success: true, data: courses });
     } catch (error) {
       next(error);
@@ -118,6 +150,7 @@ export const learningController = {
         .extend({ active: z.boolean().optional() })
         .safeParse(req.body);
       if (!parsed.success) return validationError(res, parsed.error.issues);
+      await assertPodeGerenciarCurso(authReq, req.params.id);
 
       const course = await learningService.updateCourse(authReq.supabase, req.params.id, {
         ...(parsed.data.title !== undefined ? { title: parsed.data.title } : {}),
@@ -138,6 +171,7 @@ export const learningController = {
   async getCourseDetail(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
+      await assertPodeGerenciarCurso(authReq, req.params.id);
       const course = await learningService.getCourseDetail(authReq.supabase, req.params.id);
       res.json({ success: true, data: course });
     } catch (error) {
@@ -150,6 +184,7 @@ export const learningController = {
       const authReq = req as AuthRequest;
       const parsed = contentSchema.safeParse(req.body);
       if (!parsed.success) return validationError(res, parsed.error.issues);
+      await assertPodeGerenciarCurso(authReq, req.params.id);
       const content = await learningService.addContent(
         authReq.supabase,
         req.params.id,
@@ -164,6 +199,7 @@ export const learningController = {
   async deleteContent(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
+      await assertPodeGerenciarCurso(authReq, req.params.id);
       await learningService.deleteContent(authReq.supabase, req.params.id, req.params.contentId);
       res.json({ success: true, data: null });
     } catch (error) {
@@ -176,6 +212,7 @@ export const learningController = {
       const authReq = req as AuthRequest;
       const parsed = classSchema.safeParse(req.body);
       if (!parsed.success) return validationError(res, parsed.error.issues);
+      await assertPodeGerenciarCurso(authReq, req.params.id);
       const cls = await learningService.createClass(authReq.supabase, req.params.id, {
         name: parsed.data.name,
         startDate: parsed.data.start_date,
@@ -197,6 +234,7 @@ export const learningController = {
         .extend({ active: z.boolean().optional() })
         .safeParse(req.body);
       if (!parsed.success) return validationError(res, parsed.error.issues);
+      await assertPodeGerenciarTurma(authReq, req.params.classId);
       const cls = await learningService.updateClass(authReq.supabase, req.params.classId, {
         ...(parsed.data.name !== undefined ? { name: parsed.data.name } : {}),
         ...(parsed.data.start_date !== undefined ? { start_date: parsed.data.start_date } : {}),
@@ -221,6 +259,7 @@ export const learningController = {
       const authReq = req as AuthRequest;
       const parsed = enrollSchema.safeParse(req.body);
       if (!parsed.success) return validationError(res, parsed.error.issues);
+      await assertPodeGerenciarTurma(authReq, req.params.classId);
 
       const { enrolled } = await learningService.enroll(
         authReq.supabase,
@@ -254,6 +293,7 @@ export const learningController = {
   async classOverview(req: Request, res: Response, next: NextFunction) {
     try {
       const authReq = req as AuthRequest;
+      await assertPodeGerenciarTurma(authReq, req.params.classId);
       const overview = await learningService.classOverview(authReq.supabase, req.params.classId);
       res.json({ success: true, data: overview });
     } catch (error) {

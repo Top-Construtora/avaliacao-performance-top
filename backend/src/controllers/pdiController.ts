@@ -7,6 +7,9 @@ import { auditService } from '../services/auditService';
 import { assertCanAccessEmployeeData, isPrivileged } from '../utils/accessControl';
 import { pdiActionsService } from '../services/pdiActionsService';
 
+/** Teto do anexo de evidência — mesmo limite do upload de material do curso. */
+const MAX_ANEXO_BYTES = 8 * 1024 * 1024;
+
 export const pdiController = {
   // Salvar PDI
   async savePDI(req: Request, res: Response, next: NextFunction) {
@@ -144,6 +147,99 @@ export const pdiController = {
       );
 
       res.json({ success: true, data: action });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ===== EVIDÊNCIAS E ANEXOS =====
+
+  async updateEvidencias(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { planId, actionId } = req.params;
+      const { evidencias } = req.body || {};
+
+      const action = await pdiActionsService.updateEvidencias(
+        authReq.supabase,
+        planId,
+        actionId,
+        authReq.user!.id,
+        evidencias == null ? null : String(evidencias),
+        isPrivileged(authReq.user),
+      );
+
+      res.json({ success: true, data: action });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async addAttachment(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { planId, actionId } = req.params;
+      const { filename, content_type, content_base64 } = req.body || {};
+
+      if (!filename || !content_base64) {
+        return res.status(400).json({
+          success: false,
+          error: 'Campos obrigatórios: filename e content_base64',
+        });
+      }
+
+      const buffer = Buffer.from(String(content_base64), 'base64');
+      if (buffer.length === 0) {
+        return res.status(400).json({ success: false, error: 'Arquivo vazio' });
+      }
+      if (buffer.length > MAX_ANEXO_BYTES) {
+        return res.status(400).json({ success: false, error: 'Arquivo acima de 8MB' });
+      }
+
+      const anexo = await pdiActionsService.addAttachment(
+        authReq.supabase,
+        planId,
+        actionId,
+        authReq.user!.id,
+        isPrivileged(authReq.user),
+        {
+          filename: String(filename),
+          contentType: String(content_type || 'application/octet-stream'),
+          buffer,
+        },
+      );
+
+      res.status(201).json({ success: true, data: anexo });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async getAttachmentUrl(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const data = await pdiActionsService.attachmentUrl(
+        authReq.supabase,
+        req.params.attachmentId,
+        authReq.user!.id,
+        isPrivileged(authReq.user),
+      );
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async removeAttachment(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const data = await pdiActionsService.removeAttachment(
+        authReq.supabase,
+        req.params.attachmentId,
+        authReq.user!.id,
+        isPrivileged(authReq.user),
+      );
+      res.json({ success: true, data });
     } catch (error) {
       next(error);
     }

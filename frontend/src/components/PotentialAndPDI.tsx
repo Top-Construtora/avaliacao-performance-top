@@ -20,6 +20,8 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import Button from './Button';
+import PdiEvidencias from './PdiEvidencias';
+import type { PdiAttachment } from '../services/pdiEvidencias.service';
 import { useEvaluation } from '../hooks/useEvaluation';
 import type { NineBoxData } from '../types/evaluation.types';
 import type { UserWithDetails } from '../types/supabase';
@@ -70,6 +72,16 @@ export interface ActionExtra {
   course_url_title: string | null;
 }
 
+/**
+ * Evidências registradas pelo colaborador. Chegam separadas de ActionExtra
+ * porque não são editáveis por aqui — o líder lê o relato e pode juntar
+ * material, mas quem escreve o que fez é o dono do plano.
+ */
+export interface ActionEvidencia {
+  evidencias: string | null;
+  attachments: PdiAttachment[];
+}
+
 interface PotentialAndPDIProps {
   currentStep: number;
   potentialItems: PotentialItem[];
@@ -89,6 +101,10 @@ interface PotentialAndPDIProps {
   actionExtras?: Record<string, ActionExtra>;
   onActionExtraChange?: (id: string, field: keyof ActionExtra, value: string | null) => void;
   courseOptions?: Array<{ id: string; title: string }>;
+  /** Id do plano já salvo — sem ele não há onde pendurar evidência nem anexo. */
+  planId?: string;
+  actionEvidencias?: Record<string, ActionEvidencia>;
+  usuarioId?: string;
 }
 
 const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
@@ -109,6 +125,9 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
   actionExtras,
   onActionExtraChange,
   courseOptions = [],
+  planId,
+  actionEvidencias,
+  usuarioId,
 }) => {
   const { getNineBoxByEmployeeId } = useEvaluation();
   const employeeNineBox: NineBoxData | undefined = selectedEmployee
@@ -441,7 +460,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             </label>
                             <input
                               type="text"
-                              className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm font-medium disabled:opacity-75 disabled:cursor-not-allowed"
+                              className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2.5 px-3 text-base font-medium disabled:opacity-75 disabled:cursor-not-allowed"
                               placeholder="Ex.: Comunicação, Liderança, Gestão de projetos"
                               value={item.competencia}
                               onChange={(e) =>
@@ -463,8 +482,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                 Como desenvolver
                               </label>
                               <textarea
-                                className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
-                                rows={3}
+                                className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2.5 px-3 text-base leading-relaxed disabled:opacity-75 disabled:cursor-not-allowed resize-y min-h-[9rem]"
+                                rows={6}
                                 placeholder="Que ações, práticas ou estudos levam a essa competência?"
                                 value={item.comoDesenvolver}
                                 onChange={(e) =>
@@ -487,8 +506,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                 Resultados esperados
                               </label>
                               <textarea
-                                className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
-                                rows={3}
+                                className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2.5 px-3 text-base leading-relaxed disabled:opacity-75 disabled:cursor-not-allowed resize-y min-h-[9rem]"
+                                rows={6}
                                 placeholder="O que muda no dia a dia quando essa competência estiver desenvolvida?"
                                 value={item.resultadosEsperados}
                                 onChange={(e) =>
@@ -702,8 +721,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                 Observação
                               </label>
                               <textarea
-                                className="w-full rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
-                                rows={2}
+                                className="w-full rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2.5 px-3 text-base leading-relaxed disabled:opacity-75 disabled:cursor-not-allowed resize-y min-h-[6rem]"
+                                rows={4}
                                 placeholder="Observações adicionais..."
                                 value={item.observacao}
                                 onChange={(e) =>
@@ -715,6 +734,20 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               />
                             </div>
                           </div>
+
+                          {/* O que o colaborador registrou. Só aparece depois
+                              que o plano existe no banco: sem planId a ação
+                              ainda não tem onde guardar evidência. */}
+                          {planId && (
+                            <PdiEvidencias
+                              planId={planId}
+                              actionId={item.id}
+                              evidencias={actionEvidencias?.[item.id]?.evidencias}
+                              attachments={actionEvidencias?.[item.id]?.attachments || []}
+                              podeAnexar={!readOnly}
+                              usuarioId={usuarioId}
+                            />
+                          )}
                         </div>
                       </motion.div>
                     ))}

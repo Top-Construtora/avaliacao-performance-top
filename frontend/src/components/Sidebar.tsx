@@ -30,6 +30,7 @@ import {
   Briefcase,
   Sparkles,
   MessagesSquare,
+  GraduationCap,
 } from 'lucide-react';
 import { useAuth, useUserRole } from '../context/AuthContext';
 import { usePeopleCommitteePermission } from '../hooks/usePeopleCommittee';
@@ -273,6 +274,12 @@ export default function Sidebar({
               allowedRoles: ['admin', 'director', 'leader'],
             },
             {
+              label: 'Banco de Currículos',
+              icon: Users,
+              path: '/recruitment/candidate-bank',
+              allowedRoles: ['admin', 'director', 'leader'],
+            },
+            {
               label: 'Entrevistas',
               icon: ClipboardList,
               path: '/interviews',
@@ -290,19 +297,15 @@ export default function Sidebar({
           icon: MessagesSquare,
           path: '/feedbacks',
         },
-        // Aprendizado: ocultado do menu por ora, a pedido do RH. A rota
-        // /learning e a API continuam funcionando — inclusive o link que o
-        // e-mail de prazo de curso manda. Para reexibir, descomentar este item
-        // e reimportar o ícone GraduationCap do lucide-react.
-        //
-        // Enquanto estiver oculto, o material indicado no PDI continua visível
-        // em Meu PDI; o que se perde é a inscrição em um clique nos cursos do
-        // catálogo, que só existe nesta tela.
-        // {
-        //   label: 'Aprendizado',
-        //   icon: GraduationCap,
-        //   path: '/learning',
-        // },
+        // Reexibido como "Treinamento e Desenvolvimento": é a tela onde o
+        // gestor registra o treinamento que ministrou, sobe o material e
+        // inscreve quem participou — e onde o participante volta para acessar
+        // esse material depois.
+        {
+          label: 'Treinamento e Desenvolvimento',
+          icon: GraduationCap,
+          path: '/learning',
+        },
         {
           label: 'Pesquisas',
           icon: SmilePlus,

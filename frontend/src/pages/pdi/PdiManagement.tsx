@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import { Users, BookOpen, Info, Save } from 'lucide-react';
 import Button from '../../components/Button';
 import PotentialAndPDI from '../../components/PotentialAndPDI';
-import type { ActionExtra } from '../../components/PotentialAndPDI';
+import type { ActionExtra, ActionEvidencia } from '../../components/PotentialAndPDI';
 import { api } from '../../config/api';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import { useAuth } from '../../context/AuthContext';
@@ -71,6 +71,8 @@ const PdiManagement: React.FC = () => {
    */
   const [actionExtras, setActionExtras] = useState<Record<string, ActionExtra>>({});
   const [savedExtras, setSavedExtras] = useState<string>('{}');
+  /** Só leitura aqui: quem escreve as evidências é o próprio colaborador. */
+  const [actionEvidencias, setActionEvidencias] = useState<Record<string, ActionEvidencia>>({});
   const [courseOptions, setCourseOptions] = useState<Array<{ id: string; title: string }>>([]);
 
   const snapshotOf = (data: PdiData) =>
@@ -107,6 +109,7 @@ const PdiManagement: React.FC = () => {
       const response: any = await api.get(`/pdi/${planId}/actions`);
       const acoes = (response.data || response)?.actions || [];
       const mapa: Record<string, ActionExtra> = {};
+      const evidencias: Record<string, ActionEvidencia> = {};
       acoes.forEach((a: any) => {
         mapa[a.id] = {
           due_date: a.due_date ?? null,
@@ -114,12 +117,18 @@ const PdiManagement: React.FC = () => {
           course_url: a.course_url ?? null,
           course_url_title: a.course_url_title ?? null,
         };
+        evidencias[a.id] = {
+          evidencias: a.evidencias ?? null,
+          attachments: a.attachments ?? [],
+        };
       });
       setActionExtras(mapa);
       setSavedExtras(JSON.stringify(mapa));
+      setActionEvidencias(evidencias);
     } catch {
       setActionExtras({});
       setSavedExtras('{}');
+      setActionEvidencias({});
     }
   }, []);
 
@@ -448,6 +457,9 @@ const PdiManagement: React.FC = () => {
                 actionExtras={actionExtras}
                 onActionExtraChange={handleActionExtraChange}
                 courseOptions={courseOptions}
+                planId={pdiData.id}
+                actionEvidencias={actionEvidencias}
+                usuarioId={profile?.id}
               />
             </>
           )}

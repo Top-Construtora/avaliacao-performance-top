@@ -33,9 +33,29 @@ export interface JobOpening {
   interview_count?: number;
 }
 
+/** Mini currículo de quem se cadastrou pelo portal (candidatura manual não tem). */
+export interface CandidateMiniCv {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  city: string | null;
+  state: string | null;
+  linkedin_url: string | null;
+  summary: string | null;
+  education: string | null;
+  experience: string | null;
+  skills: string | null;
+  salary_expectation: number | null;
+  availability: string | null;
+  resume_name: string | null;
+}
+
 export interface JobCandidate {
   id: string;
   job_opening_id: string;
+  candidate_id?: string | null;
+  candidate?: CandidateMiniCv | null;
   name: string;
   email: string | null;
   phone: string | null;
@@ -56,9 +76,19 @@ export interface RecruitmentStats {
 
 export const recruitmentService = {
   // Vagas
-  async getJobOpenings(filters?: { status?: string; department_id?: string; requested_by?: string }): Promise<JobOpening[]> {
+  async getJobOpenings(filters?: {
+    status?: string;
+    department_id?: string;
+    requested_by?: string;
+  }): Promise<JobOpening[]> {
     const params = new URLSearchParams(
-      Object.entries(filters || {}).reduce((acc, [k, v]) => { if (v) acc[k] = v; return acc; }, {} as Record<string, string>)
+      Object.entries(filters || {}).reduce(
+        (acc, [k, v]) => {
+          if (v) acc[k] = v;
+          return acc;
+        },
+        {} as Record<string, string>,
+      ),
     ).toString();
     const response = await api.get(`/recruitment/openings?${params}`);
     return response.data || response || [];
@@ -104,7 +134,12 @@ export const recruitmentService = {
   },
 
   // Entrevistas
-  async createInterview(data: { candidate_id: string; interviewer_id?: string; scheduled_date?: string; interview_type?: string }): Promise<any> {
+  async createInterview(data: {
+    candidate_id: string;
+    interviewer_id?: string;
+    scheduled_date?: string;
+    interview_type?: string;
+  }): Promise<any> {
     const response = await api.post('/recruitment/interviews', data);
     return response.data || response;
   },
