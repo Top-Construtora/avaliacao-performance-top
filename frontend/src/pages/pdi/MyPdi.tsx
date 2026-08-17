@@ -14,6 +14,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../config/api';
 import PageSkeleton from '../../components/Skeleton';
+import PdiEvidencias from '../../components/PdiEvidencias';
+import type { PdiAttachment } from '../../services/pdiEvidencias.service';
 
 /** Ação normalizada (fase 5C) — casa com o item do JSONB pelo id. */
 interface PdiActionRow {
@@ -23,6 +25,8 @@ interface PdiActionRow {
   course: { id: string; title: string } | null;
   course_url: string | null;
   course_url_title: string | null;
+  evidencias: string | null;
+  attachments: PdiAttachment[];
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -88,6 +92,8 @@ const MyPdi: React.FC = () => {
           course: a.course,
           course_url: a.course_url ?? null,
           course_url_title: a.course_url_title ?? null,
+          evidencias: a.evidencias ?? null,
+          attachments: a.attachments ?? [],
         }),
       );
       setActionRows(map);
@@ -283,6 +289,21 @@ const MyPdi: React.FC = () => {
                     </div>
                   );
                 })()}
+
+              {/* Evidências: o único ponto do PDI onde quem escreve é o
+                  colaborador. O status continua sendo do líder — aqui a pessoa
+                  conta o que fez e junta o comprovante. */}
+              {planId && actionRows.has(item.id) && (
+                <PdiEvidencias
+                  planId={planId}
+                  actionId={item.id}
+                  evidencias={actionRows.get(item.id)!.evidencias}
+                  attachments={actionRows.get(item.id)!.attachments}
+                  podeEditarTexto
+                  podeAnexar
+                  usuarioId={user?.id || profile?.id}
+                />
+              )}
             </div>
           </motion.div>
         ))}

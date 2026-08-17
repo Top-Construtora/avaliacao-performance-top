@@ -70,6 +70,42 @@ export function prazoDoMes(calendarizacao?: string | null): string | null {
   return `${partes[1]}-${partes[2]}-${String(ultimoDia).padStart(2, '0')}`;
 }
 
+/** Bucket privado das evidências — ver migration 20260817120000. */
+const BUCKET_EVIDENCIAS = 'pdi-evidencias';
+
+/** Limite do relato de evidências. Campo de texto, não de anexo. */
+const LIMITE_EVIDENCIAS = 5000;
+
+/**
+ * Quem pode abrir um plano: o dono, o líder direto do dono, e RH/diretoria.
+ * Devolve o plano para quem chamou não precisar buscá-lo de novo.
+ */
+async function planoComAcesso(
+  supabase: SupabaseClient,
+  planId: string,
+  userId: string,
+  isHR: boolean,
+) {
+  const { data: plan } = await supabase
+    .from('development_plans')
+    .select('id, employee_id')
+    .eq('id', planId)
+    .single();
+  if (!plan) throw AppError.notFound('PDI não encontrado');
+
+  if (plan.employee_id !== userId && !isHR) {
+    const { data: dono } = await supabase
+      .from('users')
+      .select('reports_to')
+      .eq('id', plan.employee_id)
+      .single();
+    if (dono?.reports_to !== userId) {
+      throw AppError.forbidden('Você não pode ver o PDI de outra pessoa');
+    }
+  }
+  return plan;
+}
+
 export const pdiActionsService = {
   /** Garante id em todos os itens (muta uma cópia) e devolve a lista. */
   ensureItemIds(items: PDIItem[]): PDIItem[] {
@@ -138,25 +174,10 @@ export const pdiActionsService = {
    * que o líder enxerga (e edita) o que só existe na tabela.
    */
   async planActions(supabase: SupabaseClient, planId: string, userId: string, isHR: boolean) {
-    const { data: plan } = await supabase
-      .from('development_plans')
-      .select('id, employee_id')
-      .eq('id', planId)
-      .single();
-    if (!plan) throw AppError.notFound('PDI não encontrado');
-
-    // O dono lê o próprio (só não edita). Fora isso: RH, ou o líder direto —
-    // ser líder de alguém não dá acesso ao PDI de quem não é seu liderado.
-    if (plan.employee_id !== userId && !isHR) {
-      const { data: dono } = await supabase
-        .from('users')
-        .select('reports_to')
-        .eq('id', plan.employee_id)
-        .single();
-      if (dono?.reports_to !== userId) {
-        throw AppError.forbidden('Você não pode ver o PDI de outra pessoa');
-      }
-    }
+    // O dono lê o próprio (só não edita status/prazo). Fora isso: RH, ou o
+    // líder direto — ser líder de alguém não dá acesso ao PDI de quem não é
+    // seu liderado.
+    const plan = await planoComAcesso(supabase, planId, userId, isHR);
 
     const { data: actions, error } = await supabase
       .from('pdi_actions')
@@ -164,7 +185,13 @@ export const pdiActionsService = {
       .eq('development_plan_id', planId)
       .order('position');
     if (error) throw AppError.internal(`Erro ao listar ações: ${error.message}`);
-    return { plan_id: planId, employee_id: plan.employee_id, actions: actions || [] };
+
+    const anexos = await pdiActionsService.anexosDoPlano(supabase, planId);
+    return {
+      plan_id: planId,
+      employee_id: plan.employee_id,
+      actions: (actions || []).map((a: any) => ({ ...a, attachments: anexos.get(a.id) || [] })),
+    };
   },
 
   /** Ações do plano ativo do usuário, com o curso vinculado. */
@@ -184,7 +211,12 @@ export const pdiActionsService = {
       .eq('development_plan_id', plan.id)
       .order('position');
     if (error) throw AppError.internal(`Erro ao listar ações: ${error.message}`);
-    return { plan_id: plan.id, actions: actions || [] };
+
+    const anexos = await pdiActionsService.anexosDoPlano(supabase, plan.id);
+    return {
+      plan_id: plan.id,
+      actions: (actions || []).map((a: any) => ({ ...a, attachments: anexos.get(a.id) || [] })),
+    };
   },
 
   /**
@@ -271,6 +303,171 @@ export const pdiActionsService = {
     }
 
     return action;
+  },
+
+  // ===== EVIDÊNCIAS E ANEXOS (por item) =====
+
+  /**
+   * Relato do que a pessoa fez na ação. Quem escreve é o dono do plano — é a
+   * contrapartida do status, que só o líder registra: um lado relata, o outro
+   * atesta. RH edita para corrigir.
+   */
+  async updateEvidencias(
+    supabase: SupabaseClient,
+    planId: string,
+    actionId: string,
+    userId: string,
+    evidencias: string | null,
+    isHR: boolean,
+  ) {
+    const plan = await planoComAcesso(supabase, planId, userId, isHR);
+    if (plan.employee_id !== userId && !isHR) {
+      throw AppError.forbidden('As evidências são escritas pelo próprio colaborador.');
+    }
+
+    const texto = (evidencias || '').trim();
+    if (texto.length > LIMITE_EVIDENCIAS) {
+      throw AppError.badRequest(`As evidências devem ter até ${LIMITE_EVIDENCIAS} caracteres.`);
+    }
+
+    const { data: action, error } = await supabase
+      .from('pdi_actions')
+      .update({ evidencias: texto || null, updated_at: new Date().toISOString() })
+      .eq('development_plan_id', planId)
+      .eq('id', actionId)
+      .select('*, course:courses!pdi_actions_course_id_fkey(id, title)')
+      .single();
+    if (error || !action) throw AppError.notFound('Ação não encontrada');
+    return action;
+  },
+
+  /** Anexos de todas as ações de um plano, agrupados por ação. */
+  async anexosDoPlano(supabase: SupabaseClient, planId: string) {
+    const { data } = await supabase
+      .from('pdi_action_attachments')
+      .select('id, action_id, file_name, content_type, file_size, uploaded_by, created_at')
+      .eq('development_plan_id', planId)
+      .order('created_at');
+
+    const porAcao = new Map<string, any[]>();
+    (data || []).forEach((anexo: any) => {
+      const lista = porAcao.get(anexo.action_id) || [];
+      lista.push(anexo);
+      porAcao.set(anexo.action_id, lista);
+    });
+    return porAcao;
+  },
+
+  /**
+   * Guarda um arquivo de evidência. Sobe primeiro para o Storage e só então
+   * grava a linha: registro sem arquivo viraria anexo que não abre.
+   *
+   * Podem anexar o dono, o líder direto e o RH — o líder também precisa juntar
+   * material ao acompanhamento (ata de mentoria, feedback escrito).
+   */
+  async addAttachment(
+    supabase: SupabaseClient,
+    planId: string,
+    actionId: string,
+    userId: string,
+    isHR: boolean,
+    arquivo: { filename: string; contentType: string; buffer: Buffer },
+  ) {
+    await planoComAcesso(supabase, planId, userId, isHR);
+
+    const { data: acao } = await supabase
+      .from('pdi_actions')
+      .select('id')
+      .eq('development_plan_id', planId)
+      .eq('id', actionId)
+      .single();
+    if (!acao) throw AppError.notFound('Ação não encontrada');
+
+    const nomeSeguro = arquivo.filename.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-120);
+    const path = `${planId}/${actionId}/${Date.now()}_${nomeSeguro}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET_EVIDENCIAS)
+      .upload(path, arquivo.buffer, { contentType: arquivo.contentType, upsert: false });
+    if (uploadError) {
+      throw AppError.internal(`Erro no upload do anexo: ${uploadError.message}`);
+    }
+
+    const { data: anexo, error } = await supabase
+      .from('pdi_action_attachments')
+      .insert({
+        development_plan_id: planId,
+        action_id: actionId,
+        file_name: arquivo.filename,
+        storage_path: path,
+        content_type: arquivo.contentType,
+        file_size: arquivo.buffer.length,
+        uploaded_by: userId,
+      })
+      .select('id, action_id, file_name, content_type, file_size, uploaded_by, created_at')
+      .single();
+
+    if (error || !anexo) {
+      // Sem a linha o arquivo é inalcançável: tirar do Storage evita lixo.
+      await supabase.storage.from(BUCKET_EVIDENCIAS).remove([path]);
+      throw AppError.internal('Erro ao registrar o anexo');
+    }
+    return anexo;
+  },
+
+  /**
+   * URL temporária para baixar um anexo. O bucket é privado, então este é o
+   * único caminho de leitura — e ele passa pela mesma checagem de acesso do
+   * plano.
+   */
+  async attachmentUrl(
+    supabase: SupabaseClient,
+    attachmentId: string,
+    userId: string,
+    isHR: boolean,
+  ) {
+    const { data: anexo } = await supabase
+      .from('pdi_action_attachments')
+      .select('id, development_plan_id, file_name, storage_path')
+      .eq('id', attachmentId)
+      .single();
+    if (!anexo) throw AppError.notFound('Anexo não encontrado');
+
+    await planoComAcesso(supabase, anexo.development_plan_id, userId, isHR);
+
+    const { data, error } = await supabase.storage
+      .from(BUCKET_EVIDENCIAS)
+      .createSignedUrl(anexo.storage_path, 300, { download: anexo.file_name });
+    if (error || !data?.signedUrl) {
+      throw AppError.internal('Não foi possível gerar o link do anexo');
+    }
+    return { url: data.signedUrl, file_name: anexo.file_name };
+  },
+
+  /** Remove o anexo. Só quem subiu (ou o RH) desfaz. */
+  async removeAttachment(
+    supabase: SupabaseClient,
+    attachmentId: string,
+    userId: string,
+    isHR: boolean,
+  ) {
+    const { data: anexo } = await supabase
+      .from('pdi_action_attachments')
+      .select('id, development_plan_id, storage_path, uploaded_by')
+      .eq('id', attachmentId)
+      .single();
+    if (!anexo) throw AppError.notFound('Anexo não encontrado');
+
+    await planoComAcesso(supabase, anexo.development_plan_id, userId, isHR);
+    if (anexo.uploaded_by !== userId && !isHR) {
+      throw AppError.forbidden('Só quem anexou o arquivo pode removê-lo.');
+    }
+
+    const { error } = await supabase.from('pdi_action_attachments').delete().eq('id', attachmentId);
+    if (error) throw AppError.internal('Erro ao remover o anexo');
+
+    await supabase.storage.from(BUCKET_EVIDENCIAS).remove([anexo.storage_path]);
+    return { id: attachmentId };
   },
 
   /**

@@ -20,6 +20,8 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import Button from './Button';
+import PdiEvidencias from './PdiEvidencias';
+import type { PdiAttachment } from '../services/pdiEvidencias.service';
 import { useEvaluation } from '../hooks/useEvaluation';
 import type { NineBoxData } from '../types/evaluation.types';
 import type { UserWithDetails } from '../types/supabase';
@@ -70,6 +72,16 @@ export interface ActionExtra {
   course_url_title: string | null;
 }
 
+/**
+ * Evidências registradas pelo colaborador. Chegam separadas de ActionExtra
+ * porque não são editáveis por aqui — o líder lê o relato e pode juntar
+ * material, mas quem escreve o que fez é o dono do plano.
+ */
+export interface ActionEvidencia {
+  evidencias: string | null;
+  attachments: PdiAttachment[];
+}
+
 interface PotentialAndPDIProps {
   currentStep: number;
   potentialItems: PotentialItem[];
@@ -89,6 +101,10 @@ interface PotentialAndPDIProps {
   actionExtras?: Record<string, ActionExtra>;
   onActionExtraChange?: (id: string, field: keyof ActionExtra, value: string | null) => void;
   courseOptions?: Array<{ id: string; title: string }>;
+  /** Id do plano já salvo — sem ele não há onde pendurar evidência nem anexo. */
+  planId?: string;
+  actionEvidencias?: Record<string, ActionEvidencia>;
+  usuarioId?: string;
 }
 
 const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
@@ -109,6 +125,9 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
   actionExtras,
   onActionExtraChange,
   courseOptions = [],
+  planId,
+  actionEvidencias,
+  usuarioId,
 }) => {
   const { getNineBoxByEmployeeId } = useEvaluation();
   const employeeNineBox: NineBoxData | undefined = selectedEmployee
@@ -715,6 +734,20 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               />
                             </div>
                           </div>
+
+                          {/* O que o colaborador registrou. Só aparece depois
+                              que o plano existe no banco: sem planId a ação
+                              ainda não tem onde guardar evidência. */}
+                          {planId && (
+                            <PdiEvidencias
+                              planId={planId}
+                              actionId={item.id}
+                              evidencias={actionEvidencias?.[item.id]?.evidencias}
+                              attachments={actionEvidencias?.[item.id]?.attachments || []}
+                              podeAnexar={!readOnly}
+                              usuarioId={usuarioId}
+                            />
+                          )}
                         </div>
                       </motion.div>
                     ))}
