@@ -33,12 +33,35 @@ export const learningService = {
     return data || [];
   },
 
-  async listCourses(supabase: SupabaseClient, includeInactive = false) {
+  /** Dono do curso — é por ele que se decide quem pode gerenciar o treinamento. */
+  async courseOwnerId(supabase: SupabaseClient, courseId: string): Promise<string | null> {
+    const { data } = await supabase
+      .from('courses')
+      .select('created_by')
+      .eq('id', courseId)
+      .single();
+    if (!data) throw AppError.notFound('Curso não encontrado');
+    return data.created_by ?? null;
+  },
+
+  /** Turma pertence a um curso: a permissão do curso vale para ela. */
+  async courseIdOfClass(supabase: SupabaseClient, classId: string): Promise<string> {
+    const { data } = await supabase
+      .from('course_classes')
+      .select('course_id')
+      .eq('id', classId)
+      .single();
+    if (!data) throw AppError.notFound('Turma não encontrada');
+    return data.course_id;
+  },
+
+  async listCourses(supabase: SupabaseClient, includeInactive = false, createdBy?: string) {
     let query = supabase
       .from('courses')
       .select('*, contents:course_contents(id), classes:course_classes(id)')
       .order('created_at', { ascending: false });
     if (!includeInactive) query = query.eq('active', true);
+    if (createdBy) query = query.eq('created_by', createdBy);
     const { data, error } = await query;
     if (error) throw AppError.internal(`Erro ao listar cursos: ${error.message}`);
     return (data || []).map((c: any) => ({
