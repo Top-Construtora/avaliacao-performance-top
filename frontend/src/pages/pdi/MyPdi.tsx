@@ -212,7 +212,7 @@ const MyPdi: React.FC = () => {
                   <Target className="h-4 w-4 mr-1" />
                   Como Desenvolver
                 </label>
-                <p className="text-muted-foreground text-sm bg-secondary p-3 rounded-lg">
+                <p className="text-foreground text-base leading-relaxed whitespace-pre-wrap bg-secondary p-4 rounded-lg">
                   {item.comoDesenvolver}
                 </p>
               </div>
@@ -222,7 +222,7 @@ const MyPdi: React.FC = () => {
                   <TrendingUp className="h-4 w-4 mr-1" />
                   Resultados Esperados
                 </label>
-                <p className="text-muted-foreground text-sm bg-secondary p-3 rounded-lg">
+                <p className="text-foreground text-base leading-relaxed whitespace-pre-wrap bg-secondary p-4 rounded-lg">
                   {item.resultadosEsperados}
                 </p>
               </div>
@@ -233,7 +233,7 @@ const MyPdi: React.FC = () => {
                     <FileText className="h-4 w-4 mr-1" />
                     Observações
                   </label>
-                  <p className="text-muted-foreground text-sm bg-secondary p-3 rounded-lg">
+                  <p className="text-foreground text-base leading-relaxed whitespace-pre-wrap bg-secondary p-4 rounded-lg">
                     {item.observacao}
                   </p>
                 </div>

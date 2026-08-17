@@ -441,7 +441,7 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                             </label>
                             <input
                               type="text"
-                              className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm font-medium disabled:opacity-75 disabled:cursor-not-allowed"
+                              className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2.5 px-3 text-base font-medium disabled:opacity-75 disabled:cursor-not-allowed"
                               placeholder="Ex.: Comunicação, Liderança, Gestão de projetos"
                               value={item.competencia}
                               onChange={(e) =>
@@ -463,8 +463,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                 Como desenvolver
                               </label>
                               <textarea
-                                className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
-                                rows={3}
+                                className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2.5 px-3 text-base leading-relaxed disabled:opacity-75 disabled:cursor-not-allowed resize-y min-h-[9rem]"
+                                rows={6}
                                 placeholder="Que ações, práticas ou estudos levam a essa competência?"
                                 value={item.comoDesenvolver}
                                 onChange={(e) =>
@@ -487,8 +487,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                 Resultados esperados
                               </label>
                               <textarea
-                                className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
-                                rows={3}
+                                className="w-full rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2.5 px-3 text-base leading-relaxed disabled:opacity-75 disabled:cursor-not-allowed resize-y min-h-[9rem]"
+                                rows={6}
                                 placeholder="O que muda no dia a dia quando essa competência estiver desenvolvida?"
                                 value={item.resultadosEsperados}
                                 onChange={(e) =>
@@ -702,8 +702,8 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                                 Observação
                               </label>
                               <textarea
-                                className="w-full rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2 px-3 text-sm disabled:opacity-75 disabled:cursor-not-allowed resize-none"
-                                rows={2}
+                                className="w-full rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-[#D2FF00] focus:ring-2 focus:ring-[#D2FF00]/20 transition-colors py-2.5 px-3 text-base leading-relaxed disabled:opacity-75 disabled:cursor-not-allowed resize-y min-h-[6rem]"
+                                rows={4}
                                 placeholder="Observações adicionais..."
                                 value={item.observacao}
                                 onChange={(e) =>
