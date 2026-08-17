@@ -79,6 +79,9 @@ const PublicSurveyRespond = lazyWithRetry(() => import('./pages/satisfaction/Pub
 const PublicInterviewRespond = lazyWithRetry(
   () => import('./pages/interviews/PublicInterviewRespond'),
 );
+const CareersList = lazyWithRetry(() => import('./pages/careers/CareersList'));
+const CareersApply = lazyWithRetry(() => import('./pages/careers/CareersApply'));
+const CandidateBank = lazyWithRetry(() => import('./pages/recruitment/CandidateBank'));
 const RecruitmentList = lazyWithRetry(() => import('./pages/recruitment/RecruitmentList'));
 const RecruitmentForm = lazyWithRetry(() => import('./pages/recruitment/RecruitmentForm'));
 const RecruitmentView = lazyWithRetry(() => import('./pages/recruitment/RecruitmentView'));
@@ -147,6 +150,9 @@ function App() {
                       {/* Links públicos (sem login) */}
                       <Route path="/p/:id" element={<PublicSurveyRespond />} />
                       <Route path="/i/:token" element={<PublicInterviewRespond />} />
+                      {/* Portal de vagas: o candidato se cadastra sozinho */}
+                      <Route path="/vagas" element={<CareersList />} />
+                      <Route path="/vagas/:id" element={<CareersApply />} />
 
                       <Route
                         path="/"
@@ -422,6 +428,14 @@ function App() {
                           }
                         />
                         <Route
+                          path="recruitment/candidate-bank"
+                          element={
+                            <ProtectedRoute allowedRoles={['director', 'leader']}>
+                              <CandidateBank />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
                           path="recruitment/new"
                           element={
                             <ProtectedRoute allowedRoles={['director', 'leader']}>
@@ -542,6 +556,9 @@ function App() {
                       {/* Links públicos (sem login) */}
                       <Route path="/p/:id" element={<PublicSurveyRespond />} />
                       <Route path="/i/:token" element={<PublicInterviewRespond />} />
+                      {/* Portal de vagas: o candidato se cadastra sozinho */}
+                      <Route path="/vagas" element={<CareersList />} />
+                      <Route path="/vagas/:id" element={<CareersApply />} />
                       <Route path="/" element={<Layout />}>
                         <Route index element={<Dashboard />} />
                         <Route path="self-evaluation" element={<SelfEvaluation />} />

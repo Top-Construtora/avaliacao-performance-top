@@ -274,6 +274,12 @@ export default function Sidebar({
               allowedRoles: ['admin', 'director', 'leader'],
             },
             {
+              label: 'Banco de Currículos',
+              icon: Users,
+              path: '/recruitment/candidate-bank',
+              allowedRoles: ['admin', 'director', 'leader'],
+            },
+            {
               label: 'Entrevistas',
               icon: ClipboardList,
               path: '/interviews',
