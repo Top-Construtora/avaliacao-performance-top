@@ -17,6 +17,20 @@ export interface PdiAttachment {
   created_at: string;
 }
 
+/**
+ * Uma anotação do acompanhamento. Diferente das evidências, que são um texto só
+ * reescrito até o fim do ciclo, cada anotação é um registro com data e autor —
+ * lidas em ordem, contam como a ação andou.
+ */
+export interface PdiNote {
+  id: string;
+  action_id: string;
+  texto: string;
+  author_id: string | null;
+  author_name: string | null;
+  created_at: string;
+}
+
 function unwrap(response: any) {
   return response.data || response;
 }
@@ -51,5 +65,13 @@ export const pdiEvidenciasService = {
 
   async removeAttachment(attachmentId: string): Promise<void> {
     await api.delete(`/pdi/attachments/${attachmentId}`);
+  },
+
+  async addNote(planId: string, actionId: string, texto: string): Promise<PdiNote> {
+    return unwrap(await api.post(`/pdi/${planId}/actions/${actionId}/notes`, { texto }));
+  },
+
+  async removeNote(noteId: string): Promise<void> {
+    await api.delete(`/pdi/notes/${noteId}`);
   },
 };

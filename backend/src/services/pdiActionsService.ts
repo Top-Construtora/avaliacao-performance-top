@@ -77,6 +77,13 @@ const BUCKET_EVIDENCIAS = 'pdi-evidencias';
 const LIMITE_EVIDENCIAS = 5000;
 
 /**
+ * Limite de uma anotação. Bem menor que o das evidências de propósito: a
+ * anotação é um recado de acompanhamento ("terminei o módulo 2"), não o relato
+ * do que a ação inteira produziu.
+ */
+const LIMITE_ANOTACAO = 2000;
+
+/**
  * Quem pode abrir um plano: o dono, o líder direto do dono, e RH/diretoria.
  * Devolve o plano para quem chamou não precisar buscá-lo de novo.
  */
@@ -186,11 +193,18 @@ export const pdiActionsService = {
       .order('position');
     if (error) throw AppError.internal(`Erro ao listar ações: ${error.message}`);
 
-    const anexos = await pdiActionsService.anexosDoPlano(supabase, planId);
+    const [anexos, anotacoes] = await Promise.all([
+      pdiActionsService.anexosDoPlano(supabase, planId),
+      pdiActionsService.anotacoesDoPlano(supabase, planId),
+    ]);
     return {
       plan_id: planId,
       employee_id: plan.employee_id,
-      actions: (actions || []).map((a: any) => ({ ...a, attachments: anexos.get(a.id) || [] })),
+      actions: (actions || []).map((a: any) => ({
+        ...a,
+        attachments: anexos.get(a.id) || [],
+        notes: anotacoes.get(a.id) || [],
+      })),
     };
   },
 
@@ -212,10 +226,17 @@ export const pdiActionsService = {
       .order('position');
     if (error) throw AppError.internal(`Erro ao listar ações: ${error.message}`);
 
-    const anexos = await pdiActionsService.anexosDoPlano(supabase, plan.id);
+    const [anexos, anotacoes] = await Promise.all([
+      pdiActionsService.anexosDoPlano(supabase, plan.id),
+      pdiActionsService.anotacoesDoPlano(supabase, plan.id),
+    ]);
     return {
       plan_id: plan.id,
-      actions: (actions || []).map((a: any) => ({ ...a, attachments: anexos.get(a.id) || [] })),
+      actions: (actions || []).map((a: any) => ({
+        ...a,
+        attachments: anexos.get(a.id) || [],
+        notes: anotacoes.get(a.id) || [],
+      })),
     };
   },
 
@@ -468,6 +489,95 @@ export const pdiActionsService = {
 
     await supabase.storage.from(BUCKET_EVIDENCIAS).remove([anexo.storage_path]);
     return { id: attachmentId };
+  },
+
+  // ===== ANOTAÇÕES DE ACOMPANHAMENTO (por item) =====
+
+  /** Anotações de todas as ações de um plano, agrupadas por ação. */
+  async anotacoesDoPlano(supabase: SupabaseClient, planId: string) {
+    const { data } = await supabase
+      .from('pdi_action_notes')
+      .select(
+        'id, action_id, texto, author_id, created_at, author:users!pdi_action_notes_author_fkey(id, name)',
+      )
+      .eq('development_plan_id', planId)
+      .order('created_at');
+
+    const porAcao = new Map<string, any[]>();
+    (data || []).forEach((nota: any) => {
+      const lista = porAcao.get(nota.action_id) || [];
+      lista.push({ ...nota, author_name: nota.author?.name || null, author: undefined });
+      porAcao.set(nota.action_id, lista);
+    });
+    return porAcao;
+  },
+
+  /**
+   * Registra uma anotação. Escrevem os dois lados do acompanhamento — o dono do
+   * plano e o líder direto (e o RH) —, cada um identificado pelo autor: o PDI é
+   * conversa, não relatório de mão única.
+   *
+   * Não existe edição: anotação registrada é o que foi dito naquele dia. Errou,
+   * apaga e escreve de novo — reescrever em silêncio faria o histórico mentir.
+   */
+  async addNote(
+    supabase: SupabaseClient,
+    planId: string,
+    actionId: string,
+    userId: string,
+    isHR: boolean,
+    texto: string,
+  ) {
+    await planoComAcesso(supabase, planId, userId, isHR);
+
+    const conteudo = (texto || '').trim();
+    if (!conteudo) throw AppError.badRequest('A anotação não pode ficar vazia.');
+    if (conteudo.length > LIMITE_ANOTACAO) {
+      throw AppError.badRequest(`A anotação deve ter até ${LIMITE_ANOTACAO} caracteres.`);
+    }
+
+    const { data: acao } = await supabase
+      .from('pdi_actions')
+      .select('id')
+      .eq('development_plan_id', planId)
+      .eq('id', actionId)
+      .single();
+    if (!acao) throw AppError.notFound('Ação não encontrada');
+
+    const { data: nota, error } = await supabase
+      .from('pdi_action_notes')
+      .insert({
+        development_plan_id: planId,
+        action_id: actionId,
+        texto: conteudo,
+        author_id: userId,
+      })
+      .select(
+        'id, action_id, texto, author_id, created_at, author:users!pdi_action_notes_author_fkey(id, name)',
+      )
+      .single();
+    if (error || !nota) throw AppError.internal('Erro ao salvar a anotação');
+
+    return { ...nota, author_name: (nota as any).author?.name || null, author: undefined };
+  },
+
+  /** Apaga uma anotação. Só quem escreveu (ou o RH) desfaz. */
+  async removeNote(supabase: SupabaseClient, noteId: string, userId: string, isHR: boolean) {
+    const { data: nota } = await supabase
+      .from('pdi_action_notes')
+      .select('id, development_plan_id, author_id')
+      .eq('id', noteId)
+      .single();
+    if (!nota) throw AppError.notFound('Anotação não encontrada');
+
+    await planoComAcesso(supabase, nota.development_plan_id, userId, isHR);
+    if (nota.author_id !== userId && !isHR) {
+      throw AppError.forbidden('Só quem escreveu a anotação pode apagá-la.');
+    }
+
+    const { error } = await supabase.from('pdi_action_notes').delete().eq('id', noteId);
+    if (error) throw AppError.internal('Erro ao apagar a anotação');
+    return { id: noteId };
   },
 
   /**

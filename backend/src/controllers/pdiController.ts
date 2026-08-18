@@ -245,6 +245,44 @@ export const pdiController = {
     }
   },
 
+  // ===== ANOTAÇÕES DE ACOMPANHAMENTO =====
+
+  async addNote(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const { planId, actionId } = req.params;
+      const { texto } = req.body || {};
+
+      const nota = await pdiActionsService.addNote(
+        authReq.supabase,
+        planId,
+        actionId,
+        authReq.user!.id,
+        isPrivileged(authReq.user),
+        texto == null ? '' : String(texto),
+      );
+
+      res.status(201).json({ success: true, data: nota });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async removeNote(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authReq = req as AuthRequest;
+      const data = await pdiActionsService.removeNote(
+        authReq.supabase,
+        req.params.noteId,
+        authReq.user!.id,
+        isPrivileged(authReq.user),
+      );
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   // Buscar PDI
   async getPDI(req: Request, res: Response, next: NextFunction) {
     try {

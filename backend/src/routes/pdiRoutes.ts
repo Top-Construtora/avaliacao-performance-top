@@ -27,6 +27,11 @@ router.post('/:planId/actions/:actionId/attachments', pdiController.addAttachmen
 router.get('/attachments/:attachmentId/url', pdiController.getAttachmentUrl);
 router.delete('/attachments/:attachmentId', pdiController.removeAttachment);
 
+// Anotações de acompanhamento: colaborador e líder escrevem no mesmo fio, então
+// também não passam por requireManager — o serviço confere quem tem acesso ao plano.
+router.post('/:planId/actions/:actionId/notes', pdiController.addNote);
+router.delete('/notes/:noteId', pdiController.removeNote);
+
 router.get('/:employeeId', pdiController.getPDI); // ownership validado no controller
 
 export default router;

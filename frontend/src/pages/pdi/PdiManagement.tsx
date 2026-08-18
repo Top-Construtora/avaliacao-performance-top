@@ -120,6 +120,7 @@ const PdiManagement: React.FC = () => {
         evidencias[a.id] = {
           evidencias: a.evidencias ?? null,
           attachments: a.attachments ?? [],
+          notes: a.notes ?? [],
         };
       });
       setActionExtras(mapa);

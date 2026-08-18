@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import Button from './Button';
 import PdiEvidencias from './PdiEvidencias';
-import type { PdiAttachment } from '../services/pdiEvidencias.service';
+import type { PdiAttachment, PdiNote } from '../services/pdiEvidencias.service';
 import { useEvaluation } from '../hooks/useEvaluation';
 import type { NineBoxData } from '../types/evaluation.types';
 import type { UserWithDetails } from '../types/supabase';
@@ -80,6 +80,7 @@ export interface ActionExtra {
 export interface ActionEvidencia {
   evidencias: string | null;
   attachments: PdiAttachment[];
+  notes: PdiNote[];
 }
 
 interface PotentialAndPDIProps {
@@ -744,7 +745,9 @@ const PotentialAndPDI: React.FC<PotentialAndPDIProps> = ({
                               actionId={item.id}
                               evidencias={actionEvidencias?.[item.id]?.evidencias}
                               attachments={actionEvidencias?.[item.id]?.attachments || []}
+                              notes={actionEvidencias?.[item.id]?.notes || []}
                               podeAnexar={!readOnly}
+                              podeAnotar={!readOnly}
                               usuarioId={usuarioId}
                             />
                           )}
