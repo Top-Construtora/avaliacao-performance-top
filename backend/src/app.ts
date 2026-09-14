@@ -173,7 +173,7 @@ app.use(requestId);
 // Rota raiz - página inicial da API
 app.get('/', (req, res) => {
   res.json({
-    message: 'API de Avaliação de performance',
+    message: 'API do Portal de Gente',
     status: 'online',
     version: '1.2.0',
     timestamp: new Date().toISOString(),

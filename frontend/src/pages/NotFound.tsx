@@ -46,8 +46,7 @@ const NotFound = () => {
             </div>
 
             <p className="mx-auto max-w-md px-4 text-lg text-white/55">
-              Parece que você tentou acessar uma página que não existe no sistema de Gente &amp;
-              Gestão.
+              Parece que você tentou acessar uma página que não existe no Portal de Gente.
             </p>
 
             {/* Sugestões */}

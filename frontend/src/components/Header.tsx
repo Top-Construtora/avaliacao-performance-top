@@ -227,7 +227,7 @@ export default function Header({ isMobileMenuOpen, setIsMobileMenuOpen }: Header
           {pageTitle}
         </h1>
         <p className="text-[10.5px] font-medium tracking-[0.1em] uppercase text-[#8B8B95] truncate">
-          GIO · Sistema de Gente &amp; Gestão
+          GIO · Portal de Gente
         </p>
       </div>
 

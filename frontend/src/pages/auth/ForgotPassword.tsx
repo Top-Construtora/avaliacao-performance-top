@@ -65,7 +65,7 @@ export default function ForgotPassword() {
                 style={{ filter: INVERT_TO_WHITE, imageRendering: 'auto' }}
               />
               <span className="text-[10.5px] font-medium uppercase tracking-[0.13em] text-[#8B8B95]">
-                Gente &amp; Gestão
+                Portal de Gente
               </span>
             </div>
 

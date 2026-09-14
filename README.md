@@ -1,4 +1,4 @@
-# Sistema de Gente & Gestão - Top Construtora
+# Portal de Gente - Top Construtora
 
 ![React](https://img.shields.io/badge/React-18.3-61dafb?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178c6?logo=typescript&logoColor=white)
@@ -8,13 +8,14 @@
 ![Vite](https://img.shields.io/badge/Vite-5.4-646cff?logo=vite&logoColor=white)
 ![License](https://img.shields.io/badge/Licença-Privado-red)
 
-Sistema de Gente & Gestão para acompanhamento de colaboradores, avaliação de desempenho, gestão de carreira e desenvolvimento pessoal da **Top Construtora**. Monorepo com frontend React e backend Express, ambos em TypeScript.
+Portal de Gente para acompanhamento de colaboradores, avaliação de desempenho, gestão de carreira e desenvolvimento pessoal da **Top Construtora**. Monorepo com frontend React e backend Express, ambos em TypeScript.
 
 ---
 
 ## Funcionalidades
 
 ### Avaliação de Desempenho
+
 - **Ciclos de avaliação** com abertura e fechamento controlado
 - **Autoavaliação** de competências técnicas, comportamentais e organizacionais
 - **Avaliação do líder** com análise de potencial
@@ -23,6 +24,7 @@ Sistema de Gente & Gestão para acompanhamento de colaboradores, avaliação de 
 - **Código Cultural** - competências organizacionais configuráveis
 
 ### Gestão de Carreira & Salários
+
 - **Trilhas de carreira** com cargos e progressão definida
 - **Classes salariais** com níveis e multiplicadores
 - **Regras de progressão** entre cargos
@@ -30,12 +32,14 @@ Sistema de Gente & Gestão para acompanhamento de colaboradores, avaliação de 
 - **Relatórios salariais** por departamento e cargo
 
 ### PDI (Plano de Desenvolvimento Individual)
+
 - Criação de planos com itens de ação por competência
 - Prazos: curto, médio e longo prazo
 - Acompanhamento de status em 5 níveis
 - Integração com ciclos de avaliação
 
 ### Gestão Organizacional
+
 - **Usuários** com 4 papéis: Admin, Diretor, Líder, Colaborador
 - **Departamentos** e **equipes** com hierarquia
 - **Dashboards** específicos por papel
@@ -43,6 +47,7 @@ Sistema de Gente & Gestão para acompanhamento de colaboradores, avaliação de 
 - **Tema escuro/claro**
 
 ### Relatórios & Exportação
+
 - Dashboard analítico de avaliações
 - Exportação em **PDF** (jsPDF / PDFKit)
 - Exportação em **Excel** (XLSX / ExcelJS)
@@ -162,19 +167,19 @@ frontend/src/
 
 ### Principais Bibliotecas
 
-| Biblioteca | Uso |
-|---|---|
-| **React 18** | Framework UI |
-| **Vite** | Build tool com HMR |
-| **Tailwind CSS** | Estilização utility-first |
-| **Framer Motion** | Animações suaves |
-| **Chart.js** + react-chartjs-2 | Gráficos e analytics |
-| **Lucide React** | Ícones |
-| **jsPDF** + jspdf-autotable | Exportação PDF |
-| **XLSX** | Exportação Excel |
-| **React Hot Toast** | Notificações toast |
-| **React Table** | Tabelas de dados |
-| **Space Grotesk** | Fonte customizada |
+| Biblioteca                     | Uso                       |
+| ------------------------------ | ------------------------- |
+| **React 18**                   | Framework UI              |
+| **Vite**                       | Build tool com HMR        |
+| **Tailwind CSS**               | Estilização utility-first |
+| **Framer Motion**              | Animações suaves          |
+| **Chart.js** + react-chartjs-2 | Gráficos e analytics      |
+| **Lucide React**               | Ícones                    |
+| **jsPDF** + jspdf-autotable    | Exportação PDF            |
+| **XLSX**                       | Exportação Excel          |
+| **React Hot Toast**            | Notificações toast        |
+| **React Table**                | Tabelas de dados          |
+| **Space Grotesk**              | Fonte customizada         |
 
 ### Variáveis de Ambiente (frontend)
 
@@ -229,65 +234,71 @@ backend/src/
 ### Endpoints da API
 
 #### Autenticação (`/api/auth`)
-| Método | Rota | Descrição |
-|---|---|---|
-| POST | `/login` | Login com email/senha |
-| POST | `/register` | Cadastro de usuário |
-| POST | `/logout` | Logout |
-| GET | `/profile` | Perfil do usuário autenticado |
+
+| Método | Rota        | Descrição                     |
+| ------ | ----------- | ----------------------------- |
+| POST   | `/login`    | Login com email/senha         |
+| POST   | `/register` | Cadastro de usuário           |
+| POST   | `/logout`   | Logout                        |
+| GET    | `/profile`  | Perfil do usuário autenticado |
 
 #### Usuários (`/api/users`)
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/` | Listar usuários (com filtros) |
-| POST | `/` | Criar usuário |
-| GET | `/:id` | Detalhes do usuário |
-| PUT | `/:id` | Atualizar usuário |
-| DELETE | `/:id` | Remover usuário |
-| GET | `/leader/:id/subordinates` | Listar subordinados |
+
+| Método | Rota                       | Descrição                     |
+| ------ | -------------------------- | ----------------------------- |
+| GET    | `/`                        | Listar usuários (com filtros) |
+| POST   | `/`                        | Criar usuário                 |
+| GET    | `/:id`                     | Detalhes do usuário           |
+| PUT    | `/:id`                     | Atualizar usuário             |
+| DELETE | `/:id`                     | Remover usuário               |
+| GET    | `/leader/:id/subordinates` | Listar subordinados           |
 
 #### Avaliações (`/api/evaluations`)
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/cycles` | Listar ciclos |
-| GET | `/cycles/current` | Ciclo atual |
-| POST | `/cycles` | Criar ciclo |
-| PUT | `/cycles/:id/open` | Abrir ciclo |
-| PUT | `/cycles/:id/close` | Fechar ciclo |
-| POST | `/self` | Criar autoavaliação |
-| POST | `/leader` | Criar avaliação do líder |
-| GET | `/employee/:id` | Avaliações do colaborador |
-| GET | `/cycles/:id/nine-box` | Dados da Matriz Nine Box |
-| GET | `/cycles/:id/dashboard` | Dashboard do ciclo |
+
+| Método | Rota                    | Descrição                 |
+| ------ | ----------------------- | ------------------------- |
+| GET    | `/cycles`               | Listar ciclos             |
+| GET    | `/cycles/current`       | Ciclo atual               |
+| POST   | `/cycles`               | Criar ciclo               |
+| PUT    | `/cycles/:id/open`      | Abrir ciclo               |
+| PUT    | `/cycles/:id/close`     | Fechar ciclo              |
+| POST   | `/self`                 | Criar autoavaliação       |
+| POST   | `/leader`               | Criar avaliação do líder  |
+| GET    | `/employee/:id`         | Avaliações do colaborador |
+| GET    | `/cycles/:id/nine-box`  | Dados da Matriz Nine Box  |
+| GET    | `/cycles/:id/dashboard` | Dashboard do ciclo        |
 
 #### PDI (`/api/pdi`)
-| Método | Rota | Descrição |
-|---|---|---|
-| POST | `/` | Salvar PDI |
-| GET | `/:employeeId` | PDI do colaborador |
-| PUT | `/:pdiId` | Atualizar PDI |
-| GET | `/cycle/:cycleId` | PDIs do ciclo |
+
+| Método | Rota              | Descrição          |
+| ------ | ----------------- | ------------------ |
+| POST   | `/`               | Salvar PDI         |
+| GET    | `/:employeeId`    | PDI do colaborador |
+| PUT    | `/:pdiId`         | Atualizar PDI      |
+| GET    | `/cycle/:cycleId` | PDIs do ciclo      |
 
 #### Departamentos (`/api/departments`)
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/` | Listar departamentos |
-| POST | `/` | Criar departamento |
-| PUT | `/:id` | Atualizar departamento |
-| DELETE | `/:id` | Remover departamento |
+
+| Método | Rota   | Descrição              |
+| ------ | ------ | ---------------------- |
+| GET    | `/`    | Listar departamentos   |
+| POST   | `/`    | Criar departamento     |
+| PUT    | `/:id` | Atualizar departamento |
+| DELETE | `/:id` | Remover departamento   |
 
 #### Salários & Carreira (`/api/salary`)
-| Método | Rota | Descrição |
-|---|---|---|
-| CRUD | `/classes` | Classes salariais |
-| CRUD | `/positions` | Cargos |
-| CRUD | `/levels` | Níveis salariais |
-| CRUD | `/career-tracks` | Trilhas de carreira |
-| CRUD | `/track-positions` | Cargos nas trilhas |
-| CRUD | `/progression-rules` | Regras de progressão |
-| POST | `/assign-user` | Atribuir colaborador a trilha |
-| POST | `/progress-user` | Progredir colaborador |
-| GET | `/reports/*` | Relatórios salariais |
+
+| Método | Rota                 | Descrição                     |
+| ------ | -------------------- | ----------------------------- |
+| CRUD   | `/classes`           | Classes salariais             |
+| CRUD   | `/positions`         | Cargos                        |
+| CRUD   | `/levels`            | Níveis salariais              |
+| CRUD   | `/career-tracks`     | Trilhas de carreira           |
+| CRUD   | `/track-positions`   | Cargos nas trilhas            |
+| CRUD   | `/progression-rules` | Regras de progressão          |
+| POST   | `/assign-user`       | Atribuir colaborador a trilha |
+| POST   | `/progress-user`     | Progredir colaborador         |
+| GET    | `/reports/*`         | Relatórios salariais          |
 
 ### Variáveis de Ambiente (backend)
 
@@ -322,21 +333,21 @@ EMAIL_REPLY_TO=seu-email@gmail.com
 
 ### Tabelas principais
 
-| Grupo | Tabelas |
-|---|---|
-| **Autenticação** | `users` (com papéis, departamento, cargo, salário) |
-| **Organização** | `departments`, `teams`, `team_members` |
-| **Avaliação** | `evaluation_cycles`, `self_evaluations`, `leader_evaluations`, `evaluation_competencies` |
-| **Carreira** | `salary_classes`, `job_positions`, `salary_levels`, `career_tracks`, `track_positions`, `progression_rules`, `user_salary_history` |
-| **PDI** | `personal_development_plans`, `pdi_items` |
+| Grupo            | Tabelas                                                                                                                            |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Autenticação** | `users` (com papéis, departamento, cargo, salário)                                                                                 |
+| **Organização**  | `departments`, `teams`, `team_members`                                                                                             |
+| **Avaliação**    | `evaluation_cycles`, `self_evaluations`, `leader_evaluations`, `evaluation_competencies`                                           |
+| **Carreira**     | `salary_classes`, `job_positions`, `salary_levels`, `career_tracks`, `track_positions`, `progression_rules`, `user_salary_history` |
+| **PDI**          | `personal_development_plans`, `pdi_items`                                                                                          |
 
 ### Papéis de Usuário
 
-| Papel | Acesso |
-|---|---|
-| **Admin** | Acesso total ao sistema, gestão de usuários e configurações |
-| **Diretor** | Dashboard RH, gestão de ciclos, relatórios, Nine Box |
-| **Líder** | Avaliação de subordinados, PDI da equipe, dashboard de equipe |
+| Papel           | Acesso                                                        |
+| --------------- | ------------------------------------------------------------- |
+| **Admin**       | Acesso total ao sistema, gestão de usuários e configurações   |
+| **Diretor**     | Dashboard RH, gestão de ciclos, relatórios, Nine Box          |
+| **Líder**       | Avaliação de subordinados, PDI da equipe, dashboard de equipe |
 | **Colaborador** | Autoavaliação, visualização do próprio PDI, dashboard pessoal |
 
 ---
@@ -353,11 +364,11 @@ EMAIL_REPLY_TO=seu-email@gmail.com
 
 ## Deploy
 
-| Componente | Plataforma |
-|---|---|
-| Frontend | Vercel / Netlify (build estático) |
-| Backend | Render |
-| Banco de dados | Supabase (PostgreSQL gerenciado) |
+| Componente     | Plataforma                        |
+| -------------- | --------------------------------- |
+| Frontend       | Vercel / Netlify (build estático) |
+| Backend        | Render                            |
+| Banco de dados | Supabase (PostgreSQL gerenciado)  |
 
 ```bash
 # Build de produção do frontend
@@ -372,4 +383,4 @@ cd backend && npm start
 
 ---
 
-Sistema de Gente & Gestão — desenvolvido para **Top Construtora**
+Portal de Gente — desenvolvido para **Top Construtora**
