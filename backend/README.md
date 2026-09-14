@@ -1,6 +1,6 @@
-# Backend - Sistema de Gente & Gestão
+# Backend - Portal de Gente
 
-API REST desenvolvida com Express, TypeScript e Supabase para o Sistema de Gente & Gestão (avaliações, PDI, carreira e gestão organizacional).
+API REST desenvolvida com Express, TypeScript e Supabase para o Portal de Gente (avaliações, PDI, carreira e gestão organizacional).
 
 ## Stack Tecnológico
 
@@ -29,11 +29,13 @@ src/
 ## Configuração
 
 1. Instale as dependências:
+
 ```bash
 npm install
 ```
 
 2. Configure as variáveis de ambiente criando `.env`:
+
 ```env
 # Servidor
 PORT=3001
@@ -50,6 +52,7 @@ JWT_SECRET=sua-chave-secreta
 ```
 
 3. Inicie o servidor:
+
 ```bash
 npm run dev
 ```
@@ -67,12 +70,14 @@ npm start            # Inicia o servidor de produção
 ## Endpoints da API
 
 ### Autenticação (`/api/auth`)
+
 - `POST /api/auth/login` - Login com email/senha
 - `POST /api/auth/register` - Cadastro de usuário
 - `POST /api/auth/logout` - Logout
 - `GET /api/auth/profile` - Perfil do usuário autenticado
 
 ### Usuários (`/api/users`)
+
 - `GET /api/users` - Listar usuários (com filtros)
 - `POST /api/users` - Criar usuário
 - `GET /api/users/:id` - Detalhes do usuário
@@ -81,6 +86,7 @@ npm start            # Inicia o servidor de produção
 - `GET /api/users/leader/:id/subordinates` - Listar subordinados
 
 ### Avaliações (`/api/evaluations`)
+
 - `GET /api/evaluations/cycles` - Listar ciclos
 - `GET /api/evaluations/cycles/current` - Ciclo atual
 - `POST /api/evaluations/cycles` - Criar ciclo
@@ -93,18 +99,21 @@ npm start            # Inicia o servidor de produção
 - `GET /api/evaluations/cycles/:id/dashboard` - Dashboard do ciclo
 
 ### PDI (`/api/pdi`)
+
 - `POST /api/pdi` - Salvar PDI
 - `GET /api/pdi/:employeeId` - PDI do colaborador
 - `PUT /api/pdi/:pdiId` - Atualizar PDI
 - `GET /api/pdi/cycle/:cycleId` - PDIs do ciclo
 
 ### Departamentos (`/api/departments`)
+
 - `GET /api/departments` - Listar departamentos
 - `POST /api/departments` - Criar departamento
 - `PUT /api/departments/:id` - Atualizar departamento
 - `DELETE /api/departments/:id` - Remover departamento
 
 ### Salários & Carreira (`/api/salary`)
+
 - `GET/POST/PUT/DELETE /api/salary/classes` - Classes salariais
 - `GET/POST/PUT/DELETE /api/salary/positions` - Cargos
 - `GET/POST/PUT/DELETE /api/salary/levels` - Níveis salariais
@@ -149,6 +158,7 @@ npm start
 ## Deploy
 
 Recomendado para deploy em:
+
 - Render
 - Railway
 - Heroku

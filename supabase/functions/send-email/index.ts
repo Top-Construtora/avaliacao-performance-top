@@ -28,7 +28,7 @@ interface SendEmailPayload {
 
 const GMAIL_EMAIL = Deno.env.get('GMAIL_EMAIL') ?? '';
 const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD') ?? '';
-const FROM_NAME = Deno.env.get('EMAIL_FROM_NAME') ?? 'GIO — Gente & Gestão';
+const FROM_NAME = Deno.env.get('EMAIL_FROM_NAME') ?? 'GIO — Portal de Gente';
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {

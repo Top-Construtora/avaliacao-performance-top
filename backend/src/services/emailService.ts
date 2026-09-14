@@ -189,7 +189,7 @@ async function sendViaBrevo(
         accept: 'application/json',
       },
       body: JSON.stringify({
-        sender: { email: senderAddress(), name: 'GIO — Gente & Gestão' },
+        sender: { email: senderAddress(), name: 'GIO — Portal de Gente' },
         to: [{ email: to }],
         subject,
         htmlContent: html,
@@ -322,7 +322,7 @@ export function renderNotificationEmail(input: NotificationEmailInput): string {
         <tr>
           <td style="background:#1A1A1A;border-radius:12px 12px 0 0;padding:20px 32px;">
             <span style="font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:bold;color:#FFFFFF;">GIO</span>
-            <span style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#D2FF00;margin-left:8px;">Gente &amp; Gestão</span>
+            <span style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#D2FF00;margin-left:8px;">Portal de Gente</span>
           </td>
         </tr>
         <tr>

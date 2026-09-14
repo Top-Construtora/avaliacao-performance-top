@@ -291,7 +291,7 @@ const AdminDashboard = () => {
               Bem-vindo(a), {firstName}!
             </h1>
             <p className="text-white/60 text-xs sm:text-sm mt-0.5">
-              Visão geral do Sistema de Gente & Gestão
+              Visão geral do Portal de Gente
             </p>
           </div>
           <div className="hidden md:flex items-center space-x-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 flex-shrink-0">

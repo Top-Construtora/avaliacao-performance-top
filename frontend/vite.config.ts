@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
         devOptions: { enabled: true, type: 'module' },
         includeAssets: ['icons/favicon-48.png', 'icons/apple-touch-icon.png'],
         manifest: {
-          name: 'GIO — Gente & Gestão',
+          name: 'GIO — Portal de Gente',
           short_name: 'GIO',
           description: 'Avaliações de desempenho, PDI e desenvolvimento — Top Construtora',
           lang: 'pt-BR',

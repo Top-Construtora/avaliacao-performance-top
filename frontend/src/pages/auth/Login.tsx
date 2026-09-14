@@ -254,7 +254,7 @@ export default function Login() {
                   {/* Assinatura do produto (a marca grande já vive no painel esquerdo) */}
                   <div className="mb-7 text-center lg:[@media(max-height:820px)]:mb-4">
                     <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8B8B95]">
-                      Gente &amp; Gestão
+                      Portal de Gente
                     </span>
                   </div>
 

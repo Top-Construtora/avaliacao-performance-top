@@ -1,6 +1,6 @@
-# Frontend - Sistema de Gente & Gestão
+# Frontend - Portal de Gente
 
-Frontend do Sistema de Gente & Gestão desenvolvido com React 18, TypeScript e Tailwind CSS. Inclui módulos de avaliação de desempenho, PDI, carreira e gestão organizacional.
+Frontend do Portal de Gente desenvolvido com React 18, TypeScript e Tailwind CSS. Inclui módulos de avaliação de desempenho, PDI, carreira e gestão organizacional.
 
 ## Stack Tecnológico
 
@@ -30,11 +30,13 @@ src/
 ## Configuração
 
 1. Instale as dependências:
+
 ```bash
 npm install
 ```
 
 2. Configure as variáveis de ambiente criando `.env`:
+
 ```env
 VITE_API_URL=http://localhost:3001
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
@@ -42,6 +44,7 @@ VITE_SUPABASE_ANON_KEY=sua-anon-key
 ```
 
 3. Inicie o servidor de desenvolvimento:
+
 ```bash
 npm run dev
 ```
@@ -60,12 +63,14 @@ npm run lint         # Executa o linter
 ## Funcionalidades Principais
 
 ### Dashboards por Papel
+
 - **Admin**: Gestão completa do sistema
 - **Diretor**: Visão estratégica e relatórios
 - **Líder**: Gestão de equipe e avaliações
 - **Colaborador**: Autoavaliação e PDI pessoal
 
 ### Módulos
+
 - Avaliação de Desempenho (Self + Leader + Consenso)
 - Nine Box Matrix (Performance x Potencial)
 - PDI (Plano de Desenvolvimento Individual)
