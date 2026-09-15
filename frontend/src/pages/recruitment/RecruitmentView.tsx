@@ -39,7 +39,7 @@ const candidateStatusConfig: Record<string, { label: string; color: string }> = 
 };
 
 const statusBadge: Record<string, { label: string; color: string }> = {
-  draft: { label: 'Rascunho', color: 'bg-secondary text-muted-foreground' },
+  draft: { label: 'Em aprovação', color: 'bg-secondary text-muted-foreground' },
   open: { label: 'Aberta', color: 'bg-success/15 text-success' },
   in_progress: { label: 'Em Andamento', color: 'bg-warning/15 text-warning' },
   closed: { label: 'Fechada', color: 'bg-destructive/15 text-destructive' },
