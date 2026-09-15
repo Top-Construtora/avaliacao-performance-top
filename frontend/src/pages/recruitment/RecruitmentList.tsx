@@ -25,7 +25,7 @@ import { recruitmentService, JobOpening } from '../../services/recruitment.servi
 import { useUserRole } from '../../context/AuthContext';
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
-  draft: { label: 'Rascunho', color: 'bg-secondary text-muted-foreground', icon: FileText },
+  draft: { label: 'Em aprovação', color: 'bg-secondary text-muted-foreground', icon: FileText },
   open: { label: 'Aberta', color: 'bg-success/15 text-success', icon: PlayCircle },
   in_progress: { label: 'Em Andamento', color: 'bg-warning/15 text-warning', icon: Clock },
   closed: { label: 'Fechada', color: 'bg-destructive/15 text-destructive', icon: CheckCircle },
@@ -205,7 +205,7 @@ const RecruitmentList = () => {
           <div className="flex items-center bg-secondary rounded-xl p-1.5">
             {[
               { value: 'all', label: 'Todas' },
-              { value: 'draft', label: 'Rascunhos' },
+              { value: 'draft', label: 'Em aprovação' },
               { value: 'open', label: 'Abertas' },
               { value: 'in_progress', label: 'Em Andamento' },
               { value: 'closed', label: 'Fechadas' },
